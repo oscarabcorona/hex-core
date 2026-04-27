@@ -19,6 +19,19 @@ interface DatePickerProps {
 	className?: string;
 	/** Accessible label for the trigger (required when no visible label is adjacent). */
 	"aria-label"?: string;
+	/**
+	 * Caption layout forwarded to react-day-picker. Use `"dropdown"` (or
+	 * `"dropdown-years"` / `"dropdown-months"`) to render native `<select>`
+	 * navigation — useful for birth-date pickers and far-out years.
+	 *
+	 * Always pair `dropdown` layouts with explicit `startMonth` and `endMonth`;
+	 * the RDP default span is ±100 years.
+	 */
+	captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
+	/** Earliest month/year navigable in the calendar. Forwarded to react-day-picker. */
+	startMonth?: Date;
+	/** Latest month/year navigable in the calendar. Forwarded to react-day-picker. */
+	endMonth?: Date;
 }
 
 /**
@@ -35,6 +48,9 @@ function DatePicker({
 	disabled,
 	className,
 	"aria-label": ariaLabel,
+	captionLayout,
+	startMonth,
+	endMonth,
 }: DatePickerProps) {
 	const [open, setOpen] = React.useState(false);
 
@@ -83,6 +99,9 @@ function DatePicker({
 						onChange?.(date);
 						setOpen(false);
 					}}
+					captionLayout={captionLayout}
+					startMonth={startMonth}
+					endMonth={endMonth}
 					autoFocus
 				/>
 			</PopoverContent>

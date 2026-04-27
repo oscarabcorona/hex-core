@@ -213,6 +213,37 @@ export {
 } from "./components/command/command.js";
 export { Combobox, type ComboboxOption, type ComboboxProps } from "./components/combobox/combobox.js";
 export {
+	MultiCombobox,
+	type MultiComboboxOption,
+	type MultiComboboxProps,
+} from "./components/multi-combobox/multi-combobox.js";
+export {
+	Stepper,
+	type StepperProps,
+	type StepperStep,
+	type StepStatus,
+} from "./components/stepper/stepper.js";
+export {
+	Timeline,
+	type TimelineEvent,
+	type TimelineProps,
+	type TimelineStatus,
+} from "./components/timeline/timeline.js";
+export {
+	Dropzone,
+	type DropzoneProps,
+	type DropzoneRenderState,
+} from "./components/dropzone/dropzone.js";
+export {
+	TimePicker,
+	type TimePickerProps,
+} from "./components/time-picker/time-picker.js";
+export {
+	FileTree,
+	type FileTreeNode,
+	type FileTreeProps,
+} from "./components/file-tree/file-tree.js";
+export {
 	Sheet,
 	SheetPortal,
 	SheetOverlay,
@@ -301,6 +332,12 @@ export { datePickerSchema } from "./components/date-picker/date-picker.schema.js
 export { inputOTPSchema } from "./components/input-otp/input-otp.schema.js";
 export { commandSchema } from "./components/command/command.schema.js";
 export { comboboxSchema } from "./components/combobox/combobox.schema.js";
+export { multiComboboxSchema } from "./components/multi-combobox/multi-combobox.schema.js";
+export { stepperSchema } from "./components/stepper/stepper.schema.js";
+export { timelineSchema } from "./components/timeline/timeline.schema.js";
+export { dropzoneSchema } from "./components/dropzone/dropzone.schema.js";
+export { timePickerSchema } from "./components/time-picker/time-picker.schema.js";
+export { fileTreeSchema } from "./components/file-tree/file-tree.schema.js";
 export { sheetSchema } from "./components/sheet/sheet.schema.js";
 export { drawerSchema } from "./components/drawer/drawer.schema.js";
 export { resizableSchema } from "./components/resizable/resizable.schema.js";

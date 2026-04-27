@@ -1,0 +1,161 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "stepper",
+  "displayName": "Stepper",
+  "description": "Linear progress indicator for multi-step flows (form wizards, onboarding, checkout). Pure semantic <ol>/<li> with aria-current='step' on the active step and a per-step error status override.",
+  "category": "component",
+  "subcategory": "navigation",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "steps",
+      "type": "object",
+      "required": true,
+      "description": "Ordered list of { id, label, description?, disabled?, status? }. `status` overrides the index-derived value."
+    },
+    {
+      "name": "current",
+      "type": "number",
+      "required": true,
+      "description": "Index of the current step (controlled)."
+    },
+    {
+      "name": "orientation",
+      "type": "string",
+      "required": false,
+      "default": "horizontal",
+      "description": "Layout direction: 'horizontal' | 'vertical'"
+    },
+    {
+      "name": "size",
+      "type": "string",
+      "required": false,
+      "default": "md",
+      "description": "Indicator size: 'sm' | 'md'"
+    },
+    {
+      "name": "onStepClick",
+      "type": "function",
+      "required": false,
+      "description": "When provided, each step renders as a clickable <button>; otherwise steps are non-interactive <span>s. Signature: (index: number) => void"
+    },
+    {
+      "name": "aria-label",
+      "type": "string",
+      "required": true,
+      "description": "Required accessible name for the ordered list (e.g. 'Onboarding steps', 'Checkout progress')"
+    }
+  ],
+  "variants": [
+    {
+      "name": "orientation",
+      "description": "Layout direction",
+      "values": [
+        {
+          "value": "horizontal",
+          "description": "Steps laid out left-to-right"
+        },
+        {
+          "value": "vertical",
+          "description": "Steps stacked top-to-bottom"
+        }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "name": "size",
+      "description": "Indicator size",
+      "values": [
+        {
+          "value": "sm",
+          "description": "Compact indicator (1.75rem)"
+        },
+        {
+          "value": "md",
+          "description": "Default indicator (matches control-height-sm)"
+        }
+      ],
+      "default": "md"
+    }
+  ],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/stepper.tsx",
+      "content": "import { cva } from \"class-variance-authority\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\ntype StepStatus = \"complete\" | \"current\" | \"upcoming\" | \"error\";\n\ninterface StepperStep {\n\t/** Stable unique id used as the React key. */\n\tid: string;\n\t/** Step name shown next to the indicator. */\n\tlabel: string;\n\t/** Optional secondary text under the label. */\n\tdescription?: string;\n\t/** Disable the step (only applies when onStepClick is provided). */\n\tdisabled?: boolean;\n\t/**\n\t * Override the index-derived status. Use `\"error\"` to mark a failed step\n\t * (e.g. validation failure in a form wizard); `\"complete\"` / `\"current\"` /\n\t * `\"upcoming\"` are derived from `current` by default.\n\t */\n\tstatus?: StepStatus;\n}\n\nconst stepperRoot = cva(\n\t\"flex w-full gap-[var(--gap-md,1rem)] list-none p-0 m-0\",\n\t{\n\t\tvariants: {\n\t\t\torientation: {\n\t\t\t\thorizontal: \"flex-row items-start\",\n\t\t\t\tvertical: \"flex-col items-stretch\",\n\t\t\t},\n\t\t},\n\t\tdefaultVariants: { orientation: \"horizontal\" },\n\t},\n);\n\n/*\n * Horizontal: each step sizes to its content; the connector (`flex-1`) fills\n * the gap between steps. Going `flex-1` on the step item itself would shrink\n * labels to the point of `text-overflow: ellipsis` (\"Account\" → \"A...\").\n * Vertical: items take the full width so multi-line descriptions wrap\n * naturally below the indicator.\n */\nconst stepItem = cva(\"flex gap-[var(--space-3,0.75rem)]\", {\n\tvariants: {\n\t\torientation: {\n\t\t\thorizontal: \"flex-row items-center\",\n\t\t\tvertical: \"flex-row items-start w-full\",\n\t\t},\n\t},\n\tdefaultVariants: { orientation: \"horizontal\" },\n});\n\nconst stepIndicator = cva(\n\t\"inline-flex shrink-0 items-center justify-center rounded-full border-2 font-medium transition-colors duration-[var(--duration-normal,200ms)] ease-out\",\n\t{\n\t\tvariants: {\n\t\t\tsize: {\n\t\t\t\tsm: \"h-7 w-7 text-xs\",\n\t\t\t\tmd: \"h-[var(--control-height-sm,2.25rem)] w-[var(--control-height-sm,2.25rem)] text-sm\",\n\t\t\t},\n\t\t\tstatus: {\n\t\t\t\tcomplete: \"bg-primary border-primary text-primary-foreground\",\n\t\t\t\tcurrent: \"bg-background border-primary text-primary\",\n\t\t\t\tupcoming: \"bg-background border-input text-muted-foreground\",\n\t\t\t\terror:\n\t\t\t\t\t\"bg-destructive border-destructive text-destructive-foreground\",\n\t\t\t},\n\t\t},\n\t\tdefaultVariants: { size: \"md\", status: \"upcoming\" },\n\t},\n);\n\nconst stepConnector = cva(\"bg-input transition-colors\", {\n\tvariants: {\n\t\torientation: {\n\t\t\thorizontal: \"h-px flex-1 min-w-[var(--space-6,1.5rem)] mx-[var(--space-2,0.5rem)]\",\n\t\t\tvertical: \"w-px self-stretch ml-[1.0625rem] my-[var(--space-1,0.25rem)] min-h-[var(--space-6,1.5rem)]\",\n\t\t},\n\t\tcomplete: {\n\t\t\ttrue: \"bg-primary\",\n\t\t\tfalse: \"\",\n\t\t},\n\t},\n\tdefaultVariants: { orientation: \"horizontal\", complete: false },\n});\n\ninterface StepperProps\n\textends Omit<\n\t\tReact.HTMLAttributes<HTMLOListElement>,\n\t\t\"aria-label\" | \"onClick\"\n\t> {\n\t/** Ordered list of steps. */\n\tsteps: StepperStep[];\n\t/** Index of the current step (controlled). */\n\tcurrent: number;\n\t/** Layout direction. */\n\torientation?: \"horizontal\" | \"vertical\";\n\t/** Indicator size. */\n\tsize?: \"sm\" | \"md\";\n\t/** When provided, each step is rendered as a clickable button. */\n\tonStepClick?: (index: number) => void;\n\t/** Required accessible name for the ordered list. */\n\t\"aria-label\": string;\n}\n\nfunction deriveStatus(index: number, current: number): StepStatus {\n\tif (index < current) return \"complete\";\n\tif (index === current) return \"current\";\n\treturn \"upcoming\";\n}\n\nfunction StepCheck() {\n\treturn (\n\t\t<svg\n\t\t\txmlns=\"http://www.w3.org/2000/svg\"\n\t\t\tviewBox=\"0 0 24 24\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"3\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\tclassName=\"h-4 w-4\"\n\t\t\taria-hidden=\"true\"\n\t\t>\n\t\t\t<polyline points=\"20 6 9 17 4 12\" />\n\t\t</svg>\n\t);\n}\n\nfunction StepError() {\n\treturn (\n\t\t<svg\n\t\t\txmlns=\"http://www.w3.org/2000/svg\"\n\t\t\tviewBox=\"0 0 24 24\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"3\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\tclassName=\"h-4 w-4\"\n\t\t\taria-hidden=\"true\"\n\t\t>\n\t\t\t<line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\" />\n\t\t\t<line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\" />\n\t\t</svg>\n\t);\n}\n\ninterface StepIndicatorProps {\n\tindex: number;\n\tstatus: StepStatus;\n\tsize: \"sm\" | \"md\";\n}\n\nfunction StepIndicator({ index, status, size }: StepIndicatorProps) {\n\treturn (\n\t\t<span\n\t\t\tclassName={stepIndicator({ size, status })}\n\t\t\taria-invalid={status === \"error\" ? true : undefined}\n\t\t>\n\t\t\t{status === \"complete\" ? (\n\t\t\t\t<StepCheck />\n\t\t\t) : status === \"error\" ? (\n\t\t\t\t<StepError />\n\t\t\t) : (\n\t\t\t\tindex + 1\n\t\t\t)}\n\t\t</span>\n\t);\n}\n\n/**\n * Linear progress indicator for multi-step flows (form wizards, onboarding,\n * checkout). Pure semantic HTML — `<ol>` of `<li>` with `aria-current=\"step\"`\n * on the current item; per-step `status` overrides allow marking \"error\".\n *\n * Pass `onStepClick` to make completed/non-disabled steps interactive.\n * @returns An accessible ordered step list.\n */\nfunction Stepper({\n\tsteps,\n\tcurrent,\n\torientation = \"horizontal\",\n\tsize = \"md\",\n\tonStepClick,\n\t\"aria-label\": ariaLabel,\n\tclassName,\n\t...rest\n}: StepperProps) {\n\tconst interactive = typeof onStepClick === \"function\";\n\treturn (\n\t\t<ol\n\t\t\taria-label={ariaLabel}\n\t\t\tclassName={cn(stepperRoot({ orientation }), className)}\n\t\t\t{...rest}\n\t\t>\n\t\t\t{steps.map((step, index) => {\n\t\t\t\tconst status = step.status ?? deriveStatus(index, current);\n\t\t\t\tconst isCurrent = status === \"current\";\n\t\t\t\tconst isLast = index === steps.length - 1;\n\t\t\t\tconst labelNode = (\n\t\t\t\t\t<span className=\"flex flex-col gap-[var(--space-1,0.25rem)]\">\n\t\t\t\t\t\t<span\n\t\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\t\"text-sm font-medium whitespace-nowrap\",\n\t\t\t\t\t\t\t\tisCurrent && \"text-foreground\",\n\t\t\t\t\t\t\t\tstatus === \"complete\" && \"text-foreground\",\n\t\t\t\t\t\t\t\tstatus === \"upcoming\" && \"text-muted-foreground\",\n\t\t\t\t\t\t\t\tstatus === \"error\" && \"text-destructive\",\n\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{status === \"complete\" && (\n\t\t\t\t\t\t\t\t<span className=\"sr-only\">Completed: </span>\n\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t{status === \"error\" && (\n\t\t\t\t\t\t\t\t<span className=\"sr-only\">Error: </span>\n\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t{step.label}\n\t\t\t\t\t\t</span>\n\t\t\t\t\t\t{step.description ? (\n\t\t\t\t\t\t\t<span className=\"text-xs text-muted-foreground\">\n\t\t\t\t\t\t\t\t{step.description}\n\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t) : null}\n\t\t\t\t\t</span>\n\t\t\t\t);\n\n\t\t\t\tconst innerContent = (\n\t\t\t\t\t<>\n\t\t\t\t\t\t<StepIndicator index={index} status={status} size={size} />\n\t\t\t\t\t\t{labelNode}\n\t\t\t\t\t</>\n\t\t\t\t);\n\n\t\t\t\treturn (\n\t\t\t\t\t/*\n\t\t\t\t\t * `aria-current=\"step\"` lives on the <li> itself so screen\n\t\t\t\t\t * readers announce it as part of the listitem's intro\n\t\t\t\t\t * (per WAI guidance for \"step\" lists), not buried on an\n\t\t\t\t\t * interior span/button.\n\t\t\t\t\t */\n\t\t\t\t\t<li\n\t\t\t\t\t\tkey={step.id}\n\t\t\t\t\t\taria-current={isCurrent ? \"step\" : undefined}\n\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\tstepItem({ orientation }),\n\t\t\t\t\t\t\t/*\n\t\t\t\t\t\t\t * Grow only when there's a connector after this step.\n\t\t\t\t\t\t\t * The connector inside takes the extra space via\n\t\t\t\t\t\t\t * `flex-1` so the line spans to the next step.\n\t\t\t\t\t\t\t */\n\t\t\t\t\t\t\t!isLast && orientation === \"horizontal\" && \"flex-1\",\n\t\t\t\t\t\t\t!isLast && orientation === \"vertical\" && \"flex-col\",\n\t\t\t\t\t\t)}\n\t\t\t\t\t>\n\t\t\t\t\t\t{interactive ? (\n\t\t\t\t\t\t\t<button\n\t\t\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\t\t\tdisabled={step.disabled}\n\t\t\t\t\t\t\t\tonClick={() => onStepClick?.(index)}\n\t\t\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\t\t\"flex items-center gap-[var(--space-3,0.75rem)] text-left rounded-md transition-colors duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t\t\t\t\t\t\"disabled:opacity-50 disabled:pointer-events-none\",\n\t\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{innerContent}\n\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t) : (\n\t\t\t\t\t\t\t<span className=\"flex items-center gap-[var(--space-3,0.75rem)]\">\n\t\t\t\t\t\t\t\t{innerContent}\n\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t)}\n\t\t\t\t\t\t{!isLast ? (\n\t\t\t\t\t\t\t/*\n\t\t\t\t\t\t\t * Connector \"complete\" iff THIS step is finished. An\n\t\t\t\t\t\t\t * explicit \"error\" status on the current step never\n\t\t\t\t\t\t\t * fills the gap to the next step — the user hasn't\n\t\t\t\t\t\t\t * cleared this milestone.\n\t\t\t\t\t\t\t */\n\t\t\t\t\t\t\t<span\n\t\t\t\t\t\t\t\taria-hidden=\"true\"\n\t\t\t\t\t\t\t\tclassName={stepConnector({\n\t\t\t\t\t\t\t\t\torientation,\n\t\t\t\t\t\t\t\t\tcomplete: index < current && step.status !== \"error\",\n\t\t\t\t\t\t\t\t})}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t) : null}\n\t\t\t\t\t</li>\n\t\t\t\t);\n\t\t\t})}\n\t\t</ol>\n\t);\n}\nStepper.displayName = \"Stepper\";\n\nexport { Stepper };\nexport type { StepperProps, StepperStep, StepStatus };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "primary-foreground",
+    "foreground",
+    "muted-foreground",
+    "input",
+    "destructive",
+    "destructive-foreground",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Form wizard",
+      "description": "Three-step horizontal stepper with the second step active",
+      "code": "import { Stepper } from \"@/components/ui/stepper\";\n\nexport function Example() {\n  return (\n    <Stepper\n      aria-label=\"Onboarding\"\n      current={1}\n      steps={[\n        { id: \"account\", label: \"Account\", description: \"Email + password\" },\n        { id: \"profile\", label: \"Profile\", description: \"Name + photo\" },\n        { id: \"confirm\", label: \"Confirm\" },\n      ]}\n    />\n  );\n}"
+    },
+    {
+      "title": "With error state",
+      "description": "Mark a failed step explicitly with status='error'",
+      "code": "import { Stepper } from \"@/components/ui/stepper\";\n\nexport function Example() {\n  return (\n    <Stepper\n      aria-label=\"Checkout\"\n      current={2}\n      steps={[\n        { id: \"cart\", label: \"Cart\" },\n        { id: \"shipping\", label: \"Shipping\", status: \"error\" },\n        { id: \"payment\", label: \"Payment\" },\n      ]}\n    />\n  );\n}"
+    },
+    {
+      "title": "Vertical, clickable",
+      "description": "Vertical orientation with onStepClick to jump back",
+      "code": "import { Stepper } from \"@/components/ui/stepper\";\n\nexport function Example() {\n  return (\n    <Stepper\n      aria-label=\"Settings\"\n      orientation=\"vertical\"\n      current={1}\n      onStepClick={(i) => console.log(i)}\n      steps={[\n        { id: \"profile\", label: \"Profile\" },\n        { id: \"security\", label: \"Security\" },\n        { id: \"billing\", label: \"Billing\" },\n      ]}\n    />\n  );\n}"
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use to communicate progress through a multi-step flow with a known fixed sequence: form wizards, onboarding, checkout, ticket triage. Mark per-step error status when validation fails.",
+    "whenNotToUse": "Don't use for free navigation across unrelated sections (use Tabs). Don't use for indeterminate progress (use Progress with no value). Don't use for >7 steps — collapse into a multi-screen wizard with a sub-stepper instead.",
+    "commonMistakes": [
+      "Forgetting aria-label — the <ol> needs an accessible name to be understood as a step list",
+      "Setting current to an out-of-range index — derives all steps as 'upcoming'",
+      "Mixing index-derived status with manual status overrides without intent — once you set status on one step, set it on all of them or know the precedence rules",
+      "Making the stepper interactive (onStepClick) but allowing forward jumps before validation — gate jumps in your handler",
+      "Treating it as a tab control — Stepper communicates direction; users can't pick step 5 then go back to 2 to review without your wiring"
+    ],
+    "relatedComponents": [
+      "progress",
+      "tabs",
+      "breadcrumb"
+    ],
+    "accessibilityNotes": "Renders <ol> with the provided aria-label. The active step's interactive element gets aria-current='step'. Completed steps prefix the label with visually-hidden 'Completed:'; error steps prefix with 'Error:' and set aria-invalid='true' on the indicator. Connector lines are aria-hidden. When onStepClick is omitted, steps are plain <span>s — not fake buttons.",
+    "tokenBudget": 1400
+  },
+  "tags": [
+    "stepper",
+    "wizard",
+    "progress",
+    "navigation",
+    "form"
+  ]
+}

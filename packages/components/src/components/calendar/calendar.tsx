@@ -10,6 +10,61 @@ import { cn } from "../../lib/utils.js";
  * parts can be overridden via the `classNames` prop.
  * @returns A themed react-day-picker DayPicker instance.
  */
+/*
+ * react-day-picker v9 renders each caption-layout dropdown as:
+ *   <span class="rdp-dropdown_root">
+ *     <select class="rdp-dropdown">…</select>
+ *     <span aria-hidden="true">{label}<chevron/></span>
+ *   </span>
+ * The library expects the consumer's theme to layer the native <select>
+ * transparently over the visible label span. Without that overlay both
+ * elements paint side-by-side and the month/year labels duplicate. We use a
+ * plain <style> block (rather than Tailwind arbitrary variants) because the
+ * `_` in the rdp class names trips up Tailwind's underscore-as-space rule and
+ * RDP v9's ClassNames merger doesn't run user classes for these keys.
+ */
+const RDP_DROPDOWN_OVERLAY_CSS = `
+.rdp-dropdowns {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--gap-sm, 0.5rem);
+	font-size: 0.875rem;
+	font-weight: 500;
+}
+.rdp-dropdown_root {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-1, 0.25rem);
+	border-radius: 0.375rem;
+	padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
+	transition: background-color var(--duration-normal, 200ms) ease-out;
+}
+.rdp-dropdown_root:hover {
+	background-color: hsl(var(--accent));
+}
+.rdp-dropdown_root:has(:focus-visible) {
+	outline: 2px solid hsl(var(--ring));
+	outline-offset: 2px;
+}
+.rdp-dropdown {
+	position: absolute;
+	inset: 0;
+	z-index: 10;
+	width: 100%;
+	height: 100%;
+	cursor: pointer;
+	appearance: none;
+	background: transparent;
+	border: 0;
+	opacity: 0;
+}
+.rdp-dropdown:disabled {
+	cursor: not-allowed;
+}
+`;
+
 function Calendar({
 	className,
 	classNames,
@@ -17,6 +72,12 @@ function Calendar({
 	...props
 }: React.ComponentProps<typeof DayPicker>) {
 	return (
+		<>
+			<style
+				// Single static stylesheet; React inlines once per page
+				// regardless of Calendar instance count.
+				dangerouslySetInnerHTML={{ __html: RDP_DROPDOWN_OVERLAY_CSS }}
+			/>
 		<DayPicker
 			showOutsideDays={showOutsideDays}
 			className={cn("relative p-[var(--space-3,0.75rem)]", className)}
@@ -81,6 +142,7 @@ function Calendar({
 			}}
 			{...props}
 		/>
+		</>
 	);
 }
 Calendar.displayName = "Calendar";

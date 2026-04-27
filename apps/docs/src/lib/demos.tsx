@@ -18,13 +18,16 @@ import { DataTableDemo } from "../app/demos/data-table-demo";
 import { DatePickerDemo } from "../app/demos/date-picker-demo";
 import { DialogDemo } from "../app/demos/dialog-demo";
 import { DrawerDemo } from "../app/demos/drawer-demo";
+import { DropzoneDemo } from "../app/demos/dropzone-demo";
 import { DropdownMenuDemo } from "../app/demos/dropdown-menu-demo";
+import { FileTreeDemo } from "../app/demos/file-tree-demo";
 import { FormDemo } from "../app/demos/form-demo";
 import { HoverCardDemo } from "../app/demos/hover-card-demo";
 import { InputDemo } from "../app/demos/input-demo";
 import { InputOTPDemo } from "../app/demos/input-otp-demo";
 import { LabelDemo } from "../app/demos/label-demo";
 import { MenubarDemo } from "../app/demos/menubar-demo";
+import { MultiComboboxDemo } from "../app/demos/multi-combobox-demo";
 import { NavigationMenuDemo } from "../app/demos/navigation-menu-demo";
 import { PaginationDemo } from "../app/demos/pagination-demo";
 import { PopoverDemo } from "../app/demos/popover-demo";
@@ -39,10 +42,13 @@ import { SidebarDemo } from "../app/demos/sidebar-demo";
 import { SkeletonDemo } from "../app/demos/skeleton-demo";
 import { SliderDemo } from "../app/demos/slider-demo";
 import { SonnerDemo } from "../app/demos/sonner-demo";
+import { StepperDemo } from "../app/demos/stepper-demo";
 import { SwitchDemo } from "../app/demos/switch-demo";
 import { TableDemo } from "../app/demos/table-demo";
 import { TabsDemo } from "../app/demos/tabs-demo";
 import { TextareaDemo } from "../app/demos/textarea-demo";
+import { TimePickerDemo } from "../app/demos/time-picker-demo";
+import { TimelineDemo } from "../app/demos/timeline-demo";
 import { ToggleDemo } from "../app/demos/toggle-demo";
 import { ToggleGroupDemo } from "../app/demos/toggle-group-demo";
 import { TooltipDemo } from "../app/demos/tooltip-demo";
@@ -77,12 +83,15 @@ export const demos: Record<string, ComponentType> = {
 	dialog: DialogDemo,
 	drawer: DrawerDemo,
 	"dropdown-menu": DropdownMenuDemo,
+	dropzone: DropzoneDemo,
+	"file-tree": FileTreeDemo,
 	form: FormDemo,
 	"hover-card": HoverCardDemo,
 	input: InputDemo,
 	"input-otp": InputOTPDemo,
 	label: LabelDemo,
 	menubar: MenubarDemo,
+	"multi-combobox": MultiComboboxDemo,
 	"navigation-menu": NavigationMenuDemo,
 	pagination: PaginationDemo,
 	popover: PopoverDemo,
@@ -97,10 +106,13 @@ export const demos: Record<string, ComponentType> = {
 	skeleton: SkeletonDemo,
 	slider: SliderDemo,
 	sonner: SonnerDemo,
+	stepper: StepperDemo,
 	switch: SwitchDemo,
 	table: TableDemo,
 	tabs: TabsDemo,
 	textarea: TextareaDemo,
+	"time-picker": TimePickerDemo,
+	timeline: TimelineDemo,
 	toggle: ToggleDemo,
 	"toggle-group": ToggleGroupDemo,
 	tooltip: TooltipDemo,

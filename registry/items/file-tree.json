@@ -1,0 +1,121 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "file-tree",
+  "displayName": "File Tree",
+  "description": "Hierarchical tree view for files, folders, and any nested navigation. Implements the WAI-ARIA tree pattern with role='tree' / 'treeitem' / 'group', aria-level, aria-expanded, aria-selected, and full keyboard navigation (Up/Down/Left/Right/Home/End/Enter/Space).",
+  "category": "component",
+  "subcategory": "navigation",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "nodes",
+      "type": "object",
+      "required": true,
+      "description": "Tree of { id, name, children?, icon?, disabled? }. Presence of `children` (even an empty array) marks the node as a folder."
+    },
+    {
+      "name": "defaultExpanded",
+      "type": "object",
+      "required": false,
+      "description": "Uncontrolled — initial expanded ids (string[])."
+    },
+    {
+      "name": "expanded",
+      "type": "object",
+      "required": false,
+      "description": "Controlled expanded ids (string[]). Pair with onExpandedChange."
+    },
+    {
+      "name": "onExpandedChange",
+      "type": "function",
+      "required": false,
+      "description": "Fired with the new expanded ids: (ids: string[]) => void"
+    },
+    {
+      "name": "selected",
+      "type": "string",
+      "required": false,
+      "description": "Controlled selected node id."
+    },
+    {
+      "name": "onSelect",
+      "type": "function",
+      "required": false,
+      "description": "Fired when the user activates a node via click, Enter, or Space: (id: string) => void"
+    },
+    {
+      "name": "aria-label",
+      "type": "string",
+      "required": true,
+      "description": "Required accessible name for the tree (e.g. 'File explorer', 'Settings sections')."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/file-tree.tsx",
+      "content": "import * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\ninterface FileTreeNode {\n\t/** Stable unique id used as React key + ARIA target. */\n\tid: string;\n\t/** Display name (file or folder). */\n\tname: string;\n\t/** Nested children. Presence (even if empty array) marks the node as a folder. */\n\tchildren?: FileTreeNode[];\n\t/** Optional icon override. Default chooses folder/file based on `children`. */\n\ticon?: React.ReactNode;\n\t/** Disable selection + expand toggle. */\n\tdisabled?: boolean;\n}\n\ninterface FileTreeProps {\n\t/** Root nodes. */\n\tnodes: FileTreeNode[];\n\t/** Uncontrolled initial expanded ids. */\n\tdefaultExpanded?: string[];\n\t/** Controlled expanded ids. */\n\texpanded?: string[];\n\t/** Fired when expanded set changes (array of ids). */\n\tonExpandedChange?: (ids: string[]) => void;\n\t/** Controlled selected node id. */\n\tselected?: string;\n\t/** Fired when the user activates a node (click, Enter, or Space). */\n\tonSelect?: (id: string) => void;\n\t/** Required accessible name for the tree container. */\n\t\"aria-label\": string;\n\t/** Extra class names on the root tree element. */\n\tclassName?: string;\n}\n\ninterface FlatNode {\n\tid: string;\n\tname: string;\n\tlevel: number;\n\thasChildren: boolean;\n\tdisabled: boolean;\n\tparentId: string | null;\n\ticon: React.ReactNode | undefined;\n}\n\nfunction flatten(\n\tnodes: FileTreeNode[],\n\texpandedSet: Set<string>,\n\tlevel = 1,\n\tparentId: string | null = null,\n): FlatNode[] {\n\tconst out: FlatNode[] = [];\n\tfor (const node of nodes) {\n\t\tconst hasChildren = Array.isArray(node.children);\n\t\tout.push({\n\t\t\tid: node.id,\n\t\t\tname: node.name,\n\t\t\tlevel,\n\t\t\thasChildren,\n\t\t\tdisabled: !!node.disabled,\n\t\t\tparentId,\n\t\t\ticon: node.icon,\n\t\t});\n\t\tif (hasChildren && expandedSet.has(node.id) && node.children) {\n\t\t\tout.push(...flatten(node.children, expandedSet, level + 1, node.id));\n\t\t}\n\t}\n\treturn out;\n}\n\nfunction FolderIcon({ open }: { open: boolean }) {\n\treturn (\n\t\t<svg\n\t\t\txmlns=\"http://www.w3.org/2000/svg\"\n\t\t\tviewBox=\"0 0 24 24\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"2\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\tclassName=\"h-4 w-4 shrink-0\"\n\t\t\taria-hidden=\"true\"\n\t\t>\n\t\t\t{open ? (\n\t\t\t\t<path d=\"M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-7l-2-2H5a2 2 0 0 0-2 2z\" />\n\t\t\t) : (\n\t\t\t\t<path d=\"M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z\" />\n\t\t\t)}\n\t\t</svg>\n\t);\n}\n\nfunction FileIcon() {\n\treturn (\n\t\t<svg\n\t\t\txmlns=\"http://www.w3.org/2000/svg\"\n\t\t\tviewBox=\"0 0 24 24\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"2\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\tclassName=\"h-4 w-4 shrink-0\"\n\t\t\taria-hidden=\"true\"\n\t\t>\n\t\t\t<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\" />\n\t\t\t<polyline points=\"14 2 14 8 20 8\" />\n\t\t</svg>\n\t);\n}\n\nfunction Chevron({ expanded }: { expanded: boolean }) {\n\treturn (\n\t\t<svg\n\t\t\txmlns=\"http://www.w3.org/2000/svg\"\n\t\t\tviewBox=\"0 0 24 24\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"2\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\tclassName={cn(\n\t\t\t\t\"h-3 w-3 shrink-0 text-muted-foreground transition-transform duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\texpanded ? \"rotate-90\" : \"\",\n\t\t\t)}\n\t\t\taria-hidden=\"true\"\n\t\t>\n\t\t\t<polyline points=\"9 18 15 12 9 6\" />\n\t\t</svg>\n\t);\n}\n\ninterface TreeItemProps {\n\tnode: FileTreeNode;\n\tlevel: number;\n\texpandedSet: Set<string>;\n\tselected?: string;\n\tonToggle: (id: string) => void;\n\tonSelect: (id: string) => void;\n\tonKeyDown: (e: React.KeyboardEvent<HTMLDivElement>, id: string) => void;\n\tregisterRef: (id: string, el: HTMLDivElement | null) => void;\n\ttabbableId: string | null;\n}\n\nfunction TreeItem({\n\tnode,\n\tlevel,\n\texpandedSet,\n\tselected,\n\tonToggle,\n\tonSelect,\n\tonKeyDown,\n\tregisterRef,\n\ttabbableId,\n}: TreeItemProps) {\n\tconst hasChildren = Array.isArray(node.children);\n\tconst isExpanded = hasChildren && expandedSet.has(node.id);\n\tconst isSelected = selected === node.id;\n\n\treturn (\n\t\t<li role=\"none\">\n\t\t\t<div\n\t\t\t\trole=\"treeitem\"\n\t\t\t\taria-level={level}\n\t\t\t\taria-expanded={hasChildren ? isExpanded : undefined}\n\t\t\t\taria-selected={isSelected}\n\t\t\t\taria-disabled={node.disabled || undefined}\n\t\t\t\ttabIndex={tabbableId === node.id ? 0 : -1}\n\t\t\t\tref={(el) => registerRef(node.id, el)}\n\t\t\t\tonClick={(e) => {\n\t\t\t\t\tif (node.disabled) return;\n\t\t\t\t\te.stopPropagation();\n\t\t\t\t\t/*\n\t\t\t\t\t * WAI-ARIA tree pattern: row click selects only. Toggling\n\t\t\t\t\t * a folder is the chevron's job (or ArrowRight/Left, or\n\t\t\t\t\t * Enter/Space when the row is focused).\n\t\t\t\t\t */\n\t\t\t\t\tonSelect(node.id);\n\t\t\t\t}}\n\t\t\t\tonKeyDown={(e) => onKeyDown(e, node.id)}\n\t\t\t\tclassName={cn(\n\t\t\t\t\t\"flex items-center gap-[var(--space-2,0.5rem)] rounded-md px-[var(--space-2,0.5rem)] py-[var(--space-1,0.25rem)] text-sm cursor-pointer select-none transition-colors duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\t\"hover:bg-accent hover:text-accent-foreground\",\n\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1\",\n\t\t\t\t\tisSelected && \"bg-accent text-accent-foreground\",\n\t\t\t\t\tnode.disabled && \"opacity-50 cursor-not-allowed pointer-events-none\",\n\t\t\t\t)}\n\t\t\t\tstyle={{ paddingInlineStart: `calc(${level - 1} * 1rem + var(--space-2, 0.5rem))` }}\n\t\t\t>\n\t\t\t\t{hasChildren ? (\n\t\t\t\t\t<button\n\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\ttabIndex={-1}\n\t\t\t\t\t\taria-hidden=\"true\"\n\t\t\t\t\t\t/*\n\t\t\t\t\t\t * Decorative button — toggling is also reachable via\n\t\t\t\t\t\t * Enter/Space on the treeitem and ArrowRight/Left, so\n\t\t\t\t\t\t * we don't add this to the keyboard tour.\n\t\t\t\t\t\t */\n\t\t\t\t\t\tonClick={(e) => {\n\t\t\t\t\t\t\te.stopPropagation();\n\t\t\t\t\t\t\tif (node.disabled) return;\n\t\t\t\t\t\t\tonToggle(node.id);\n\t\t\t\t\t\t}}\n\t\t\t\t\t\tclassName=\"inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm hover:bg-accent-foreground/10\"\n\t\t\t\t\t>\n\t\t\t\t\t\t<Chevron expanded={isExpanded} />\n\t\t\t\t\t</button>\n\t\t\t\t) : (\n\t\t\t\t\t<span className=\"w-3 shrink-0\" aria-hidden=\"true\" />\n\t\t\t\t)}\n\t\t\t\t{node.icon ?? (hasChildren ? <FolderIcon open={isExpanded} /> : <FileIcon />)}\n\t\t\t\t<span className=\"truncate\">{node.name}</span>\n\t\t\t</div>\n\t\t\t{hasChildren && isExpanded && node.children ? (\n\t\t\t\t<ul role=\"group\" className=\"m-0 list-none p-0\">\n\t\t\t\t\t{node.children.map((child) => (\n\t\t\t\t\t\t<TreeItem\n\t\t\t\t\t\t\tkey={child.id}\n\t\t\t\t\t\t\tnode={child}\n\t\t\t\t\t\t\tlevel={level + 1}\n\t\t\t\t\t\t\texpandedSet={expandedSet}\n\t\t\t\t\t\t\tselected={selected}\n\t\t\t\t\t\t\tonToggle={onToggle}\n\t\t\t\t\t\t\tonSelect={onSelect}\n\t\t\t\t\t\t\tonKeyDown={onKeyDown}\n\t\t\t\t\t\t\tregisterRef={registerRef}\n\t\t\t\t\t\t\ttabbableId={tabbableId}\n\t\t\t\t\t\t/>\n\t\t\t\t\t))}\n\t\t\t\t</ul>\n\t\t\t) : null}\n\t\t</li>\n\t);\n}\n\n/**\n * Hierarchical tree view for files, folders, settings sections, or any nested\n * navigation. Built on the WAI-ARIA tree pattern: `role=\"tree\"` root,\n * `role=\"treeitem\"` per node, `role=\"group\"` per child group, with\n * `aria-level` / `aria-expanded` / `aria-selected` reflecting state.\n *\n * Keyboard: Up/Down move between visible items; Right expands a folder or\n * moves to the first child; Left collapses or moves to the parent;\n * Enter/Space activate the focused node; Home/End jump to the first/last.\n *\n * Expanded state is uncontrolled by default (`defaultExpanded`). Pass\n * `expanded` + `onExpandedChange` for controlled mode.\n * @returns A keyboard-accessible nested tree.\n */\nfunction FileTree({\n\tnodes,\n\tdefaultExpanded,\n\texpanded: expandedProp,\n\tonExpandedChange,\n\tselected,\n\tonSelect,\n\t\"aria-label\": ariaLabel,\n\tclassName,\n}: FileTreeProps) {\n\tconst isControlled = expandedProp !== undefined;\n\tconst [internalExpanded, setInternalExpanded] = React.useState<string[]>(\n\t\tdefaultExpanded ?? [],\n\t);\n\tconst expanded = isControlled ? expandedProp : internalExpanded;\n\tconst expandedSet = React.useMemo(() => new Set(expanded), [expanded]);\n\n\tconst itemRefs = React.useRef(new Map<string, HTMLDivElement>());\n\tconst registerRef = React.useCallback(\n\t\t(id: string, el: HTMLDivElement | null) => {\n\t\t\tif (el) itemRefs.current.set(id, el);\n\t\t\telse itemRefs.current.delete(id);\n\t\t},\n\t\t[],\n\t);\n\n\tconst flat = React.useMemo(\n\t\t() => flatten(nodes, expandedSet),\n\t\t[nodes, expandedSet],\n\t);\n\n\tconst firstId = flat[0]?.id ?? null;\n\tconst [focusedId, setFocusedId] = React.useState<string | null>(null);\n\t/*\n\t * Resolve the roving-tabindex target against the *visible* (flattened)\n\t * node set. If `selected` lives inside a collapsed branch its <treeitem>\n\t * doesn't render, and pointing tabIndex=0 at it would silently skip the\n\t * whole tree from Tab navigation.\n\t */\n\tconst visibleIds = React.useMemo(\n\t\t() => new Set(flat.map((n) => n.id)),\n\t\t[flat],\n\t);\n\tconst candidate = focusedId ?? selected ?? firstId;\n\tconst tabbableId =\n\t\tcandidate && visibleIds.has(candidate) ? candidate : firstId;\n\n\tconst setExpanded = React.useCallback(\n\t\t(next: string[]) => {\n\t\t\tif (!isControlled) setInternalExpanded(next);\n\t\t\tonExpandedChange?.(next);\n\t\t},\n\t\t[isControlled, onExpandedChange],\n\t);\n\n\tconst toggle = React.useCallback(\n\t\t(id: string) => {\n\t\t\tconst set = new Set(expanded);\n\t\t\tif (set.has(id)) set.delete(id);\n\t\t\telse set.add(id);\n\t\t\tsetExpanded(Array.from(set));\n\t\t},\n\t\t[expanded, setExpanded],\n\t);\n\n\tconst handleSelect = React.useCallback(\n\t\t(id: string) => {\n\t\t\tonSelect?.(id);\n\t\t\tsetFocusedId(id);\n\t\t},\n\t\t[onSelect],\n\t);\n\n\tconst focusNode = (id: string) => {\n\t\tsetFocusedId(id);\n\t\t// Defer to next paint so the new tabbable element is in the DOM.\n\t\trequestAnimationFrame(() => itemRefs.current.get(id)?.focus());\n\t};\n\n\tconst handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, id: string) => {\n\t\tconst flatNodes = flat;\n\t\tconst idx = flatNodes.findIndex((n) => n.id === id);\n\t\tconst node = flatNodes[idx];\n\t\tif (!node) return;\n\n\t\t// Walk past disabled neighbours so arrow keys never park focus on a\n\t\t// non-actionable node — matches the convention used elsewhere in the\n\t\t// repo (see <Select> / <Combobox> disabled item handling in cmdk).\n\t\tconst findEnabled = (start: number, dir: 1 | -1) => {\n\t\t\tlet i = start;\n\t\t\twhile (i >= 0 && i < flatNodes.length) {\n\t\t\t\tif (!flatNodes[i].disabled) return flatNodes[i];\n\t\t\t\ti += dir;\n\t\t\t}\n\t\t\treturn null;\n\t\t};\n\n\t\tswitch (e.key) {\n\t\t\tcase \"ArrowDown\": {\n\t\t\t\te.preventDefault();\n\t\t\t\tconst next = findEnabled(idx + 1, 1);\n\t\t\t\tif (next) focusNode(next.id);\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\tcase \"ArrowUp\": {\n\t\t\t\te.preventDefault();\n\t\t\t\tconst prev = findEnabled(idx - 1, -1);\n\t\t\t\tif (prev) focusNode(prev.id);\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\tcase \"ArrowRight\": {\n\t\t\t\te.preventDefault();\n\t\t\t\tif (node.hasChildren && !expandedSet.has(node.id)) {\n\t\t\t\t\ttoggle(node.id);\n\t\t\t\t} else if (node.hasChildren) {\n\t\t\t\t\tconst firstChild = flatNodes[idx + 1];\n\t\t\t\t\tif (firstChild && firstChild.parentId === node.id)\n\t\t\t\t\t\tfocusNode(firstChild.id);\n\t\t\t\t}\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\tcase \"ArrowLeft\": {\n\t\t\t\te.preventDefault();\n\t\t\t\tif (node.hasChildren && expandedSet.has(node.id)) {\n\t\t\t\t\ttoggle(node.id);\n\t\t\t\t} else if (node.parentId) {\n\t\t\t\t\tfocusNode(node.parentId);\n\t\t\t\t}\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\tcase \"Home\": {\n\t\t\t\te.preventDefault();\n\t\t\t\tif (flatNodes[0]) focusNode(flatNodes[0].id);\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\tcase \"End\": {\n\t\t\t\te.preventDefault();\n\t\t\t\tconst last = flatNodes[flatNodes.length - 1];\n\t\t\t\tif (last) focusNode(last.id);\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\tcase \"Enter\":\n\t\t\tcase \" \": {\n\t\t\t\te.preventDefault();\n\t\t\t\tif (!node.disabled) {\n\t\t\t\t\tif (node.hasChildren) toggle(node.id);\n\t\t\t\t\thandleSelect(node.id);\n\t\t\t\t}\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t};\n\n\treturn (\n\t\t<ul\n\t\t\trole=\"tree\"\n\t\t\taria-label={ariaLabel}\n\t\t\tclassName={cn(\"list-none p-0 m-0\", className)}\n\t\t>\n\t\t\t{nodes.map((node) => (\n\t\t\t\t<TreeItem\n\t\t\t\t\tkey={node.id}\n\t\t\t\t\tnode={node}\n\t\t\t\t\tlevel={1}\n\t\t\t\t\texpandedSet={expandedSet}\n\t\t\t\t\tselected={selected}\n\t\t\t\t\tonToggle={toggle}\n\t\t\t\t\tonSelect={handleSelect}\n\t\t\t\t\tonKeyDown={handleKeyDown}\n\t\t\t\t\tregisterRef={registerRef}\n\t\t\t\t\ttabbableId={tabbableId}\n\t\t\t\t/>\n\t\t\t))}\n\t\t</ul>\n\t);\n}\nFileTree.displayName = \"FileTree\";\n\nexport { FileTree };\nexport type { FileTreeNode, FileTreeProps };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "accent",
+    "accent-foreground",
+    "muted-foreground",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Basic file tree",
+      "description": "Uncontrolled expanded set; selected state controlled",
+      "code": "import { useState } from \"react\";\nimport { FileTree } from \"@/components/ui/file-tree\";\n\nconst nodes = [\n  {\n    id: \"src\",\n    name: \"src\",\n    children: [\n      { id: \"src/index.tsx\", name: \"index.tsx\" },\n      {\n        id: \"src/components\",\n        name: \"components\",\n        children: [\n          { id: \"src/components/Button.tsx\", name: \"Button.tsx\" },\n          { id: \"src/components/Input.tsx\", name: \"Input.tsx\" },\n        ],\n      },\n    ],\n  },\n  { id: \"package.json\", name: \"package.json\" },\n];\n\nexport function Example() {\n  const [selected, setSelected] = useState<string>();\n  return (\n    <FileTree\n      aria-label=\"Project files\"\n      nodes={nodes}\n      defaultExpanded={[\"src\"]}\n      selected={selected}\n      onSelect={setSelected}\n    />\n  );\n}"
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use for hierarchical navigation: file/folder explorers, settings sections, org charts, taxonomy browsers. Renders a real ARIA tree with full keyboard support, so it works for sighted, keyboard, and screen-reader users.",
+    "whenNotToUse": "Don't use for flat lists (use ScrollArea + a list). Don't use for navigation menus (use NavigationMenu). Don't use for very deep trees (>5 levels) without virtualization — every node is rendered. Don't use for selecting multiple files concurrently — multi-select tree UX is a different beast; ship a separate component when you need it.",
+    "commonMistakes": [
+      "Mixing controlled `expanded` with `defaultExpanded` — pass exactly one",
+      "Using non-stable node ids (e.g. array index) — collapsing/expanding shifts state",
+      "Marking a leaf with `children: []` instead of omitting `children` — empty array still flags it as a folder, so the chevron shows",
+      "Forgetting aria-label — the tree gets no accessible name and screen readers announce just 'tree'",
+      "Calling onSelect to navigate without de-bouncing arrow-key focus changes — focus moves on arrows but does NOT call onSelect; only Enter/Space/click selects, so navigation should hang off onSelect, not focused state",
+      "Expecting row-click to toggle expand — per WAI-ARIA tree pattern the row click only selects; toggling is the chevron button (or ArrowRight/Left, or Enter/Space when the row is focused). Common surprise after coming from VS Code-style trees",
+      "Passing `selected` pointing at a node inside a collapsed branch — the tree falls back to the first visible node for tab focus, so the consumer can't rely on tabIndex to land on the selected target until it's revealed via expanded"
+    ],
+    "relatedComponents": [
+      "accordion",
+      "navigation-menu",
+      "sidebar"
+    ],
+    "accessibilityNotes": "Root: role='tree' with aria-label. Each node: role='treeitem' with aria-level, aria-expanded (folders only), aria-selected, tabIndex=0 only on the active visible node (roving tabindex). Children container: role='group'. Click semantics: row click selects only; the chevron is a separate decorative button that toggles. Keyboard: ArrowDown/Up move through visible non-disabled nodes (disabled nodes are skipped); ArrowRight expands a closed folder or moves to first child; ArrowLeft collapses an open folder or moves to parent; Home/End jump to first/last visible; Enter/Space activate (toggle on folders, select on all).",
+    "tokenBudget": 2000
+  },
+  "tags": [
+    "file-tree",
+    "tree",
+    "navigation",
+    "explorer",
+    "hierarchy"
+  ]
+}
