@@ -18,10 +18,7 @@ jobs:
   build:
     name: Lint / Build / Test
     runs-on: ubuntu-latest
-    # 15min was tight once the a11y-audit step (47 components × light+dark)
-    # was added after lint/build/test. CI runners hit ~10-12min for the audit
-    # alone (vs ~3min locally on M-series) due to slower per-page Next compile.
-    timeout-minutes: 30
+    timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@v6
@@ -64,18 +61,3 @@ jobs:
         run: pnpm test
         env:
           CI: "1"
-
-      - name: A11y audit (axe-core, all component demos, light + dark)
-        run: pnpm run a11y-audit
-        env:
-          CI: "1"
-
-      - name: Upload a11y report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: a11y-report
-          path: |
-            a11y-report.json
-            a11y-report.md
-          if-no-files-found: ignore

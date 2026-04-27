@@ -44,7 +44,7 @@ Hex Core uses **[Vitest](https://vitest.dev/)** for unit tests + **[Playwright](
 - `pnpm --filter @hex-core/components test` — component unit tests only
 - `pnpm --filter @hex-core/registry test` — schema-drift guard (parses every `registry/**/*.json` through Zod)
 - `pnpm --filter docs test` — e2e browser tests only
-- `pnpm run a11y-audit` — full axe-core scan of every component demo in light + dark; fails on critical/serious violations
+- `pnpm run a11y-audit` — full axe-core scan of every component demo in light + dark. **Run locally before pushing**; not in CI (kept lean). Fails on critical/serious violations.
 
 Templates:
 

@@ -378,25 +378,46 @@ async function main(): Promise<void> {
 	try {
 		await ready;
 		browser = await chromium.launch();
-		const context = await browser.newContext();
-		const page = await context.newPage();
 
-		const results: PageScanResult[] = [];
+		// Worker pool: one persistent context per worker (each enforces its
+		// own colorScheme via emulateMedia in scanPage), pulling jobs off a
+		// shared queue. Concurrency tuned for CI runners (2 vCPU) — going
+		// above ~4 thrashes the Next prod server.
+		const jobs: Array<{ slug: string; mode: "light" | "dark" }> = [];
 		for (const slug of slugs) {
 			for (const mode of ["light", "dark"] as const) {
-				try {
-					const result = await scanPage(page, slug, mode);
-					results.push(result);
-					if (result.violations.length > 0) {
-						console.log(`  ✗ ${slug} (${mode}): ${result.violations.length} rule(s)`);
-					} else {
-						console.log(`  ✓ ${slug} (${mode})`);
-					}
-				} catch (err) {
-					console.error(`  ! ${slug} (${mode}): scan failed — ${(err as Error).message}`);
-				}
+				jobs.push({ slug, mode });
 			}
 		}
+		const concurrency = Number(process.env.A11Y_CONCURRENCY ?? 4);
+		const results: PageScanResult[] = [];
+		let cursor = 0;
+		await Promise.all(
+			Array.from({ length: Math.min(concurrency, jobs.length) }, async () => {
+				const context = await browser.newContext();
+				const page = await context.newPage();
+				try {
+					while (cursor < jobs.length) {
+						const job = jobs[cursor++];
+						if (!job) break;
+						const { slug, mode } = job;
+						try {
+							const result = await scanPage(page, slug, mode);
+							results.push(result);
+							if (result.violations.length > 0) {
+								console.log(`  ✗ ${slug} (${mode}): ${result.violations.length} rule(s)`);
+							} else {
+								console.log(`  ✓ ${slug} (${mode})`);
+							}
+						} catch (err) {
+							console.error(`  ! ${slug} (${mode}): scan failed — ${(err as Error).message}`);
+						}
+					}
+				} finally {
+					await context.close().catch(() => {});
+				}
+			}),
+		);
 
 		const violations = aggregate(results);
 		const summary = summarize(violations);
