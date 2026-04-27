@@ -79,10 +79,11 @@ export const commandSchema: ComponentSchemaDefinition = {
 			"Giving CommandItem non-unique values (breaks filtering and controlled state)",
 			"Overriding CommandInput className to remove the border/padding — breaks the ⌘K icon layout",
 			"Not rendering CommandEmpty — the list looks broken when a search has no matches",
+			"Querying CommandSeparator via cmdk's internal Separator state — Hex UI renders it as a presentational div with role='none' (and the `data-cmdk-separator` attribute preserved for selector compatibility) so it can sit inside CommandList's role=listbox without violating ARIA",
 		],
 		relatedComponents: ["combobox", "dialog", "dropdown-menu"],
 		accessibilityNotes:
-			"cmdk wires role=listbox/option and aria-activedescendant. Use the `label` prop on Command for a screen-reader-only name when no visible heading exists.",
+			"cmdk wires role=listbox/option and aria-activedescendant. Use the `label` prop on Command for a screen-reader-only name when no visible heading exists. CommandSeparator renders with role='none' (still selectable via `[data-cmdk-separator]`) so listbox-children rules are satisfied.",
 		tokenBudget: 900,
 	},
 	tags: ["command", "cmdk", "palette", "search", "launcher"],

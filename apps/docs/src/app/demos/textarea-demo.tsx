@@ -9,7 +9,10 @@ export function TextareaDemo() {
 		<div className="grid w-full max-w-md gap-6">
 			<div>
 				<p className="mb-2 text-xs font-medium text-muted-foreground">Basic</p>
-				<Textarea placeholder="Write your message…" />
+				<Textarea
+					placeholder="Write your message…"
+					aria-label="Basic message"
+				/>
 			</div>
 
 			<div>
@@ -55,7 +58,11 @@ export function TextareaDemo() {
 
 			<div>
 				<p className="mb-2 text-xs font-medium text-muted-foreground">Disabled</p>
-				<Textarea defaultValue="Read-only content." disabled />
+				<Textarea
+					defaultValue="Read-only content."
+					disabled
+					aria-label="Disabled textarea"
+				/>
 			</div>
 		</div>
 	);

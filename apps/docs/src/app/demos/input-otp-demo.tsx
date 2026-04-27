@@ -28,6 +28,7 @@ export function InputOTPDemo() {
 					pattern={REGEXP_ONLY_DIGITS}
 					value={value}
 					onChange={setValue}
+					aria-label="Six-digit verification code"
 				>
 					<InputOTPGroup>
 						<InputOTPSlot index={0} />
@@ -57,6 +58,7 @@ export function InputOTPDemo() {
 					pattern={REGEXP_ONLY_DIGITS}
 					value={pin}
 					onChange={setPin}
+					aria-label="Four-digit PIN"
 				>
 					<InputOTPGroup>
 						<InputOTPSlot index={0} />
@@ -69,7 +71,12 @@ export function InputOTPDemo() {
 
 			<div>
 				<p className="mb-2 text-xs font-medium text-muted-foreground">Disabled</p>
-				<InputOTP maxLength={6} disabled defaultValue="123456">
+				<InputOTP
+					maxLength={6}
+					disabled
+					defaultValue="123456"
+					aria-label="Disabled six-digit code"
+				>
 					<InputOTPGroup>
 						<InputOTPSlot index={0} />
 						<InputOTPSlot index={1} />

@@ -38,12 +38,13 @@ pnpm --filter docs test       # Playwright e2e (8 tests across 3 specs)
 
 ## Tests
 
-Hex Core uses **[Vitest](https://vitest.dev/)** for unit tests + **[Playwright](https://playwright.dev/)** for docs e2e.
+Hex Core uses **[Vitest](https://vitest.dev/)** for unit tests + **[Playwright](https://playwright.dev/)** for docs e2e + **[axe-core](https://github.com/dequelabs/axe-core)** for accessibility.
 
 - `pnpm test` — run everything (vitest across packages + playwright in apps/docs) via turbo
 - `pnpm --filter @hex-core/components test` — component unit tests only
 - `pnpm --filter @hex-core/registry test` — schema-drift guard (parses every `registry/**/*.json` through Zod)
 - `pnpm --filter docs test` — e2e browser tests only
+- `pnpm run a11y-audit` — full axe-core scan of every component demo in light + dark. **Run locally before pushing**; not in CI (kept lean). Fails on critical/serious violations.
 
 Templates:
 
@@ -51,6 +52,17 @@ Templates:
 - **Schema validation:** [`packages/registry/test/validate-registry.test.ts`](packages/registry/test/validate-registry.test.ts) — walks every JSON and enforces the registry contract.
 
 Every new component should land with a unit test. Every schema change should keep the validation suite green.
+
+## Accessibility (WCAG 2.2 AA)
+
+Every component demo page is scanned by `pnpm run a11y-audit` in CI in both light and dark mode. The audit fails the build on **any** `critical` or `serious` axe-core violation.
+
+Required for new components / demo updates:
+
+1. Any interactive control without an associated `<label htmlFor>` — provide `aria-label` or `aria-labelledby`. This includes Input, Textarea, Combobox, Select, Slider, InputOTP, Switch, Checkbox, RadioGroup, ToggleGroup, and any custom control with `role="combobox" | "slider" | "listbox" | "switch" | "checkbox" | "radio"`. Roles like `combobox` and `slider` cannot derive their name from contents.
+2. Color contrast — text must reach **4.5:1** against its background; non-text UI (focus rings, borders that carry meaning) must reach **3:1**. Run `pnpm run a11y-audit` locally before pushing — the report at `a11y-report.md` lists every failing selector.
+3. Composite widgets — when wrapping Radix (Slider, ScrollArea, etc.), ensure each child interactive element has its own accessible name. The `Slider` wrapper auto-derives thumb labels from the Root's `aria-label`; pass `thumbLabels={["Min", "Max"]}` for range sliders.
+4. Long content — `DialogContent` is constrained to `max-h-[calc(100vh-2rem)]` with `overflow-y-auto` so the focus trap stays around scrollable content.
 
 ## Submitting a PR
 

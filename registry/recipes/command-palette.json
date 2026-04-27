@@ -72,8 +72,14 @@
       "source": "derived-mistake"
     },
     {
+      "id": "command-querying-commandseparator-via-cmdk-s-internal-se",
+      "check": "[Command] Avoid: Querying CommandSeparator via cmdk's internal Separator state — Hex UI renders it as a presentational div with role='none' (and the `data-cmdk-separator` attribute preserved for selector compatibility) so it can sit inside CommandList's role=listbox without violating ARIA",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
       "id": "command-a11y",
-      "check": "[Command] A11y: cmdk wires role=listbox/option and aria-activedescendant. Use the `label` prop on Command for a screen-reader-only name when no visible heading exists.",
+      "check": "[Command] A11y: cmdk wires role=listbox/option and aria-activedescendant. Use the `label` prop on Command for a screen-reader-only name when no visible heading exists. CommandSeparator renders with role='none' (still selectable via `[data-cmdk-separator]`) so listbox-children rules are satisfied.",
       "severity": "warn",
       "source": "derived-a11y"
     },
@@ -103,7 +109,7 @@
     },
     {
       "id": "dialog-a11y",
-      "check": "[Dialog] A11y: Radix traps focus, handles Escape to close, and wires aria-labelledby/describedby to DialogTitle/DialogDescription. Always include a DialogTitle.",
+      "check": "[Dialog] A11y: Radix traps focus, handles Escape to close, and wires aria-labelledby/describedby to DialogTitle/DialogDescription. Always include a DialogTitle. DialogContent is constrained to `max-h-[calc(100vh-2rem)]` and scrolls internally so long content stays inside the focus trap.",
       "severity": "warn",
       "source": "derived-a11y"
     },

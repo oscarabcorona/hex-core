@@ -9,6 +9,18 @@ export const dataTableSchema: ComponentSchemaDefinition = {
 	props: [
 		{ name: "columns", type: "object", required: true, description: "ColumnDef<TData, TValue>[] from @tanstack/react-table" },
 		{ name: "data", type: "object", required: true, description: "Array of row data" },
+		{
+			name: "caption",
+			type: "ReactNode",
+			required: false,
+			description: "Visible caption rendered below the table; announced by screen readers when entering the table",
+		},
+		{
+			name: "aria-label",
+			type: "string",
+			required: false,
+			description: "Accessible label forwarded as aria-label on the underlying <table>; use when no visible caption is shown",
+		},
 	],
 	variants: [],
 	slots: [],
@@ -35,10 +47,11 @@ export const dataTableSchema: ComponentSchemaDefinition = {
 			"Recreating columns array on every render (breaks memoization — wrap in useMemo or define outside the component)",
 			"Using accessorKey with nested paths without accessorFn",
 			"Not adding filter/sort row models when those features are needed",
+			"Shipping a table without `caption` or `aria-label` — the table is unlabelled to assistive tech",
 		],
 		relatedComponents: ["table", "pagination"],
 		accessibilityNotes:
-			"Uses semantic <table> via Hex UI Table primitives. Add aria-sort to sortable column headers. Announce filter/sort changes via aria-live for dynamic updates.",
+			"Pass either `caption` (visible) or `aria-label` so screen readers announce the table when the user enters it. Add aria-sort to sortable column headers. Announce filter/sort changes via aria-live for dynamic updates.",
 		tokenBudget: 900,
 	},
 	tags: ["data-table", "tanstack", "sortable", "filterable", "paginated"],

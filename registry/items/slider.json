@@ -64,6 +64,24 @@
         "horizontal",
         "vertical"
       ]
+    },
+    {
+      "name": "aria-label",
+      "type": "string",
+      "required": false,
+      "description": "Accessible label for the slider as a whole. Mirrored onto a single thumb automatically; for range sliders prefer thumbLabels."
+    },
+    {
+      "name": "aria-labelledby",
+      "type": "string",
+      "required": false,
+      "description": "Id of an external visible label that names the slider."
+    },
+    {
+      "name": "thumbLabels",
+      "type": "object",
+      "required": false,
+      "description": "Per-thumb accessible labels (string[]). Required for range sliders so each thumb has a meaningful name (e.g. ['Minimum price', 'Maximum price']). For a single-thumb slider, the Root's aria-label is mirrored onto the thumb automatically and thumbLabels is only needed when overriding that default."
     }
   ],
   "variants": [],
@@ -71,7 +89,7 @@
   "files": [
     {
       "path": "components/ui/slider.tsx",
-      "content": "import * as SliderPrimitive from \"@radix-ui/react-slider\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * A range input with one or more draggable thumbs.\n * Built on Radix UI Slider with keyboard controls (arrows, Home, End, PageUp/Down).\n */\nconst Slider = React.forwardRef<\n\tReact.ComponentRef<typeof SliderPrimitive.Root>,\n\tReact.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>\n>(({ className, ...props }, ref) => (\n\t<SliderPrimitive.Root\n\t\tref={ref}\n\t\tclassName={cn(\"relative flex w-full touch-none select-none items-center\", className)}\n\t\t{...props}\n\t>\n\t\t<SliderPrimitive.Track className=\"relative h-2 w-full grow overflow-hidden rounded-full bg-secondary\">\n\t\t\t<SliderPrimitive.Range className=\"absolute h-full bg-primary\" />\n\t\t</SliderPrimitive.Track>\n\t\t{(props.value ?? props.defaultValue ?? [0]).map((_, i) => (\n\t\t\t<SliderPrimitive.Thumb\n\t\t\t\t// biome-ignore lint/suspicious/noArrayIndexKey: Radix renders one thumb per value by index\n\t\t\t\tkey={i}\n\t\t\t\tclassName={cn(\n\t\t\t\t\t\"block h-5 w-5 rounded-full border-2 border-primary bg-background\",\n\t\t\t\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out shadow-md\",\n\t\t\t\t\t\"hover:shadow-lg hover:scale-110\",\n\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t\t\"disabled:pointer-events-none disabled:opacity-50\",\n\t\t\t\t)}\n\t\t\t/>\n\t\t))}\n\t</SliderPrimitive.Root>\n));\nSlider.displayName = \"Slider\";\n\nexport { Slider };\n",
+      "content": "import * as SliderPrimitive from \"@radix-ui/react-slider\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n// Local ambient — components run in browsers where bundlers (Next, Vite, tsup)\n// replace `process.env.NODE_ENV` at build time. Avoids pulling @types/node into\n// the components package just for one dev-mode warning.\ndeclare const process: { env?: { NODE_ENV?: string } } | undefined;\n\ninterface SliderProps\n\textends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> {\n\t/**\n\t * Per-thumb accessible labels. When the slider has multiple thumbs, pass\n\t * one entry per thumb (e.g. [\"Minimum\", \"Maximum\"]). For a single-thumb\n\t * slider, the Root's `aria-label` / `aria-labelledby` is mirrored onto\n\t * the thumb automatically — pass `thumbLabels` only when those defaults\n\t * are insufficient.\n\t */\n\tthumbLabels?: string[];\n}\n\n/**\n * A range input with one or more draggable thumbs.\n * Built on Radix UI Slider with keyboard controls (arrows, Home, End, PageUp/Down).\n */\nconst Slider = React.forwardRef<\n\tReact.ComponentRef<typeof SliderPrimitive.Root>,\n\tSliderProps\n>(({ className, thumbLabels, ...props }, ref) => {\n\tconst values = props.value ?? props.defaultValue ?? [0];\n\tconst rootLabel = props[\"aria-label\"];\n\tconst rootLabelledBy = props[\"aria-labelledby\"];\n\n\tif (\n\t\ttypeof process !== \"undefined\" &&\n\t\tprocess.env?.NODE_ENV !== \"production\" &&\n\t\tthumbLabels &&\n\t\tthumbLabels.length !== values.length\n\t) {\n\t\tconsole.warn(\n\t\t\t`Slider: thumbLabels.length (${thumbLabels.length}) does not match value.length (${values.length}). ` +\n\t\t\t\t`Missing labels fall back to indexed names; extra labels are ignored.`,\n\t\t);\n\t}\n\n\treturn (\n\t\t<SliderPrimitive.Root\n\t\t\tref={ref}\n\t\t\tclassName={cn(\"relative flex w-full touch-none select-none items-center\", className)}\n\t\t\t{...props}\n\t\t>\n\t\t\t<SliderPrimitive.Track className=\"relative h-2 w-full grow overflow-hidden rounded-full bg-secondary\">\n\t\t\t\t<SliderPrimitive.Range className=\"absolute h-full bg-primary\" />\n\t\t\t</SliderPrimitive.Track>\n\t\t\t{values.map((_, i) => {\n\t\t\t\tconst explicit = thumbLabels?.[i];\n\t\t\t\tconst fallback =\n\t\t\t\t\tvalues.length === 1\n\t\t\t\t\t\t? rootLabel\n\t\t\t\t\t\t: rootLabel\n\t\t\t\t\t\t\t? `${rootLabel} (${i + 1} of ${values.length})`\n\t\t\t\t\t\t\t: undefined;\n\t\t\t\treturn (\n\t\t\t\t\t<SliderPrimitive.Thumb\n\t\t\t\t\t\t// biome-ignore lint/suspicious/noArrayIndexKey: Radix renders one thumb per value by index\n\t\t\t\t\t\tkey={i}\n\t\t\t\t\t\taria-label={explicit ?? fallback}\n\t\t\t\t\t\taria-labelledby={\n\t\t\t\t\t\t\texplicit || fallback ? undefined : rootLabelledBy\n\t\t\t\t\t\t}\n\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\"block h-5 w-5 rounded-full border-2 border-primary bg-background\",\n\t\t\t\t\t\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out shadow-md\",\n\t\t\t\t\t\t\t\"hover:shadow-lg hover:scale-110\",\n\t\t\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t\t\t\t\"disabled:pointer-events-none disabled:opacity-50\",\n\t\t\t\t\t\t)}\n\t\t\t\t\t/>\n\t\t\t\t);\n\t\t\t})}\n\t\t</SliderPrimitive.Root>\n\t);\n});\nSlider.displayName = \"Slider\";\n\nexport type { SliderProps };\n\nexport { Slider };\n",
       "type": "component"
     },
     {
@@ -117,12 +135,14 @@
       "Using Slider for exact values without showing the number",
       "Missing min/max bounds",
       "Using step=1 for fractional values (set step=0.01)",
-      "Not providing aria-label when there's no visible label"
+      "Not providing aria-label / aria-labelledby when there's no visible label",
+      "Range slider with only Root aria-label and no thumbLabels — both thumbs fall back to '(N of 2)' indexed names instead of meaningful per-thumb labels",
+      "thumbLabels.length !== value.length — extra labels are ignored, missing labels fall back to indexed names (dev-mode warning)"
     ],
     "relatedComponents": [
       "input"
     ],
-    "accessibilityNotes": "Arrow keys step by step, Home/End jump to min/max, PageUp/PageDown step larger. Radix handles aria-valuemin/max/now. Add aria-label if no visible label.",
+    "accessibilityNotes": "Arrow keys step by step, Home/End jump to min/max, PageUp/PageDown step larger. Radix handles aria-valuemin/max/now. Each thumb has its own accessible name: explicit via thumbLabels[i], else mirrored from the Root's aria-label (single thumb) or indexed '(i of N)' fallback (range). Add aria-label / aria-labelledby on the Root when there's no visible label.",
     "tokenBudget": 450
   },
   "tags": [

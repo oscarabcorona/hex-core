@@ -40,6 +40,10 @@ export async function themeInit(options: InitOptions) {
 	}
 
 	const theme = tokens.getTheme(presetName);
+	if (!theme) {
+		console.error(`Preset "${presetName}" is registered but failed to load. This is a bug.`);
+		process.exit(1);
+	}
 	const outPath = path.resolve(process.cwd(), options.out);
 
 	if (fs.existsSync(outPath) && !options.overwrite) {

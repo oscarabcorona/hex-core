@@ -94,14 +94,21 @@ const TableCell = React.forwardRef<
 ));
 TableCell.displayName = "TableCell";
 
-/** `<caption>` positioned below the table. */
+/**
+ * Visible `<caption>` rendered below the table. The parent `<Table>` sets
+ * `caption-bottom`, so the caption is announced first by screen readers when
+ * entering the table, then visually placed below the rows.
+ */
 const TableCaption = React.forwardRef<
 	HTMLTableCaptionElement,
 	React.HTMLAttributes<HTMLTableCaptionElement>
 >(({ className, ...props }, ref) => (
 	<caption
 		ref={ref}
-		className={cn("mt-[var(--space-4,1rem)] text-sm text-muted-foreground", className)}
+		className={cn(
+			"caption-bottom mt-[var(--space-4,1rem)] text-sm text-muted-foreground",
+			className,
+		)}
 		{...props}
 	/>
 ));

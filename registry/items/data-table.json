@@ -19,6 +19,18 @@
       "type": "object",
       "required": true,
       "description": "Array of row data"
+    },
+    {
+      "name": "caption",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Visible caption rendered below the table; announced by screen readers when entering the table"
+    },
+    {
+      "name": "aria-label",
+      "type": "string",
+      "required": false,
+      "description": "Accessible label forwarded as aria-label on the underlying <table>; use when no visible caption is shown"
     }
   ],
   "variants": [],
@@ -26,7 +38,7 @@
   "files": [
     {
       "path": "components/ui/data-table.tsx",
-      "content": "\"use client\";\n\nimport {\n\ttype ColumnDef,\n\tflexRender,\n\tgetCoreRowModel,\n\tuseReactTable,\n} from \"@tanstack/react-table\";\nimport {\n\tTable,\n\tTableBody,\n\tTableCell,\n\tTableHead,\n\tTableHeader,\n\tTableRow,\n} from \"../table/table.js\";\n\n/**\n * Generic DataTable wrapper that renders a TanStack Table model using Hex UI's\n * Table primitives. Pass columns + data; use TanStack hooks for sorting,\n * filtering, pagination, row-selection as needed.\n * @template TData - Row data type. Cell value types are inferred per column by TanStack.\n */\nexport interface DataTableProps<TData> {\n\tcolumns: ColumnDef<TData, unknown>[];\n\tdata: TData[];\n}\n\n/**\n * Render a data-driven table from TanStack column definitions.\n * @param props - Columns and data\n * @returns A styled Table rendered from the TanStack row model\n */\nexport function DataTable<TData>({ columns, data }: DataTableProps<TData>) {\n\tconst table = useReactTable({\n\t\tdata,\n\t\tcolumns,\n\t\tgetCoreRowModel: getCoreRowModel(),\n\t});\n\n\treturn (\n\t\t<div className=\"rounded-md border\">\n\t\t\t<Table>\n\t\t\t\t<TableHeader>\n\t\t\t\t\t{table.getHeaderGroups().map((headerGroup) => (\n\t\t\t\t\t\t<TableRow key={headerGroup.id}>\n\t\t\t\t\t\t\t{headerGroup.headers.map((header) => (\n\t\t\t\t\t\t\t\t<TableHead key={header.id}>\n\t\t\t\t\t\t\t\t\t{header.isPlaceholder\n\t\t\t\t\t\t\t\t\t\t? null\n\t\t\t\t\t\t\t\t\t\t: flexRender(header.column.columnDef.header, header.getContext())}\n\t\t\t\t\t\t\t\t</TableHead>\n\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t</TableRow>\n\t\t\t\t\t))}\n\t\t\t\t</TableHeader>\n\t\t\t\t<TableBody>\n\t\t\t\t\t{table.getRowModel().rows?.length ? (\n\t\t\t\t\t\ttable.getRowModel().rows.map((row) => (\n\t\t\t\t\t\t\t<TableRow key={row.id} data-state={row.getIsSelected() && \"selected\"}>\n\t\t\t\t\t\t\t\t{row.getVisibleCells().map((cell) => (\n\t\t\t\t\t\t\t\t\t<TableCell key={cell.id}>\n\t\t\t\t\t\t\t\t\t\t{flexRender(cell.column.columnDef.cell, cell.getContext())}\n\t\t\t\t\t\t\t\t\t</TableCell>\n\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t</TableRow>\n\t\t\t\t\t\t))\n\t\t\t\t\t) : (\n\t\t\t\t\t\t<TableRow>\n\t\t\t\t\t\t\t<TableCell colSpan={columns.length} className=\"h-24 text-center\">\n\t\t\t\t\t\t\t\tNo results.\n\t\t\t\t\t\t\t</TableCell>\n\t\t\t\t\t\t</TableRow>\n\t\t\t\t\t)}\n\t\t\t\t</TableBody>\n\t\t\t</Table>\n\t\t</div>\n\t);\n}\n",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport {\n\ttype ColumnDef,\n\tflexRender,\n\tgetCoreRowModel,\n\tuseReactTable,\n} from \"@tanstack/react-table\";\nimport {\n\tTable,\n\tTableBody,\n\tTableCaption,\n\tTableCell,\n\tTableHead,\n\tTableHeader,\n\tTableRow,\n} from \"../table/table.js\";\n\n/**\n * Generic DataTable wrapper that renders a TanStack Table model using Hex UI's\n * Table primitives. Pass columns + data; use TanStack hooks for sorting,\n * filtering, pagination, row-selection as needed.\n * @template TData - Row data type. Cell value types are inferred per column by TanStack.\n */\nexport interface DataTableProps<TData> {\n\tcolumns: ColumnDef<TData, unknown>[];\n\tdata: TData[];\n\t/**\n\t * Visible caption rendered below the table. Announced by screen readers\n\t * when the user enters the table. Provide either `caption` or `aria-label`.\n\t */\n\tcaption?: React.ReactNode;\n\t/**\n\t * Accessible label for the table when no visible caption is shown.\n\t * Forwarded as `aria-label` on the underlying `<table>` element. Kebab-case\n\t * to match the canonical ARIA prop convention used elsewhere in Hex UI.\n\t */\n\t\"aria-label\"?: string;\n}\n\n/**\n * Render a data-driven table from TanStack column definitions.\n * @param props - Columns, data, and optional accessible labelling (`caption` or `aria-label`)\n * @returns A styled Table rendered from the TanStack row model\n */\nexport function DataTable<TData>({\n\tcolumns,\n\tdata,\n\tcaption,\n\t\"aria-label\": ariaLabel,\n}: DataTableProps<TData>) {\n\tconst table = useReactTable({\n\t\tdata,\n\t\tcolumns,\n\t\tgetCoreRowModel: getCoreRowModel(),\n\t});\n\n\treturn (\n\t\t<div className=\"rounded-md border\">\n\t\t\t<Table aria-label={ariaLabel}>\n\t\t\t\t{caption ? <TableCaption>{caption}</TableCaption> : null}\n\t\t\t\t<TableHeader>\n\t\t\t\t\t{table.getHeaderGroups().map((headerGroup) => (\n\t\t\t\t\t\t<TableRow key={headerGroup.id}>\n\t\t\t\t\t\t\t{headerGroup.headers.map((header) => (\n\t\t\t\t\t\t\t\t<TableHead key={header.id}>\n\t\t\t\t\t\t\t\t\t{header.isPlaceholder\n\t\t\t\t\t\t\t\t\t\t? null\n\t\t\t\t\t\t\t\t\t\t: flexRender(header.column.columnDef.header, header.getContext())}\n\t\t\t\t\t\t\t\t</TableHead>\n\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t</TableRow>\n\t\t\t\t\t))}\n\t\t\t\t</TableHeader>\n\t\t\t\t<TableBody>\n\t\t\t\t\t{table.getRowModel().rows?.length ? (\n\t\t\t\t\t\ttable.getRowModel().rows.map((row) => (\n\t\t\t\t\t\t\t<TableRow key={row.id} data-state={row.getIsSelected() && \"selected\"}>\n\t\t\t\t\t\t\t\t{row.getVisibleCells().map((cell) => (\n\t\t\t\t\t\t\t\t\t<TableCell key={cell.id}>\n\t\t\t\t\t\t\t\t\t\t{flexRender(cell.column.columnDef.cell, cell.getContext())}\n\t\t\t\t\t\t\t\t\t</TableCell>\n\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t</TableRow>\n\t\t\t\t\t\t))\n\t\t\t\t\t) : (\n\t\t\t\t\t\t<TableRow>\n\t\t\t\t\t\t\t<TableCell colSpan={columns.length} className=\"h-24 text-center\">\n\t\t\t\t\t\t\t\tNo results.\n\t\t\t\t\t\t\t</TableCell>\n\t\t\t\t\t\t</TableRow>\n\t\t\t\t\t)}\n\t\t\t\t</TableBody>\n\t\t\t</Table>\n\t\t</div>\n\t);\n}\n",
       "type": "component"
     },
     {
@@ -69,13 +81,14 @@
       "Forgetting getCoreRowModel() (table renders nothing)",
       "Recreating columns array on every render (breaks memoization — wrap in useMemo or define outside the component)",
       "Using accessorKey with nested paths without accessorFn",
-      "Not adding filter/sort row models when those features are needed"
+      "Not adding filter/sort row models when those features are needed",
+      "Shipping a table without `caption` or `aria-label` — the table is unlabelled to assistive tech"
     ],
     "relatedComponents": [
       "table",
       "pagination"
     ],
-    "accessibilityNotes": "Uses semantic <table> via Hex UI Table primitives. Add aria-sort to sortable column headers. Announce filter/sort changes via aria-live for dynamic updates.",
+    "accessibilityNotes": "Pass either `caption` (visible) or `aria-label` so screen readers announce the table when the user enters it. Add aria-sort to sortable column headers. Announce filter/sort changes via aria-live for dynamic updates.",
     "tokenBudget": 900
   },
   "tags": [

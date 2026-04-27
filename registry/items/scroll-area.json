@@ -26,6 +26,13 @@
       "type": "string",
       "required": false,
       "description": "Set dimensions via Tailwind (e.g. h-72 w-48)"
+    },
+    {
+      "name": "viewportTabIndex",
+      "type": "number",
+      "required": false,
+      "default": 0,
+      "description": "tabIndex applied to the scroll viewport. Defaults to 0 so keyboard users can scroll without a pointer; pass -1 to skip the viewport in the tab order when wrapping decorative or already-keyboard-reachable content."
     }
   ],
   "variants": [],
@@ -42,7 +49,7 @@
   "files": [
     {
       "path": "components/ui/scroll-area.tsx",
-      "content": "import * as ScrollAreaPrimitive from \"@radix-ui/react-scroll-area\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/** A scrollable area with custom-styled scrollbars. Content must be explicitly sized. */\nconst ScrollArea = React.forwardRef<\n\tReact.ComponentRef<typeof ScrollAreaPrimitive.Root>,\n\tReact.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>\n>(({ className, children, ...props }, ref) => (\n\t<ScrollAreaPrimitive.Root\n\t\tref={ref}\n\t\tclassName={cn(\"relative overflow-hidden\", className)}\n\t\t{...props}\n\t>\n\t\t<ScrollAreaPrimitive.Viewport className=\"h-full w-full rounded-[inherit]\">\n\t\t\t{children}\n\t\t</ScrollAreaPrimitive.Viewport>\n\t\t{/* Both orientations mount unconditionally; Radix paints each only when content\n\t\t    overflows on that axis, so there's no cost for single-axis content. */}\n\t\t<ScrollBar orientation=\"vertical\" />\n\t\t<ScrollBar orientation=\"horizontal\" />\n\t\t<ScrollAreaPrimitive.Corner />\n\t</ScrollAreaPrimitive.Root>\n));\nScrollArea.displayName = \"ScrollArea\";\n\n/** Styled scrollbar track + thumb. Rendered inside ScrollArea automatically. */\nconst ScrollBar = React.forwardRef<\n\tReact.ComponentRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,\n\tReact.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>\n>(({ className, orientation = \"vertical\", ...props }, ref) => (\n\t<ScrollAreaPrimitive.ScrollAreaScrollbar\n\t\tref={ref}\n\t\torientation={orientation}\n\t\tclassName={cn(\n\t\t\t\"flex touch-none select-none transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\torientation === \"vertical\" &&\n\t\t\t\t\"h-full w-2.5 border-l border-l-transparent p-[1px]\",\n\t\t\torientation === \"horizontal\" &&\n\t\t\t\t\"h-2.5 flex-col border-t border-t-transparent p-[1px]\",\n\t\t\tclassName,\n\t\t)}\n\t\t{...props}\n\t>\n\t\t<ScrollAreaPrimitive.ScrollAreaThumb className=\"relative flex-1 rounded-full bg-border\" />\n\t</ScrollAreaPrimitive.ScrollAreaScrollbar>\n));\nScrollBar.displayName = \"ScrollBar\";\n\nexport { ScrollArea, ScrollBar };\n",
+      "content": "import * as ScrollAreaPrimitive from \"@radix-ui/react-scroll-area\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\ninterface ScrollAreaProps\n\textends React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> {\n\t/**\n\t * tabIndex applied to the scroll viewport so keyboard users can scroll\n\t * without a pointer. Defaults to `0` (focusable) — pass `-1` to skip the\n\t * viewport in the tab order when ScrollArea wraps purely decorative or\n\t * already-keyboard-reachable content.\n\t */\n\tviewportTabIndex?: number;\n}\n\n/** A scrollable area with custom-styled scrollbars. Content must be explicitly sized. */\nconst ScrollArea = React.forwardRef<\n\tReact.ComponentRef<typeof ScrollAreaPrimitive.Root>,\n\tScrollAreaProps\n>(({ className, children, viewportTabIndex = 0, ...props }, ref) => (\n\t<ScrollAreaPrimitive.Root\n\t\tref={ref}\n\t\tclassName={cn(\"relative overflow-hidden\", className)}\n\t\t{...props}\n\t>\n\t\t<ScrollAreaPrimitive.Viewport\n\t\t\ttabIndex={viewportTabIndex}\n\t\t\tclassName={cn(\n\t\t\t\t\"h-full w-full rounded-[inherit]\",\n\t\t\t\tviewportTabIndex >= 0 &&\n\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t)}\n\t\t>\n\t\t\t{children}\n\t\t</ScrollAreaPrimitive.Viewport>\n\t\t{/* Both orientations mount unconditionally; Radix paints each only when content\n\t\t    overflows on that axis, so there's no cost for single-axis content. */}\n\t\t<ScrollBar orientation=\"vertical\" />\n\t\t<ScrollBar orientation=\"horizontal\" />\n\t\t<ScrollAreaPrimitive.Corner />\n\t</ScrollAreaPrimitive.Root>\n));\nScrollArea.displayName = \"ScrollArea\";\n\n/** Styled scrollbar track + thumb. Rendered inside ScrollArea automatically. */\nconst ScrollBar = React.forwardRef<\n\tReact.ComponentRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,\n\tReact.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>\n>(({ className, orientation = \"vertical\", ...props }, ref) => (\n\t<ScrollAreaPrimitive.ScrollAreaScrollbar\n\t\tref={ref}\n\t\torientation={orientation}\n\t\tclassName={cn(\n\t\t\t\"flex touch-none select-none transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\torientation === \"vertical\" &&\n\t\t\t\t\"h-full w-2.5 border-l border-l-transparent p-[1px]\",\n\t\t\torientation === \"horizontal\" &&\n\t\t\t\t\"h-2.5 flex-col border-t border-t-transparent p-[1px]\",\n\t\t\tclassName,\n\t\t)}\n\t\t{...props}\n\t>\n\t\t<ScrollAreaPrimitive.ScrollAreaThumb className=\"relative flex-1 rounded-full bg-border\" />\n\t</ScrollAreaPrimitive.ScrollAreaScrollbar>\n));\nScrollBar.displayName = \"ScrollBar\";\n\nexport { ScrollArea, ScrollBar };\nexport type { ScrollAreaProps };\n",
       "type": "component"
     },
     {
@@ -81,10 +88,11 @@
     "commonMistakes": [
       "Forgetting to set height/width — scrollbars don't appear",
       "Using for the whole page",
-      "Nesting ScrollAreas (confusing UX)"
+      "Nesting ScrollAreas (confusing UX)",
+      "Wrapping decorative or already-keyboard-reachable content without setting viewportTabIndex={-1} — adds an unnecessary tab stop"
     ],
     "relatedComponents": [],
-    "accessibilityNotes": "Radix doesn't make the viewport focusable by default — add tabIndex={0} on a focusable child or the viewport to enable keyboard scrolling (arrow keys, PgUp/PgDn, Home/End). For long lists, consider pagination or virtualization.",
+    "accessibilityNotes": "The viewport is keyboard-focusable by default (viewportTabIndex=0) so users can scroll long content via arrow keys / PgUp / PgDn / Home / End without a pointer. Pass viewportTabIndex={-1} when the contents are already in the tab order or purely decorative. For very long lists, consider pagination or virtualization.",
     "tokenBudget": 350
   },
   "tags": [

@@ -11,6 +11,11 @@
  * Color tokens live in @theme (non-inline) so generated utilities emit
  * var(--color-*), allowing .dark { ... } overrides below to flip every
  * bg-background / text-muted-foreground / border-input usage at runtime.
+ *
+ * KEEP IN SYNC with packages/tokens/src/themes/default.ts. Both copies feed
+ * the same audit gate (scripts/a11y-audit.ts) and any divergence breaks WCAG
+ * compliance. Consumers who run `hex theme init` get the tokens.ts version;
+ * the docs site renders this file directly.
  */
 @theme {
 	--color-background: hsl(0 0% 100%);
@@ -24,10 +29,12 @@
 	--color-secondary: hsl(240 4.8% 95.9%);
 	--color-secondary-foreground: hsl(240 5.9% 10%);
 	--color-muted: hsl(240 4.8% 95.9%);
-	--color-muted-foreground: hsl(240 3.8% 46.1%);
+	/* WCAG AA: muted-fg on muted-bg ~5.5:1 (was 4.39 — failed) */
+	--color-muted-foreground: hsl(240 4% 38%);
 	--color-accent: hsl(240 4.8% 95.9%);
 	--color-accent-foreground: hsl(240 5.9% 10%);
-	--color-destructive: hsl(0 84.2% 60.2%);
+	/* WCAG AA: destructive-fg on destructive-bg ~5.0:1 (was 3.6 — failed) */
+	--color-destructive: hsl(0 72% 45%);
 	--color-destructive-foreground: hsl(0 0% 98%);
 	--color-border: hsl(240 5.9% 90%);
 	--color-input: hsl(240 5.9% 90%);
@@ -84,12 +91,18 @@
 	--color-secondary: hsl(240 3.7% 15.9%);
 	--color-secondary-foreground: hsl(0 0% 98%);
 	--color-muted: hsl(240 3.7% 15.9%);
-	/* WCAG AA: muted-fg on muted-bg ~5.25:1 */
+	/* WCAG AA: muted-foreground on muted-bg ~5.25:1 (was ~3.9:1 — failed) */
 	--color-muted-foreground: hsl(240 5% 70%);
 	--color-accent: hsl(240 3.7% 15.9%);
 	--color-accent-foreground: hsl(0 0% 98%);
-	--color-destructive: hsl(0 62.8% 30.6%);
-	--color-destructive-foreground: hsl(0 0% 98%);
+	/*
+	 * In dark mode the destructive token doubles as text on near-black surfaces
+	 * (alerts, error helper text). A lighter coral-red gives ~7:1 on background
+	 * and ~5:1 on the same color when used as a button bg paired with the
+	 * darker destructive-foreground below.
+	 */
+	--color-destructive: hsl(0 75% 65%);
+	--color-destructive-foreground: hsl(0 75% 15%);
 	--color-border: hsl(240 3.7% 15.9%);
 	--color-input: hsl(240 3.7% 15.9%);
 	--color-ring: hsl(240 4.9% 83.9%);

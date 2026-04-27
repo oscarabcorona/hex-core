@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Combobox } from "../../components/ui";
 
 const frameworks = [
@@ -21,20 +21,33 @@ export function ComboboxDemo() {
 	const [value, setValue] = useState<string>();
 	const [preset, setPreset] = useState<string | undefined>("next");
 
+	const defaultLabelId = useId();
+	const preselectedLabelId = useId();
+	const disabledLabelId = useId();
+
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
-				<p className="mb-2 text-xs font-medium text-muted-foreground">Default</p>
+				<p
+					id={defaultLabelId}
+					className="mb-2 text-xs font-medium text-muted-foreground"
+				>
+					Default
+				</p>
 				<Combobox
 					options={frameworks}
 					value={value}
 					onChange={setValue}
 					placeholder="Select a framework"
 					searchPlaceholder="Search framework…"
+					aria-labelledby={defaultLabelId}
 				/>
 			</div>
 			<div>
-				<p className="mb-2 text-xs font-medium text-muted-foreground">
+				<p
+					id={preselectedLabelId}
+					className="mb-2 text-xs font-medium text-muted-foreground"
+				>
 					Pre-selected
 				</p>
 				<Combobox
@@ -43,15 +56,22 @@ export function ComboboxDemo() {
 					onChange={setPreset}
 					placeholder="Select a framework"
 					searchPlaceholder="Search framework…"
+					aria-labelledby={preselectedLabelId}
 				/>
 			</div>
 			<div>
-				<p className="mb-2 text-xs font-medium text-muted-foreground">Disabled</p>
+				<p
+					id={disabledLabelId}
+					className="mb-2 text-xs font-medium text-muted-foreground"
+				>
+					Disabled
+				</p>
 				<Combobox
 					options={frameworks}
 					disabled
 					placeholder="Select a framework"
 					searchPlaceholder="Search framework…"
+					aria-labelledby={disabledLabelId}
 				/>
 			</div>
 		</div>

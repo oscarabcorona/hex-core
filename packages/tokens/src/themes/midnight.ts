@@ -19,10 +19,10 @@ export const midnightTheme: Theme = {
 			secondary: { value: "220 14% 92%", type: "color" },
 			"secondary-foreground": { value: "224 71% 4%", type: "color" },
 			muted: { value: "220 14% 94%", type: "color" },
-			"muted-foreground": { value: "220 9% 43%", type: "color" },
+			"muted-foreground": { value: "220 9% 38%", type: "color" },
 			accent: { value: "220 14% 92%", type: "color" },
 			"accent-foreground": { value: "224 71% 4%", type: "color" },
-			destructive: { value: "0 84% 60%", type: "color" },
+			destructive: { value: "0 72% 45%", type: "color" },
 			"destructive-foreground": { value: "0 0% 100%", type: "color" },
 			border: { value: "220 13% 88%", type: "color" },
 			input: { value: "220 13% 88%", type: "color" },
@@ -42,11 +42,18 @@ export const midnightTheme: Theme = {
 			secondary: { value: "224 30% 13%", type: "color" },
 			"secondary-foreground": { value: "220 23% 95%", type: "color" },
 			muted: { value: "224 30% 13%", type: "color" },
-			"muted-foreground": { value: "220 9% 55%", type: "color" },
+			"muted-foreground": { value: "220 9% 70%", type: "color" },
 			accent: { value: "224 30% 15%", type: "color" },
 			"accent-foreground": { value: "220 23% 95%", type: "color" },
-			destructive: { value: "0 62% 30%", type: "color" },
-			"destructive-foreground": { value: "0 0% 98%", type: "color" },
+			/*
+			 * Destructive in dark mode doubles as text on near-black surfaces
+			 * (alerts, error helper text). A lighter coral-red gives ~7:1 on
+			 * background and ~5:1 on the same color when paired with the dark
+			 * destructive-foreground for button bg + label combos. Same tuning
+			 * as default.ts; intentional shadcn-divergence in service of WCAG AA.
+			 */
+			destructive: { value: "0 75% 65%", type: "color" },
+			"destructive-foreground": { value: "0 75% 15%", type: "color" },
 			border: { value: "224 20% 14%", type: "color" },
 			input: { value: "224 20% 14%", type: "color" },
 			ring: { value: "226 70% 55%", type: "color" },

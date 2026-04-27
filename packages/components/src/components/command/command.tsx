@@ -51,7 +51,7 @@ function CommandDialog({
 				<DialogTitle>{title}</DialogTitle>
 				<DialogDescription>{description}</DialogDescription>
 			</DialogHeader>
-			<DialogContent className="overflow-hidden p-0">
+			<DialogContent className="overflow-hidden p-0" scrollable={false}>
 				<Command className="[&_[cmdk-group-heading]]:px-[var(--space-2,0.5rem)] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-[var(--space-2,0.5rem)] [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-[var(--space-2,0.5rem)] [&_[cmdk-item]]:py-[var(--space-3,0.75rem)] [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
 					{children}
 				</Command>
@@ -130,13 +130,24 @@ const CommandGroup = React.forwardRef<
 ));
 CommandGroup.displayName = "CommandGroup";
 
-/** Horizontal rule between groups. */
+/**
+ * Horizontal rule between groups. Renders as a presentational `<div>` (no role)
+ * so it can sit inside CommandList (role=listbox) without violating ARIA's
+ * required-children rule for listbox. The line is purely decorative — cmdk's
+ * built-in Separator hardcodes `role="separator"`, which axe rejects in this
+ * context, so we render the divider directly.
+ *
+ * The `data-cmdk-separator` attribute is preserved so existing CSS / test
+ * selectors that target cmdk's separator continue to match.
+ */
 const CommandSeparator = React.forwardRef<
-	React.ComponentRef<typeof CommandPrimitive.Separator>,
-	React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator>
+	HTMLDivElement,
+	React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-	<CommandPrimitive.Separator
+	<div
 		ref={ref}
+		role="none"
+		data-cmdk-separator=""
 		className={cn("-mx-[var(--space-1,0.25rem)] h-px bg-border", className)}
 		{...props}
 	/>

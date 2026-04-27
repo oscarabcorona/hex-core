@@ -16,6 +16,13 @@ export const scrollAreaSchema: ComponentSchemaDefinition = {
 			enumValues: ["auto", "always", "scroll", "hover"],
 		},
 		{ name: "className", type: "string", required: false, description: "Set dimensions via Tailwind (e.g. h-72 w-48)" },
+		{
+			name: "viewportTabIndex",
+			type: "number",
+			required: false,
+			default: 0,
+			description: "tabIndex applied to the scroll viewport. Defaults to 0 so keyboard users can scroll without a pointer; pass -1 to skip the viewport in the tab order when wrapping decorative or already-keyboard-reachable content.",
+		},
 	],
 	variants: [],
 	slots: [
@@ -48,10 +55,11 @@ export const scrollAreaSchema: ComponentSchemaDefinition = {
 			"Forgetting to set height/width — scrollbars don't appear",
 			"Using for the whole page",
 			"Nesting ScrollAreas (confusing UX)",
+			"Wrapping decorative or already-keyboard-reachable content without setting viewportTabIndex={-1} — adds an unnecessary tab stop",
 		],
 		relatedComponents: [],
 		accessibilityNotes:
-			"Radix doesn't make the viewport focusable by default — add tabIndex={0} on a focusable child or the viewport to enable keyboard scrolling (arrow keys, PgUp/PgDn, Home/End). For long lists, consider pagination or virtualization.",
+			"The viewport is keyboard-focusable by default (viewportTabIndex=0) so users can scroll long content via arrow keys / PgUp / PgDn / Home / End without a pointer. Pass viewportTabIndex={-1} when the contents are already in the tab order or purely decorative. For very long lists, consider pagination or virtualization.",
 		tokenBudget: 350,
 	},
 	tags: ["scroll-area", "scroll", "overflow", "scrollbar", "layout"],

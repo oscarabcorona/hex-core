@@ -51,6 +51,26 @@ export const sliderSchema: ComponentSchemaDefinition = {
 			description: "Slider direction",
 			enumValues: ["horizontal", "vertical"],
 		},
+		{
+			name: "aria-label",
+			type: "string",
+			required: false,
+			description:
+				"Accessible label for the slider as a whole. Mirrored onto a single thumb automatically; for range sliders prefer thumbLabels.",
+		},
+		{
+			name: "aria-labelledby",
+			type: "string",
+			required: false,
+			description: "Id of an external visible label that names the slider.",
+		},
+		{
+			name: "thumbLabels",
+			type: "object",
+			required: false,
+			description:
+				"Per-thumb accessible labels (string[]). Required for range sliders so each thumb has a meaningful name (e.g. ['Minimum price', 'Maximum price']). For a single-thumb slider, the Root's aria-label is mirrored onto the thumb automatically and thumbLabels is only needed when overriding that default.",
+		},
 	],
 	variants: [],
 	slots: [],
@@ -81,11 +101,13 @@ export const sliderSchema: ComponentSchemaDefinition = {
 			"Using Slider for exact values without showing the number",
 			"Missing min/max bounds",
 			"Using step=1 for fractional values (set step=0.01)",
-			"Not providing aria-label when there's no visible label",
+			"Not providing aria-label / aria-labelledby when there's no visible label",
+			"Range slider with only Root aria-label and no thumbLabels — both thumbs fall back to '(N of 2)' indexed names instead of meaningful per-thumb labels",
+			"thumbLabels.length !== value.length — extra labels are ignored, missing labels fall back to indexed names (dev-mode warning)",
 		],
 		relatedComponents: ["input"],
 		accessibilityNotes:
-			"Arrow keys step by step, Home/End jump to min/max, PageUp/PageDown step larger. Radix handles aria-valuemin/max/now. Add aria-label if no visible label.",
+			"Arrow keys step by step, Home/End jump to min/max, PageUp/PageDown step larger. Radix handles aria-valuemin/max/now. Each thumb has its own accessible name: explicit via thumbLabels[i], else mirrored from the Root's aria-label (single thumb) or indexed '(i of N)' fallback (range). Add aria-label / aria-labelledby on the Root when there's no visible label.",
 		tokenBudget: 450,
 	},
 	tags: ["slider", "range", "form", "numeric", "input"],

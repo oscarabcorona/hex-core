@@ -19,10 +19,10 @@ export const emberTheme: Theme = {
 			secondary: { value: "30 20% 92%", type: "color" },
 			"secondary-foreground": { value: "20 14% 10%", type: "color" },
 			muted: { value: "30 20% 94%", type: "color" },
-			"muted-foreground": { value: "20 6% 43%", type: "color" },
+			"muted-foreground": { value: "20 6% 38%", type: "color" },
 			accent: { value: "36 60% 90%", type: "color" },
 			"accent-foreground": { value: "20 14% 10%", type: "color" },
-			destructive: { value: "0 84% 60%", type: "color" },
+			destructive: { value: "0 72% 45%", type: "color" },
 			"destructive-foreground": { value: "0 0% 100%", type: "color" },
 			border: { value: "30 15% 87%", type: "color" },
 			input: { value: "30 15% 87%", type: "color" },
@@ -42,11 +42,17 @@ export const emberTheme: Theme = {
 			secondary: { value: "20 12% 14%", type: "color" },
 			"secondary-foreground": { value: "30 20% 94%", type: "color" },
 			muted: { value: "20 12% 14%", type: "color" },
-			"muted-foreground": { value: "20 6% 55%", type: "color" },
+			"muted-foreground": { value: "20 6% 70%", type: "color" },
 			accent: { value: "20 20% 16%", type: "color" },
 			"accent-foreground": { value: "30 20% 94%", type: "color" },
-			destructive: { value: "0 62% 30%", type: "color" },
-			"destructive-foreground": { value: "0 0% 98%", type: "color" },
+			/*
+			 * Destructive in dark mode doubles as text on near-black surfaces
+			 * (alerts, error helper text). A lighter coral-red gives ~7:1 on
+			 * background and ~5:1 on the same color when paired with the dark
+			 * destructive-foreground. Same tuning as default.ts.
+			 */
+			destructive: { value: "0 75% 65%", type: "color" },
+			"destructive-foreground": { value: "0 75% 15%", type: "color" },
 			border: { value: "20 10% 16%", type: "color" },
 			input: { value: "20 10% 16%", type: "color" },
 			ring: { value: "16 65% 52%", type: "color" },

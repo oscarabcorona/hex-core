@@ -41,7 +41,7 @@ export function SelectDemo() {
 					Grouped options (with separator)
 				</p>
 				<Select>
-					<SelectTrigger className="w-[240px]">
+					<SelectTrigger className="w-[240px]" aria-label="Timezone">
 						<SelectValue placeholder="Select a timezone" />
 					</SelectTrigger>
 					<SelectContent>
@@ -65,7 +65,7 @@ export function SelectDemo() {
 			<div>
 				<p className="mb-2 text-xs font-medium text-muted-foreground">With disabled option</p>
 				<Select>
-					<SelectTrigger className="w-[200px]">
+					<SelectTrigger className="w-[200px]" aria-label="Plan">
 						<SelectValue placeholder="Pick a plan" />
 					</SelectTrigger>
 					<SelectContent>
@@ -84,7 +84,7 @@ export function SelectDemo() {
 			<div>
 				<p className="mb-2 text-xs font-medium text-muted-foreground">Disabled</p>
 				<Select disabled>
-					<SelectTrigger className="w-[200px]">
+					<SelectTrigger className="w-[200px]" aria-label="Disabled option">
 						<SelectValue placeholder="Unavailable" />
 					</SelectTrigger>
 					<SelectContent>

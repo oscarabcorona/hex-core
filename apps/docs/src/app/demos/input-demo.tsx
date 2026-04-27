@@ -10,17 +10,36 @@ export function InputDemo() {
 			<div>
 				<p className="mb-2 text-xs font-medium text-muted-foreground">Types</p>
 				<div className="grid gap-2">
-					<Input placeholder="Default text" />
-					<Input type="email" placeholder="you@example.com" />
-					<Input type="password" placeholder="Password" />
-					<Input type="number" placeholder="42" min={0} max={100} />
-					<Input type="search" placeholder="Search…" />
+					<Input placeholder="Default text" aria-label="Default text input" />
+					<Input
+						type="email"
+						placeholder="you@example.com"
+						aria-label="Email"
+					/>
+					<Input
+						type="password"
+						placeholder="Password"
+						aria-label="Password"
+					/>
+					<Input
+						type="number"
+						placeholder="42"
+						min={0}
+						max={100}
+						aria-label="Number between 0 and 100"
+					/>
+					<Input type="search" placeholder="Search…" aria-label="Search" />
 				</div>
 			</div>
 
 			<div>
-				<p className="mb-2 text-xs font-medium text-muted-foreground">File upload</p>
-				<Input type="file" />
+				<Label
+					htmlFor="input-demo-file"
+					className="mb-2 text-xs font-medium text-muted-foreground"
+				>
+					File upload
+				</Label>
+				<Input id="input-demo-file" type="file" />
 			</div>
 
 			<div>
@@ -50,8 +69,13 @@ export function InputDemo() {
 			</div>
 
 			<div>
-				<p className="mb-2 text-xs font-medium text-muted-foreground">Disabled</p>
-				<Input defaultValue="Read-only value" disabled />
+				<Label
+					htmlFor="input-demo-disabled"
+					className="mb-2 text-xs font-medium text-muted-foreground"
+				>
+					Disabled
+				</Label>
+				<Input id="input-demo-disabled" defaultValue="Read-only value" disabled />
 			</div>
 		</div>
 	);

@@ -87,8 +87,14 @@
       "source": "derived-mistake"
     },
     {
+      "id": "data-table-shipping-a-table-without-caption-or-aria-label-t",
+      "check": "[Data Table] Avoid: Shipping a table without `caption` or `aria-label` — the table is unlabelled to assistive tech",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
       "id": "data-table-a11y",
-      "check": "[Data Table] A11y: Uses semantic <table> via Hex UI Table primitives. Add aria-sort to sortable column headers. Announce filter/sort changes via aria-live for dynamic updates.",
+      "check": "[Data Table] A11y: Pass either `caption` (visible) or `aria-label` so screen readers announce the table when the user enters it. Add aria-sort to sortable column headers. Announce filter/sort changes via aria-live for dynamic updates.",
       "severity": "warn",
       "source": "derived-a11y"
     },

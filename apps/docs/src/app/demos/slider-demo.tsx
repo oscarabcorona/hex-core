@@ -36,6 +36,7 @@ export function SliderDemo() {
 				</div>
 				<Slider
 					aria-label="Price range"
+					thumbLabels={["Minimum price", "Maximum price"]}
 					value={range}
 					onValueChange={setRange}
 					min={0}

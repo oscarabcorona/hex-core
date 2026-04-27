@@ -69,7 +69,11 @@ export function DataTableDemo() {
 
 	return (
 		<div className="w-full max-w-2xl">
-			<DataTable columns={columns} data={data} />
+			<DataTable
+				columns={columns}
+				data={data}
+				caption="Recent payments by status, email, and amount."
+			/>
 		</div>
 	);
 }

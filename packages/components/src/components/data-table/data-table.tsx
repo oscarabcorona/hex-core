@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import {
 	type ColumnDef,
 	flexRender,
@@ -9,6 +10,7 @@ import {
 import {
 	Table,
 	TableBody,
+	TableCaption,
 	TableCell,
 	TableHead,
 	TableHeader,
@@ -24,14 +26,30 @@ import {
 export interface DataTableProps<TData> {
 	columns: ColumnDef<TData, unknown>[];
 	data: TData[];
+	/**
+	 * Visible caption rendered below the table. Announced by screen readers
+	 * when the user enters the table. Provide either `caption` or `aria-label`.
+	 */
+	caption?: React.ReactNode;
+	/**
+	 * Accessible label for the table when no visible caption is shown.
+	 * Forwarded as `aria-label` on the underlying `<table>` element. Kebab-case
+	 * to match the canonical ARIA prop convention used elsewhere in Hex UI.
+	 */
+	"aria-label"?: string;
 }
 
 /**
  * Render a data-driven table from TanStack column definitions.
- * @param props - Columns and data
+ * @param props - Columns, data, and optional accessible labelling (`caption` or `aria-label`)
  * @returns A styled Table rendered from the TanStack row model
  */
-export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
+export function DataTable<TData>({
+	columns,
+	data,
+	caption,
+	"aria-label": ariaLabel,
+}: DataTableProps<TData>) {
 	const table = useReactTable({
 		data,
 		columns,
@@ -40,7 +58,8 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
 
 	return (
 		<div className="rounded-md border">
-			<Table>
+			<Table aria-label={ariaLabel}>
+				{caption ? <TableCaption>{caption}</TableCaption> : null}
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow key={headerGroup.id}>

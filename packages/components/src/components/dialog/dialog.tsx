@@ -32,18 +32,35 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = "DialogOverlay";
 
+interface DialogContentProps
+	extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+	/**
+	 * When `true` (the default), DialogContent caps its height at viewport-2rem
+	 * and renders children inside a padded inner scroll container. The Close
+	 * button stays anchored to the (non-scrolling) outer panel so it remains
+	 * visible even when the user scrolls long content.
+	 *
+	 * Pass `scrollable={false}` to opt out — useful when the consumer manages
+	 * its own scroll surface (e.g. CommandDialog defers scroll to cmdk's
+	 * internal CommandList).
+	 */
+	scrollable?: boolean;
+}
+
 /** The dialog content panel, centered on the overlay. Includes a close button by default. */
 const DialogContent = React.forwardRef<
 	React.ComponentRef<typeof DialogPrimitive.Content>,
-	React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+	DialogContentProps
+>(({ className, children, scrollable = true, ...props }, ref) => (
 	<DialogPortal>
 		<DialogOverlay />
 		<DialogPrimitive.Content
 			ref={ref}
 			className={cn(
-				"fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-[var(--gap-md,1rem)]",
-				"border bg-background p-[var(--space-6,1.5rem)] shadow-lg rounded-lg",
+				"fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%]",
+				scrollable
+					? "max-h-[calc(100vh-2rem)] border bg-background shadow-lg rounded-lg"
+					: "gap-[var(--gap-md,1rem)] border bg-background p-[var(--space-6,1.5rem)] shadow-lg rounded-lg",
 				"duration-[var(--duration-normal,200ms)] data-[state=open]:animate-in data-[state=closed]:animate-out",
 				"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
 				"data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -51,10 +68,16 @@ const DialogContent = React.forwardRef<
 			)}
 			{...props}
 		>
-			{children}
+			{scrollable ? (
+				<div className="grid gap-[var(--gap-md,1rem)] overflow-y-auto p-[var(--space-6,1.5rem)]">
+					{children}
+				</div>
+			) : (
+				children
+			)}
 			<DialogPrimitive.Close
 				className={cn(
-					"absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background",
+					"absolute right-4 top-4 z-10 rounded-sm opacity-70 ring-offset-background bg-background/80 backdrop-blur-sm",
 					"transition-all duration-[var(--duration-normal,200ms)] ease-out hover:opacity-100",
 					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 					"disabled:pointer-events-none",
@@ -80,6 +103,8 @@ const DialogContent = React.forwardRef<
 	</DialogPortal>
 ));
 DialogContent.displayName = "DialogContent";
+
+export type { DialogContentProps };
 
 /**
  * Header container inside DialogContent; stacks title and description.

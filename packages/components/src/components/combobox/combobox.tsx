@@ -36,8 +36,10 @@ interface ComboboxProps {
 	disabled?: boolean;
 	/** Extra class names on the trigger button. */
 	className?: string;
-	/** Accessible label for the trigger (required when no adjacent visible <label>). */
+	/** Accessible label for the trigger (required when no adjacent visible label). */
 	"aria-label"?: string;
+	/** Id of an external visible label that names this combobox. */
+	"aria-labelledby"?: string;
 }
 
 /**
@@ -57,8 +59,10 @@ function Combobox({
 	disabled,
 	className,
 	"aria-label": ariaLabel,
+	"aria-labelledby": ariaLabelledBy,
 }: ComboboxProps) {
 	const [open, setOpen] = React.useState(false);
+	const listboxId = React.useId();
 	const selected = options.find((o) => o.value === value);
 
 	return (
@@ -69,7 +73,15 @@ function Combobox({
 					role="combobox"
 					aria-expanded={open}
 					aria-haspopup="listbox"
+					/*
+					 * Only reference the listbox id when the popover is open.
+					 * The CommandList is portal-mounted by Radix Popover and
+					 * does not exist in the DOM while closed; pointing at a
+					 * missing id confuses some screen readers.
+					 */
+					aria-controls={open ? listboxId : undefined}
 					aria-label={ariaLabel}
+					aria-labelledby={ariaLabelledBy}
 					disabled={disabled}
 					className={cn(
 						"inline-flex h-[var(--control-height-md,2.5rem)] w-[240px] items-center justify-between gap-[var(--gap-sm,0.5rem)] rounded-md border border-input bg-background px-[var(--space-3,0.75rem)] py-[var(--space-2,0.5rem)] text-sm font-normal transition-all duration-[var(--duration-normal,200ms)] ease-out",
@@ -99,7 +111,7 @@ function Combobox({
 			<PopoverContent className="w-[240px] p-0" align="start">
 				<Command>
 					<CommandInput placeholder={searchPlaceholder} />
-					<CommandList>
+					<CommandList id={listboxId}>
 						<CommandEmpty>{emptyText}</CommandEmpty>
 						<CommandGroup>
 							{options.map((option) => (
