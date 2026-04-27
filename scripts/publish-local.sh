@@ -150,6 +150,7 @@ PACKAGES=(
 	"packages/components"
 	"packages/cli"
 	"packages/mcp-server"
+	"packages/preview"
 )
 
 PUBLISHED=()
