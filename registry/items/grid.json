@@ -1,0 +1,221 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "grid",
+  "displayName": "Grid",
+  "description": "CSS grid with column-count presets and token-bound gap. Pass `cols=\"auto-fit\"` + `minColWidth` for responsive grids without media queries.",
+  "category": "primitive",
+  "subcategory": "layout",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "cols",
+      "type": "enum",
+      "required": false,
+      "default": "3",
+      "description": "Number of fixed columns, or `\"auto-fit\"` for responsive tracks (use with `minColWidth`).",
+      "enumValues": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "6",
+        "auto-fit"
+      ]
+    },
+    {
+      "name": "gap",
+      "type": "enum",
+      "required": false,
+      "default": "md",
+      "description": "Gap between cells, bound to `--gap-*` tokens.",
+      "enumValues": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "align",
+      "type": "enum",
+      "required": false,
+      "default": "stretch",
+      "description": "Cell vertical alignment within their grid row.",
+      "enumValues": [
+        "start",
+        "center",
+        "end",
+        "stretch"
+      ]
+    },
+    {
+      "name": "minColWidth",
+      "type": "string",
+      "required": false,
+      "default": "16rem",
+      "description": "Min track size for `cols=\"auto-fit\"` (e.g. `\"20rem\"`). Ignored when `cols` is a fixed integer."
+    }
+  ],
+  "variants": [
+    {
+      "name": "cols",
+      "description": "Column count or `auto-fit` mode.",
+      "values": [
+        {
+          "value": "1",
+          "description": "Single column — items stack vertically inside the grid."
+        },
+        {
+          "value": "2",
+          "description": "Two even columns."
+        },
+        {
+          "value": "3",
+          "description": "Default — three even columns."
+        },
+        {
+          "value": "4",
+          "description": "Four even columns."
+        },
+        {
+          "value": "6",
+          "description": "Six even columns — dense layouts."
+        },
+        {
+          "value": "auto-fit",
+          "description": "Tracks repeat to fill width, never below `minColWidth`."
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "name": "gap",
+      "description": "Gap between cells, bound to `--gap-*` tokens.",
+      "values": [
+        {
+          "value": "xs",
+          "description": "0.25rem — minimal separation."
+        },
+        {
+          "value": "sm",
+          "description": "0.5rem — tight grid."
+        },
+        {
+          "value": "md",
+          "description": "1rem — default; standard rhythm."
+        },
+        {
+          "value": "lg",
+          "description": "1.5rem — generous separation."
+        },
+        {
+          "value": "xl",
+          "description": "2rem — major separation between cards."
+        }
+      ],
+      "default": "md"
+    },
+    {
+      "name": "align",
+      "description": "Cell vertical alignment within their grid row.",
+      "values": [
+        {
+          "value": "start",
+          "description": "Cells align to top of row."
+        },
+        {
+          "value": "center",
+          "description": "Cells center vertically."
+        },
+        {
+          "value": "end",
+          "description": "Cells align to bottom of row."
+        },
+        {
+          "value": "stretch",
+          "description": "Default — cells fill row height."
+        }
+      ],
+      "default": "stretch"
+    }
+  ],
+  "slots": [
+    {
+      "name": "children",
+      "description": "Grid cells — typically Cards, images, or any uniform block.",
+      "required": true,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/grid.tsx",
+      "content": "import { type VariantProps, cva } from \"class-variance-authority\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\nimport { flexAlignVariants, gapVariants } from \"../_shared/layout-variants.js\";\n\n/**\n * CVA variants for Grid — CSS grid with column-count presets and shared `gap`.\n * `cols` accepts 1/2/3/4/6 fixed columns or `\"auto-fit\"` for responsive auto-sizing\n * (in which case the consumer should pass `minColWidth` for the min track size).\n *\n * `cols` keys are TypeScript numeric literals (`cols={3}`) at the type level;\n * the schema's `enumValues` serializes them as strings for JSON-shape parity.\n */\nconst gridVariants = cva(\"grid\", {\n\tvariants: {\n\t\tcols: {\n\t\t\t1: \"grid-cols-1\",\n\t\t\t2: \"grid-cols-2\",\n\t\t\t3: \"grid-cols-3\",\n\t\t\t4: \"grid-cols-4\",\n\t\t\t6: \"grid-cols-6\",\n\t\t\t\"auto-fit\": \"\",\n\t\t},\n\t\tgap: gapVariants,\n\t\talign: flexAlignVariants,\n\t},\n\tdefaultVariants: {\n\t\tcols: 3,\n\t\tgap: \"md\",\n\t\talign: \"stretch\",\n\t},\n});\n\n/** Props for the Grid component. */\nexport interface GridProps\n\textends React.HTMLAttributes<HTMLDivElement>,\n\t\tVariantProps<typeof gridVariants> {\n\t/**\n\t * Minimum column width for `cols=\"auto-fit\"`. Tracks repeat to fill the container,\n\t * never shrinking below this value. Ignored when `cols` is a fixed integer.\n\t * @default \"16rem\"\n\t */\n\tminColWidth?: string;\n}\n\n/**\n * CSS grid with column-count presets and consistent gap. Use for card grids,\n * dashboards, image galleries, and any layout where children should align to\n * shared row/column tracks.\n *\n * Pass `cols=\"auto-fit\"` and `minColWidth` for responsive grids that fit as\n * many columns as the viewport allows without media queries.\n *\n * @param props - Grid props including `cols`, `gap`, `align`, and `minColWidth`.\n * @returns A CSS grid container.\n * @example\n * ```tsx\n * <Grid cols={3} gap=\"md\">\n *   {items.map((i) => <Card key={i.id}>{i.title}</Card>)}\n * </Grid>\n * <Grid cols=\"auto-fit\" minColWidth=\"20rem\" gap=\"lg\">\n *   {responsiveItems.map(...)}\n * </Grid>\n * ```\n */\nfunction Grid({ className, cols, gap, align, minColWidth = \"16rem\", style, ...props }: GridProps) {\n\t// Consumer's inline `style` is spread last so a passed `gridTemplateColumns`\n\t// overrides our auto-fit default. That's the right precedence: explicit wins.\n\tconst inlineStyle =\n\t\tcols === \"auto-fit\"\n\t\t\t? { gridTemplateColumns: `repeat(auto-fit, minmax(${minColWidth}, 1fr))`, ...style }\n\t\t\t: style;\n\treturn (\n\t\t<div\n\t\t\tclassName={cn(gridVariants({ cols, gap, align }), className)}\n\t\t\tstyle={inlineStyle}\n\t\t\t{...props}\n\t\t/>\n\t);\n}\n\nexport { Grid, gridVariants };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "class-variance-authority"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react"
+    ]
+  },
+  "tokensUsed": [
+    "--gap-xs",
+    "--gap-sm",
+    "--gap-md",
+    "--gap-lg",
+    "--gap-xl"
+  ],
+  "examples": [
+    {
+      "title": "Three-column card grid",
+      "description": "Fixed 3 columns with medium gap.",
+      "code": "<Grid cols={3} gap=\"md\">\n  {items.map((i) => <Card key={i.id}>{i.title}</Card>)}\n</Grid>"
+    },
+    {
+      "title": "Responsive auto-fit",
+      "description": "Tracks fit as many 20rem columns as the viewport allows; no media queries needed.",
+      "code": "<Grid cols=\"auto-fit\" minColWidth=\"20rem\" gap=\"lg\">\n  {items.map(...)}\n</Grid>"
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use for visually-aligned grids of similar items: card galleries, image walls, dashboard tiles, settings panels. Prefer `cols=\"auto-fit\"` + `minColWidth` over hand-written breakpoints when the column count should adapt to viewport width.",
+    "whenNotToUse": "Don't use for one-dimensional flows — use `Stack` (vertical) or `Cluster` (horizontal). Don't use for tabular data — use `<table>` or DataTable. Don't fight `Grid` to make uneven columns; if cells need different sizes, use a flexbox layout or a CSS grid with named tracks directly.",
+    "commonMistakes": [
+      "Setting `cols={5}` and getting nothing — the preset only supports 1/2/3/4/6 (deliberate, to avoid odd visual rhythms); use `cols=\"auto-fit\"` for arbitrary counts",
+      "Passing `cols=\"auto-fit\"` without `minColWidth` — the default `16rem` may not match your design intent",
+      "Using `Grid` for two children when `Cluster` or `Stack` would communicate intent better"
+    ],
+    "relatedComponents": [
+      "stack",
+      "cluster",
+      "container",
+      "card"
+    ],
+    "accessibilityNotes": "Grid is presentational. If the grid renders a list of similar items, wrap in `<ul>`/`<li>` for screen-reader semantics — Grid only handles visual layout.",
+    "tokenBudget": 300
+  },
+  "tags": [
+    "grid",
+    "layout",
+    "css-grid",
+    "responsive",
+    "auto-fit",
+    "primitive"
+  ]
+}
