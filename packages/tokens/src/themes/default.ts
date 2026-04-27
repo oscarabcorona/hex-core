@@ -16,7 +16,9 @@ export const defaultTheme: Theme = {
 			"popover-foreground": { value: "240 10% 3.9%", type: "color" },
 			primary: { value: "240 5.9% 10%", type: "color" },
 			"primary-foreground": { value: "0 0% 98%", type: "color" },
-			secondary: { value: "240 4.8% 95.9%", type: "color" },
+			// WCAG 2.1 SC 1.4.11: secondary/border/input must hit 3:1 against --card (white).
+			// L=58% ≈ 3.2:1; previous L=95.9% (~1.10:1) and L=90% (~1.27:1) failed.
+			secondary: { value: "240 4.8% 58%", type: "color" },
 			"secondary-foreground": { value: "240 5.9% 10%", type: "color" },
 			muted: { value: "240 4.8% 95.9%", type: "color" },
 			"muted-foreground": { value: "240 4% 38%", type: "color" },
@@ -24,8 +26,8 @@ export const defaultTheme: Theme = {
 			"accent-foreground": { value: "240 5.9% 10%", type: "color" },
 			destructive: { value: "0 72% 45%", type: "color" },
 			"destructive-foreground": { value: "0 0% 98%", type: "color" },
-			border: { value: "240 5.9% 90%", type: "color" },
-			input: { value: "240 5.9% 90%", type: "color" },
+			border: { value: "240 5.9% 58%", type: "color" },
+			input: { value: "240 5.9% 58%", type: "color" },
 			ring: { value: "240 5.9% 10%", type: "color" },
 			radius: { value: "0.625rem", type: "radius" },
 			...sharedTokens,
