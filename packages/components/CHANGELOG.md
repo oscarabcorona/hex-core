@@ -1,5 +1,242 @@
 # @hex-core/components
 
+## 1.3.0
+
+### Minor Changes
+
+- 062bec3: Adds `ColorPicker` — an HSL-native color editor that round-trips losslessly through the `@hex-core/tokens` HSL triplet format (`"<H> <S>% <L>%"`).
+
+  The picker edits an HSL triplet directly via three labeled sliders (Hue / Saturation / Lightness). A hex input sits beside them as a display adapter — sliders are the source of truth, so the value never loses precision when round-tripping triplet → hex → triplet during slider drags. Invalid hex input is held in a local buffer and not committed until it parses cleanly. The buffer also resists clobbering while the input is focused, so users can type intermediate states without parent re-renders snapping the caret.
+
+  Each `<ColorPicker>` instance generates a stable internal `id` via `React.useId()`, so multiple pickers can render on the same page (e.g. one per token in a theme editor) without label-collision.
+
+  API:
+
+  ```tsx
+  const [color, setColor] = React.useState("240 5.9% 10%");
+  <ColorPicker value={color} onChange={setColor} aria-label="Primary color" />;
+  ```
+
+  Composition: `Popover` (trigger + body) + three `Slider` rows + an `Input` for hex + a swatch preview. Per-axis `aria-label`s (Hue / Saturation / Lightness) on the sliders; the trigger requires an explicit `aria-label` describing the role of the color being edited.
+
+  Also exports the underlying color utilities — `parseHslTriplet`, `formatHslTriplet`, `hslToRgb`, `rgbToHsl`, `hslTripletToHex`, `hexToHslTriplet` plus `HslTriplet` and `RgbColor` types — under `@hex-core/components`. These are pure, testable functions for any consumer that needs to bridge between hex and triplet formats outside the picker UI.
+
+  Registry rebuilt: 52 → 53 component items.
+
+- 6eca0c1: feat(components): forward `captionLayout`, `startMonth`, `endMonth` on `DatePicker` for year-dropdown navigation
+
+  The DatePicker trigger previously gave consumers no way to opt into the native year `<select>` that `react-day-picker` v9 supports. For birth-date and other far-out-year inputs that meant chevron-clicking through dozens of months — long enough that the [shadcn issue](https://github.com/shadcn-ui/ui/issues) about it (P-032) has stayed open as a top request.
+
+  This change adds three pass-through props that map directly onto the underlying `Calendar` (which already forwards them to `react-day-picker`):
+
+  ```tsx
+  <DatePicker
+  	value={dob}
+  	onChange={setDob}
+  	placeholder="Date of birth"
+  	captionLayout="dropdown"
+  	startMonth={new Date(1925, 0)}
+  	endMonth={new Date(new Date().getFullYear(), 11)}
+  	aria-label="Date of birth"
+  />
+  ```
+
+  `captionLayout` accepts `"label"` (default — chevron buttons only), `"dropdown"`, `"dropdown-months"`, or `"dropdown-years"`. The schema's `commonMistakes` and a new `Birth-date picker with year dropdown` example call out that `captionLayout="dropdown"` should always be paired with explicit `startMonth`/`endMonth` — RDP's default ±100-year window produces an unwieldy 200-option dropdown.
+
+  A new `date-picker.test.tsx` covers four cases: default has no native `<select>`, `dropdown` mode mounts year + month selects, changing the year select updates the visible grid, and date selection still fires `onChange` after using the dropdown.
+
+  Theme D pain-point P-032 closed.
+
+- 6eca0c1: feat(components): add `Dropzone` — drag-and-drop file input with full keyboard a11y
+
+  `Dropzone` is the upload primitive that's been a top-5 [shadcn feature request](https://github.com/shadcn-ui/ui/issues) for years (pain-point P-033). Built on the **native HTML5 drag-drop API** plus a visually-hidden `<input type="file">` so it ships with **zero new dependencies** — no `react-dropzone`, no custom polyfills.
+
+  The visible body is a `role="button"` div with `tabIndex=0` and the required `aria-label`. Click, Enter, or Space opens the file dialog through the hidden input — every interaction path is covered for sighted, keyboard, and screen-reader users alike. The hidden input is the focusable element so assistive-tech file pickers work.
+
+  ```tsx
+  <Dropzone
+  	accept="image/*"
+  	maxSize={5 * 1024 * 1024}
+  	onFilesSelected={(picked) => setFiles((f) => [...f, ...picked])}
+  	aria-label="Upload images"
+  />
+  ```
+
+  Filtering happens before `onFilesSelected` fires:
+  - `accept` — supports MIME types (`"image/png"`), wildcards (`"image/*"`), and extensions (`".csv"`)
+  - `maxSize` — files over the byte cap are dropped silently
+  - `maxFiles` — total cap (after filtering); excess are sliced off
+  - `multiple` — defaults to `true`; set `false` for single-file UX
+
+  Drag state is exposed via `data-drag-over` (CSS-only state styling) **and** through a render-prop API:
+
+  ```tsx
+  <Dropzone aria-label="Upload">
+  	{({ isDragOver }) => <span>{isDragOver ? "Release" : "Drop a file"}</span>}
+  </Dropzone>
+  ```
+
+  The hidden input's `value` is reset after every emit so picking the same file twice still fires `onFilesSelected`. Dragenter/dragleave use a counter to handle nested children correctly (the typical "flicker on hover over icons" bug).
+
+  Eight tests cover the role/tabindex/aria-label wiring, Enter + Space keyboard activation, drop event emission, `accept` filtering by MIME prefix, `maxSize` enforcement, the disabled state's tab-removal + drop-ignore, and the `data-drag-over` lifecycle.
+
+  Registry rebuilt: 55 → 56 components. Theme D pain-point P-033 closed.
+
+- 6eca0c1: feat(components): add `FileTree` — WAI-ARIA tree with full keyboard navigation
+
+  `FileTree` is the hierarchical-navigation primitive [shadcn has skipped](https://github.com/shadcn-ui/ui/issues) despite growing IDE/Cursor-era demand (pain-point P-035). Built on the **WAI-ARIA tree pattern** — `role="tree"` on the root, `role="treeitem"` per node, `role="group"` per child container, with `aria-level`, `aria-expanded` (folders), `aria-selected`, and `aria-disabled` reflecting state.
+
+  ```tsx
+  const nodes = [
+  	{
+  		id: "src",
+  		name: "src",
+  		children: [
+  			{ id: "src/index.tsx", name: "index.tsx" },
+  			{
+  				id: "src/components",
+  				name: "components",
+  				children: [{ id: "src/components/Button.tsx", name: "Button.tsx" }],
+  			},
+  		],
+  	},
+  	{ id: "package.json", name: "package.json" },
+  ];
+
+  <FileTree
+  	aria-label="Project files"
+  	nodes={nodes}
+  	defaultExpanded={["src"]}
+  	selected={selected}
+  	onSelect={setSelected}
+  />;
+  ```
+
+  Full **keyboard navigation** matching the [WAI-ARIA APG tree pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/):
+  - **ArrowDown / ArrowUp** — move between visible items (focus follows, but `onSelect` does NOT fire — selection is independent of focus)
+  - **ArrowRight** — expand a closed folder, or move to first child if open
+  - **ArrowLeft** — collapse an open folder, or move to parent
+  - **Home / End** — jump to the first / last visible item
+  - **Enter / Space** — activate (toggles expand on folders, fires `onSelect` for everyone)
+
+  **Roving tabindex** — only the active node has `tabIndex=0`, the rest have `tabIndex=-1`, so Tab in/out skips the tree as a whole and arrow keys handle internal navigation. `requestAnimationFrame` defers focus moves so the new tabbable element is in the DOM before `.focus()` runs.
+
+  Expanded state is **uncontrolled by default** (`defaultExpanded={["src"]}`); pass `expanded` + `onExpandedChange` for controlled mode. Selected is purely controlled via `selected` + `onSelect`.
+
+  Each node has `id`, `name`, optional `children`, optional `icon` override, and optional `disabled`. Default icons are folder (open/closed variants) and file SVGs; pass `icon` per-node to use Lucide or any other set. Disabled nodes carry `aria-disabled="true"` and ignore clicks/keyboard activation.
+
+  Eight tests cover the tree role + label, default-collapsed state, `defaultExpanded` reveal + correct `aria-level` propagation, click-to-toggle vs click-to-select branching, ArrowRight/ArrowLeft expand/collapse, Enter activation on leaves, disabled node click suppression, and the roving-tabindex single-tabbable invariant.
+
+  Registry rebuilt: 57 → 58 components. Theme D pain-point P-035 closed — Theme D **success signal hit (7/7)**.
+
+- 6eca0c1: feat(components): add `MultiCombobox` — searchable multi-select on Popover + Command
+
+  shadcn's maintainers have explicitly declined to ship a multi-select primitive — long-standing pain-point P-031. Hex Core now ships one.
+
+  `MultiCombobox` is a sibling to the existing `Combobox`: same `Popover` + `cmdk` Command list, same trigger token surface, but `value` is `string[]` and selecting an option toggles membership instead of replacing the value. The trigger reads `"{n} selected"` once any option is picked (chosen over chip-stack to keep the `role="combobox"` button at a stable height); the comma-joined label list is mirrored on the trigger's `title` attribute as a pointer/screen-reader fallback. A visually-hidden `aria-live="polite"` region announces selection-count changes.
+
+  ```tsx
+  const [picks, setPicks] = useState<string[]>([]);
+
+  <MultiCombobox
+  	options={[
+  		{ value: "bug", label: "Bug" },
+  		{ value: "feature", label: "Feature" },
+  	]}
+  	value={picks}
+  	onChange={setPicks}
+  	aria-label="Tags"
+  />;
+  ```
+
+  A `maxSelected` cap is supported as a UX hint — once reached, unselected options carry `aria-disabled="true"` and clicks are ignored. `closeOnSelect` defaults to `false` to match the Linear/Notion multi-select pattern; set it `true` for one-shot pickers.
+
+  ARIA wiring matches the existing `Combobox`: trigger is `role="combobox"` with `aria-expanded`, `aria-haspopup="listbox"`, and `aria-controls` only set while the popover is open (the listbox is portal-mounted, so a permanent `aria-controls` would point at a non-existent id). Each list item carries `aria-selected` reflecting the controlled `value` set.
+
+  Six tests cover trigger a11y wiring, picking + toggling-off, the `maxSelected` cap, per-option `aria-selected`, and the trigger's `"{n} selected"` + `title` mirror.
+
+  Registry rebuilt: 53 → 54 components. Theme D pain-point P-031 closed.
+
+- 6eca0c1: feat(components): add `Stepper` — linear progress for multi-step flows with per-step error state
+
+  `Stepper` is a semantic-HTML primitive for form wizards, onboarding, checkout, and any sequenced flow where the user needs to know where they are and what's next. shadcn has had two long-running discussions (#1422, #4276 — pain-point P-036) about adding one and never has.
+
+  The component renders an `<ol>` with the required `aria-label`, one `<li>` per step, and per-step status derived from the controlled `current` index — except when the consumer pins a step's `status` explicitly. The status union is `"complete" | "current" | "upcoming" | "error"`; `"error"` lets a wizard surface a validation failure on the current or a prior step without lying about its index.
+
+  ```tsx
+  <Stepper
+  	aria-label="Checkout"
+  	current={2}
+  	steps={[
+  		{ id: "cart", label: "Cart" },
+  		{ id: "shipping", label: "Shipping", status: "error" },
+  		{ id: "payment", label: "Payment" },
+  	]}
+  />
+  ```
+
+  The current step's interactive child carries `aria-current="step"`. Completed steps prefix the label with a visually-hidden `"Completed: "`; error steps prefix `"Error: "` and set `aria-invalid="true"` on the indicator. When `onStepClick` is omitted the steps are non-interactive `<span>`s — no fake button roles. When provided, each step renders as a real `<button>` with focus-ring tokens; `step.disabled` no-ops the click.
+
+  `size="sm" | "md"` and `orientation="horizontal" | "vertical"` are CVA variants — the vertical layout flips the connector to a 1px column rather than a row. All theming hooks token-based (`--control-height-sm`, `--gap-md`, `--space-3`, `--space-1`, `--duration-normal` plus `primary`, `destructive`, `input`, `muted-foreground`, `ring` semantic tokens).
+
+  Six tests cover the `<ol>` + `aria-label` shape, `aria-current` on the current step + `Completed:` prefix on prior ones, the non-interactive `<span>` path, the interactive `<button>` path with disabled steps, the `status="error"` override + `aria-invalid`, and the vertical orientation root class.
+
+  Registry rebuilt: 53 → 54 components. Theme D pain-point P-036 closed.
+
+- 6eca0c1: feat(components): add `TimePicker` — token-styled native time input
+
+  `TimePicker` ships the #1 most-reacted [shadcn feature request](https://github.com/shadcn-ui/ui/issues?q=is%3Aissue+sort%3Areactions-%2B1-desc) (pain-point P-030). It's a **styled wrapper around the native `<input type="time">`** — the browser handles 12/24-hour locale based on user system settings, keyboard arrow spinning across hour/minute (and seconds) segments, and screen-reader announcement of each segment. The wire format is always 24-hour `"HH:MM"` (or `"HH:MM:SS"` when `step={1}`), so values round-trip cleanly through forms.
+
+  ```tsx
+  const [time, setTime] = useState<string>();
+
+  <TimePicker
+  	value={time}
+  	onChange={setTime}
+  	step={300} // 5-minute step
+  	min="09:00"
+  	max="17:00"
+  	aria-label="Working hours start"
+  />;
+  ```
+
+  Why native: the alternative (Popover with hour/minute scroll columns) needs a substantial custom interaction layer with locale-specific 12/24-hour toggling, screen-reader-friendly announcements, and arrow-key spinning of each segment. The native input gives all of that for free with full a11y; the only cost is the browser's default calendar-picker indicator styling, which is tuned via `[&::-webkit-calendar-picker-indicator]` so it picks up the design system's hover state.
+
+  Forwards `ref` so it integrates with `react-hook-form` (`{...register("time")}`) and any other controlled form library. `step` accepts standard time-input values: `60` (default, HH:MM), `1` (HH:MM:SS), `300` (5-min steps), `900` (15-min), `1800` (30-min).
+
+  Five tests cover input type + value rendering, onChange wire format, step/min/max forwarding, disabled state, and ref forwarding.
+
+  Registry rebuilt: 56 → 57 components. Theme D pain-point P-030 closed.
+
+- 6eca0c1: feat(components): add `Timeline` — vertical chronological event feed
+
+  A vertical activity-log primitive for audit trails, release notes, notification streams, and any chronological event surface — the request that's lived in [shadcn issues](https://github.com/shadcn-ui/ui/issues) for years (pain-point P-034) without ever shipping.
+
+  Pure semantic HTML — `<ol>` of `<li>` with the required `aria-label` on the list. Each event has a status-colored indicator (`default | success | warning | error | info`), an optional icon override, and three text slots: title, timestamp, description.
+
+  ```tsx
+  <Timeline
+  	aria-label="Activity"
+  	events={[
+  		{ id: "1", title: "Pull request opened", timestamp: "2h ago", status: "info" },
+  		{ id: "2", title: "CI passed", timestamp: "1h ago", status: "success" },
+  		{
+  			id: "3",
+  			title: "Merged to main",
+  			timestamp: "12m ago",
+  			description: "Squash + merge by @oscar",
+  			status: "success",
+  		},
+  	]}
+  />
+  ```
+
+  The connector line and indicator are `aria-hidden` so meaning travels entirely in the title/timestamp/description text. No `aria-current` — events are historical, not navigational. `size="sm" | "md"` controls the indicator size.
+
+  Five tests cover the `<ol>` + `aria-label` shape, surfaced text content, custom icon override, last-event has-no-connector layout, and the `aria-hidden` discipline on the visual rail.
+
+  Registry rebuilt: 54 → 55 components. Theme D pain-point P-034 closed.
+
 ## 1.2.1
 
 ### Patch Changes
