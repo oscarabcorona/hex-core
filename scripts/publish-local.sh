@@ -202,10 +202,11 @@ for pkg in "${PACKAGES[@]}"; do
 	# --no-git-checks: pnpm's git gates (clean tree, branch, remote-sync) overlap with
 	# the manual preflight checks above; we accept the trade-off for local publishing —
 	# the script's checks are warn-and-confirm, pnpm's would be hard-block.
-	# --config.userconfig: explicit flag so pnpm reads our temp .npmrc; the env var
-	# alone is unreliable across pnpm minor versions.
+	# NPM_CONFIG_USERCONFIG (env): pnpm 9.15 ignores --config.userconfig= as a CLI flag
+	# for auth resolution and falls back to ~/.npmrc, causing ENEEDAUTH. The env var
+	# is the only reliable path. Verified during v1.0.0 release.
 	# Safe expansion for bash 3.2 with set -u: empty array errors otherwise.
-	if (cd "$pkg" && pnpm publish --access=public --no-git-checks --config.userconfig="$NPMRC_PATH" ${DRY_RUN_ARGS[@]+"${DRY_RUN_ARGS[@]}"}) > "$PUBLISH_LOG" 2>&1; then
+	if (cd "$pkg" && NPM_CONFIG_USERCONFIG="$NPMRC_PATH" pnpm publish --access=public --no-git-checks ${DRY_RUN_ARGS[@]+"${DRY_RUN_ARGS[@]}"}) > "$PUBLISH_LOG" 2>&1; then
 		# Output format differs between npm and pnpm; anchored pattern covers both
 		# without surfacing stderr noise from unrelated lines.
 		grep -E "^(npm notice|Publishing| \+ |.*tarball:|.*package size)" "$PUBLISH_LOG" | sed 's/^/    /' || true
