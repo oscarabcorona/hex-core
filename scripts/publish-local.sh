@@ -83,6 +83,15 @@ if [[ -z "${NPM_TOKEN:-}" ]]; then
 	exit 1
 fi
 
+# pnpm is the publisher (rewrites workspace:^ in the tarball); npm is used for whoami
+# and version probing. Both must be on PATH.
+for cmd in pnpm npm; do
+	if ! command -v "$cmd" >/dev/null 2>&1; then
+		err "$cmd is not on PATH."
+		exit 1
+	fi
+done
+
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
@@ -187,9 +196,19 @@ for pkg in "${PACKAGES[@]}"; do
 
 	log "Publishing ${BOLD}${spec}${NC}..."
 	PUBLISH_LOG=$(mktemp -t hex-core-publish.XXXXXX)
+	# pnpm publish (not npm) so workspace:^ specifiers in package.json get rewritten to
+	# pinned versions in the published tarball. npm publish leaves them as literals,
+	# which breaks `npm install` outside pnpm workspaces (EUNSUPPORTEDPROTOCOL).
+	# --no-git-checks: pnpm's git gates (clean tree, branch, remote-sync) overlap with
+	# the manual preflight checks above; we accept the trade-off for local publishing —
+	# the script's checks are warn-and-confirm, pnpm's would be hard-block.
+	# --config.userconfig: explicit flag so pnpm reads our temp .npmrc; the env var
+	# alone is unreliable across pnpm minor versions.
 	# Safe expansion for bash 3.2 with set -u: empty array errors otherwise.
-	if (cd "$pkg" && npm publish --access=public --userconfig="$NPMRC_PATH" ${DRY_RUN_ARGS[@]+"${DRY_RUN_ARGS[@]}"}) > "$PUBLISH_LOG" 2>&1; then
-		grep -E "^(npm notice (name|version|filename|package size)|Publishing|\+)" "$PUBLISH_LOG" | sed 's/^/    /' || true
+	if (cd "$pkg" && pnpm publish --access=public --no-git-checks --config.userconfig="$NPMRC_PATH" ${DRY_RUN_ARGS[@]+"${DRY_RUN_ARGS[@]}"}) > "$PUBLISH_LOG" 2>&1; then
+		# Output format differs between npm and pnpm; anchored pattern covers both
+		# without surfacing stderr noise from unrelated lines.
+		grep -E "^(npm notice|Publishing| \+ |.*tarball:|.*package size)" "$PUBLISH_LOG" | sed 's/^/    /' || true
 		PUBLISHED+=("$spec")
 		rm -f "$PUBLISH_LOG"
 	else
