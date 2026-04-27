@@ -1,0 +1,152 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "dropzone",
+  "displayName": "Dropzone",
+  "description": "Drag-and-drop file input built on the native HTML5 drag-drop API plus a visually-hidden <input type='file'> for keyboard + screen-reader access. Filters by accept/maxSize/maxFiles before emitting.",
+  "category": "component",
+  "subcategory": "input",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "onFilesSelected",
+      "type": "function",
+      "required": false,
+      "description": "Callback fired with the accepted File[] on pick or drop."
+    },
+    {
+      "name": "onFilesRejected",
+      "type": "function",
+      "required": false,
+      "description": "Callback fired with the rejected File[] when files fail accept/maxSize/maxFiles, OR when multiple={false} and extras were sliced off. Receives the rejected File[]. Use to surface 'wrong type' / 'too large' toasts."
+    },
+    {
+      "name": "accept",
+      "type": "string",
+      "required": false,
+      "description": "Accept attribute forwarded to the hidden file input. Three forms: MIME type ('application/pdf'), MIME wildcard ('image/*'), or extension with leading dot ('.csv'). Extension matching is suffix-based (mirrors HTML5) — '.csv' will match 'notes.md.csv' as well."
+    },
+    {
+      "name": "multiple",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Allow multiple files. With `multiple={false}`, the first accepted file flows to onFilesSelected and any extras flow to onFilesRejected so consumers can toast them."
+    },
+    {
+      "name": "maxFiles",
+      "type": "number",
+      "required": false,
+      "description": "Cap on the number of accepted files. Excess files are dropped silently — surface in your handler if needed."
+    },
+    {
+      "name": "maxSize",
+      "type": "number",
+      "required": false,
+      "description": "Maximum size per file in bytes. Files over the cap are filtered before onFilesSelected fires."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Disable interaction (click + drop + keyboard)."
+    },
+    {
+      "name": "children",
+      "type": "object",
+      "required": false,
+      "description": "Render override for the body. Pass a node, or a function receiving { isDragOver, isDisabled, openFileDialog } for layout control."
+    },
+    {
+      "name": "aria-label",
+      "type": "string",
+      "required": true,
+      "description": "Required accessible name for the drop area."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "children",
+      "description": "Body of the drop area (icon + copy). Optional — sensible default included.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode",
+        "function"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/dropzone.tsx",
+      "content": "import * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\ninterface DropzoneProps\n\textends Omit<\n\t\tReact.HTMLAttributes<HTMLDivElement>,\n\t\t\"onChange\" | \"onDrop\" | \"children\"\n\t> {\n\t/** Fired with the accepted file list every time the user picks or drops files. */\n\tonFilesSelected?: (files: File[]) => void;\n\t/**\n\t * Fired when files are dropped/picked but ALL of them are filtered out by\n\t * `accept` / `maxSize` / `maxFiles`. Useful for surfacing \"file too large\"\n\t * or \"wrong type\" toasts to the user. Receives the rejected File[].\n\t */\n\tonFilesRejected?: (files: File[]) => void;\n\t/** `accept` attribute forwarded to the hidden file input (e.g. \"image/*\", \".csv\"). */\n\taccept?: string;\n\t/** Allow multiple files. Default true. */\n\tmultiple?: boolean;\n\t/** Maximum total file count (after dedupe). Excess files are dropped silently — surface in your handler. */\n\tmaxFiles?: number;\n\t/** Maximum size per file in bytes. Files over the cap are filtered before onFilesSelected fires. */\n\tmaxSize?: number;\n\t/** Disable interaction. */\n\tdisabled?: boolean;\n\t/** Optional render override for the dropzone body. Receives drag state. */\n\tchildren?: React.ReactNode | ((state: DropzoneRenderState) => React.ReactNode);\n\t/** Required accessible name for the drop area. */\n\t\"aria-label\": string;\n}\n\ninterface DropzoneRenderState {\n\tisDragOver: boolean;\n\tisDisabled: boolean;\n\topenFileDialog: () => void;\n}\n\nfunction filterFiles(\n\tfiles: FileList | File[],\n\t{ accept, maxSize, maxFiles }: { accept?: string; maxSize?: number; maxFiles?: number },\n): File[] {\n\tconst list = Array.from(files);\n\tconst acceptList = accept\n\t\t? accept\n\t\t\t\t.split(\",\")\n\t\t\t\t.map((s) => s.trim())\n\t\t\t\t.filter(Boolean)\n\t\t: undefined;\n\n\tconst matchAccept = (file: File): boolean => {\n\t\tif (!acceptList) return true;\n\t\treturn acceptList.some((entry) => {\n\t\t\tif (entry.startsWith(\".\")) {\n\t\t\t\treturn file.name.toLowerCase().endsWith(entry.toLowerCase());\n\t\t\t}\n\t\t\tif (entry.endsWith(\"/*\")) {\n\t\t\t\tconst prefix = entry.slice(0, -1); // \"image/\"\n\t\t\t\treturn file.type.startsWith(prefix);\n\t\t\t}\n\t\t\treturn file.type === entry;\n\t\t});\n\t};\n\n\tconst sized =\n\t\ttypeof maxSize === \"number\" ? list.filter((f) => f.size <= maxSize) : list;\n\tconst accepted = sized.filter(matchAccept);\n\tif (typeof maxFiles === \"number\") return accepted.slice(0, maxFiles);\n\treturn accepted;\n}\n\n/**\n * Drag-and-drop file input built on the native HTML5 drag-drop API plus a\n * visually-hidden (sr-only) `<input type=\"file\">` for screen-reader and\n * keyboard access.\n *\n * Two interaction surfaces:\n * - The visible drop area is a `role=\"button\"` div with `tabIndex=0` and the\n *   required `aria-label`. Click, Enter, or Space proxies through to click the\n *   hidden input, opening the system file dialog.\n * - The hidden input itself remains in the accessibility tree (sr-only, NOT\n *   `aria-hidden`) so AT-driven file pickers can find it directly.\n *\n * Pass `children` as a node (default placeholder) or a function receiving\n * `{ isDragOver, isDisabled, openFileDialog }` for full layout control.\n * @returns A drop area + hidden file input pair that yields a File[].\n */\nfunction Dropzone({\n\tonFilesSelected,\n\tonFilesRejected,\n\taccept,\n\tmultiple = true,\n\tmaxFiles,\n\tmaxSize,\n\tdisabled = false,\n\tchildren,\n\tclassName,\n\t\"aria-label\": ariaLabel,\n\t...rest\n}: DropzoneProps) {\n\tconst inputRef = React.useRef<HTMLInputElement>(null);\n\tconst [isDragOver, setIsDragOver] = React.useState(false);\n\tconst dragCounter = React.useRef(0);\n\n\tconst emit = React.useCallback(\n\t\t(files: FileList | File[] | null | undefined) => {\n\t\t\tif (!files || disabled) return;\n\t\t\tconst all = Array.from(files);\n\t\t\tif (all.length === 0) return;\n\t\t\tconst accepted = filterFiles(all, { accept, maxSize, maxFiles });\n\t\t\tif (accepted.length === 0) {\n\t\t\t\tonFilesRejected?.(all);\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tconst finalAccepted = !multiple ? accepted.slice(0, 1) : accepted;\n\t\t\tconst rejected = all.filter((f) => !finalAccepted.includes(f));\n\t\t\tonFilesSelected?.(finalAccepted);\n\t\t\tif (rejected.length > 0) onFilesRejected?.(rejected);\n\t\t},\n\t\t[\n\t\t\taccept,\n\t\t\tdisabled,\n\t\t\tmaxFiles,\n\t\t\tmaxSize,\n\t\t\tmultiple,\n\t\t\tonFilesSelected,\n\t\t\tonFilesRejected,\n\t\t],\n\t);\n\n\t/*\n\t * Reset the drag counter + isDragOver when the user cancels a drag outside\n\t * the dropzone (Esc, drag off the page, switch tab). Without this, the\n\t * counter can stay >0 and the dropzone gets stuck in its hover style.\n\t */\n\tReact.useEffect(() => {\n\t\tconst reset = () => {\n\t\t\tdragCounter.current = 0;\n\t\t\tsetIsDragOver(false);\n\t\t};\n\t\twindow.addEventListener(\"dragend\", reset);\n\t\twindow.addEventListener(\"drop\", reset);\n\t\treturn () => {\n\t\t\twindow.removeEventListener(\"dragend\", reset);\n\t\t\twindow.removeEventListener(\"drop\", reset);\n\t\t};\n\t}, []);\n\n\tconst openFileDialog = React.useCallback(() => {\n\t\tif (disabled) return;\n\t\tinputRef.current?.click();\n\t}, [disabled]);\n\n\tconst handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {\n\t\tif (disabled) return;\n\t\te.preventDefault();\n\t\tdragCounter.current += 1;\n\t\tif (e.dataTransfer.types.includes(\"Files\")) setIsDragOver(true);\n\t};\n\tconst handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {\n\t\tif (disabled) return;\n\t\te.preventDefault();\n\t\te.dataTransfer.dropEffect = \"copy\";\n\t};\n\tconst handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {\n\t\tif (disabled) return;\n\t\te.preventDefault();\n\t\tdragCounter.current = Math.max(0, dragCounter.current - 1);\n\t\tif (dragCounter.current === 0) setIsDragOver(false);\n\t};\n\tconst handleDrop = (e: React.DragEvent<HTMLDivElement>) => {\n\t\tif (disabled) return;\n\t\te.preventDefault();\n\t\tdragCounter.current = 0;\n\t\tsetIsDragOver(false);\n\t\temit(e.dataTransfer.files);\n\t};\n\tconst handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {\n\t\tif (disabled) return;\n\t\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\t\te.preventDefault();\n\t\t\topenFileDialog();\n\t\t}\n\t};\n\n\tconst renderState: DropzoneRenderState = {\n\t\tisDragOver,\n\t\tisDisabled: disabled,\n\t\topenFileDialog,\n\t};\n\n\treturn (\n\t\t<div\n\t\t\trole=\"button\"\n\t\t\ttabIndex={disabled ? -1 : 0}\n\t\t\taria-label={ariaLabel}\n\t\t\taria-disabled={disabled || undefined}\n\t\t\tdata-drag-over={isDragOver || undefined}\n\t\t\tonClick={openFileDialog}\n\t\t\tonKeyDown={handleKeyDown}\n\t\t\tonDragEnter={handleDragEnter}\n\t\t\tonDragOver={handleDragOver}\n\t\t\tonDragLeave={handleDragLeave}\n\t\t\tonDrop={handleDrop}\n\t\t\tclassName={cn(\n\t\t\t\t\"flex w-full cursor-pointer select-none flex-col items-center justify-center gap-[var(--space-2,0.5rem)] rounded-md border-2 border-dashed border-input bg-background px-[var(--space-6,1.5rem)] py-[var(--space-8,2rem)] text-center text-sm transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\"hover:bg-accent hover:text-accent-foreground\",\n\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\tisDragOver && \"border-primary bg-accent text-accent-foreground\",\n\t\t\t\tdisabled && \"pointer-events-none opacity-50\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t\t{...rest}\n\t\t>\n\t\t\t{typeof children === \"function\"\n\t\t\t\t? children(renderState)\n\t\t\t\t: (children ?? (\n\t\t\t\t\t\t<>\n\t\t\t\t\t\t\t<svg\n\t\t\t\t\t\t\t\txmlns=\"http://www.w3.org/2000/svg\"\n\t\t\t\t\t\t\t\tviewBox=\"0 0 24 24\"\n\t\t\t\t\t\t\t\tfill=\"none\"\n\t\t\t\t\t\t\t\tstroke=\"currentColor\"\n\t\t\t\t\t\t\t\tstrokeWidth=\"2\"\n\t\t\t\t\t\t\t\tstrokeLinecap=\"round\"\n\t\t\t\t\t\t\t\tstrokeLinejoin=\"round\"\n\t\t\t\t\t\t\t\tclassName=\"h-6 w-6 text-muted-foreground\"\n\t\t\t\t\t\t\t\taria-hidden=\"true\"\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" />\n\t\t\t\t\t\t\t\t<polyline points=\"17 8 12 3 7 8\" />\n\t\t\t\t\t\t\t\t<line x1=\"12\" y1=\"3\" x2=\"12\" y2=\"15\" />\n\t\t\t\t\t\t\t</svg>\n\t\t\t\t\t\t\t<span className=\"font-medium\">\n\t\t\t\t\t\t\t\t{isDragOver ? \"Drop files to upload\" : \"Drag files here or click to browse\"}\n\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t{accept ? (\n\t\t\t\t\t\t\t\t<span className=\"text-xs text-muted-foreground\">{accept}</span>\n\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t</>\n\t\t\t\t\t))}\n\t\t\t<input\n\t\t\t\tref={inputRef}\n\t\t\t\ttype=\"file\"\n\t\t\t\taccept={accept}\n\t\t\t\tmultiple={multiple}\n\t\t\t\tdisabled={disabled}\n\t\t\t\tclassName=\"sr-only\"\n\t\t\t\t/*\n\t\t\t\t * Intentionally NOT aria-hidden + NOT tabIndex=-1: the input\n\t\t\t\t * stays in the a11y tree so AT-driven file pickers (NVDA's\n\t\t\t\t * forms mode, JAWS) can find it. Visually hidden via sr-only.\n\t\t\t\t */\n\t\t\t\tonChange={(e) => {\n\t\t\t\t\temit(e.target.files);\n\t\t\t\t\t// Reset so picking the same file twice still fires onChange\n\t\t\t\t\te.target.value = \"\";\n\t\t\t\t}}\n\t\t\t/>\n\t\t</div>\n\t);\n}\nDropzone.displayName = \"Dropzone\";\n\nexport { Dropzone };\nexport type { DropzoneProps, DropzoneRenderState };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "background",
+    "input",
+    "primary",
+    "accent",
+    "accent-foreground",
+    "muted-foreground",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Image upload",
+      "description": "Filter to images only with a 5MB cap",
+      "code": "import { useState } from \"react\";\nimport { Dropzone } from \"@/components/ui/dropzone\";\n\nexport function Example() {\n  const [files, setFiles] = useState<File[]>([]);\n  return (\n    <>\n      <Dropzone\n        accept=\"image/*\"\n        maxSize={5 * 1024 * 1024}\n        onFilesSelected={(picked) => setFiles((f) => [...f, ...picked])}\n        aria-label=\"Upload images\"\n      />\n      <ul>{files.map((f) => <li key={f.name}>{f.name}</li>)}</ul>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Custom body via render prop",
+      "description": "Take full control of the drop area visuals",
+      "code": "import { Dropzone } from \"@/components/ui/dropzone\";\n\nexport function Example() {\n  return (\n    <Dropzone aria-label=\"Upload\" onFilesSelected={(f) => console.log(f)}>\n      {({ isDragOver }) => (\n        <span>{isDragOver ? \"Release to upload\" : \"Drop a file or click\"}</span>\n      )}\n    </Dropzone>\n  );\n}"
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use for any file upload UX where drag-drop is helpful (image uploaders, CSV import, attachment pickers). Built on native HTML5 + a hidden <input type='file'> so keyboard and screen-reader users get the same affordance.",
+    "whenNotToUse": "Don't use for camera/microphone capture (use <input type='file' capture> directly or a media-specific component). Don't use for chunked/resumable uploads — Dropzone only emits File[]; pair with a real upload pipeline (tus, S3 multipart). Don't use for clipboard paste image upload — listen on document for that.",
+    "commonMistakes": [
+      "Forgetting aria-label — without it the drop area is announced as just 'button' to screen readers",
+      "Setting accept='image' (missing the slash or wildcard) — must be a MIME type, MIME prefix with /*, or a .extension",
+      "Forgetting that extension matching is suffix-based — '.csv' will match 'notes.md.csv'. Acceptable (mirrors HTML5) but document upstream if business logic requires strict suffix-only",
+      "Treating maxFiles as enforcement — files past the cap are dropped silently; if business rules require it, validate again on submit",
+      "Forgetting to clear the file input value after a successful upload — Dropzone resets the hidden input automatically; if you wrap it, do the same",
+      "Calling preventDefault on parent containers' onDragOver — without it the browser opens the file when dropped on the window outside the dropzone",
+      "Treating empty drops as no-op silently when the user expected feedback — pair with onFilesRejected to surface filter failures"
+    ],
+    "relatedComponents": [
+      "input",
+      "button",
+      "card"
+    ],
+    "accessibilityNotes": "The drop area is a role='button' div with tabIndex=0 and the required aria-label; Enter and Space open the file dialog. The file input is visually-hidden but live in the DOM so keyboard focus + assistive-tech file pickers work. Drag-state is exposed via data-drag-over for CSS-only state styling. When disabled, the drop area is removed from the tab order and aria-disabled is set.",
+    "tokenBudget": 1500
+  },
+  "tags": [
+    "dropzone",
+    "file-upload",
+    "drag-drop",
+    "input"
+  ]
+}

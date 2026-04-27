@@ -658,6 +658,41 @@
       "tokenBudget": 700
     },
     {
+      "name": "dropzone",
+      "displayName": "Dropzone",
+      "description": "Drag-and-drop file input built on the native HTML5 drag-drop API plus a visually-hidden <input type='file'> for keyboard + screen-reader access. Filters by accept/maxSize/maxFiles before emitting.",
+      "category": "component",
+      "subcategory": "input",
+      "tags": [
+        "dropzone",
+        "file-upload",
+        "drag-drop",
+        "input"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 1500
+    },
+    {
+      "name": "file-tree",
+      "displayName": "File Tree",
+      "description": "Hierarchical tree view for files, folders, and any nested navigation. Implements the WAI-ARIA tree pattern with role='tree' / 'treeitem' / 'group', aria-level, aria-expanded, aria-selected, and full keyboard navigation (Up/Down/Left/Right/Home/End/Enter/Space).",
+      "category": "component",
+      "subcategory": "navigation",
+      "tags": [
+        "file-tree",
+        "tree",
+        "navigation",
+        "explorer",
+        "hierarchy"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 2000
+    },
+    {
       "name": "form",
       "displayName": "Form",
       "description": "A form primitive built on react-hook-form + zod. Provides Form/FormField/FormItem/FormLabel/FormControl/FormDescription/FormMessage with automatic aria wiring and error display.",
@@ -728,6 +763,27 @@
         "lib/utils"
       ],
       "tokenBudget": 700
+    },
+    {
+      "name": "multi-combobox",
+      "displayName": "MultiCombobox",
+      "description": "Searchable multi-select input. Composes Popover + Command (cmdk) + a styled trigger. Trigger shows '{n} selected'; each option exposes aria-selected.",
+      "category": "component",
+      "subcategory": "input",
+      "tags": [
+        "combobox",
+        "multi-select",
+        "select",
+        "search",
+        "cmdk",
+        "input"
+      ],
+      "internalDeps": [
+        "components/command/command",
+        "components/popover/popover",
+        "lib/utils"
+      ],
+      "tokenBudget": 1100
     },
     {
       "name": "navigation-menu",
@@ -850,6 +906,24 @@
       "tokenBudget": 450
     },
     {
+      "name": "stepper",
+      "displayName": "Stepper",
+      "description": "Linear progress indicator for multi-step flows (form wizards, onboarding, checkout). Pure semantic <ol>/<li> with aria-current='step' on the active step and a per-step error status override.",
+      "category": "component",
+      "subcategory": "navigation",
+      "tags": [
+        "stepper",
+        "wizard",
+        "progress",
+        "navigation",
+        "form"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 1400
+    },
+    {
       "name": "table",
       "displayName": "Table",
       "description": "Styled HTML table primitives (Table / TableHeader / TableBody / TableRow / TableHead / TableCell / TableCaption / TableFooter). Low-level building blocks — use DataTable for sorting/filtering/pagination.",
@@ -881,6 +955,41 @@
       ],
       "internalDeps": [],
       "tokenBudget": 350
+    },
+    {
+      "name": "time-picker",
+      "displayName": "Time Picker",
+      "description": "Time input — styled wrapper around the native <input type='time'>. Value is a 'HH:MM' (or 'HH:MM:SS' with step=1) string. The browser provides 12/24-hour locale handling, keyboard arrow spinning, and screen-reader announcement.",
+      "category": "component",
+      "subcategory": "input",
+      "tags": [
+        "time-picker",
+        "time",
+        "input",
+        "form"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 700
+    },
+    {
+      "name": "timeline",
+      "displayName": "Timeline",
+      "description": "Vertical chronological event feed for activity logs, audit trails, release notes, and notification streams. Pure semantic <ol>/<li> with a status-colored indicator and an optional icon override.",
+      "category": "component",
+      "subcategory": "data-display",
+      "tags": [
+        "timeline",
+        "feed",
+        "activity",
+        "audit-log",
+        "history"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 1100
     },
     {
       "name": "tooltip",
