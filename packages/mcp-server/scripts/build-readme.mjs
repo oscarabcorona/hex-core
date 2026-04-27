@@ -1,9 +1,11 @@
 #!/usr/bin/env node
+/* global console */
+/* eslint-disable no-console */
 /**
  * Regenerates packages/mcp-server/README.md from README.template.md by
- * importing the built `MCP_CLIENTS` array out of `dist/clients.js` and
+ * importing the built MCP_CLIENTS array out of dist/clients.js and
  * splicing the per-client wiring sections into the template at the
- * `<!-- @generated:client-wiring -->` marker.
+ * marker comment "@generated:client-wiring".
  *
  * Order matters: the package's `build` script runs `tsup` first (which
  * emits `dist/clients.js`) and then this script. A direct import beats
@@ -12,9 +14,9 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const here = dirname(new URL(import.meta.url).pathname);
+const here = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = resolve(here, "..");
 const distClients = resolve(pkgRoot, "dist/clients.js");
 const templatePath = resolve(pkgRoot, "README.template.md");
@@ -29,7 +31,11 @@ if (!Array.isArray(MCP_CLIENTS) || MCP_CLIENTS.length === 0) {
 	);
 }
 
-/** Render one client's section as Markdown. */
+/**
+ * Render one client's section as Markdown.
+ * @param {object} c One McpClientWiring entry from MCP_CLIENTS.
+ * @returns {string} The Markdown chunk for this client (header, snippet, quirks, docs link).
+ */
 function renderClientSection(c) {
 	const verifiedBadge =
 		c.schemaStability === "verified-volatile" && c.verifiedOn

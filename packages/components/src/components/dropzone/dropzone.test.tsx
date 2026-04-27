@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { Dropzone } from "./dropzone.js";
 
+/** Build a minimal `File` with the given name + payload size; used by every drop assertion. */
 function makeFile(name: string, bytes: number, type = "text/plain"): File {
 	return new File([new Uint8Array(bytes)], name, { type });
 }

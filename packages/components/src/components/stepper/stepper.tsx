@@ -104,12 +104,14 @@ interface StepperProps
 	"aria-label": string;
 }
 
+/** Map a step index against the current pointer to a `StepStatus`. */
 function deriveStatus(index: number, current: number): StepStatus {
 	if (index < current) return "complete";
 	if (index === current) return "current";
 	return "upcoming";
 }
 
+/** Checkmark glyph rendered inside the indicator for completed steps. */
 function StepCheck() {
 	return (
 		<svg
@@ -128,6 +130,7 @@ function StepCheck() {
 	);
 }
 
+/** Cross glyph rendered inside the indicator for steps with status="error". */
 function StepError() {
 	return (
 		<svg
@@ -153,6 +156,7 @@ interface StepIndicatorProps {
 	size: "sm" | "md";
 }
 
+/** Circular indicator that flips between number, check, and cross by `status`. */
 function StepIndicator({ index, status, size }: StepIndicatorProps) {
 	return (
 		<span

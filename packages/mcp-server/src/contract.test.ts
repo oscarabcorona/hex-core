@@ -1,21 +1,22 @@
+/* eslint-disable no-console */
 /**
- * Protocol-level contract test for `@hex-core/mcp`.
+ * Protocol-level contract test for the MCP server.
  *
- * Spawns the built server (`dist/index.js`) over stdio and drives it with the
- * canonical `@modelcontextprotocol/sdk` Client — the same SDK every supported
+ * Spawns the built server (dist/index.js) over stdio and drives it with the
+ * canonical @modelcontextprotocol/sdk Client — the same SDK every supported
  * MCP client uses underneath. A green run proves the server speaks standard
  * MCP regardless of which downstream client (Claude Code, Cursor, Continue,
  * Gemini CLI, ChatGPT Desktop, Zed) opens the connection.
  *
  * Asserts:
  *   1. initialize handshake succeeds
- *   2. tools/list returns exactly the canonical TOOL_NAMES set
+ *   2. tools/list returns the canonical TOOL_NAMES set
  *   3. tools/call list_themes returns a JSON array
  *   4. resources/list returns the hex://catalog resource
  *   5. client.close() disposes the transport without throwing
  *
- * Run via `pnpm --filter @hex-core/mcp test:contract` (which expects
- * `pnpm build` to have produced `dist/index.js`).
+ * Run via `pnpm --filter @hex-core/mcp test:contract` (expects `pnpm build`
+ * to have produced dist/index.js).
  */
 
 import * as path from "node:path";
@@ -28,15 +29,18 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 // `dist/contract-test.js` and `dist/index.js` live side-by-side after build.
 const SERVER_BIN = path.resolve(here, "index.js");
 
+/** Print the failure message and exit non-zero so CI sees the regression. */
 function fail(message: string): never {
 	console.error(`✗ ${message}`);
 	process.exit(1);
 }
 
+/** Print a passing assertion to stdout for the test report. */
 function pass(message: string): void {
 	console.log(`✓ ${message}`);
 }
 
+/** Drive the server through every contract assertion in sequence. */
 async function main(): Promise<void> {
 	const transport = new StdioClientTransport({
 		command: "node",

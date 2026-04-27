@@ -43,6 +43,7 @@ interface FlatNode {
 	icon: React.ReactNode | undefined;
 }
 
+/** Walk the tree once, emitting every visible node in document order. */
 function flatten(
 	nodes: FileTreeNode[],
 	expandedSet: Set<string>,
@@ -68,6 +69,7 @@ function flatten(
 	return out;
 }
 
+/** Default folder glyph; flips between open and closed shapes via `open`. */
 function FolderIcon({ open }: { open: boolean }) {
 	return (
 		<svg
@@ -90,6 +92,7 @@ function FolderIcon({ open }: { open: boolean }) {
 	);
 }
 
+/** Default leaf-node glyph (generic file icon). */
 function FileIcon() {
 	return (
 		<svg
@@ -109,6 +112,7 @@ function FileIcon() {
 	);
 }
 
+/** Disclosure chevron — rotates 90° when the folder is expanded. */
 function Chevron({ expanded }: { expanded: boolean }) {
 	return (
 		<svg
@@ -142,6 +146,7 @@ interface TreeItemProps {
 	tabbableId: string | null;
 }
 
+/** Recursive single-node renderer; chevron toggles, row body selects. */
 function TreeItem({
 	node,
 	level,

@@ -55,6 +55,7 @@ interface TimelineProps
 	"aria-label": string;
 }
 
+/** Solid dot rendered inside the indicator when no per-event icon is supplied. */
 function DefaultDot() {
 	return <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />;
 }
