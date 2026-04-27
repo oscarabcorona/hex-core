@@ -5,9 +5,9 @@ import { cn } from "../../lib/utils.js";
 /**
  * CVA variants for Spacer — declarative whitespace.
  * `size` sets `--spacer-size` to a `--space-*` token (with inline fallback);
- * `axis` consumes that var via `h-[var(...)]` / `w-[var(...)]` in the bracket
- * form used everywhere else in the package, so the height/width can never
- * collapse to zero if the size variant is dropped.
+ * `axis` consumes that var via the bracket form used everywhere else in the
+ * package, so the height or width can never collapse to zero if the size
+ * variant is dropped.
  */
 const spacerVariants = cva("shrink-0", {
 	variants: {

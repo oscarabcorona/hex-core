@@ -26,7 +26,7 @@ const COLOR_TOKENS_SNIPPET = `:root {
   --card-foreground: 240 10% 3.9%;
   --primary: 240 5.9% 10%;
   --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 58%;
+  --secondary: 240 4.8% 95.9%;
   --secondary-foreground: 240 5.9% 10%;
   --muted: 240 4.8% 95.9%;
   --muted-foreground: 240 3.8% 46.1%;
@@ -34,8 +34,8 @@ const COLOR_TOKENS_SNIPPET = `:root {
   --accent-foreground: 240 5.9% 10%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 58%;
-  --input: 240 5.9% 58%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
   --ring: 240 5.9% 10%;
   --radius: 0.625rem;
 }`;
