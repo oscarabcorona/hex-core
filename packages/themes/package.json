@@ -1,0 +1,53 @@
+{
+	"name": "@hex-core/themes",
+	"version": "0.0.0",
+	"description": "Theme catalog for Hex UI — premium presets and convenience re-exports built on @hex-core/tokens.",
+	"keywords": [
+		"hex-ui",
+		"themes",
+		"design-tokens",
+		"theme-catalog"
+	],
+	"license": "MIT",
+	"author": "Oscar Corona <oabc4004@gmail.com>",
+	"homepage": "https://hex-core.dev",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/oscarabcorona/hex-core.git",
+		"directory": "packages/themes"
+	},
+	"bugs": {
+		"url": "https://github.com/oscarabcorona/hex-core/issues"
+	},
+	"type": "module",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "tsup",
+		"clean": "rm -rf dist",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"@hex-core/registry": "workspace:^",
+		"@hex-core/tokens": "workspace:^"
+	},
+	"devDependencies": {
+		"tsup": "^8.3.0",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.5"
+	}
+}
