@@ -1,0 +1,18 @@
+/*
+ * Tailwind v4 content-scan registration for @hex-core/components.
+ *
+ * Tailwind v4 doesn't auto-scan node_modules — without an explicit @source,
+ * utility classes embedded in this package's published JS bundle (e.g.
+ * `inset-ring-foreground/[0.06]` used by Button, Input, Checkbox, etc.)
+ * appear in the rendered HTML but have no matching CSS rule, so components
+ * render unstyled.
+ *
+ * Consumer usage (one line in the app's globals.css):
+ *
+ *   @import "tailwindcss";
+ *   @import "@hex-core/components/tailwind.css";
+ *
+ * The path resolves through the package's installed location, so it works
+ * with pnpm, npm, yarn, and any monorepo layout.
+ */
+@source "./dist/*.js";

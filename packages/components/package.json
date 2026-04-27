@@ -30,10 +30,12 @@
 		".": {
 			"import": "./dist/index.js",
 			"types": "./dist/index.d.ts"
-		}
+		},
+		"./tailwind.css": "./tailwind.css"
 	},
 	"files": [
 		"dist",
+		"tailwind.css",
 		"README.md",
 		"LICENSE"
 	],

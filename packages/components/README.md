@@ -20,6 +20,15 @@ If you want to import the built components directly:
 pnpm add @hex-core/components
 ```
 
+**Tailwind v4 consumers must register this package's bundle so utility classes resolve.** One line in your app's `globals.css`:
+
+```css
+@import "tailwindcss";
+@import "@hex-core/components/tailwind.css";
+```
+
+Without it, classes like `inset-ring-foreground/[0.06]` (used by Button outline, Input, Card, etc.) appear in the rendered HTML but have no CSS rule, and components render unstyled. Tailwind v4 doesn't auto-scan `node_modules`.
+
 ```tsx
 import { Button } from "@hex-core/components";
 
