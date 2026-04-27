@@ -1,0 +1,127 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "color-picker",
+  "displayName": "Color Picker",
+  "description": "HSL-native color picker that edits an HSL triplet directly via three sliders (H/S/L). Hex input is a display adapter; sliders are the source of truth so the value round-trips losslessly through the `@hex-core/tokens` triplet format.",
+  "category": "component",
+  "subcategory": "input",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "value",
+      "type": "string",
+      "required": true,
+      "description": "Current color as an HSL triplet string (`\"<H> <S>% <L>%\"`, e.g. `\"240 5.9% 10%\"`). Match the format used by `@hex-core/tokens`."
+    },
+    {
+      "name": "onChange",
+      "type": "function",
+      "required": true,
+      "description": "Called with the next HSL triplet when the user drags a slider or commits a valid hex value. Not called for invalid hex input."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Disable interaction. Trigger renders dimmed; mouse and keyboard activation are blocked by the native `disabled` attribute."
+    },
+    {
+      "name": "aria-label",
+      "type": "string",
+      "required": false,
+      "default": "\"Pick color\"",
+      "description": "Accessible name for the trigger button."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional class names merged onto the trigger."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/color-picker.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\nimport {\n\tformatHslTriplet,\n\thexToHslTriplet,\n\thslTripletToHex,\n\tparseHslTriplet,\n} from \"../../lib/color.js\";\nimport { Input } from \"../../primitives/input/input.js\";\nimport { Label } from \"../../primitives/label/label.js\";\nimport { Slider } from \"../../primitives/slider/slider.js\";\nimport { Popover, PopoverContent, PopoverTrigger } from \"../popover/popover.js\";\n\n/** Tolerance for treating a float as integer-valued (handles arithmetic drift in HSL roundtrips). */\nconst INTEGER_EPSILON = 1e-6;\n\nconst looksInteger = (n: number) => Math.abs(n - Math.round(n)) < INTEGER_EPSILON;\n\n/** Props for the ColorPicker component. */\nexport interface ColorPickerProps {\n\t/**\n\t * Current color as an HSL triplet string (`\"<H> <S>% <L>%\"`, e.g. `\"240 5.9% 10%\"`).\n\t * Match the format used by `@hex-core/tokens`; round-trip safe.\n\t */\n\tvalue: string;\n\t/**\n\t * Called with the next HSL triplet whenever the user drags a slider or commits a valid hex value.\n\t * Not called for invalid hex input — the picker keeps the prior value until the input parses cleanly.\n\t */\n\tonChange: (value: string) => void;\n\t/**\n\t * Disable interaction. Native `disabled` attribute is set on the trigger so the\n\t * popover doesn't open via mouse or keyboard activation. Tab focus still lands\n\t * on the trigger per browser defaults; if you want to fully remove it from the\n\t * tab order, wrap in a parent that handles `tabIndex` accordingly.\n\t */\n\tdisabled?: boolean;\n\t/** Accessible name for the trigger button (defaults to \"Pick color\"). */\n\t\"aria-label\"?: string;\n\t/** Additional class names merged onto the trigger. */\n\tclassName?: string;\n}\n\n/**\n * HSL-native color picker. Edits an HSL triplet directly via three sliders\n * (H/S/L), with a hex input as a display adapter.\n *\n * Round-trip safe: triplet → hex → triplet preserves the slider state because\n * sliders are the source of truth and hex updates them only when valid.\n *\n * @param props - Controlled component; `value` and `onChange` are required.\n * @returns A trigger button that opens a popover with H/S/L sliders + hex input.\n * @example\n * ```tsx\n * const [color, setColor] = React.useState(\"240 5.9% 10%\");\n * <ColorPicker value={color} onChange={setColor} aria-label=\"Primary color\" />\n * ```\n */\nfunction ColorPicker({\n\tvalue,\n\tonChange,\n\tdisabled,\n\t\"aria-label\": ariaLabel = \"Pick color\",\n\tclassName,\n}: ColorPickerProps) {\n\t// Memoize so the slider-row callbacks below are stable across renders with\n\t// the same `value`; downstream `Slider`s avoid spurious re-mounts.\n\tconst hsl = React.useMemo(() => parseHslTriplet(value), [value]);\n\tconst hex = React.useMemo(() => hslTripletToHex(value), [value]);\n\n\tconst update = React.useCallback(\n\t\t(patch: Partial<typeof hsl>) => {\n\t\t\tonChange(formatHslTriplet({ ...hsl, ...patch }));\n\t\t},\n\t\t[hsl, onChange],\n\t);\n\n\t// Hex input is locally controlled so the user can type intermediate states\n\t// (e.g. \"#1a\") without committing. Sync the buffer to the canonical hex\n\t// whenever the input is NOT focused — typing into a focused input must not\n\t// be clobbered by a parent re-render reflecting our own `onChange`.\n\tconst hexInputRef = React.useRef<HTMLInputElement>(null);\n\tconst [hexBuffer, setHexBuffer] = React.useState(hex);\n\tReact.useEffect(() => {\n\t\tif (\n\t\t\ttypeof document === \"undefined\" ||\n\t\t\tdocument.activeElement !== hexInputRef.current\n\t\t) {\n\t\t\tsetHexBuffer(hex);\n\t\t}\n\t}, [hex]);\n\n\tconst handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {\n\t\tconst next = e.target.value;\n\t\tsetHexBuffer(next);\n\t\tconst triplet = hexToHslTriplet(next);\n\t\tif (triplet !== null) onChange(triplet);\n\t};\n\n\tconst hexId = React.useId();\n\n\treturn (\n\t\t<Popover>\n\t\t\t<PopoverTrigger asChild>\n\t\t\t\t<button\n\t\t\t\t\ttype=\"button\"\n\t\t\t\t\tdisabled={disabled}\n\t\t\t\t\taria-label={ariaLabel}\n\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\"inline-flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm shadow-sm\",\n\t\t\t\t\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t\t\t\"hover:shadow-md disabled:pointer-events-none disabled:opacity-50\",\n\t\t\t\t\t\tclassName,\n\t\t\t\t\t)}\n\t\t\t\t>\n\t\t\t\t\t<span\n\t\t\t\t\t\taria-hidden=\"true\"\n\t\t\t\t\t\tclassName=\"h-5 w-5 rounded-sm border border-border\"\n\t\t\t\t\t\tstyle={{ backgroundColor: `hsl(${value})` }}\n\t\t\t\t\t/>\n\t\t\t\t\t<span className=\"font-mono text-xs uppercase\">{hex}</span>\n\t\t\t\t</button>\n\t\t\t</PopoverTrigger>\n\t\t\t<PopoverContent className=\"w-72 p-4\" align=\"start\">\n\t\t\t\t<div className=\"space-y-4\">\n\t\t\t\t\t<SliderRow\n\t\t\t\t\t\tlabel=\"Hue\"\n\t\t\t\t\t\tsuffix=\"°\"\n\t\t\t\t\t\tvalue={hsl.h}\n\t\t\t\t\t\tmax={360}\n\t\t\t\t\t\tstep={1}\n\t\t\t\t\t\tonChange={(h) => update({ h })}\n\t\t\t\t\t/>\n\t\t\t\t\t<SliderRow\n\t\t\t\t\t\tlabel=\"Saturation\"\n\t\t\t\t\t\tsuffix=\"%\"\n\t\t\t\t\t\tvalue={hsl.s}\n\t\t\t\t\t\tmax={100}\n\t\t\t\t\t\tstep={0.1}\n\t\t\t\t\t\tonChange={(s) => update({ s })}\n\t\t\t\t\t/>\n\t\t\t\t\t<SliderRow\n\t\t\t\t\t\tlabel=\"Lightness\"\n\t\t\t\t\t\tsuffix=\"%\"\n\t\t\t\t\t\tvalue={hsl.l}\n\t\t\t\t\t\tmax={100}\n\t\t\t\t\t\tstep={0.1}\n\t\t\t\t\t\tonChange={(l) => update({ l })}\n\t\t\t\t\t/>\n\t\t\t\t\t<div className=\"flex items-end gap-2\">\n\t\t\t\t\t\t<div className=\"flex-1 space-y-1\">\n\t\t\t\t\t\t\t<Label htmlFor={hexId} className=\"text-xs\">\n\t\t\t\t\t\t\t\tHex\n\t\t\t\t\t\t\t</Label>\n\t\t\t\t\t\t\t<Input\n\t\t\t\t\t\t\t\tid={hexId}\n\t\t\t\t\t\t\t\tref={hexInputRef}\n\t\t\t\t\t\t\t\tvalue={hexBuffer}\n\t\t\t\t\t\t\t\tonChange={handleHexChange}\n\t\t\t\t\t\t\t\tclassName=\"font-mono text-xs uppercase\"\n\t\t\t\t\t\t\t\tspellCheck={false}\n\t\t\t\t\t\t\t\tautoComplete=\"off\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<span\n\t\t\t\t\t\t\taria-hidden=\"true\"\n\t\t\t\t\t\t\tclassName=\"h-9 w-9 shrink-0 rounded-md border border-border\"\n\t\t\t\t\t\t\tstyle={{ backgroundColor: `hsl(${value})` }}\n\t\t\t\t\t\t/>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</PopoverContent>\n\t\t</Popover>\n\t);\n}\n\ninterface SliderRowProps {\n\tlabel: string;\n\tsuffix: string;\n\tvalue: number;\n\tmax: number;\n\tstep: number;\n\tonChange: (next: number) => void;\n}\n\n/**\n * One labeled slider row inside the ColorPicker popover. Internal helper —\n * not exported.\n * @param props - Slider config + value-change callback.\n */\nfunction SliderRow({ label, suffix, value, max, step, onChange }: SliderRowProps) {\n\tconst display = looksInteger(value) ? `${Math.round(value)}` : value.toFixed(1);\n\treturn (\n\t\t<div className=\"space-y-1.5\">\n\t\t\t<div className=\"flex items-center justify-between\">\n\t\t\t\t<Label className=\"text-xs\">{label}</Label>\n\t\t\t\t<span className=\"font-mono text-xs tabular-nums text-muted-foreground\">\n\t\t\t\t\t{display}\n\t\t\t\t\t{suffix}\n\t\t\t\t</span>\n\t\t\t</div>\n\t\t\t<Slider\n\t\t\t\tvalue={[value]}\n\t\t\t\tmin={0}\n\t\t\t\tmax={max}\n\t\t\t\tstep={step}\n\t\t\t\taria-label={label}\n\t\t\t\tonValueChange={(values) => onChange(values[0] ?? 0)}\n\t\t\t/>\n\t\t</div>\n\t);\n}\n\nexport { ColorPicker };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-popover",
+      "@radix-ui/react-slider",
+      "@radix-ui/react-label"
+    ],
+    "internal": [
+      "primitives/slider/slider",
+      "primitives/input/input",
+      "primitives/label/label",
+      "components/popover/popover",
+      "lib/color",
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "input",
+    "background",
+    "ring",
+    "border",
+    "muted-foreground"
+  ],
+  "examples": [
+    {
+      "title": "Edit a token live",
+      "description": "Bind a state variable to a CSS custom property to preview a token edit in real time.",
+      "code": "const [color, setColor] = React.useState(\"240 5.9% 10%\");\n\nreturn (\n  <div style={{ \"--primary\": color } as React.CSSProperties}>\n    <ColorPicker value={color} onChange={setColor} aria-label=\"Primary color\" />\n    <Button>Live preview</Button>\n  </div>\n);"
+    },
+    {
+      "title": "Disabled",
+      "description": "Prevent edits while a parent operation is in flight.",
+      "code": "<ColorPicker value=\"240 5.9% 10%\" onChange={() => {}} disabled />"
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use whenever the user is editing a color that will round-trip through the `@hex-core/tokens` HSL triplet format — token editors, theme builders, branding panels, custom-color surfaces in design tools.",
+    "whenNotToUse": "Don't use for picking a color from a fixed palette — use a `Select` or `RadioGroup` of swatches. Don't use for image-based color sampling (eyedropper) — that's a separate primitive. Don't reach for ColorPicker when only a hex string matters: bind it directly to `<input type=\"color\">` for the simplest cases.",
+    "commonMistakes": [
+      "Treating the value as hex — the prop is an HSL triplet, not a hex string. Use `hexToHslTriplet` and `hslTripletToHex` from `@hex-core/components/lib/color` if you need to bridge.",
+      "Forgetting to wrap the value in `hsl(...)` when applying it as a CSS color: `style={{ color: \\`hsl(${value})\\` }}`.",
+      "Calling `onChange` synchronously inside a parent's render — the picker batches slider updates and that pattern can desync controlled state."
+    ],
+    "relatedComponents": [
+      "slider",
+      "input",
+      "label",
+      "popover"
+    ],
+    "accessibilityNotes": "Each slider has a per-axis `aria-label` (Hue / Saturation / Lightness). The trigger button needs an explicit `aria-label` describing what color is being edited (e.g. `\"Primary color\"`) — the default `\"Pick color\"` is generic. The hex input is keyboard-accessible and round-trips with the sliders.",
+    "tokenBudget": 350
+  },
+  "tags": [
+    "color-picker",
+    "color",
+    "hsl",
+    "hex",
+    "form",
+    "theme-editor",
+    "primitive"
+  ]
+}
