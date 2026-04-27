@@ -1,6 +1,6 @@
 {
 	"name": "@hex-core/tokens",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Design token engine for Hex UI — HSL tokens + typography scale shared between components and themes.",
 	"keywords": [
 		"hex-ui",
