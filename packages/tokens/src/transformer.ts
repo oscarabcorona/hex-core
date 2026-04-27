@@ -208,11 +208,34 @@ export function themeToScopedRuntimeCss(
 }
 
 /**
- * Generates a complete globals.css content with theme tokens and Tailwind directives.
- * @param theme - The theme to generate CSS for
- * @returns A full globals.css string including Tailwind imports, theme tokens, and base layer styles
+ * Options for {@link generateGlobalsCss}.
  */
-export function generateGlobalsCss(theme: Theme): string {
+export interface GenerateGlobalsCssOptions {
+	/**
+	 * Tailwind major to target.
+	 * - `"v3"` (default, backward compatible): emits `@tailwind base/components/utilities`
+	 *   plus `@layer base { :root {} .dark {} }` blocks. Pair with a `tailwind.config.ts`
+	 *   that maps the raw `--<key>` CSS variables to color/radius utilities.
+	 * - `"v4"`: emits `@import "tailwindcss"` + `@theme { --color-<key>: hsl(...) }` so
+	 *   utilities like `bg-background` resolve directly. No `tailwind.config.ts` needed.
+	 */
+	target?: "v3" | "v4";
+}
+
+/**
+ * Generates a complete globals.css content with theme tokens and Tailwind directives.
+ *
+ * @param theme - The theme to generate CSS for
+ * @param options - Output target (Tailwind v3 vs v4). Defaults to v3 for backward compatibility.
+ * @returns A full globals.css string ready to drop into `app/globals.css`.
+ */
+export function generateGlobalsCss(theme: Theme, options: GenerateGlobalsCssOptions = {}): string {
+	const { target = "v3" } = options;
+	if (target === "v4") return generateGlobalsCssV4(theme);
+	return generateGlobalsCssV3(theme);
+}
+
+function generateGlobalsCssV3(theme: Theme): string {
 	const lines: string[] = [];
 
 	lines.push("@tailwind base;");
@@ -228,6 +251,50 @@ export function generateGlobalsCss(theme: Theme): string {
 	lines.push("  body {");
 	lines.push("    @apply bg-background text-foreground;");
 	lines.push("  }");
+	lines.push("}");
+
+	return lines.join("\n");
+}
+
+function generateGlobalsCssV4(theme: Theme): string {
+	const lines: string[] = [];
+
+	lines.push(`@import "tailwindcss";`);
+	// tw-animate-css ports tailwindcss-animate's animate-in/out, fade-*, slide-*,
+	// zoom-* utilities to v4 as a pure CSS import. Every Hex component that
+	// transitions (dialog, dropdown-menu, popover, accordion, ...) depends on
+	// these classes, so it's not optional.
+	lines.push(`@import "tw-animate-css";`);
+	lines.push("");
+	lines.push("/* Class-based dark mode — set `.dark` on <html> via next-themes or your own provider. */");
+	lines.push("@custom-variant dark (&:is(.dark *));");
+	lines.push("");
+	lines.push("/*");
+	lines.push(" * Color tokens use the --color-<key> namespace so generated utilities like");
+	lines.push(" * bg-background / text-muted-foreground emit var(--color-*), and the .dark");
+	lines.push(" * block below flips every usage at runtime.");
+	lines.push(" */");
+	lines.push("@theme {");
+	for (const [key, token] of Object.entries(theme.tokens.light)) {
+		if (extractType(token) !== "color") continue;
+		lines.push(`  --color-${key}: hsl(${extractValue(token)});`);
+	}
+	lines.push("}");
+	lines.push("");
+	lines.push(".dark {");
+	for (const [key, token] of Object.entries(theme.tokens.dark)) {
+		if (extractType(token) !== "color") continue;
+		lines.push(`  --color-${key}: hsl(${extractValue(token)});`);
+	}
+	lines.push("}");
+	lines.push("");
+	lines.push("body {");
+	lines.push("  background: var(--color-background);");
+	lines.push("  color: var(--color-foreground);");
+	lines.push("}");
+	lines.push("");
+	lines.push("* {");
+	lines.push("  border-color: var(--color-border);");
 	lines.push("}");
 
 	return lines.join("\n");

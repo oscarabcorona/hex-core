@@ -33,7 +33,8 @@ program
 	.command("init")
 	.description("Initialize Hex UI in your project")
 	.option("--theme <theme>", "Theme to use", "default")
-	.action(async (options: { theme: string }) => {
+	.option("--overwrite", "Replace existing globals.css and tailwind.config.ts", false)
+	.action(async (options: { theme: string; overwrite: boolean }) => {
 		const { initProject } = await import("./commands/init.js");
 		await initProject(options);
 	});

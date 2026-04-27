@@ -233,3 +233,64 @@ describe("themeToScopedRuntimeCss", () => {
 		}
 	});
 });
+
+describe("generateGlobalsCss target option", () => {
+	it("defaults to v3 — unchanged from the legacy single-arg signature", () => {
+		const v3Default = generateGlobalsCss(defaultTheme);
+		const v3Explicit = generateGlobalsCss(defaultTheme, { target: "v3" });
+		expect(v3Default).toBe(v3Explicit);
+		expect(v3Default).toContain("@tailwind base;");
+		expect(v3Default).toContain("@layer base {");
+		expect(v3Default).toContain(":root {");
+		expect(v3Default).toContain(".dark {");
+	});
+
+	it("v4 emits @import tailwindcss + tw-animate-css", () => {
+		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
+		expect(css.startsWith(`@import "tailwindcss";`)).toBe(true);
+		expect(css).toContain(`@import "tw-animate-css";`);
+	});
+
+	it("v4 emits @custom-variant for class-based dark mode", () => {
+		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
+		expect(css).toContain("@custom-variant dark (&:is(.dark *));");
+	});
+
+	it("v4 emits color tokens inside @theme with --color- prefix and hsl() wrapper", () => {
+		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
+		expect(css).toMatch(/@theme \{/);
+		expect(css).toMatch(/--color-background: hsl\([\d.]+ [\d.]+% [\d.]+%\);/);
+		expect(css).toMatch(/--color-primary: hsl\([\d.]+ [\d.]+% [\d.]+%\);/);
+	});
+
+	it("v4 dark block flips colors with the same prefix", () => {
+		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
+		const darkBlockMatch = css.match(/\.dark \{[\s\S]+?\}/);
+		expect(darkBlockMatch).not.toBeNull();
+		expect(darkBlockMatch?.[0]).toContain("--color-background: hsl(");
+		expect(darkBlockMatch?.[0]).toContain("--color-foreground: hsl(");
+	});
+
+	it("v4 does NOT wrap non-color tokens in --color- (radii, durations stay out)", () => {
+		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
+		expect(css).not.toContain("--color-radius:");
+		expect(css).not.toContain("--color-duration");
+		expect(css).not.toContain("--color-space-");
+	});
+
+	it("v4 emits body/border-color rules so the page renders against the theme", () => {
+		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
+		expect(css).toContain("background: var(--color-background)");
+		expect(css).toContain("color: var(--color-foreground)");
+		expect(css).toContain("border-color: var(--color-border)");
+	});
+
+	it("v4 works for every OS preset theme", () => {
+		for (const [_, theme] of allThemes) {
+			const css = generateGlobalsCss(theme, { target: "v4" });
+			expect(css).toContain(`@import "tailwindcss";`);
+			expect(css).toContain("@theme {");
+			expect(css).toContain("--color-background: hsl(");
+		}
+	});
+});
