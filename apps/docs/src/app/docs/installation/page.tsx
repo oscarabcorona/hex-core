@@ -22,7 +22,7 @@ const TAILWIND_SNIPPET = `@theme {
   --color-foreground: hsl(240 10% 3.9%);
   --color-primary: hsl(240 5.9% 10%);
   --color-primary-foreground: hsl(0 0% 98%);
-  --color-border: hsl(240 5.9% 90%);
+  --color-border: hsl(240 5.9% 58%);
   --color-ring: hsl(240 5.9% 10%);
 }`;
 
