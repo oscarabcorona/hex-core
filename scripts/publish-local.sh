@@ -147,6 +147,7 @@ info "All 5 packages built"
 PACKAGES=(
 	"packages/registry"
 	"packages/tokens"
+	"packages/themes"
 	"packages/components"
 	"packages/cli"
 	"packages/mcp-server"
