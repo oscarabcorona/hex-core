@@ -1,6 +1,6 @@
 {
 	"name": "@hex-core/mcp",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "MCP server for Hex UI — AI-native component distribution. Ships 11 tools over the registry for Claude Code / Cursor / any MCP client.",
 	"keywords": [
 		"hex-ui",
