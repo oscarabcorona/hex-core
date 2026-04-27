@@ -10,9 +10,11 @@ import { ButtonDemo } from "../app/demos/button-demo";
 import { CalendarDemo } from "../app/demos/calendar-demo";
 import { CardDemo } from "../app/demos/card-demo";
 import { CheckboxDemo } from "../app/demos/checkbox-demo";
+import { ClusterDemo } from "../app/demos/cluster-demo";
 import { CollapsibleDemo } from "../app/demos/collapsible-demo";
 import { ComboboxDemo } from "../app/demos/combobox-demo";
 import { CommandDemo } from "../app/demos/command-demo";
+import { ContainerDemo } from "../app/demos/container-demo";
 import { ContextMenuDemo } from "../app/demos/context-menu-demo";
 import { DataTableDemo } from "../app/demos/data-table-demo";
 import { DatePickerDemo } from "../app/demos/date-picker-demo";
@@ -22,6 +24,7 @@ import { DropzoneDemo } from "../app/demos/dropzone-demo";
 import { DropdownMenuDemo } from "../app/demos/dropdown-menu-demo";
 import { FileTreeDemo } from "../app/demos/file-tree-demo";
 import { FormDemo } from "../app/demos/form-demo";
+import { GridDemo } from "../app/demos/grid-demo";
 import { HoverCardDemo } from "../app/demos/hover-card-demo";
 import { InputDemo } from "../app/demos/input-demo";
 import { InputOTPDemo } from "../app/demos/input-otp-demo";
@@ -42,6 +45,8 @@ import { SidebarDemo } from "../app/demos/sidebar-demo";
 import { SkeletonDemo } from "../app/demos/skeleton-demo";
 import { SliderDemo } from "../app/demos/slider-demo";
 import { SonnerDemo } from "../app/demos/sonner-demo";
+import { SpacerDemo } from "../app/demos/spacer-demo";
+import { StackDemo } from "../app/demos/stack-demo";
 import { StepperDemo } from "../app/demos/stepper-demo";
 import { SwitchDemo } from "../app/demos/switch-demo";
 import { TableDemo } from "../app/demos/table-demo";
@@ -74,9 +79,11 @@ export const demos: Record<string, ComponentType> = {
 	calendar: CalendarDemo,
 	card: CardDemo,
 	checkbox: CheckboxDemo,
+	cluster: ClusterDemo,
 	collapsible: CollapsibleDemo,
 	combobox: ComboboxDemo,
 	command: CommandDemo,
+	container: ContainerDemo,
 	"context-menu": ContextMenuDemo,
 	"data-table": DataTableDemo,
 	"date-picker": DatePickerDemo,
@@ -86,6 +93,7 @@ export const demos: Record<string, ComponentType> = {
 	dropzone: DropzoneDemo,
 	"file-tree": FileTreeDemo,
 	form: FormDemo,
+	grid: GridDemo,
 	"hover-card": HoverCardDemo,
 	input: InputDemo,
 	"input-otp": InputOTPDemo,
@@ -106,6 +114,8 @@ export const demos: Record<string, ComponentType> = {
 	skeleton: SkeletonDemo,
 	slider: SliderDemo,
 	sonner: SonnerDemo,
+	spacer: SpacerDemo,
+	stack: StackDemo,
 	stepper: StepperDemo,
 	switch: SwitchDemo,
 	table: TableDemo,
