@@ -3,6 +3,7 @@ import * as path from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { buildAppContext } from "./tools/app-context.js";
 import { loadRecipe, loadRecipes } from "./tools/recipe-loader.js";
 import {
 	internalDepToSlug,
@@ -703,6 +704,56 @@ server.registerTool(
 					text: JSON.stringify(response, null, 2),
 				},
 			],
+		};
+	},
+);
+
+// ─── Tool 12: emit_app_context ───
+
+server.registerTool(
+	"emit_app_context",
+	{
+		description:
+			"Synthesize a deterministic markdown payload describing the chosen theme, components, and recipes — formatted for paste-into-LLM workflows so a downstream agent has the full Hex UI stack in one block. Looks up each slug in the registry; unknown slugs are flagged inline rather than dropped silently.",
+		inputSchema: z
+			.object({
+				theme: z
+					.string()
+					.describe("Theme slug (e.g. 'default', 'midnight', 'ember')"),
+				components: z
+					.array(z.string())
+					.min(1)
+					.describe("Component slugs to include in the context"),
+				recipes: z
+					.array(z.string())
+					.optional()
+					.describe("Optional recipe slugs to include with their steps and checklists"),
+			})
+			.strict(),
+	},
+	async ({ theme, components, recipes }) => {
+		const resolvedTheme = getTheme(theme) ?? null;
+		// Dedupe slugs so a payload with `["button","button"]` doesn't render
+		// duplicate component cards or duplicate `cli add` arguments.
+		const uniqueComponents = Array.from(new Set(components));
+		const uniqueRecipes = Array.from(new Set(recipes ?? []));
+		const componentSlots = uniqueComponents.map((slug) => ({
+			slug,
+			item: SLUG_REGEX.test(slug) ? loadRegistryItem(slug) : null,
+		}));
+		const recipeSlots = uniqueRecipes.map((slug) => ({
+			slug,
+			recipe: SLUG_REGEX.test(slug) ? loadRecipe(slug) : null,
+		}));
+
+		const markdown = buildAppContext({
+			theme: { requested: theme, resolved: resolvedTheme },
+			components: componentSlots,
+			recipes: recipeSlots,
+		});
+
+		return {
+			content: [{ type: "text" as const, text: markdown }],
 		};
 	},
 );
