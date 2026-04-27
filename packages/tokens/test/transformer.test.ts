@@ -15,6 +15,7 @@ import {
 	midnightTheme,
 	themeToCss,
 	themeToFlatJson,
+	themeToScopedRuntimeCss,
 	themeToTailwindConfig,
 } from "../src/index.js";
 
@@ -181,5 +182,54 @@ describe("getTheme + listThemes", () => {
 
 	it("getTheme returns undefined for an unknown preset", () => {
 		expect(getTheme("nonexistent")).toBeUndefined();
+	});
+});
+
+describe("themeToScopedRuntimeCss", () => {
+	it("defaults to :root + light when no options are passed", () => {
+		const css = themeToScopedRuntimeCss(defaultTheme);
+		expect(css.startsWith(":root {")).toBe(true);
+		expect(css.endsWith("}")).toBe(true);
+	});
+
+	it("emits the raw `--<key>` form for every token (preserves alpha composition)", () => {
+		const css = themeToScopedRuntimeCss(defaultTheme);
+		// Color token (background) — raw triplet form must be present.
+		// Matches integer or decimal HSL components (e.g. "240 5.9% 10%").
+		expect(css).toMatch(/--background: [\d.]+ [\d.]+% [\d.]+%;/);
+	});
+
+	it("emits the Tailwind v4 `--color-<key>: hsl(...)` bridge for color tokens", () => {
+		const css = themeToScopedRuntimeCss(defaultTheme);
+		expect(css).toMatch(/--color-background: hsl\([\d.]+ [\d.]+% [\d.]+%\);/);
+		expect(css).toMatch(/--color-primary: hsl\([\d.]+ [\d.]+% [\d.]+%\);/);
+	});
+
+	it("does NOT wrap non-color tokens in hsl() (radii, durations stay raw)", () => {
+		const css = themeToScopedRuntimeCss(defaultTheme);
+		// radius-md is a length, not a color — must not appear as --color-radius-md.
+		expect(css).not.toContain("--color-radius-md:");
+	});
+
+	it("respects a custom scope selector", () => {
+		const css = themeToScopedRuntimeCss(defaultTheme, { scope: ".studio-canvas-active" });
+		expect(css.startsWith(".studio-canvas-active {")).toBe(true);
+		expect(css).not.toContain(":root {");
+	});
+
+	it("renders the dark palette when mode='dark'", () => {
+		const lightCss = themeToScopedRuntimeCss(defaultTheme, { mode: "light" });
+		const darkCss = themeToScopedRuntimeCss(defaultTheme, { mode: "dark" });
+		// Background differs between light and dark for every theme — easiest sentinel.
+		expect(lightCss).not.toEqual(darkCss);
+	});
+
+	it("renders correctly for all 3 OS preset themes", () => {
+		for (const [_, theme] of allThemes) {
+			const css = themeToScopedRuntimeCss(theme, { scope: ".x", mode: "dark" });
+			expect(css).toContain(".x {");
+			expect(css).toContain("--background:");
+			expect(css).toContain("--color-background: hsl(");
+		}
 	});
 });

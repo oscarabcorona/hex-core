@@ -122,6 +122,92 @@ export function themeToTailwindConfig(theme: Theme): Record<string, Record<strin
 }
 
 /**
+ * Options for {@link themeToScopedRuntimeCss}.
+ */
+export interface ScopedRuntimeCssOptions {
+	/**
+	 * CSS selector that the generated rule targets. Defaults to `":root"`.
+	 *
+	 * Pass a class selector (e.g. `".studio-canvas-active"` or `".theme-vivid"`)
+	 * to scope the override to a subtree — useful when an app needs to flip
+	 * themes at runtime without round-tripping through `globals.css`. The vars
+	 * cascade to every descendant of an element matching the selector, so the
+	 * subtree's Tailwind utilities resolve against the new values automatically.
+	 */
+	scope?: string;
+	/**
+	 * Which palette to render. Defaults to `"light"`. Pass `"dark"` to emit the
+	 * theme's dark token set (typically used in combination with a `.dark` scope
+	 * applied by the consumer's theme provider).
+	 */
+	mode?: "light" | "dark";
+}
+
+/**
+ * Render a theme as scoped runtime CSS for the Tailwind v4 `--color-*` namespace.
+ *
+ * Unlike {@link themeToCss} (which emits at `:root` for static `globals.css`),
+ * this targets a configurable selector so the override applies only to that
+ * subtree. The output emits **both** namespaces so the result drops in cleanly
+ * regardless of how the consumer's `globals.css` is wired:
+ *
+ * - `--<key>: <value>;` (raw triplet) — preserves alpha-composition utilities
+ *   like `bg-background/50` that read the variable as bare `H S% L%`.
+ * - `--color-<key>: hsl(<value>);` (full `hsl()` string) — feeds Tailwind v4's
+ *   `@theme` block so generated utilities like `bg-background` / `text-primary`
+ *   resolve against the override.
+ *
+ * Non-color tokens (radii, durations, spacing, font sizes) only emit the raw
+ * `--<key>` form since they don't go through `@theme`'s color machinery.
+ *
+ * @param theme - The theme to render
+ * @param options - Scope selector + light/dark mode (see {@link ScopedRuntimeCssOptions}).
+ * @returns A CSS string with one rule wrapping all the token declarations.
+ *
+ * @example
+ * ```ts
+ * import { defaultTheme, themeToScopedRuntimeCss } from "@hex-core/tokens";
+ *
+ * // Default: emits at :root for the light palette.
+ * const css = themeToScopedRuntimeCss(defaultTheme);
+ *
+ * // Subtree-scoped runtime override (e.g. a theme studio's canvas):
+ * const scoped = themeToScopedRuntimeCss(defaultTheme, {
+ *   scope: ".studio-canvas-active",
+ *   mode: "light",
+ * });
+ *
+ * // Inject via a <style> tag:
+ * // <style dangerouslySetInnerHTML={{ __html: scoped }} />
+ * ```
+ */
+export function themeToScopedRuntimeCss(
+	theme: Theme,
+	options: ScopedRuntimeCssOptions = {},
+): string {
+	const { scope = ":root", mode = "light" } = options;
+	const tokens = mode === "light" ? theme.tokens.light : theme.tokens.dark;
+
+	const lines: string[] = [];
+	lines.push(`${scope} {`);
+	for (const [key, token] of Object.entries(tokens)) {
+		const value = extractValue(token);
+		const type = extractType(token);
+		// Always emit the raw `--<key>` form. For colors, also emit the
+		// Tailwind v4 `--color-<key>` bridge wrapped in hsl() so `@theme`
+		// blocks resolve correctly without the consumer hand-authoring the
+		// bridge layer.
+		lines.push(`  --${key}: ${value};`);
+		if (type === "color") {
+			lines.push(`  --color-${key}: hsl(${value});`);
+		}
+	}
+	lines.push("}");
+
+	return lines.join("\n");
+}
+
+/**
  * Generates a complete globals.css content with theme tokens and Tailwind directives.
  * @param theme - The theme to generate CSS for
  * @returns A full globals.css string including Tailwind imports, theme tokens, and base layer styles

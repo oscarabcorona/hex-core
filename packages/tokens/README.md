@@ -99,6 +99,34 @@ Now your runtime overrides (`.theme-vivid { --background: 270 100% 95%; }`) only
 
 The docs site itself doesn't bridge — it inlines `hsl(...)` directly in `@theme` and re-declares colors in `.dark`. That's intentional: the docs app never round-trips through `themeToCss`, so a separate raw layer would just be duplication. **Bridge when** you ship to v4 consumers AND you need them to override raw values in custom themes (`.theme-foo { --background: ... }`).
 
+### Runtime overrides — `themeToScopedRuntimeCss`
+
+When an app needs to **flip themes at runtime** without round-tripping through `globals.css` (e.g. a theme studio's preview canvas, a per-org branding scope, a user-customized palette stored in URL state), use `themeToScopedRuntimeCss(theme, { scope?, mode? })`. It emits a single CSS rule that drops both namespaces in one call:
+
+```ts
+import { defaultTheme, themeToScopedRuntimeCss } from "@hex-core/tokens";
+
+const css = themeToScopedRuntimeCss(defaultTheme, {
+  scope: ".studio-canvas-active",
+  mode: "light",
+});
+// →
+// .studio-canvas-active {
+//   --background: 0 0% 100%;
+//   --color-background: hsl(0 0% 100%);
+//   --primary: 240 5.9% 10%;
+//   --color-primary: hsl(240 5.9% 10%);
+//   --radius-md: 0.5rem;
+//   /* … */
+// }
+```
+
+Inject via a `<style>` tag and the override applies to every descendant of the scoped element — Tailwind utilities resolve through `@theme`, alpha-composition utilities (`bg-background/50`, `border-border/30`) resolve through the raw layer.
+
+`scope` defaults to `:root`. `mode` defaults to `"light"`; pass `"dark"` to render the dark palette (typically combined with a `.dark` selector applied by your theme provider).
+
+Non-color tokens (radii, durations, spacing, font sizes) only emit the raw `--<key>` form — they don't go through `@theme`'s color machinery.
+
 ### Tailwind v3 helper
 
 `themeToTailwindConfig(theme)` returns the same Tailwind layer for the **v3 config-file** style:

@@ -1,7 +1,9 @@
 export {
 	generateGlobalsCss,
+	type ScopedRuntimeCssOptions,
 	themeToCss,
 	themeToFlatJson,
+	themeToScopedRuntimeCss,
 	themeToTailwindConfig,
 } from "./transformer.js";
 export { defaultTheme } from "./themes/default.js";
