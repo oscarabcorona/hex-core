@@ -89,6 +89,62 @@
       "tokenBudget": 300
     },
     {
+      "name": "cluster",
+      "displayName": "Cluster",
+      "description": "Horizontal flex flow with wrap and token-bound gap. Use for tag lists, button rows, breadcrumbs, and any group of equally-weighted inline items.",
+      "category": "primitive",
+      "subcategory": "layout",
+      "tags": [
+        "cluster",
+        "layout",
+        "flex",
+        "wrap",
+        "horizontal",
+        "primitive"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 250
+    },
+    {
+      "name": "container",
+      "displayName": "Container",
+      "description": "Centered max-width wrapper that constrains content to readable widths. Sizes map to `--container-*` prose-width tokens; padding maps to `--space-*`.",
+      "category": "primitive",
+      "subcategory": "layout",
+      "tags": [
+        "container",
+        "layout",
+        "wrapper",
+        "max-width",
+        "primitive"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 250
+    },
+    {
+      "name": "grid",
+      "displayName": "Grid",
+      "description": "CSS grid with column-count presets and token-bound gap. Pass `cols=\"auto-fit\"` + `minColWidth` for responsive grids without media queries.",
+      "category": "primitive",
+      "subcategory": "layout",
+      "tags": [
+        "grid",
+        "layout",
+        "css-grid",
+        "responsive",
+        "auto-fit",
+        "primitive"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 300
+    },
+    {
       "name": "input",
       "displayName": "Input",
       "description": "A styled text input with smooth focus transitions, shadow effects, and full HTML input compatibility.",
@@ -235,6 +291,43 @@
       ],
       "internalDeps": [],
       "tokenBudget": 450
+    },
+    {
+      "name": "spacer",
+      "displayName": "Spacer",
+      "description": "Declarative whitespace block bound to `--space-*` tokens. Use when sibling spacing can't come from a parent's `gap`.",
+      "category": "primitive",
+      "subcategory": "layout",
+      "tags": [
+        "spacer",
+        "layout",
+        "whitespace",
+        "spacing",
+        "primitive"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 200
+    },
+    {
+      "name": "stack",
+      "displayName": "Stack",
+      "description": "Vertical flex flow with token-bound gap. The headless equivalent of `<div className=\"flex flex-col gap-X\">` with consistent spacing scale.",
+      "category": "primitive",
+      "subcategory": "layout",
+      "tags": [
+        "stack",
+        "layout",
+        "flex",
+        "column",
+        "vertical",
+        "primitive"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 250
     },
     {
       "name": "switch",

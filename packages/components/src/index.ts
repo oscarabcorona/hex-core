@@ -27,6 +27,17 @@ export { Progress } from "./primitives/progress/progress.js";
 export { ScrollArea, ScrollBar } from "./primitives/scroll-area/scroll-area.js";
 export { AspectRatio } from "./primitives/aspect-ratio/aspect-ratio.js";
 
+// Layout primitives
+export {
+	Container,
+	containerVariants,
+	type ContainerProps,
+} from "./primitives/container/container.js";
+export { Stack, stackVariants, type StackProps } from "./primitives/stack/stack.js";
+export { Cluster, clusterVariants, type ClusterProps } from "./primitives/cluster/cluster.js";
+export { Grid, gridVariants, type GridProps } from "./primitives/grid/grid.js";
+export { Spacer, spacerVariants, type SpacerProps } from "./primitives/spacer/spacer.js";
+
 // Components
 export {
 	Card,
@@ -269,6 +280,11 @@ export { skeletonSchema } from "./primitives/skeleton/skeleton.schema.js";
 export { progressSchema } from "./primitives/progress/progress.schema.js";
 export { scrollAreaSchema } from "./primitives/scroll-area/scroll-area.schema.js";
 export { aspectRatioSchema } from "./primitives/aspect-ratio/aspect-ratio.schema.js";
+export { containerSchema } from "./primitives/container/container.schema.js";
+export { stackSchema } from "./primitives/stack/stack.schema.js";
+export { clusterSchema } from "./primitives/cluster/cluster.schema.js";
+export { gridSchema } from "./primitives/grid/grid.schema.js";
+export { spacerSchema } from "./primitives/spacer/spacer.schema.js";
 export { collapsibleSchema } from "./components/collapsible/collapsible.schema.js";
 export { hoverCardSchema } from "./components/hover-card/hover-card.schema.js";
 export { contextMenuSchema } from "./components/context-menu/context-menu.schema.js";

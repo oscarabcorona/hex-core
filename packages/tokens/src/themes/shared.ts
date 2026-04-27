@@ -17,9 +17,17 @@ export const sharedTokens: Record<string, TokenValue> = {
 	"space-16": { value: "4rem", type: "spacing" },
 
 	// ─── Gap presets (for layout primitives) ───
+	"gap-xs": { value: "0.25rem", type: "spacing" },
 	"gap-sm": { value: "0.5rem", type: "spacing" },
 	"gap-md": { value: "1rem", type: "spacing" },
 	"gap-lg": { value: "1.5rem", type: "spacing" },
+	"gap-xl": { value: "2rem", type: "spacing" },
+
+	// ─── Container max-widths (for prose / layout primitives) ───
+	"container-sm": { value: "33rem", type: "dimension" },
+	"container-md": { value: "40rem", type: "dimension" },
+	"container-lg": { value: "50rem", type: "dimension" },
+	"container-xl": { value: "66rem", type: "dimension" },
 
 	// ─── Control heights (interactive elements) ───
 	"control-height-sm": { value: "2.25rem", type: "dimension" },
