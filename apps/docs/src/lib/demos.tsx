@@ -12,6 +12,7 @@ import { CardDemo } from "../app/demos/card-demo";
 import { CheckboxDemo } from "../app/demos/checkbox-demo";
 import { ClusterDemo } from "../app/demos/cluster-demo";
 import { CollapsibleDemo } from "../app/demos/collapsible-demo";
+import { ColorPickerDemo } from "../app/demos/color-picker-demo";
 import { ComboboxDemo } from "../app/demos/combobox-demo";
 import { CommandDemo } from "../app/demos/command-demo";
 import { ContainerDemo } from "../app/demos/container-demo";
@@ -81,6 +82,7 @@ export const demos: Record<string, ComponentType> = {
 	checkbox: CheckboxDemo,
 	cluster: ClusterDemo,
 	collapsible: CollapsibleDemo,
+	"color-picker": ColorPickerDemo,
 	combobox: ComboboxDemo,
 	command: CommandDemo,
 	container: ContainerDemo,

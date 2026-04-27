@@ -212,6 +212,17 @@ export {
 	CommandSeparator,
 } from "./components/command/command.js";
 export { Combobox, type ComboboxOption, type ComboboxProps } from "./components/combobox/combobox.js";
+export { ColorPicker, type ColorPickerProps } from "./components/color-picker/color-picker.js";
+export {
+	formatHslTriplet,
+	hexToHslTriplet,
+	hslToRgb,
+	hslTripletToHex,
+	parseHslTriplet,
+	rgbToHsl,
+	type HslTriplet,
+	type RgbColor,
+} from "./lib/color.js";
 export {
 	MultiCombobox,
 	type MultiComboboxOption,
@@ -338,6 +349,7 @@ export { timelineSchema } from "./components/timeline/timeline.schema.js";
 export { dropzoneSchema } from "./components/dropzone/dropzone.schema.js";
 export { timePickerSchema } from "./components/time-picker/time-picker.schema.js";
 export { fileTreeSchema } from "./components/file-tree/file-tree.schema.js";
+export { colorPickerSchema } from "./components/color-picker/color-picker.schema.js";
 export { sheetSchema } from "./components/sheet/sheet.schema.js";
 export { drawerSchema } from "./components/drawer/drawer.schema.js";
 export { resizableSchema } from "./components/resizable/resizable.schema.js";

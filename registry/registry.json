@@ -513,6 +513,31 @@
       "tokenBudget": 250
     },
     {
+      "name": "color-picker",
+      "displayName": "Color Picker",
+      "description": "HSL-native color picker that edits an HSL triplet directly via three sliders (H/S/L). Hex input is a display adapter; sliders are the source of truth so the value round-trips losslessly through the `@hex-core/tokens` triplet format.",
+      "category": "component",
+      "subcategory": "input",
+      "tags": [
+        "color-picker",
+        "color",
+        "hsl",
+        "hex",
+        "form",
+        "theme-editor",
+        "primitive"
+      ],
+      "internalDeps": [
+        "primitives/slider/slider",
+        "primitives/input/input",
+        "primitives/label/label",
+        "components/popover/popover",
+        "lib/color",
+        "lib/utils"
+      ],
+      "tokenBudget": 350
+    },
+    {
       "name": "combobox",
       "displayName": "Combobox",
       "description": "Searchable single-select input. Composes Popover + Command (cmdk) + a styled trigger. Pass a list of { value, label } options.",

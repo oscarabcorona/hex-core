@@ -211,6 +211,8 @@ export {
 	Combobox,
 	type ComboboxOption,
 	type ComboboxProps,
+	ColorPicker,
+	type ColorPickerProps,
 	MultiCombobox,
 	type MultiComboboxOption,
 	type MultiComboboxProps,
