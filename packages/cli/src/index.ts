@@ -102,6 +102,16 @@ theme
 		},
 	);
 
+program
+	.command("doctor")
+	.description("Diagnose your Hex UI install and report what's missing")
+	.action(async () => {
+		const { runDoctor, reportDoctor } = await import("./commands/doctor.js");
+		const checks = await runDoctor();
+		const code = reportDoctor(checks);
+		if (code !== 0) process.exit(code);
+	});
+
 const skills = program
 	.command("skills")
 	.description("Manage Hex UI agent skills (SKILL.md packs for Claude Code)");
