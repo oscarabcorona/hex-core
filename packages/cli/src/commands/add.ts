@@ -3,12 +3,15 @@ import * as path from "node:path";
 import { internalDepToSlug, SLUG_REGEX } from "@hex-core/registry";
 import { type AliasConfig, DEFAULT_ALIASES, rewriteRegistryImports } from "../lib/rewrite-imports.js";
 import { findRegistryDir } from "../lib/registry-dir.js";
+import { runInstall } from "../lib/run-install.js";
 
 export interface AddOptions {
 	yes: boolean;
 	overwrite: boolean;
 	/** When true (default), also install internal component dependencies recursively. */
 	deps: boolean;
+	/** When true (default), also auto-install npm peer deps via the consumer's package manager. */
+	install: boolean;
 }
 
 interface Context {
@@ -18,6 +21,8 @@ interface Context {
 	aliases: AliasConfig;
 	/** Slugs already processed in this invocation — prevents duplicate writes and infinite loops on future cyclic data. */
 	visited: Set<string>;
+	/** Aggregate npm peer deps collected across every item the queue installs. Deduped + auto-installed once at the end. */
+	pendingNpmDeps: Set<string>;
 }
 
 /**
@@ -96,7 +101,7 @@ function installOne(name: string, ctx: Context): string[] | null {
 	const deps = item.dependencies ?? {};
 	if (deps.npm?.length > 0) {
 		console.log(`\n  Dependencies: ${deps.npm.join(", ")}`);
-		console.log(`  Install: pnpm add ${deps.npm.join(" ")}`);
+		for (const npm of deps.npm) ctx.pendingNpmDeps.add(npm);
 	}
 
 	// Return every component slug this item depends on, regardless of whether
@@ -140,6 +145,7 @@ export async function addComponents(components: string[], options: AddOptions): 
 		options,
 		aliases: loadAliases(cwd),
 		visited: new Set(),
+		pendingNpmDeps: new Set(),
 	};
 
 	const queue: string[] = [...components];
@@ -176,6 +182,20 @@ export async function addComponents(components: string[], options: AddOptions): 
 			);
 			console.log(`  Install: hex add ${missingOnDisk.join(" ")}`);
 			console.log(`  (or re-run without --no-deps to install them automatically)`);
+		}
+	}
+
+	if (ctx.pendingNpmDeps.size > 0) {
+		const all = Array.from(ctx.pendingNpmDeps);
+		if (!options.install) {
+			console.log(`\nSkipping auto-install (--no-install). Run yourself:`);
+			console.log(`  pnpm add ${all.join(" ")}`);
+			return;
+		}
+		const result = await runInstall(all, { cwd });
+		if (result.installed.length > 0 && result.exitCode !== 0) {
+			console.log(`\nPeer-dep install via ${result.manager} exited with code ${result.exitCode}.`);
+			console.log(`Run yourself: ${result.manager} ${result.manager === "npm" ? "install" : "add"} ${result.installed.join(" ")}`);
 		}
 	}
 }

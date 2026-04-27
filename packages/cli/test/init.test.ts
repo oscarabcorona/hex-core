@@ -47,7 +47,7 @@ describe("init", () => {
 	it("v4 path: writes hex.config.json + app/globals.css with @import tailwindcss + @theme", async () => {
 		writePkg({ tailwindcss: "^4" });
 		fs.mkdirSync(path.join(tmpDir, "app"));
-		await initProject({ theme: "default" });
+		await initProject({ theme: "default", install: false });
 
 		expect(fs.existsSync(path.join(tmpDir, "hex.config.json"))).toBe(true);
 		const cssPath = path.join(tmpDir, "app/globals.css");
@@ -65,7 +65,7 @@ describe("init", () => {
 	it("v4 prints tw-animate-css in the peer-deps line", async () => {
 		writePkg({ tailwindcss: "^4" });
 		fs.mkdirSync(path.join(tmpDir, "app"));
-		await initProject({ theme: "default" });
+		await initProject({ theme: "default", install: false });
 		const stdout = logSpy.mock.calls.flat().join("\n");
 		expect(stdout).toContain("tw-animate-css");
 		expect(stdout).not.toContain("tailwindcss-animate");
@@ -74,7 +74,7 @@ describe("init", () => {
 	it("v3 path: writes globals.css with @tailwind base + tailwind.config.ts", async () => {
 		writePkg({ tailwindcss: "^3.4.0" });
 		fs.mkdirSync(path.join(tmpDir, "app"));
-		await initProject({ theme: "default" });
+		await initProject({ theme: "default", install: false });
 
 		const cssPath = path.join(tmpDir, "app/globals.css");
 		const css = fs.readFileSync(cssPath, "utf8");
@@ -93,7 +93,7 @@ describe("init", () => {
 	it("v3 prints tailwindcss-animate in the peer-deps line", async () => {
 		writePkg({ tailwindcss: "^3.4.0" });
 		fs.mkdirSync(path.join(tmpDir, "app"));
-		await initProject({ theme: "default" });
+		await initProject({ theme: "default", install: false });
 		const stdout = logSpy.mock.calls.flat().join("\n");
 		expect(stdout).toContain("tailwindcss-animate");
 		expect(stdout).not.toContain("tw-animate-css");
@@ -102,7 +102,7 @@ describe("init", () => {
 	it("prefers src/app over app when both exist (matches Next's --src-dir flag)", async () => {
 		writePkg({ tailwindcss: "^4" });
 		fs.mkdirSync(path.join(tmpDir, "src/app"), { recursive: true });
-		await initProject({ theme: "default" });
+		await initProject({ theme: "default", install: false });
 		expect(fs.existsSync(path.join(tmpDir, "src/app/globals.css"))).toBe(true);
 		expect(fs.existsSync(path.join(tmpDir, "app/globals.css"))).toBe(false);
 	});
@@ -113,16 +113,16 @@ describe("init", () => {
 		const cssPath = path.join(tmpDir, "app/globals.css");
 		fs.writeFileSync(cssPath, "/* user content */");
 
-		await initProject({ theme: "default" });
+		await initProject({ theme: "default", install: false });
 		expect(fs.readFileSync(cssPath, "utf8")).toBe("/* user content */");
 
-		await initProject({ theme: "default", overwrite: true });
+		await initProject({ theme: "default", overwrite: true, install: false });
 		expect(fs.readFileSync(cssPath, "utf8")).toContain(`@import "tailwindcss"`);
 	});
 
 	it("creates the app/ directory if neither app nor src/app exists yet", async () => {
 		writePkg({ tailwindcss: "^4" });
-		await initProject({ theme: "default" });
+		await initProject({ theme: "default", install: false });
 		expect(fs.existsSync(path.join(tmpDir, "app/globals.css"))).toBe(true);
 	});
 

@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { detectTailwind, type TailwindVersion } from "../lib/detect-tailwind.js";
 import { emitTailwindV3Config } from "../lib/emit-tailwind-config.js";
+import { runInstall } from "../lib/run-install.js";
 
 /**
  * Initialize a new Hex UI project.
@@ -14,7 +15,7 @@ import { emitTailwindV3Config } from "../lib/emit-tailwind-config.js";
  * @param options.theme - The theme preset to scaffold from.
  * @param options.overwrite - If true, replace existing globals.css / tailwind.config.ts.
  */
-export async function initProject(options: { theme: string; overwrite?: boolean }) {
+export async function initProject(options: { theme: string; overwrite?: boolean; install?: boolean }) {
 	const cwd = process.cwd();
 	const configPath = path.join(cwd, "hex.config.json");
 	const tailwind = detectTailwind(cwd);
@@ -35,6 +36,9 @@ export async function initProject(options: { theme: string; overwrite?: boolean 
 			? await writeTailwindConfig(path.join(cwd, "tailwind.config.ts"), options.theme, options.overwrite ?? false)
 			: { wrote: false, skipped: false };
 
+	const peerDeps = peerDepsFor(tailwind.version);
+	const installResult = await maybeInstall(cwd, peerDeps, options.install ?? true);
+
 	printSummary({
 		wroteConfig,
 		wroteCss,
@@ -42,7 +46,34 @@ export async function initProject(options: { theme: string; overwrite?: boolean 
 		tailwindVersion: tailwind.version,
 		tailwindRange: tailwind.rawRange,
 		cssTarget: path.relative(cwd, cssTarget),
+		peerDeps,
+		installed: installResult,
 	});
+}
+
+function peerDepsFor(version: TailwindVersion): string[] {
+	if (version === "v4") return ["clsx", "tailwind-merge", "class-variance-authority", "tw-animate-css"];
+	return ["clsx", "tailwind-merge", "class-variance-authority", "tailwindcss-animate"];
+}
+
+interface MaybeInstallResult {
+	ran: boolean;
+	skipped: string[];
+	installed: string[];
+	exitCode?: number;
+	manager: string;
+}
+
+async function maybeInstall(cwd: string, peerDeps: string[], install: boolean): Promise<MaybeInstallResult> {
+	if (!install) return { ran: false, skipped: peerDeps, installed: [], manager: "(skipped)" };
+	const result = await runInstall(peerDeps, { cwd });
+	return {
+		ran: result.installed.length > 0,
+		skipped: result.skipped,
+		installed: result.installed,
+		exitCode: result.exitCode,
+		manager: result.manager,
+	};
 }
 
 function writeHexConfig(configPath: string, theme: string): boolean {
@@ -129,6 +160,8 @@ interface SummaryParams {
 	tailwindVersion: TailwindVersion;
 	tailwindRange?: string;
 	cssTarget: string;
+	peerDeps: string[];
+	installed: MaybeInstallResult;
 }
 
 function printSummary(p: SummaryParams) {
@@ -148,12 +181,15 @@ function printSummary(p: SummaryParams) {
 		);
 	}
 
-	const peerDeps =
-		p.tailwindVersion === "v4"
-			? ["clsx", "tailwind-merge", "class-variance-authority", "tw-animate-css"]
-			: ["clsx", "tailwind-merge", "class-variance-authority", "tailwindcss-animate"];
+	if (!p.installed.ran && p.installed.installed.length === 0 && p.installed.skipped.length === p.peerDeps.length && p.installed.exitCode === undefined && p.installed.manager !== "(skipped)") {
+		console.log(`Peer deps already present: ${p.peerDeps.join(", ")}`);
+	} else if (p.installed.manager === "(skipped)") {
+		console.log(`\nSkipping auto-install (--no-install). Run yourself:`);
+		console.log(`  pnpm add ${p.peerDeps.join(" ")}`);
+	} else if (p.installed.exitCode !== undefined && p.installed.exitCode !== 0) {
+		console.log(`\nPeer-dep install via ${p.installed.manager} exited with code ${p.installed.exitCode}.`);
+		console.log(`Run yourself: ${p.installed.manager} ${p.installed.manager === "npm" ? "install" : "add"} ${p.installed.installed.join(" ")}`);
+	}
 
-	console.log("\nNext steps:");
-	console.log(`  1. Install peer deps: pnpm add ${peerDeps.join(" ")}`);
-	console.log("  2. Add components:    hex add button input label");
+	console.log("\nNext: hex add button input label");
 }
