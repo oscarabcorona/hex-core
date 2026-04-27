@@ -26,9 +26,13 @@
 	--color-popover-foreground: hsl(240 10% 3.9%);
 	--color-primary: hsl(240 5.9% 10%);
 	--color-primary-foreground: hsl(0 0% 98%);
-	/* WCAG 2.1 SC 1.4.11: secondary/border/input must hit 3:1 against --card (white).
-	   L=58% ≈ 3.2:1; previous L=95.9% (~1.10:1) and L=90% (~1.27:1) failed. */
-	--color-secondary: hsl(240 4.8% 58%);
+	/* Default zinc neutral palette. --secondary, --border, and --input all sit
+	   at near-white values that fail strict WCAG 2.1 SC 1.4.11 (3:1) against
+	   --card (white). The L=58% strict fix shipped in v1.0.2 produced a
+	   visually heavy layout and was reverted in v1.1.x. High-contrast
+	   foreground text (~16:1) and shadow elevation carry the boundary
+	   identification on framed surfaces. */
+	--color-secondary: hsl(240 4.8% 95.9%);
 	--color-secondary-foreground: hsl(240 5.9% 10%);
 	--color-muted: hsl(240 4.8% 95.9%);
 	/* WCAG AA: muted-fg on muted-bg ~5.5:1 (was 4.39 — failed) */
@@ -38,8 +42,8 @@
 	/* WCAG AA: destructive-fg on destructive-bg ~5.0:1 (was 3.6 — failed) */
 	--color-destructive: hsl(0 72% 45%);
 	--color-destructive-foreground: hsl(0 0% 98%);
-	--color-border: hsl(240 5.9% 58%);
-	--color-input: hsl(240 5.9% 58%);
+	--color-border: hsl(240 5.9% 90%);
+	--color-input: hsl(240 5.9% 90%);
 	--color-ring: hsl(240 5.9% 10%);
 	--shadow-glow: 0 0 4px rgb(0 0 0 / 0.1);
 }

@@ -35,9 +35,7 @@ const buttonVariants = cva(
 				secondary: [
 					"bg-secondary text-secondary-foreground",
 					"shadow-sm",
-					// Hover: shadow-elevation only — opacity-based bg shift would push apparent
-					// contrast below 3:1 vs --card during hover, regressing WCAG 1.4.11.
-					"hover:shadow-md",
+					"hover:bg-secondary/80 hover:shadow-md",
 				].join(" "),
 				ghost: "hover:bg-accent hover:text-accent-foreground",
 				link: "text-primary underline-offset-4 hover:underline",
