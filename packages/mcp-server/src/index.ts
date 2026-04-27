@@ -3,6 +3,7 @@ import * as path from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { TOOL } from "./tool-names.js";
 import { buildAppContext } from "./tools/app-context.js";
 import { loadRecipe, loadRecipes } from "./tools/recipe-loader.js";
 import {
@@ -30,7 +31,7 @@ const server = new McpServer({
 // ─── Tool 1: search_components ───
 
 server.registerTool(
-	"search_components",
+	TOOL.SEARCH_COMPONENTS,
 	{
 		description:
 			"Search for Hex UI components by name, description, category, or tags. Returns lightweight summaries for discovery.",
@@ -105,7 +106,7 @@ server.registerTool(
 // ─── Tool 2: get_component ───
 
 server.registerTool(
-	"get_component",
+	TOOL.GET_COMPONENT,
 	{
 		description:
 			"Get the full Hex UI component definition including source code, props, variants, examples, and AI hints. Use this to install a component into a project.",
@@ -149,7 +150,7 @@ server.registerTool(
 // ─── Tool 3: get_component_schema ───
 
 server.registerTool(
-	"get_component_schema",
+	TOOL.GET_COMPONENT_SCHEMA,
 	{
 		description:
 			"Get just the props, variants, slots, and AI hints for a component — without the full source code. Use this when you need to know HOW to use a component that's already installed.",
@@ -197,7 +198,7 @@ server.registerTool(
 // ─── Tool 4: get_theme ───
 
 server.registerTool(
-	"get_theme",
+	TOOL.GET_THEME,
 	{
 		description:
 			"Get a Hex UI theme in the specified format. Use 'css' for globals.css, 'json' for flat token map (most token-efficient for AI), 'tailwind' for Tailwind config extension.",
@@ -261,7 +262,7 @@ server.registerTool(
 // ─── Tool 5: list_themes ───
 
 server.registerTool(
-	"list_themes",
+	TOOL.LIST_THEMES,
 	{
 		description: "List all available Hex UI themes with their names and descriptions.",
 		inputSchema: z.object({}).strict(),
@@ -282,7 +283,7 @@ server.registerTool(
 // ─── Tool 6: scaffold_project ───
 
 server.registerTool(
-	"scaffold_project",
+	TOOL.SCAFFOLD_PROJECT,
 	{
 		description:
 			"Generate a complete file tree to set up Hex UI in a project. Returns the config file, globals.css with theme tokens, tailwind config extension, utility functions, and requested components.",
@@ -375,7 +376,7 @@ server.registerTool(
 // ─── Tool 7: customize_component ───
 
 server.registerTool(
-	"customize_component",
+	TOOL.CUSTOMIZE_COMPONENT,
 	{
 		description:
 			"Get a component with customizations applied. Specify CSS variable overrides or additional Tailwind classes to inject.",
@@ -444,7 +445,7 @@ server.registerTool(
 // ─── Tool 8: list_recipes ───
 
 server.registerTool(
-	"list_recipes",
+	TOOL.LIST_RECIPES,
 	{
 		description:
 			"List all Hex UI recipes — spec-driven blueprints that map a UI goal (auth form, settings page, pricing table) to an ordered checklist of components. Use this to discover recipes before calling get_recipe.",
@@ -466,7 +467,7 @@ server.registerTool(
 // ─── Tool 9: get_recipe ───
 
 server.registerTool(
-	"get_recipe",
+	TOOL.GET_RECIPE,
 	{
 		description:
 			"Get the full Hex UI recipe: ordered install steps, the union of npm peer dependencies across all components, a post-install checklist (author-written plus items derived from each component's commonMistakes / accessibilityNotes), and an optional JSX example. Use this after list_recipes or resolve_spec to execute a blueprint.",
@@ -545,7 +546,7 @@ server.registerTool(
 // ─── Tool 10: resolve_spec ───
 
 server.registerTool(
-	"resolve_spec",
+	TOOL.RESOLVE_SPEC,
 	{
 		description:
 			"Resolve a freeform brief or spec.md fragment ('build me a settings page') into a ranked shortlist of Hex UI components and recipes. Deterministic keyword + tag matching — no LLM reasoning server-side. Use this as the first step when translating a plan document into a concrete build.",
@@ -581,7 +582,7 @@ server.registerTool(
 // ─── Tool 11: verify_checklist ───
 
 server.registerTool(
-	"verify_checklist",
+	TOOL.VERIFY_CHECKLIST,
 	{
 		description:
 			"Cross-check an installed component list against the registry. Reports missing internal dependencies (e.g. combobox without popover + command) and, when a recipe slug is supplied, returns the recipe's checklist items for the agent to walk. When projectRoot is supplied, also reports which component files exist under <projectRoot>/components/ui/ (opt-in; projectRoot is canonicalized with realpath and each checked path is verified to stay under it).",
@@ -711,7 +712,7 @@ server.registerTool(
 // ─── Tool 12: emit_app_context ───
 
 server.registerTool(
-	"emit_app_context",
+	TOOL.EMIT_APP_CONTEXT,
 	{
 		description:
 			"Synthesize a deterministic markdown payload describing the chosen theme, components, and recipes — formatted for paste-into-LLM workflows so a downstream agent has the full Hex UI stack in one block. Looks up each slug in the registry; unknown slugs are flagged inline rather than dropped silently.",

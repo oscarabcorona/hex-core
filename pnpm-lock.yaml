@@ -78,6 +78,9 @@ importers:
       '@hex-core/components':
         specifier: workspace:^
         version: link:../../packages/components
+      '@hex-core/mcp':
+        specifier: workspace:^
+        version: link:../../packages/mcp-server
       '@hex-core/registry':
         specifier: workspace:^
         version: link:../../packages/registry

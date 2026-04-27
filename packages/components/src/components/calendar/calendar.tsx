@@ -2,14 +2,6 @@ import * as React from "react";
 import { DayPicker } from "react-day-picker";
 import { cn } from "../../lib/utils.js";
 
-/**
- * Calendar date grid built on react-day-picker v9. Forwards all DayPicker props.
- *
- * Pass `mode="single" | "multiple" | "range"` and bind `selected` / `onSelect`
- * to control date selection. Style tokens follow the project palette; individual
- * parts can be overridden via the `classNames` prop.
- * @returns A themed react-day-picker DayPicker instance.
- */
 /*
  * react-day-picker v9 renders each caption-layout dropdown as:
  *   <span class="rdp-dropdown_root">
@@ -65,6 +57,13 @@ const RDP_DROPDOWN_OVERLAY_CSS = `
 }
 `;
 
+/**
+ * Calendar date grid built on react-day-picker v9. Forwards all DayPicker
+ * props. Pair `mode` + `selected` + `onSelect` for selection control;
+ * pass `captionLayout="dropdown"` with `startMonth`/`endMonth` for
+ * native year-dropdown navigation.
+ * @returns A themed react-day-picker instance with our dropdown overlay CSS.
+ */
 function Calendar({
 	className,
 	classNames,

@@ -36,6 +36,7 @@ interface DropzoneRenderState {
 	openFileDialog: () => void;
 }
 
+/** Apply `accept` / `maxSize` / `maxFiles` filters before emitting to onFilesSelected. */
 function filterFiles(
 	files: FileList | File[],
 	{ accept, maxSize, maxFiles }: { accept?: string; maxSize?: number; maxFiles?: number },
