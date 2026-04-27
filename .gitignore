@@ -4,6 +4,9 @@ dist/
 *.tsbuildinfo
 # CLI prebuild copies repo-root skills/ here. Source of truth is ./skills at repo root.
 packages/cli/skills/
+# CLI + MCP prebuild copies repo-root registry/ here. Source of truth is ./registry at repo root.
+packages/cli/registry/
+packages/mcp-server/registry/
 .DS_Store
 .env
 .env.local
