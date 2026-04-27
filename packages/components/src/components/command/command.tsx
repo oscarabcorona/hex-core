@@ -65,7 +65,7 @@ const CommandInput = React.forwardRef<
 	React.ComponentRef<typeof CommandPrimitive.Input>,
 	React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-	<div className="flex items-center border-b px-[var(--space-3,0.75rem)]" cmdk-input-wrapper="">
+	<div className="flex items-center border-b border-b-foreground/[0.08] px-[var(--space-3,0.75rem)]" cmdk-input-wrapper="">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 24 24"
@@ -148,7 +148,7 @@ const CommandSeparator = React.forwardRef<
 		ref={ref}
 		role="none"
 		data-cmdk-separator=""
-		className={cn("-mx-[var(--space-1,0.25rem)] h-px bg-border", className)}
+		className={cn("-mx-[var(--space-1,0.25rem)] h-px bg-foreground/[0.12]", className)}
 		{...props}
 	/>
 ));

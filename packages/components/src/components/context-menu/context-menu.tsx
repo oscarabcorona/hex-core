@@ -26,7 +26,7 @@ const ContextMenuContent = React.forwardRef<
 		<ContextMenuPrimitive.Content
 			ref={ref}
 			className={cn(
-				"z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-[var(--space-1,0.25rem)] text-popover-foreground shadow-md",
+				"z-50 min-w-[8rem] overflow-hidden rounded-md border border-foreground/[0.08] bg-popover p-[var(--space-1,0.25rem)] text-popover-foreground shadow-md",
 				"data-[state=open]:animate-in data-[state=closed]:animate-out",
 				"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
 				"data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -145,7 +145,7 @@ const ContextMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<ContextMenuPrimitive.Separator
 		ref={ref}
-		className={cn("-mx-[var(--space-1,0.25rem)] my-[var(--space-1,0.25rem)] h-px bg-border", className)}
+		className={cn("-mx-[var(--space-1,0.25rem)] my-[var(--space-1,0.25rem)] h-px bg-foreground/[0.12]", className)}
 		{...props}
 	/>
 ));

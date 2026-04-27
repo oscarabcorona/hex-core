@@ -28,14 +28,17 @@ const buttonVariants = cva(
 					"hover:bg-destructive/90 hover:shadow-md hover:shadow-destructive/25",
 				].join(" "),
 				outline: [
+					// Self-borne shape: token border (border-input) + an inset-ring tinted with
+					// foreground so the boundary is visible on flat-white surfaces too, not only
+					// inside elevated Card/Popover/Dialog containers.
 					"border border-input bg-background",
-					"shadow-sm",
-					"hover:bg-accent hover:text-accent-foreground hover:shadow-md",
+					"shadow-sm inset-ring-1 inset-ring-foreground/[0.06]",
+					"hover:bg-accent hover:text-accent-foreground hover:shadow-md hover:inset-ring-foreground/12",
 				].join(" "),
 				secondary: [
 					"bg-secondary text-secondary-foreground",
-					"shadow-sm",
-					"hover:bg-secondary/80 hover:shadow-md",
+					"shadow-sm inset-ring-1 inset-ring-foreground/[0.08]",
+					"hover:bg-secondary/80 hover:shadow-md hover:inset-ring-foreground/15",
 				].join(" "),
 				ghost: "hover:bg-accent hover:text-accent-foreground",
 				link: "text-primary underline-offset-4 hover:underline",

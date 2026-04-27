@@ -7,7 +7,12 @@ import { cn } from "../../lib/utils.js";
  * @returns A div with pulsing muted background
  */
 function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-	return <div className={cn("animate-pulse rounded-md bg-muted", className)} {...props} />;
+	return (
+		<div
+			className={cn("animate-pulse rounded-md border border-foreground/[0.06] bg-muted", className)}
+			{...props}
+		/>
+	);
 }
 
 export { Skeleton };

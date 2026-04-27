@@ -81,7 +81,7 @@ SidebarProvider.displayName = "SidebarProvider";
 
 const sidebarVariants = cva(
 	cn(
-		"flex h-full shrink-0 flex-col border-r bg-background text-foreground",
+		"flex h-full shrink-0 flex-col border-foreground/[0.08] border-r bg-background text-foreground",
 		"transition-[width] duration-[var(--duration-normal,200ms)] ease-out",
 	),
 	{
@@ -195,7 +195,7 @@ const SidebarHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
 	({ className, ...props }, ref) => (
 		<div
 			ref={ref}
-			className={cn("flex items-center gap-[var(--gap-sm,0.5rem)] border-b p-[var(--space-4,1rem)]", className)}
+			className={cn("flex items-center gap-[var(--gap-sm,0.5rem)] border-b border-b-foreground/[0.08] p-[var(--space-4,1rem)]", className)}
 			{...props}
 		/>
 	),
@@ -219,7 +219,7 @@ const SidebarFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
 	({ className, ...props }, ref) => (
 		<div
 			ref={ref}
-			className={cn("mt-auto border-t p-[var(--space-4,1rem)]", className)}
+			className={cn("mt-auto border-t border-t-foreground/[0.08] p-[var(--space-4,1rem)]", className)}
 			{...props}
 		/>
 	),

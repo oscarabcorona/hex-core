@@ -36,6 +36,7 @@ SheetOverlay.displayName = "SheetOverlay";
 const sheetVariants = cva(
 	cn(
 		"fixed z-50 gap-[var(--gap-md,1rem)] bg-background p-[var(--space-6,1.5rem)] shadow-lg",
+		"border-foreground/[0.08]",
 		"transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out",
 		"data-[state=closed]:duration-[var(--duration-slow,300ms)] data-[state=open]:duration-500",
 	),

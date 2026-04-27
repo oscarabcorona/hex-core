@@ -57,7 +57,7 @@ export function ComponentPreview({
 				</div>
 				<TabsContent
 					value="preview"
-					className="mt-0 flex min-h-[200px] items-center justify-center p-8"
+					className="mt-0 flex min-h-[200px] items-center justify-center bg-muted/30 p-8 shadow-[inset_0_1px_2px_0_rgb(0_0_0/0.04)]"
 				>
 					{children}
 				</TabsContent>
