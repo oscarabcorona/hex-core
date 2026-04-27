@@ -43,7 +43,7 @@ function ResizableHandle({ withHandle, className, ...props }: ResizableHandlePro
 	return (
 		<ResizablePrimitiveSeparator
 			className={cn(
-				"relative flex w-px items-center justify-center bg-border transition-all duration-[var(--duration-normal,200ms)] ease-out hover:bg-ring data-[separator=active]:bg-ring",
+				"relative flex w-px items-center justify-center bg-foreground/[0.12] transition-all duration-[var(--duration-normal,200ms)] ease-out hover:bg-ring data-[separator=active]:bg-ring",
 				"after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2",
 				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 				"aria-[orientation=horizontal]:h-px aria-[orientation=horizontal]:w-full",

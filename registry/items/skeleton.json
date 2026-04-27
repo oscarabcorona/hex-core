@@ -20,7 +20,7 @@
   "files": [
     {
       "path": "components/ui/skeleton.tsx",
-      "content": "import * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * A placeholder shimmer element shown while content is loading.\n * Pair with explicit width/height via className.\n * @returns A div with pulsing muted background\n */\nfunction Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {\n\treturn <div className={cn(\"animate-pulse rounded-md bg-muted\", className)} {...props} />;\n}\n\nexport { Skeleton };\n",
+      "content": "import * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * A placeholder shimmer element shown while content is loading.\n * Pair with explicit width/height via className.\n * @returns A div with pulsing muted background\n */\nfunction Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {\n\treturn (\n\t\t<div\n\t\t\tclassName={cn(\"animate-pulse rounded-md border border-foreground/[0.06] bg-muted\", className)}\n\t\t\t{...props}\n\t\t/>\n\t);\n}\n\nexport { Skeleton };\n",
       "type": "component"
     },
     {

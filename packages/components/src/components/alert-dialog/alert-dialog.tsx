@@ -40,7 +40,7 @@ const AlertDialogContent = React.forwardRef<
 			ref={ref}
 			className={cn(
 				"fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-[var(--gap-md,1rem)]",
-				"border bg-background p-[var(--space-6,1.5rem)] shadow-lg rounded-lg",
+				"border border-foreground/[0.08] bg-background p-[var(--space-6,1.5rem)] shadow-lg rounded-lg",
 				"duration-[var(--duration-normal,200ms)] data-[state=open]:animate-in data-[state=closed]:animate-out",
 				"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
 				"data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -138,9 +138,9 @@ const AlertDialogCancel = React.forwardRef<
 		ref={ref}
 		className={cn(
 			"inline-flex h-[var(--control-height-md,2.5rem)] items-center justify-center rounded-md px-[var(--space-4,1rem)] py-[var(--space-2,0.5rem)] text-sm font-medium",
-			"border border-input bg-background shadow-sm",
+			"border border-input bg-background shadow-sm inset-ring-1 inset-ring-foreground/[0.06]",
 			"transition-all duration-[var(--duration-normal,200ms)] ease-out",
-			"hover:bg-accent hover:text-accent-foreground hover:shadow-md",
+			"hover:bg-accent hover:text-accent-foreground hover:shadow-md hover:inset-ring-foreground/12",
 			"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 			"mt-[var(--space-2,0.5rem)] sm:mt-0",
 			"active:scale-[0.98]",

@@ -57,7 +57,7 @@ export function DataTable<TData>({
 	});
 
 	return (
-		<div className="rounded-md border">
+		<div className="rounded-md border border-foreground/[0.08]">
 			<Table aria-label={ariaLabel}>
 				{caption ? <TableCaption>{caption}</TableCaption> : null}
 				<TableHeader>

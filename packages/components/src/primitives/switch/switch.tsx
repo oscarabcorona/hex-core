@@ -18,6 +18,9 @@ const Switch = React.forwardRef<React.ComponentRef<typeof SwitchPrimitive.Root>,
 				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
 				"disabled:cursor-not-allowed disabled:opacity-50",
 				"data-[state=checked]:bg-primary data-[state=unchecked]:bg-input",
+				// Unchecked track shares --color-input with form borders (~1.27:1 vs white) so
+				// add an inset ring to make the track visible on flat surfaces.
+				"data-[state=unchecked]:inset-ring-1 data-[state=unchecked]:inset-ring-foreground/[0.08]",
 				"hover:shadow-md",
 				className,
 			)}

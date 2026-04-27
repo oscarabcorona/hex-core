@@ -10,7 +10,7 @@ const Menubar = React.forwardRef<
 	<MenubarPrimitive.Root
 		ref={ref}
 		className={cn(
-			"flex h-[var(--control-height-md,2.5rem)] items-center space-x-1 rounded-md border bg-background p-[var(--space-1,0.25rem)]",
+			"flex h-[var(--control-height-md,2.5rem)] items-center space-x-1 rounded-md border border-foreground/[0.08] bg-background p-[var(--space-1,0.25rem)]",
 			className,
 		)}
 		{...props}
@@ -66,7 +66,7 @@ const MenubarContent = React.forwardRef<
 			alignOffset={alignOffset}
 			sideOffset={sideOffset}
 			className={cn(
-				"z-50 min-w-[12rem] overflow-hidden rounded-md border bg-popover p-[var(--space-1,0.25rem)] text-popover-foreground shadow-md",
+				"z-50 min-w-[12rem] overflow-hidden rounded-md border border-foreground/[0.08] bg-popover p-[var(--space-1,0.25rem)] text-popover-foreground shadow-md",
 				"data-[state=open]:animate-in data-[state=closed]:animate-out",
 				"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
 				"data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -118,7 +118,7 @@ const MenubarSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<MenubarPrimitive.Separator
 		ref={ref}
-		className={cn("-mx-[var(--space-1,0.25rem)] my-[var(--space-1,0.25rem)] h-px bg-muted", className)}
+		className={cn("-mx-[var(--space-1,0.25rem)] my-[var(--space-1,0.25rem)] h-px bg-foreground/[0.12]", className)}
 		{...props}
 	/>
 ));
