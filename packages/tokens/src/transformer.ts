@@ -31,6 +31,13 @@ function extractType(token: unknown): string | undefined {
 
 /**
  * Transforms a theme's token set into CSS custom properties.
+ *
+ * Output uses the **raw `--<key>` namespace** — value verbatim, no `hsl()`
+ * wrapper, no `--color-` prefix. Colors land as triplets (e.g. `0 0% 100%`)
+ * to enable alpha composition like `hsl(var(--background) / 0.5)`. Consumers
+ * on Tailwind v4 also need a `@theme` block in the `--color-<key>` namespace;
+ * see the "CSS variable namespaces" section in ./README.md for the bridge.
+ *
  * @param theme - The theme to transform
  * @returns A CSS string with `:root` and `.dark` custom property declarations inside a `@layer base` block
  */
