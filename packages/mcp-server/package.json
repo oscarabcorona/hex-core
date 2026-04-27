@@ -1,7 +1,7 @@
 {
 	"name": "@hex-core/mcp",
 	"version": "0.1.2",
-	"description": "MCP server for Hex UI — AI-native component distribution. Ships 11 tools over the registry for Claude Code / Cursor / any MCP client.",
+	"description": "MCP server for Hex UI — AI-native component distribution. Ships 12 tools over the registry for Claude Code / Cursor / any MCP client.",
 	"keywords": [
 		"hex-ui",
 		"mcp",
@@ -44,6 +44,8 @@
 		"start": "node dist/index.js",
 		"dev": "tsx src/index.ts",
 		"test:resolver": "tsx src/tools/resolver.test.ts",
+		"test:app-context": "tsx src/tools/app-context.test.ts",
+		"test": "pnpm test:resolver && pnpm test:app-context",
 		"clean": "rm -rf dist"
 	},
 	"dependencies": {
