@@ -1,3 +1,4 @@
+import { MCP_CLIENTS } from "@hex-core/mcp/clients";
 import Link from "next/link";
 import { CodeBlock } from "../../../components/code-block";
 import { DocSection, InlineCode } from "../../../components/doc-section";
@@ -5,33 +6,13 @@ import { DocsPage } from "../../../components/docs-page";
 
 export const metadata = {
 	title: "MCP Server",
-	description: "Wire the Hex UI MCP server into Claude Code for natural-language component discovery.",
+	description:
+		"Wire the Hex UI MCP server into Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, or Zed for natural-language component discovery.",
 };
-
-const CLAUDE_CONFIG = `// .claude/settings.json
-{
-  "mcpServers": {
-    "hex-ui": {
-      "command": "npx",
-      "args": ["@hex-core/mcp"]
-    }
-  }
-}`;
-
-const CURSOR_CONFIG = `// .cursor/mcp.json
-{
-  "mcpServers": {
-    "hex-ui": {
-      "command": "npx",
-      "args": ["@hex-core/mcp"]
-    }
-  }
-}`;
 
 const SECTIONS = [
 	{ id: "why", title: "Why MCP?" },
-	{ id: "claude-code", title: "Claude Code" },
-	{ id: "cursor", title: "Cursor" },
+	...MCP_CLIENTS.map((c) => ({ id: c.id, title: c.label })),
 	{ id: "tools", title: "Available tools" },
 	{ id: "prompts", title: "Example prompts" },
 ];
@@ -42,7 +23,7 @@ export default function McpPage() {
 		<DocsPage
 			pathname="/docs/mcp"
 			title="MCP Server"
-			description="The Hex UI MCP server exposes the component registry as structured tool calls. Install once and let your AI agent pick the right primitive."
+			description="The Hex UI MCP server exposes the component registry as structured tool calls. Install once and let any MCP-capable agent — Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, Zed — pick the right primitive."
 			sections={SECTIONS}
 			editPath="apps/docs/src/app/docs/mcp/page.tsx"
 		>
@@ -53,22 +34,51 @@ export default function McpPage() {
 					behavior, read typed schemas, and install components as a tool call. The
 					<InlineCode>.schema.ts</InlineCode> metadata is the contract.
 				</p>
+				<p className="text-sm leading-6">
+					The server speaks standard MCP over stdio — the same protocol all 6
+					supported clients use. A protocol-level contract test (using the
+					official <InlineCode>@modelcontextprotocol/sdk</InlineCode> Client) runs
+					on every push, so the same wiring works everywhere.
+				</p>
 			</DocSection>
 
-			<DocSection id="claude-code" title="Claude Code">
-				<p className="text-sm leading-6">
-					Add this to the Claude Code settings for your project (or the global settings
-					under <InlineCode>~/.claude/</InlineCode>).
-				</p>
-				<CodeBlock label="json" code={CLAUDE_CONFIG} />
-			</DocSection>
-
-			<DocSection id="cursor" title="Cursor">
-				<p className="text-sm leading-6">
-					Cursor reads a <InlineCode>.cursor/mcp.json</InlineCode> at the project root.
-				</p>
-				<CodeBlock label="json" code={CURSOR_CONFIG} />
-			</DocSection>
+			{MCP_CLIENTS.map((client) => (
+				<DocSection key={client.id} id={client.id} title={client.label}>
+					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+						<span>
+							Config:{" "}
+							<InlineCode>{client.configPath}</InlineCode>
+						</span>
+						{client.schemaStability === "verified-volatile" &&
+						client.verifiedOn ? (
+							<span className="rounded-full border px-2 py-0.5">
+								Verified {client.verifiedOn}
+							</span>
+						) : null}
+						<a
+							href={client.docsUrl}
+							className="underline underline-offset-2 hover:text-foreground"
+							target="_blank"
+							rel="noreferrer"
+						>
+							Upstream docs ↗
+						</a>
+					</div>
+					{client.configPathNote ? (
+						<p className="text-sm leading-6 text-muted-foreground">
+							{client.configPathNote}
+						</p>
+					) : null}
+					<CodeBlock label={client.format} code={client.snippet} />
+					{client.quirks.length > 0 ? (
+						<ul className="list-disc space-y-1 pl-6 text-sm text-muted-foreground">
+							{client.quirks.map((quirk) => (
+								<li key={quirk}>{quirk}</li>
+							))}
+						</ul>
+					) : null}
+				</DocSection>
+			))}
 
 			<DocSection id="tools" title="Available tools">
 				<ul className="list-disc space-y-2 pl-6 text-sm text-muted-foreground">
@@ -112,6 +122,10 @@ export default function McpPage() {
 					<li>
 						<strong>verify_checklist</strong> — cross-check installed components
 						against the registry&rsquo;s internal-dependency graph
+					</li>
+					<li>
+						<strong>emit_app_context</strong> — synthesize a paste-into-LLM markdown
+						payload describing the chosen stack
 					</li>
 				</ul>
 				<p className="text-sm leading-6">

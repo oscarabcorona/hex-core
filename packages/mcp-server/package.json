@@ -1,14 +1,14 @@
 {
 	"name": "@hex-core/mcp",
 	"version": "0.2.0",
-	"description": "MCP server for Hex UI — AI-native component distribution. Ships 12 tools over the registry for Claude Code / Cursor / any MCP client.",
+	"description": "Universal MCP server for Hex UI — runs on Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, and Zed. 12 tools over the component registry.",
 	"keywords": [
 		"hex-ui",
 		"mcp",
 		"model-context-protocol",
+		"mcp-client-agnostic",
 		"ai-native",
-		"claude-code",
-		"cursor"
+		"component-library"
 	],
 	"license": "MIT",
 	"author": "Oscar Corona <oabc4004@gmail.com>",
@@ -29,6 +29,10 @@
 	"exports": {
 		".": {
 			"import": "./dist/index.js"
+		},
+		"./clients": {
+			"types": "./dist/clients.d.ts",
+			"import": "./dist/clients.js"
 		}
 	},
 	"files": [
@@ -40,12 +44,14 @@
 		"access": "public"
 	},
 	"scripts": {
-		"build": "tsup",
+		"build": "pnpm clean && tsup && pnpm build:readme",
+		"build:readme": "node scripts/build-readme.mjs",
 		"start": "node dist/index.js",
 		"dev": "tsx src/index.ts",
 		"test:resolver": "tsx src/tools/resolver.test.ts",
 		"test:app-context": "tsx src/tools/app-context.test.ts",
-		"test": "pnpm test:resolver && pnpm test:app-context",
+		"test:contract": "node dist/contract-test.js",
+		"test": "pnpm test:resolver && pnpm test:app-context && pnpm test:contract",
 		"clean": "rm -rf dist"
 	},
 	"dependencies": {
