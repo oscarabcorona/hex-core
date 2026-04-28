@@ -1,15 +1,70 @@
+import * as path from "node:path";
+import fg from "fast-glob";
 import { defineConfig } from "tsup";
 
+/**
+ * Per-component file split (1.4.0+).
+ *
+ * Before: a single `dist/index.js` with a tsup `banner: { js: '"use client";' }`
+ * forcing the whole 365K bundle to be a Client Component. Importing any single
+ * component poisoned the consumer's RSC tree.
+ *
+ * After: one entry per component file. Each source file declares its own
+ * `"use client"` directive at the top if (and only if) it actually needs one.
+ * Pure-visual components (Badge, Card, Stack, Cluster, Grid, Skeleton,
+ * Pagination, Timeline, Stepper, Input, Textarea, etc.) ship without the
+ * directive and are RSC-safe — consumers can render `<Card>...</Card>` in a
+ * Server Component without forcing the subtree client-side.
+ *
+ * Existing `import { Button } from "@hex-core/components"` keeps working via
+ * the `index` entry (the barrel re-exports everything). New optimization-aware
+ * consumers use `import { Button } from "@hex-core/components/button"` for
+ * tree-shake-friendly + RSC-safe deep imports.
+ */
+
+const entryFiles = fg.sync(
+	[
+		"src/index.ts",
+		"src/schemas.ts",
+		"src/primitives/*/*.tsx",
+		"src/components/*/*.tsx",
+	],
+	{
+		ignore: ["**/*.test.tsx", "**/*.schema.ts", "**/_shared/**"],
+		cwd: path.resolve(__dirname),
+		absolute: false,
+	},
+);
+
+const entry = Object.fromEntries(
+	entryFiles.map((relPath) => {
+		// "src/index.ts"  → "index"
+		// "src/primitives/button/button.tsx" → "button"
+		// "src/components/data-table/data-table.tsx" → "data-table"
+		const base = path.basename(relPath, path.extname(relPath));
+		return [base, relPath];
+	}),
+);
+
 export default defineConfig({
-	entry: ["src/index.ts"],
+	entry,
 	format: ["esm"],
 	dts: true,
 	clean: true,
 	sourcemap: true,
-	// Components use React context, state, and Radix — all client-side.
-	// Prepend "use client" so the bundle is tagged as a client module when
-	// consumed from a Next.js app, even after tsup merges the sources.
-	banner: { js: '"use client";' },
+	// `splitting: false` is critical for "use client" preservation. With
+	// splitting on, rollup hoists shared logic into chunks and strips
+	// directives — the per-component entry shims end up empty re-exports
+	// without their `"use client"` marker. With splitting off, each entry
+	// becomes a self-contained module that preserves its source directive
+	// at the top of the emitted file. Cost: some helper duplication
+	// (cn(), cva variants), but each emitted file stays under ~6KB and
+	// gzips dedupe well at the consumer's bundler level.
+	splitting: false,
+	treeshake: true,
+	// No global "use client" banner — each source file declares its own
+	// directive. Pure-visual components stay RSC-safe; tsup preserves the
+	// directive at the top of each emitted dist/<name>.js.
 	external: [
 		"react",
 		"react-dom",

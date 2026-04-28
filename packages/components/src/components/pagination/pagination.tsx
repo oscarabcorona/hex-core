@@ -1,5 +1,8 @@
 import * as React from "react";
-import { type ButtonProps, buttonVariants } from "../../primitives/button/button.js";
+import {
+	type ButtonVariantsProps,
+	buttonVariants,
+} from "../../primitives/button/button-variants.js";
 import { cn } from "../../lib/utils.js";
 
 /**
@@ -37,7 +40,7 @@ PaginationItem.displayName = "PaginationItem";
 
 type PaginationLinkProps = {
 	isActive?: boolean;
-} & Pick<ButtonProps, "size"> &
+} & Pick<ButtonVariantsProps, "size"> &
 	React.ComponentProps<"a">;
 
 /**

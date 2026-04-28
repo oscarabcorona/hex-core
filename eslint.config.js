@@ -37,7 +37,13 @@ export default tseslint.config(
 		},
 	},
 	{
-		files: ["packages/cli/**/*.ts", "scripts/**/*.ts"],
+		files: ["packages/cli/**/*.ts", "scripts/**/*.ts", "packages/*/scripts/**/*.{js,mjs}"],
+		languageOptions: {
+			globals: {
+				console: "readonly",
+				process: "readonly",
+			},
+		},
 		rules: {
 			"no-console": "off",
 		},

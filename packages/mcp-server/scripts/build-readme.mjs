@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-/* global console */
-/* eslint-disable no-console */
 /**
  * Regenerates packages/mcp-server/README.md from README.template.md by
  * importing the built MCP_CLIENTS array out of dist/clients.js and
