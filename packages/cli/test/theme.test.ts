@@ -9,7 +9,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { themeEdit, themeInit } from "../src/commands/theme.js";
+import { themeApply, themeEdit, themeInit } from "../src/commands/theme.js";
 
 let tmpDir: string;
 let originalCwd: string;
@@ -165,5 +165,41 @@ describe("themeEdit", () => {
 		expect(root).toMatch(/--primary:\s*240 50% 50%;/);
 		// Should NOT have wrapping quotes in the output.
 		expect(root).not.toMatch(/--primary:\s*"240/);
+	});
+});
+
+describe("themeApply", () => {
+	it("swaps tokens to the requested preset without touching the rest of globals.css", async () => {
+		await themeInit({ name: "default", out: "globals.css", format: "css", overwrite: false });
+		const before = fs.readFileSync(path.join(tmpDir, "globals.css"), "utf8");
+		// Add a custom rule the user might have written; themeApply must not touch it
+		const userMarker = "\n/* user-custom — do not touch */\n.my-thing { color: red; }\n";
+		fs.writeFileSync(path.join(tmpDir, "globals.css"), before + userMarker);
+
+		await themeApply({ name: "midnight", file: "./globals.css" });
+		const after = fs.readFileSync(path.join(tmpDir, "globals.css"), "utf8");
+
+		// User customization preserved
+		expect(after).toContain(userMarker.trim());
+		// :root and .dark blocks both updated to midnight values
+		const rootBlock = after.match(/:root\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+		expect(rootBlock).toMatch(/--background:/);
+		// Sentinel: midnight's :root --background differs from default's (different theme)
+		const beforeRoot = before.match(/:root\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+		expect(rootBlock).not.toBe(beforeRoot);
+	});
+
+	it("rejects unknown preset names", async () => {
+		await themeInit({ name: "default", out: "globals.css", format: "css", overwrite: false });
+		await expect(themeApply({ name: "neon-bunny", file: "./globals.css" })).rejects.toThrow(/process\.exit\(1\)/);
+	});
+
+	it("aborts when the target globals.css is missing", async () => {
+		await expect(themeApply({ name: "midnight", file: "./missing.css" })).rejects.toThrow(/process\.exit\(1\)/);
+	});
+
+	it("aborts when the file has no :root block at all", async () => {
+		fs.writeFileSync(path.join(tmpDir, "globals.css"), "/* no :root here */");
+		await expect(themeApply({ name: "midnight", file: "./globals.css" })).rejects.toThrow(/process\.exit\(1\)/);
 	});
 });
