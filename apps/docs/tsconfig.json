@@ -31,5 +31,11 @@
     "**/*.mts",
     "../../registry/**/*.json"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "e2e",
+    "playwright.config.ts",
+    "test-results",
+    "playwright-report"
+  ]
 }
