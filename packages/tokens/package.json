@@ -48,6 +48,7 @@
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
+		"postcss": "^8.5.0",
 		"tsup": "^8.3.0",
 		"typescript": "^6.0.3"
 	}

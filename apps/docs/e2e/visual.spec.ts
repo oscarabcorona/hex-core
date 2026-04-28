@@ -1,0 +1,89 @@
+/**
+ * Visual regression tests for every registry component, in light + dark.
+ *
+ * Strategy: the docs site at /docs/components/<slug> already mounts every
+ * component as a live preview (registry-driven). We screenshot the
+ * `[data-testid="component-preview"]` region — that scopes the diff to
+ * the rendered component itself, so docs chrome / sidebar / nav churn
+ * doesn't churn baselines.
+ *
+ * Baselines live under `e2e/visual.spec.ts-snapshots/` in git. Refresh
+ * with `pnpm --filter docs test:visual:update` after intentional visual
+ * changes. CI uploads `playwright-report/` as an artifact on diff failure.
+ */
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { expect, test } from "@playwright/test";
+
+interface RegistryItem {
+	name: string;
+	displayName: string;
+}
+
+interface RegistryIndex {
+	items: RegistryItem[];
+}
+
+const REGISTRY_PATH = path.resolve(__dirname, "../../../registry/registry.json");
+const registry = JSON.parse(fs.readFileSync(REGISTRY_PATH, "utf-8")) as RegistryIndex;
+
+const themes = [
+	{ name: "light", html: "" },
+	{ name: "dark", html: "dark" },
+] as const;
+
+// Freezes anything time-based that would churn screenshots: animations,
+// transitions, caret blink, smooth scroll. CSS-level only — no React state
+// changes — so the rendered tree stays semantically identical.
+const FREEZE_CSS = `
+*, *::before, *::after {
+	animation-duration: 0s !important;
+	animation-delay: 0s !important;
+	transition-duration: 0s !important;
+	transition-delay: 0s !important;
+	caret-color: transparent !important;
+	scroll-behavior: auto !important;
+}
+`;
+
+for (const { name: slug, displayName } of registry.items) {
+	for (const theme of themes) {
+		test(`${slug} (${theme.name})`, async ({ page }) => {
+			// Set the theme class BEFORE the page renders to avoid a flash.
+			// next-themes reads localStorage on hydrate, so seeding it there
+			// is the most reliable way to lock the rendered theme.
+			await page.addInitScript((themeClass) => {
+				try {
+					localStorage.setItem("theme", themeClass || "light");
+				} catch {
+					// localStorage may be unavailable in some test contexts; the
+					// classList fallback below covers it.
+				}
+			}, theme.html);
+
+			await page.goto(`/docs/components/${slug}`, { waitUntil: "networkidle" });
+			await page.addStyleTag({ content: FREEZE_CSS });
+			await page.evaluate((cls) => {
+				const html = document.documentElement;
+				if (cls) html.classList.add(cls);
+				else html.classList.remove("dark");
+			}, theme.html);
+
+			// Most pages render multiple <ComponentPreview /> instances — one
+			// inline preview at the top of the page, plus one per additional
+			// example below. We screenshot only the first (the inline preview)
+			// so baselines stay deterministic per component, regardless of how
+			// many examples a future docs author adds.
+			const preview = page.getByTestId("component-preview").first();
+			await expect(preview).toBeVisible({ timeout: 10_000 });
+
+			await expect(preview).toHaveScreenshot(`${slug}-${theme.name}.png`, {
+				maxDiffPixelRatio: 0.01,
+				animations: "disabled",
+			});
+
+			// Echo a stable label so logs are greppable per slug.
+			test.info().annotations.push({ type: "component", description: `${displayName} (${theme.name})` });
+		});
+	}
+}

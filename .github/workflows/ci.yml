@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, qa, release]
   pull_request:
-    branches: [main]
+    branches: [main, qa, release]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -14,52 +14,93 @@ concurrency:
 permissions:
   contents: read
 
+# Three independent parallel jobs. Lint surfaces in <30s; build runs
+# its own readme-sync check; test re-builds packages locally and runs
+# the suite. Wall-clock is set by the slowest job (test). Build is run
+# twice (once in `build`, once in `test`) — accepted as the cost of
+# parallel scheduling; remote turbo cache could remove the duplication
+# later. The slow regression suite (a11y + visual) lives in its own
+# workflow at regression.yml — runs on push to main, not on PRs.
 jobs:
-  build:
-    name: Lint / Build / Test
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v6
-
       - name: Install pnpm
         uses: pnpm/action-setup@v6
         with:
           version: 9.15.0
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: pnpm
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
       - name: Lint
         run: pnpm run lint
 
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.0
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Build packages
         run: pnpm build
-
       - name: Build registry
         run: pnpm run build:registry
-
+      # The mcp build's prebuild step regenerates packages/mcp-server/README.md
+      # from clients.ts. If anyone edited the source without re-running build,
+      # the diff against the committed README catches the drift.
       - name: Verify @hex-core/mcp README is in sync with clients.ts
         run: git diff --exit-code packages/mcp-server/README.md
 
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.0
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      # Re-run build here because vitest + the docs e2e need package
+      # dist/ output. Turbo's local cache is cold across jobs without a
+      # remote cache, so this is a real ~30s rebuild — accepted in
+      # exchange for early lint feedback in the parallel `lint` job.
+      - name: Build packages
+        run: pnpm build
       - name: Cache Playwright browsers
         id: pw-cache
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('apps/docs/package.json') }}
-
       - name: Install Playwright browsers
         if: steps.pw-cache.outputs.cache-hit != 'true'
         run: pnpm --filter docs exec playwright install --with-deps chromium
-
       - name: Unit + E2E tests
         run: pnpm test
         env:

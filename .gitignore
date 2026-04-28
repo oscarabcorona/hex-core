@@ -24,3 +24,6 @@ a11y-report.md
 CLAUDE.md
 apps/**/CLAUDE.md
 *.png
+# Visual regression baselines must be committed — they ARE the source of
+# truth that CI diffs against. Override the broad *.png rule above.
+!apps/docs/e2e/visual.spec.ts-snapshots/*.png

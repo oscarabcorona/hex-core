@@ -13,6 +13,17 @@ export default defineConfig({
 	use: {
 		baseURL: "http://localhost:3000",
 		trace: "on-first-retry",
+		// Suppresses CSS animations / motion-driven flicker in visual diffs
+		// without breaking interaction-driven e2e specs.
+		reducedMotion: "reduce",
+	},
+	// Visual regression tolerance — soaks up subpixel font-AA jitter on
+	// the SAME platform. Real visual changes blow past 1% easily, so this
+	// stays specific enough. Cross-platform diffs (linux ↔ darwin) far
+	// exceed 1% on the same render, which is why per-platform baselines
+	// are kept (Playwright default `*-chromium-<os>.png` suffix).
+	expect: {
+		toHaveScreenshot: { maxDiffPixelRatio: 0.01 },
 	},
 	projects: [
 		{ name: "chromium", use: { ...devices["Desktop Chrome"] } },
