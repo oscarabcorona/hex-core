@@ -140,7 +140,7 @@ if ! pnpm --filter "@hex-core/*" build > "$BUILD_LOG" 2>&1; then
 	exit 1
 fi
 rm -f "$BUILD_LOG"
-info "All 5 packages built"
+info "All packages built"
 
 # ------------- publish loop -------------
 # Order: registry first (others depend on it), then leaves.
@@ -150,6 +150,7 @@ PACKAGES=(
 	"packages/themes"
 	"packages/components"
 	"packages/cli"
+	"packages/payload"
 	"packages/mcp-server"
 	"packages/preview"
 )
