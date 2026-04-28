@@ -15,7 +15,7 @@ beforeEach(() => {
 	// Skeleton hex.config.json so add doesn't need to walk to the real one.
 	fs.writeFileSync(
 		path.join(tmpDir, "hex.config.json"),
-		JSON.stringify({ aliases: { components: "@/components", lib: "@/lib", hooks: "@/hooks" } }),
+		JSON.stringify({ aliases: { components: "@/components", lib: "@/lib" } }),
 	);
 	logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 });
