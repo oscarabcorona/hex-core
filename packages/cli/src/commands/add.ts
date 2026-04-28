@@ -23,7 +23,35 @@ interface Context {
 	visited: Set<string>;
 	/** Aggregate npm peer deps collected across every item the queue installs. Deduped + auto-installed once at the end. */
 	pendingNpmDeps: Set<string>;
+	/** Post-install reminder strings (e.g. "mount <Toaster /> in layout"). Deduped + printed once at the end. */
+	postInstallHints: Set<string>;
 }
+
+/**
+ * Per-component post-install reminders. Some items can't fully wire themselves
+ * into a host app from `add` alone — sonner needs a `<Toaster />` mounted in
+ * the root layout, for example. These hints get aggregated across the queue
+ * and printed once at the end so the user can't miss the step.
+ *
+ * Promote to a registry-schema field once a third item needs one — three
+ * lines of inline data is cheaper than a schema migration today.
+ */
+const POST_INSTALL_HINTS: Record<string, string> = {
+	sonner: [
+		"Mount <Toaster /> once in your root layout (e.g. app/layout.tsx) so toast() calls render somewhere:",
+		"",
+		"  import { Toaster } from \"@/components/ui/sonner\";",
+		"",
+		"  export default function RootLayout({ children }) {",
+		"    return (",
+		"      <html><body>",
+		"        {children}",
+		"        <Toaster />",
+		"      </body></html>",
+		"    );",
+		"  }",
+	].join("\n"),
+};
 
 /**
  * A shared lib file is an idempotent utility that every component pulls in
@@ -124,6 +152,9 @@ function installOne(name: string, ctx: Context): string[] | null {
 		for (const npm of deps.npm) ctx.pendingNpmDeps.add(npm);
 	}
 
+	const hint = POST_INSTALL_HINTS[name];
+	if (hint) ctx.postInstallHints.add(hint);
+
 	// Return every component slug this item depends on, regardless of whether
 	// it's already on disk. The caller (queue loop) uses `visited` +
 	// skip-if-exists to avoid redundant work; decoupling the dep list from disk
@@ -166,6 +197,7 @@ export async function addComponents(components: string[], options: AddOptions): 
 		aliases: loadAliases(cwd),
 		visited: new Set(),
 		pendingNpmDeps: new Set(),
+		postInstallHints: new Set(),
 	};
 
 	const queue: string[] = [...components];
@@ -210,12 +242,19 @@ export async function addComponents(components: string[], options: AddOptions): 
 		if (!options.install) {
 			console.log(`\nSkipping auto-install (--no-install). Run yourself:`);
 			console.log(`  pnpm add ${all.join(" ")}`);
-			return;
+		} else {
+			const result = await runInstall(all, { cwd });
+			if (result.installed.length > 0 && result.exitCode !== 0) {
+				console.log(`\nPeer-dep install via ${result.manager} exited with code ${result.exitCode}.`);
+				console.log(`Run yourself: ${result.manager} ${result.manager === "npm" ? "install" : "add"} ${result.installed.join(" ")}`);
+			}
 		}
-		const result = await runInstall(all, { cwd });
-		if (result.installed.length > 0 && result.exitCode !== 0) {
-			console.log(`\nPeer-dep install via ${result.manager} exited with code ${result.exitCode}.`);
-			console.log(`Run yourself: ${result.manager} ${result.manager === "npm" ? "install" : "add"} ${result.installed.join(" ")}`);
+	}
+
+	if (ctx.postInstallHints.size > 0) {
+		console.log(`\nNext steps:`);
+		for (const hint of ctx.postInstallHints) {
+			console.log(`\n${hint}`);
 		}
 	}
 }

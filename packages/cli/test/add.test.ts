@@ -68,6 +68,21 @@ describe("addComponents — shared lib file behavior", () => {
 		expect(after).toContain("twMerge"); // sentinel from the real registry's lib/utils.ts
 	});
 
+	it("hex add sonner prints a Toaster mount reminder at the end", async () => {
+		await addComponents(["sonner"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).toContain("Next steps:");
+		expect(stdout).toContain("<Toaster />");
+		expect(stdout).toContain("@/components/ui/sonner");
+		expect(stdout).toMatch(/app\/layout\.tsx/);
+	});
+
+	it("hex add of a component WITHOUT a hint does not print Next steps", async () => {
+		await addComponents(["button"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).not.toContain("Next steps:");
+	});
+
 	it("component files keep the loud `use --overwrite` hint", async () => {
 		await addComponents(["button"], { yes: false, overwrite: false, deps: false, install: false });
 		logSpy.mockClear();
