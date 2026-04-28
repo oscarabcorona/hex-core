@@ -102,6 +102,16 @@ theme
 		},
 	);
 
+theme
+	.command("apply")
+	.description("Swap an existing globals.css to a different preset (default | midnight | ember) without clobbering custom rules")
+	.argument("<preset>", "Preset to apply: default, midnight, or ember")
+	.option("--file <path>", "Path to the globals.css to update", "./globals.css")
+	.action(async (preset: string, options: { file: string }) => {
+		const { themeApply } = await import("./commands/theme.js");
+		await themeApply({ name: preset, file: options.file });
+	});
+
 program
 	.command("doctor")
 	.description("Diagnose your Hex UI install and report what's missing")
