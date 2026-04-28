@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { TOOL } from "./tool-names.js";
 import { buildAppContext } from "./tools/app-context.js";
+import { buildFigmaTokens } from "./tools/figma-tokens.js";
 import { loadRecipe, loadRecipes } from "./tools/recipe-loader.js";
 import {
 	internalDepToSlug,
@@ -767,6 +768,32 @@ server.registerTool(
 			density,
 		});
 
+		return {
+			content: [{ type: "text" as const, text: markdown }],
+		};
+	},
+);
+
+// ─── Tool 13: emit_figma_tokens ───
+
+server.registerTool(
+	TOOL.EMIT_FIGMA_TOKENS,
+	{
+		description:
+			"Render a Hex UI theme as a Figma Variables REST POST payload. Output is markdown wrapping a JSON body shaped for `POST /v1/files/:file_key/variables` — one collection (Hex UI — <theme>), two modes (Light + Dark), one variable per token (typed COLOR for color tokens, FLOAT for radius/spacing/dimension/duration/font), and one mode-value per (variable × mode). Paste into a Figma plugin or curl call to get a populated Variables kit. Unknown theme slugs are flagged inline rather than dropped silently.",
+		inputSchema: z
+			.object({
+				theme: z
+					.string()
+					.describe("Theme slug (e.g. 'default', 'midnight', 'ember')"),
+			})
+			.strict(),
+	},
+	async ({ theme }) => {
+		const resolvedTheme = getTheme(theme) ?? null;
+		const markdown = buildFigmaTokens({
+			theme: { requested: theme, resolved: resolvedTheme },
+		});
 		return {
 			content: [{ type: "text" as const, text: markdown }],
 		};

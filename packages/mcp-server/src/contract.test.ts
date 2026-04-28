@@ -15,7 +15,8 @@
  *   4. resources/list returns the hex://catalog resource
  *   5. emit_app_context rejects unknown input fields (zod .strict() enforced)
  *   6. emit_app_context output contains the canonical section headers
- *   7. client.close() disposes the transport without throwing
+ *   7. emit_figma_tokens output is markdown wrapping a Figma POST JSON body
+ *   8. client.close() disposes the transport without throwing
  *
  * Run via `pnpm --filter \@hex-core/mcp test:contract` (expects `pnpm build`
  * to have produced dist/index.js).
@@ -176,13 +177,44 @@ async function main(): Promise<void> {
 			fail(`emit_app_context output missing headers: ${missingHeaders.join(", ")}`);
 		}
 		pass("emit_app_context output contains all canonical section headers");
+
+		// ─── 7. emit_figma_tokens returns markdown + a Figma POST JSON body ───
+		// Asserts the four top-level keys Figma's POST endpoint requires
+		// (variableCollections / variableModes / variables / variableModeValues)
+		// appear inside a JSON code block. Doesn't validate every field — that
+		// belongs in the figma-tokens unit snapshot — just locks the contract
+		// surface external clients see.
+		const figmaResult = (await client.callTool({
+			name: TOOL.EMIT_FIGMA_TOKENS,
+			arguments: { theme: "default" },
+		})) as { content?: Array<{ type: string; text?: string }> };
+		const figmaText = figmaResult.content?.[0]?.text ?? "";
+		const requiredFigmaKeys = [
+			"# Figma tokens — Hex UI",
+			"```json",
+			'"variableCollections"',
+			'"variableModes"',
+			'"variables"',
+			'"variableModeValues"',
+			// Positive-content gate: assert at least one COLOR variable rendered
+			// for the default theme. A regression where the builder returns an
+			// empty-variables payload would still match the four canonical-key
+			// substrings above (because `"variables": []` matches `"variables"`),
+			// but cannot match a `resolvedType: "COLOR"` declaration.
+			'"resolvedType": "COLOR"',
+		];
+		const missingFigma = requiredFigmaKeys.filter((k) => !figmaText.includes(k));
+		if (missingFigma.length > 0) {
+			fail(`emit_figma_tokens output missing keys: ${missingFigma.join(", ")}`);
+		}
+		pass("emit_figma_tokens emits a Figma POST-shaped JSON body");
 	} finally {
-		// ─── 7. Clean disposal — close should not throw ───
+		// ─── 8. Clean disposal — close should not throw ───
 		await client.close();
 		pass("client.close() disposed transport cleanly");
 	}
 
-	console.log("\nMCP contract test: all 7 assertions passed.");
+	console.log("\nMCP contract test: all 8 assertions passed.");
 }
 
 main().catch((err) => {

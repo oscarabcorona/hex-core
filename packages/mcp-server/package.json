@@ -1,7 +1,7 @@
 {
 	"name": "@hex-core/mcp",
 	"version": "0.3.0",
-	"description": "Universal MCP server for Hex UI — runs on Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, and Zed. 12 tools over the component registry.",
+	"description": "Universal MCP server for Hex UI — runs on Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, and Zed. 13 tools over the component registry.",
 	"keywords": [
 		"hex-ui",
 		"mcp",
@@ -52,8 +52,9 @@
 		"dev": "tsx src/index.ts",
 		"test:resolver": "tsx src/tools/resolver.test.ts",
 		"test:app-context": "tsx src/tools/app-context.test.ts",
+		"test:figma-tokens": "tsx src/tools/figma-tokens.test.ts",
 		"test:contract": "node dist/contract-test.js",
-		"test": "pnpm test:resolver && pnpm test:app-context && pnpm test:contract",
+		"test": "pnpm test:resolver && pnpm test:app-context && pnpm test:figma-tokens && pnpm test:contract",
 		"clean": "rm -rf dist registry"
 	},
 	"dependencies": {
