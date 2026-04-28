@@ -3,24 +3,23 @@ import * as path from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { TOOL } from "./tool-names.js";
-import { buildAppContext } from "./tools/app-context.js";
-import { buildFigmaTokens } from "./tools/figma-tokens.js";
-import { loadRecipe, loadRecipes } from "./tools/recipe-loader.js";
 import {
-	internalDepToSlug,
-	loadRegistry,
-	loadRegistryItem,
-	SLUG_REGEX,
-} from "./tools/registry-loader.js";
-import { resolveSpec } from "./tools/resolver.js";
-import {
+	buildAppContext,
+	buildFigmaTokens,
 	generateGlobalsCss,
 	getTheme,
+	internalDepToSlug,
 	listThemes,
+	loadRecipe,
+	loadRecipes,
+	loadRegistry,
+	loadRegistryItem,
+	resolveSpec,
+	SLUG_REGEX,
 	themeToFlatJson,
 	themeToTailwindConfig,
-} from "./tools/theme-loader.js";
+} from "@hex-core/payload";
+import { TOOL } from "./tool-names.js";
 
 const registry = loadRegistry();
 

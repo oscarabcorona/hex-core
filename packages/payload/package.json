@@ -1,0 +1,62 @@
+{
+	"name": "@hex-core/payload",
+	"version": "0.1.0",
+	"description": "Pure-function builders for @hex-core/* paste-into-LLM payloads. Renders themes + components + recipes into deterministic markdown (App Context) and Figma Variables REST JSON. Consumed by @hex-core/mcp; importable directly by Next.js apps and CI scripts that want the canonical format without subprocess overhead.",
+	"keywords": [
+		"hex-ui",
+		"payload",
+		"llm-context",
+		"figma-variables",
+		"deterministic-markdown",
+		"ai-native"
+	],
+	"license": "MIT",
+	"author": "Oscar Corona <oabc4004@gmail.com>",
+	"homepage": "https://hex-core.dev",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/oscarabcorona/hex-core.git",
+		"directory": "packages/payload"
+	},
+	"bugs": {
+		"url": "https://github.com/oscarabcorona/hex-core/issues"
+	},
+	"type": "module",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"files": [
+		"dist",
+		"registry",
+		"README.md",
+		"LICENSE"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"prebuild": "rm -rf dist registry && cp -R ../../registry ./registry",
+		"build": "tsup",
+		"start": "node dist/index.js",
+		"test:resolver": "tsx src/builders/resolver.test.ts",
+		"test:app-context": "tsx src/builders/app-context.test.ts",
+		"test:figma-tokens": "tsx src/builders/figma-tokens.test.ts",
+		"test": "pnpm test:resolver && pnpm test:app-context && pnpm test:figma-tokens",
+		"clean": "rm -rf dist registry"
+	},
+	"dependencies": {
+		"@hex-core/registry": "workspace:^",
+		"@hex-core/tokens": "workspace:^"
+	},
+	"devDependencies": {
+		"@types/node": "^25.6.0",
+		"tsup": "^8.3.0",
+		"tsx": "^4.19.0",
+		"typescript": "^6.0.3"
+	}
+}

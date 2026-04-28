@@ -10,8 +10,8 @@
  * looked-up objects in. This keeps the function snapshot-testable.
  */
 
-import type { Recipe } from "./recipe-loader.js";
-import { internalDepToSlug, type RegistryItem } from "./registry-loader.js";
+import type { Recipe } from "../loaders/recipe-loader.js";
+import { internalDepToSlug, type RegistryItem } from "../loaders/registry-loader.js";
 
 /**
  * One token entry: a value plus a category type for non-color tokens.
@@ -254,11 +254,17 @@ function quoteKey(key: string): string {
 /**
  * Group palette tokens into Tailwind `theme.extend` buckets by `type`. Mirrors
  * the `themeToTailwindConfig` shape from `@hex-core/tokens` so consumers see
- * the same Tailwind config surface from either source. Inlined here (no runtime
- * dep on `@hex-core/tokens`) because the MCP package treats the tokens package
- * as a sibling, not a dep — the registry is the cross-package contract.
- * @param palette - Token map keyed by short name (e.g. `theme.tokens.light` or
- *   the override-applied + density-folded view from `buildLightPalette`)
+ * the same Tailwind config surface whether they read it from the runtime
+ * transformer or from the LLM payload.
+ *
+ * Inlined here (rather than calling `themeToTailwindConfig` directly) because
+ * `AppContextToken` is a payload-local shape that admits override-only keys
+ * absent from `@hex-core/tokens`'s strict `Theme` (e.g. a brand-new `accent`
+ * token a consumer injects via the `overrides` input). Calling the upstream
+ * transformer would skip those keys; iterating the merged palette here lets
+ * them flow into the Tailwind config too.
+ * @param palette - Token map keyed by short name (typically the override-
+ *   applied + density-folded view from `buildLightPalette`)
  * @returns Six buckets keyed by Tailwind config field
  */
 function groupForTailwind(palette: Record<string, AppContextToken>): {
