@@ -256,26 +256,34 @@ describe("generateGlobalsCss target option", () => {
 		expect(css).toContain("@custom-variant dark (&:is(.dark *));");
 	});
 
-	it("v4 emits color tokens inside @theme with --color- prefix and hsl() wrapper", () => {
+	it("v4 emits raw triplets in :root so `hex theme edit` can mutate them", () => {
 		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
-		expect(css).toMatch(/@theme \{/);
-		expect(css).toMatch(/--color-background: hsl\([\d.]+ [\d.]+% [\d.]+%\);/);
-		expect(css).toMatch(/--color-primary: hsl\([\d.]+ [\d.]+% [\d.]+%\);/);
+		const rootBlock = css.match(/:root \{[\s\S]+?\n\}/);
+		expect(rootBlock).not.toBeNull();
+		expect(rootBlock?.[0]).toMatch(/--background: [\d.]+ [\d.]+% [\d.]+%;/);
+		expect(rootBlock?.[0]).toMatch(/--primary: [\d.]+ [\d.]+% [\d.]+%;/);
 	});
 
-	it("v4 dark block flips colors with the same prefix", () => {
+	it("v4 bridges raw triplets into Tailwind's --color-* namespace via @theme inline", () => {
 		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
-		const darkBlockMatch = css.match(/\.dark \{[\s\S]+?\}/);
+		expect(css).toContain("@theme inline {");
+		expect(css).toContain("--color-background: hsl(var(--background));");
+		expect(css).toContain("--color-primary: hsl(var(--primary));");
+	});
+
+	it("v4 dark block flips raw triplets so .dark cascades through the bridge", () => {
+		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
+		const darkBlockMatch = css.match(/\.dark \{[\s\S]+?\n\}/);
 		expect(darkBlockMatch).not.toBeNull();
-		expect(darkBlockMatch?.[0]).toContain("--color-background: hsl(");
-		expect(darkBlockMatch?.[0]).toContain("--color-foreground: hsl(");
+		expect(darkBlockMatch?.[0]).toMatch(/--background: [\d.]+ [\d.]+% [\d.]+%;/);
+		expect(darkBlockMatch?.[0]).toMatch(/--foreground: [\d.]+ [\d.]+% [\d.]+%;/);
 	});
 
-	it("v4 does NOT wrap non-color tokens in --color- (radii, durations stay out)", () => {
+	it("v4 does NOT inline color values directly into @theme (would break alpha utilities + hex theme edit)", () => {
 		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
-		expect(css).not.toContain("--color-radius:");
-		expect(css).not.toContain("--color-duration");
-		expect(css).not.toContain("--color-space-");
+		// The non-inline `@theme {` would inline values directly; we only emit `@theme inline {`.
+		// Negative-look guard: there must be NO `@theme {` that isn't `@theme inline {`.
+		expect(css).not.toMatch(/@theme \{(?![\s\S]*?inline)/);
 	});
 
 	it("v4 emits body/border-color rules so the page renders against the theme", () => {
@@ -285,12 +293,13 @@ describe("generateGlobalsCss target option", () => {
 		expect(css).toContain("border-color: var(--color-border)");
 	});
 
-	it("v4 works for every OS preset theme", () => {
+	it("v4 works for every OS preset theme — bridge shape", () => {
 		for (const [_, theme] of allThemes) {
 			const css = generateGlobalsCss(theme, { target: "v4" });
 			expect(css).toContain(`@import "tailwindcss";`);
-			expect(css).toContain("@theme {");
-			expect(css).toContain("--color-background: hsl(");
+			expect(css).toContain("@theme inline {");
+			expect(css).toContain("--color-background: hsl(var(--background));");
+			expect(css).toMatch(/:root \{[\s\S]+?--background: [\d.]+ [\d.]+% [\d.]+%;/);
 		}
 	});
 });
