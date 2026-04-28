@@ -44,7 +44,8 @@ Hex Core uses **[Vitest](https://vitest.dev/)** for unit tests + **[Playwright](
 - `pnpm --filter @hex-core/components test` — component unit tests only
 - `pnpm --filter @hex-core/registry test` — schema-drift guard (parses every `registry/**/*.json` through Zod)
 - `pnpm --filter docs test` — e2e browser tests only
-- `pnpm run a11y-audit` — full axe-core scan of every component demo in light + dark. **Run locally before pushing**; not in CI (kept lean). Fails on critical/serious violations.
+- `pnpm run a11y-audit` — full axe-core scan of every component demo in light + dark. Runs in CI on push to `qa` (the regression workflow). Locally, run before promoting main → qa. Fails on critical/serious violations.
+- `pnpm --filter docs test:visual` — Playwright screenshot diff against committed baselines under `apps/docs/e2e/visual.spec.ts-snapshots/`. Per-platform suffixes; refresh runbook at `apps/docs/e2e/visual.spec.ts-snapshots/README.md`.
 
 Templates:
 
@@ -55,7 +56,7 @@ Every new component should land with a unit test. Every schema change should kee
 
 ## Accessibility (WCAG 2.2 AA)
 
-Every component demo page is scanned by `pnpm run a11y-audit` in CI in both light and dark mode. The audit fails the build on **any** `critical` or `serious` axe-core violation.
+Every component demo page is scanned by `pnpm run a11y-audit` in both light and dark mode. The audit runs as part of the regression workflow on push to `qa` and fails the build on **any** `critical` or `serious` axe-core violation. Run it locally before opening a `main → qa` promotion PR.
 
 Required for new components / demo updates:
 
@@ -64,9 +65,44 @@ Required for new components / demo updates:
 3. Composite widgets — when wrapping Radix (Slider, ScrollArea, etc.), ensure each child interactive element has its own accessible name. The `Slider` wrapper auto-derives thumb labels from the Root's `aria-label`; pass `thumbLabels={["Min", "Max"]}` for range sliders.
 4. Long content — `DialogContent` is constrained to `max-h-[calc(100vh-2rem)]` with `overflow-y-auto` so the focus trap stays around scrollable content.
 
+## Branch flow
+
+Three long-lived branches; changes promote through them in order. Every CI signal lives at a specific stage, so the promotion gates compound.
+
+```
+feature → main → qa → release
+```
+
+| Branch | What lands here | What runs |
+|---|---|---|
+| `main` | Feature branches via PR | **CI** (`Lint` / `Build` / `Test` — three parallel jobs, ~2 min wall-clock). Fast feedback for iteration. |
+| `qa` | Promotion PRs from `main` | **CI** + **Regression** (a11y axe-scan + Playwright visual diffs across all 59 components × light/dark). Gates "did anything regress that the unit tests don't catch." |
+| `release` | Promotion PRs from `qa` | **CI** only. Production branch — npm publish happens from here via the [`release` skill](.claude/commands/release.md) (`pnpm changeset` → `pnpm version` → `pnpm release`). |
+
+### Workflows
+
+- **`.github/workflows/ci.yml`** — fires on PR + push to `main`, `qa`, `release`. Three independent parallel jobs.
+- **`.github/workflows/regression.yml`** — fires on push to `qa` and `workflow_dispatch`. ~5–10 min. On failure, uploads `playwright-report/` and `a11y-report.{json,md}` as workflow artifacts so you can inspect diffs.
+
+### Promoting
+
+Promotion is a normal PR with no diff except the commit history.
+
+```bash
+gh pr create --base qa --head main --title "promote: main → qa"
+gh pr create --base release --head qa --title "promote: qa → release"
+```
+
+Both branches are protected: no direct pushes, only PRs. Regression must pass on `qa` before promoting to `release`.
+
+### Releasing
+
+Once `release` is updated, run the [`release` skill](.claude/commands/release.md) — it handles `changeset version` + `changeset publish` + GitHub Release creation. No release CI workflow; the skill is the gate.
+
 ## Submitting a PR
 
-- Branch name: `feat/<scope>`, `fix/<scope>`, `chore/<scope>`.
+- Branch name: `feat/<scope>`, `fix/<scope>`, `chore/<scope>`, `docs/<scope>`, `test/<scope>`.
+- Target `main` (not `qa` or `release` — those are promotion-only).
 - One logical change per commit. Imperative mood, ≤ 65 chars subject, explain why not what.
 - `pnpm run lint`, `pnpm build`, `pnpm test` must pass.
 - PR description follows the template.
