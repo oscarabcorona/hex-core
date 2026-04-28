@@ -4,7 +4,7 @@
  * Locks down what shape themeToTailwindConfig + themeToCss + themeToFlatJson
  * produce so Hex Studio + downstream consumers can rely on the output keys.
  */
-import type { Theme } from "@hex-core/registry";
+import { strictThemeSchema, type Theme } from "@hex-core/registry";
 import { describe, expect, it } from "vitest";
 import {
 	defaultTheme,
@@ -301,5 +301,23 @@ describe("generateGlobalsCss target option", () => {
 			expect(css).toContain("--color-background: hsl(var(--background));");
 			expect(css).toMatch(/:root \{[\s\S]+?--background: [\d.]+ [\d.]+% [\d.]+%;/);
 		}
+	});
+});
+
+describe("@hex-core/registry@0.3.0 strict-schema parity", () => {
+	// Regression gate for the Theme B follow-up — the three OSS preset themes
+	// must continue to satisfy `strictThemeSchema` (the typed version added
+	// in registry@0.3.0). If a future theme drifts (e.g. the `primary` slot
+	// ends up carrying a non-color token, or a required canonical token gets
+	// removed), this test fails BEFORE the bad shape reaches the published
+	// tarball.
+	it.each(allThemes)(`%s theme satisfies strictThemeSchema`, (_name, theme) => {
+		const result = strictThemeSchema.safeParse(theme);
+		if (!result.success) {
+			throw new Error(
+				`strictThemeSchema rejected theme: ${JSON.stringify(result.error.issues, null, 2)}`,
+			);
+		}
+		expect(result.success).toBe(true);
 	});
 });

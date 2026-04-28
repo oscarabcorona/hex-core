@@ -209,6 +209,93 @@ export type TokenValue = z.infer<typeof tokenValueSchema>;
 export const tokenGroupSchema: z.ZodType<Record<string, TokenValue | Record<string, unknown>>> =
 	z.lazy(() => z.record(z.string(), z.union([tokenValueSchema, z.record(z.string(), z.unknown())])));
 
+// ─── Per-category token schemas ───
+//
+// Each schema below is `tokenValueSchema` narrowed so the `type` field is a
+// literal of one `tokenTypeEnum` member. Combined into a `discriminatedUnion`
+// they let consumers pattern-match on `token.type` with exhaustiveness
+// checking, and let `StrictTokenSet` (below) annotate canonical token slots
+// with the category they MUST be (e.g. `primary` is always a color token).
+//
+// Inferred types are exported as `ColorToken`, `DimensionToken`, etc. so
+// consumers can write `function paintBg(t: ColorToken) {...}` and have the
+// type checker reject a `RadiusToken` argument at compile time.
+
+/** A color token — `value` is an HSL triplet (`"<H> <S>% <L>%"`). */
+export const colorTokenSchema = tokenValueSchema.extend({ type: z.literal("color") });
+export type ColorToken = z.infer<typeof colorTokenSchema>;
+
+/**
+ * A dimension token — `value` is a length (e.g. `"2.5rem"`). Used for
+ * non-spacing fixed dimensions like `--control-height-md`.
+ */
+export const dimensionTokenSchema = tokenValueSchema.extend({ type: z.literal("dimension") });
+export type DimensionToken = z.infer<typeof dimensionTokenSchema>;
+
+/** A font token — `value` is a font-size (e.g. `"0.875rem"`). */
+export const fontTokenSchema = tokenValueSchema.extend({ type: z.literal("font") });
+export type FontToken = z.infer<typeof fontTokenSchema>;
+
+/** A font-weight token — `value` is a numeric weight (e.g. `"600"`). */
+export const fontWeightTokenSchema = tokenValueSchema.extend({ type: z.literal("fontWeight") });
+export type FontWeightToken = z.infer<typeof fontWeightTokenSchema>;
+
+/** A duration token — `value` is a time (e.g. `"200ms"`). */
+export const durationTokenSchema = tokenValueSchema.extend({ type: z.literal("duration") });
+export type DurationToken = z.infer<typeof durationTokenSchema>;
+
+/** A cubic-bezier easing token — `value` is a 4-tuple (e.g. `"0.4, 0, 0.2, 1"`). */
+export const cubicBezierTokenSchema = tokenValueSchema.extend({ type: z.literal("cubicBezier") });
+export type CubicBezierToken = z.infer<typeof cubicBezierTokenSchema>;
+
+/** A bare numeric token — `value` is a unit-less number string (e.g. `"4"`). */
+export const numberTokenSchema = tokenValueSchema.extend({ type: z.literal("number") });
+export type NumberToken = z.infer<typeof numberTokenSchema>;
+
+/** A box-shadow token — `value` is a CSS box-shadow string. */
+export const shadowTokenSchema = tokenValueSchema.extend({ type: z.literal("shadow") });
+export type ShadowToken = z.infer<typeof shadowTokenSchema>;
+
+/** A gradient token — `value` is a CSS linear/radial gradient string. */
+export const gradientTokenSchema = tokenValueSchema.extend({ type: z.literal("gradient") });
+export type GradientToken = z.infer<typeof gradientTokenSchema>;
+
+/** A border-radius token — `value` is a length (e.g. `"0.625rem"`). */
+export const radiusTokenSchema = tokenValueSchema.extend({ type: z.literal("radius") });
+export type RadiusToken = z.infer<typeof radiusTokenSchema>;
+
+/** A spacing token — `value` is a length used for `--space-*` / `--gap-*`. */
+export const spacingTokenSchema = tokenValueSchema.extend({ type: z.literal("spacing") });
+export type SpacingToken = z.infer<typeof spacingTokenSchema>;
+
+/** An opacity token — `value` is a number string in the range `[0, 1]`. */
+export const opacityTokenSchema = tokenValueSchema.extend({ type: z.literal("opacity") });
+export type OpacityToken = z.infer<typeof opacityTokenSchema>;
+
+/**
+ * Discriminated union over every token category. Equivalent at runtime to
+ * `tokenValueSchema` (any of the 12 `tokenTypeEnum` members), but at the
+ * type level the `type` field discriminates so a `switch (token.type)` body
+ * narrows `token` to the matching category in each case branch.
+ *
+ * Use this when you want exhaustiveness checking on category branches; use
+ * `tokenValueSchema` when you only care that a value carries `{value, type}`.
+ */
+export const tokenSchema = z.discriminatedUnion("type", [
+	colorTokenSchema,
+	dimensionTokenSchema,
+	fontTokenSchema,
+	fontWeightTokenSchema,
+	durationTokenSchema,
+	cubicBezierTokenSchema,
+	numberTokenSchema,
+	shadowTokenSchema,
+	gradientTokenSchema,
+	radiusTokenSchema,
+	spacingTokenSchema,
+	opacityTokenSchema,
+]);
+
 /**
  * A flat dictionary of token name → typed value. Used for both the `light`
  * and `dark` halves of a Theme. Open-ended on keys (consumers add new tokens
@@ -247,24 +334,82 @@ export const REQUIRED_COLOR_TOKENS = [
 export const REQUIRED_RADIUS_TOKENS = ["radius"] as const;
 
 /**
- * A `tokenSetSchema` refined to also enforce that the required color +
- * radius tokens are present. Use this for **theme validation** (init / edit
- * flows, Studio export) where missing tokens would visibly break components.
+ * A token set schema where each canonical slot is pinned to its category at
+ * the type level (e.g. `primary` is `ColorToken`, not just `TokenValue`),
+ * extra slots are accepted via catchall, and missing required slots fail
+ * `safeParse` at runtime.
+ *
+ * Use this for **theme validation** (init / edit flows, Studio export,
+ * community theme contributions) where:
+ *   - missing required tokens would visibly break the 47 components, AND
+ *   - consumers want compile-time guarantees that they're handling colors
+ *     where colors belong, not arbitrary `TokenValue`.
  *
  * Open-ended on additional tokens (spacing, gap, control-height, typography,
- * motion, shadows) — those are recommended but not blocking.
+ * motion, shadows) — those are recommended but not blocking. Extra slots
+ * accept any `TokenValue` shape via catchall.
+ *
+ * **Compatibility note:** the previous version of this schema was a
+ * `tokenSetSchema.refine(...)` runtime check that only validated key
+ * **presence**, leaving the inferred type loose (`Record<string, TokenValue>`)
+ * AND silently accepting category mismatches at canonical slots — a theme
+ * could legally put a non-color token in `primary`. The new version
+ * (introduced in `@hex-core/registry@0.3.0`) tightens both layers:
+ *
+ *   - **Type:** each canonical slot narrows to its category (`primary` is
+ *     `ColorToken`, `radius` is `RadiusToken`, etc.) — `theme.primary.type`
+ *     is the literal `"color"`, not the open `tokenTypeEnum`.
+ *   - **Runtime:** category mismatches at canonical slots reject. A theme
+ *     that miscategorized `primary` as a radius token used to parse; it
+ *     now fails with a per-slot issue.
+ *
+ * All 3 OSS preset themes, and any theme where canonical slots already used
+ * the conventional category, parse identically under both versions. Themes
+ * that miscategorized canonical slots will now reject — intended behavior.
+ *
+ * The validation-error shape also changed: instead of a single combined
+ * "Theme is missing one or more required tokens" message, callers receive N
+ * per-slot issues with `path` pointing at the offending key. See the
+ * `0.3.0` changeset for the migration guide.
  */
-export const strictTokenSetSchema = tokenSetSchema.refine(
-	(tokens) => {
-		const keys = new Set(Object.keys(tokens));
-		for (const k of REQUIRED_COLOR_TOKENS) if (!keys.has(k)) return false;
-		for (const k of REQUIRED_RADIUS_TOKENS) if (!keys.has(k)) return false;
-		return true;
-	},
-	{
-		message: `Theme is missing one or more required tokens. Required colors: ${REQUIRED_COLOR_TOKENS.join(", ")}. Required radius: ${REQUIRED_RADIUS_TOKENS.join(", ")}.`,
-	},
-);
+export const strictTokenSetSchema = z
+	.object({
+		// Required color tokens — every Hex Core theme must define these so the
+		// 47 components render correctly. Type-level narrowing to `ColorToken`
+		// makes consumers' transformer / picker code type-safe.
+		background: colorTokenSchema,
+		foreground: colorTokenSchema,
+		card: colorTokenSchema,
+		"card-foreground": colorTokenSchema,
+		popover: colorTokenSchema,
+		"popover-foreground": colorTokenSchema,
+		primary: colorTokenSchema,
+		"primary-foreground": colorTokenSchema,
+		secondary: colorTokenSchema,
+		"secondary-foreground": colorTokenSchema,
+		muted: colorTokenSchema,
+		"muted-foreground": colorTokenSchema,
+		accent: colorTokenSchema,
+		"accent-foreground": colorTokenSchema,
+		destructive: colorTokenSchema,
+		"destructive-foreground": colorTokenSchema,
+		border: colorTokenSchema,
+		input: colorTokenSchema,
+		ring: colorTokenSchema,
+		// Required radius token — drives `--radius` and Tailwind's borderRadius.
+		radius: radiusTokenSchema,
+	})
+	// Extra tokens (spacing, gap, control-height, typography, motion, etc.)
+	// pass through with the open `TokenValue` shape. Consumers can refine
+	// downstream via the per-category schemas (`SpacingToken`, etc.).
+	.catchall(tokenValueSchema);
+
+/**
+ * A token set whose canonical slots (`background`, `primary`, `radius`, etc.)
+ * narrow to their category at the type level. Extra slots fall through as
+ * the open `TokenValue` shape via catchall.
+ */
+export type StrictTokenSet = z.infer<typeof strictTokenSetSchema>;
 
 export const themeSchema = z.object({
 	name: z.string(),
@@ -292,6 +437,14 @@ export const strictThemeSchema = z.object({
 		dark: strictTokenSetSchema,
 	}),
 });
+
+/**
+ * A `Theme` whose `tokens.light` and `tokens.dark` palettes both satisfy
+ * `strictTokenSetSchema` — every required slot present and each slot pinned
+ * to its canonical category at the type level. Use this when authoring or
+ * validating themes for npm publication.
+ */
+export type StrictTheme = z.infer<typeof strictThemeSchema>;
 
 // ─── Component Schema Definition (used in .schema.ts files) ───
 
