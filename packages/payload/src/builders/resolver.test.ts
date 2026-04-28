@@ -1,6 +1,6 @@
 /**
  * Resolver regression assertions. Runs as a standalone node script via
- * `pnpm -F \@hex-core/mcp test:resolver`. Lightweight — no test runner
+ * `pnpm -F \@hex-core/payload test:resolver`. Lightweight — no test runner
  * dependency — because the resolver is a pure function and a broken
  * scoring rule should fail loudly in a single file.
  *

@@ -1,6 +1,6 @@
 /**
  * Snapshot test for `buildAppContext`. Runs as a standalone node script via
- * `pnpm -F \`@hex-core/mcp\` test:app-context`. No test runner — the function
+ * `pnpm -F \`@hex-core/payload\` test:app-context`. No test runner — the function
  * is pure and a format change should fail loudly here so it can be reviewed
  * deliberately.
  *
@@ -13,8 +13,8 @@
  * stderr to see the pass/fail summary.
  */
 
-import type { Recipe } from "./recipe-loader.js";
-import type { RegistryItem } from "./registry-loader.js";
+import type { Recipe } from "../loaders/recipe-loader.js";
+import type { RegistryItem } from "../loaders/registry-loader.js";
 import { buildAppContext } from "./app-context.js";
 
 const fakeButton: RegistryItem = {

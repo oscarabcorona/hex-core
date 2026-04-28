@@ -15,8 +15,9 @@
  *   4. resources/list returns the hex://catalog resource
  *   5. emit_app_context rejects unknown input fields (zod .strict() enforced)
  *   6. emit_app_context output contains the canonical section headers
- *   7. emit_figma_tokens output is markdown wrapping a Figma POST JSON body
- *   8. client.close() disposes the transport without throwing
+ *   7. emit_app_context globals.css reflects current `@hex-core/tokens` (no #18 drift)
+ *   8. emit_figma_tokens output is markdown wrapping a Figma POST JSON body
+ *   9. client.close() disposes the transport without throwing
  *
  * Run via `pnpm --filter \@hex-core/mcp test:contract` (expects `pnpm build`
  * to have produced dist/index.js).
@@ -178,6 +179,30 @@ async function main(): Promise<void> {
 		}
 		pass("emit_app_context output contains all canonical section headers");
 
+		// ─── #18 regression: emit_app_context emits CURRENT @hex-core/tokens
+		// values, not a stale inlined snapshot ───
+		// Before the @hex-core/payload extraction (PR #90), mcp inlined theme
+		// data per "to avoid runtime dependency on @hex-core/tokens" — that
+		// inlining drifted: mcp@0.3.0 shipped pre-v1.1.1 destructive (84.2%
+		// 60.2%) while @hex-core/tokens@latest already had 0 72% 45%. Lock
+		// the post-extraction shape: payload imports themes from tokens, so
+		// the emitted globals.css block must reflect the live tokens version.
+		// If this assertion fails, the inlining drift has crept back.
+		if (!ctxText.includes("--destructive: 0 72% 45%")) {
+			fail(
+				"emit_app_context globals.css block is stale — expected `--destructive: 0 72% 45%` " +
+					"from @hex-core/tokens@^1.2.0 (finding #18 regression). Got:\n" +
+					(ctxText.match(/--destructive: [^;\n]+/)?.[0] ?? "<no destructive line>"),
+			);
+		}
+		if (ctxText.includes("--destructive: 0 84.2% 60.2%")) {
+			fail(
+				"emit_app_context output contains the pre-v1.1.1 stale destructive value — " +
+					"finding #18 has regressed.",
+			);
+		}
+		pass("emit_app_context globals.css reflects current @hex-core/tokens (no #18 drift)");
+
 		// ─── 7. emit_figma_tokens returns markdown + a Figma POST JSON body ───
 		// Asserts the four top-level keys Figma's POST endpoint requires
 		// (variableCollections / variableModes / variables / variableModeValues)
@@ -214,7 +239,7 @@ async function main(): Promise<void> {
 		pass("client.close() disposed transport cleanly");
 	}
 
-	console.log("\nMCP contract test: all 8 assertions passed.");
+	console.log("\nMCP contract test: all 9 assertions passed.");
 }
 
 main().catch((err) => {

@@ -14,15 +14,20 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  */
 function findRegistryDir(): string {
 	const candidates = [
-		// Bundled inside the published tarball: dist/index.js → ../registry
+		// Bundled inside the published @hex-core/payload tarball: tsup outputs
+		// dist/index.js and the prebuild step copies registry/ into the package
+		// root, so the bundled path is `dist/../registry`. Node-resolution
+		// anchors `import.meta.url` at the consumer's installed
+		// `node_modules/@hex-core/payload/dist/index.js`, so this is what every
+		// downstream consumer (MCP server, Studio, CLI scripts) hits first.
 		path.resolve(__dirname, "../registry"),
-		// Defensive: dist/<subdir>/x.js → ../../registry
+		// Defensive: tsup-bundled output in a nested subdir scenario.
 		path.resolve(__dirname, "../../registry"),
-		// Monorepo dev: packages/mcp-server/src/tools → ../../../../registry
+		// Monorepo dev (tsx): packages/payload/src/loaders → ../../../../registry
 		path.resolve(__dirname, "../../../../registry"),
-		// Defensive: tsx run from packages/mcp-server/src → ../../../registry
+		// Defensive: tsx run from a different src subdir.
 		path.resolve(__dirname, "../../../registry"),
-		// Last-resort: consumer-mirrored registry/ next to their cwd
+		// Last-resort: consumer-mirrored registry/ next to their cwd.
 		path.resolve(process.cwd(), "registry"),
 	];
 

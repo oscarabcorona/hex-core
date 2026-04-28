@@ -111,7 +111,7 @@ export const myRecipe: RecipeDefinition = {
 If you ship your own component set:
 
 1. Mirror the directory shape: `registry/items/<slug>.json`, `registry/recipes/<slug>.json`, `registry/registry.json` index.
-2. Build your own MCP server or re-use `@hex-core/mcp` with your registry path overridden via `HEX_UI_REGISTRY_DIR` env var (TBD — follow `packages/mcp-server/src/tools/registry-loader.ts` for the candidate-path walker).
+2. Build your own MCP server or re-use `@hex-core/mcp` with your registry path overridden via `HEX_UI_REGISTRY_DIR` env var (TBD — follow `packages/payload/src/loaders/registry-loader.ts` for the candidate-path walker).
 3. Namespace your component slugs (`acme-*`) to avoid collision with first-party.
 4. Use the same `.ai` fields — `verify_checklist` and the resolver depend on them structurally.
 
