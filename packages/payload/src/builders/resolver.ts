@@ -1,5 +1,5 @@
-import { loadRegistry, loadRegistryItem, type RegistryIndex } from "./registry-loader.js";
-import { loadRecipes, type RecipeIndex } from "./recipe-loader.js";
+import { loadRegistry, loadRegistryItem, type RegistryIndex } from "../loaders/registry-loader.js";
+import { loadRecipes, type RecipeIndex } from "../loaders/recipe-loader.js";
 
 /**
  * Cap on the number of recipe matches returned by `resolveSpec`. Recipes

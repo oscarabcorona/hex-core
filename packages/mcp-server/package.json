@@ -1,7 +1,7 @@
 {
 	"name": "@hex-core/mcp",
 	"version": "0.3.0",
-	"description": "Universal MCP server for Hex UI — runs on Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, and Zed. 13 tools over the component registry.",
+	"description": "Universal MCP server for Hex UI — runs on Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, and Zed. 13 tools over the component registry. Thin transport shell — pure-function builders live in @hex-core/payload.",
 	"keywords": [
 		"hex-ui",
 		"mcp",
@@ -37,7 +37,6 @@
 	},
 	"files": [
 		"dist",
-		"registry",
 		"README.md",
 		"LICENSE"
 	],
@@ -45,19 +44,17 @@
 		"access": "public"
 	},
 	"scripts": {
-		"prebuild": "rm -rf dist registry && cp -R ../../registry ./registry",
+		"prebuild": "rm -rf dist",
 		"build": "tsup && pnpm build:readme",
 		"build:readme": "node scripts/build-readme.mjs",
 		"start": "node dist/index.js",
 		"dev": "tsx src/index.ts",
-		"test:resolver": "tsx src/tools/resolver.test.ts",
-		"test:app-context": "tsx src/tools/app-context.test.ts",
-		"test:figma-tokens": "tsx src/tools/figma-tokens.test.ts",
 		"test:contract": "node dist/contract-test.js",
-		"test": "pnpm test:resolver && pnpm test:app-context && pnpm test:figma-tokens && pnpm test:contract",
-		"clean": "rm -rf dist registry"
+		"test": "pnpm test:contract",
+		"clean": "rm -rf dist"
 	},
 	"dependencies": {
+		"@hex-core/payload": "workspace:^",
 		"@hex-core/registry": "workspace:^",
 		"@modelcontextprotocol/sdk": "^1.12.0",
 		"zod": "^4.3.6"

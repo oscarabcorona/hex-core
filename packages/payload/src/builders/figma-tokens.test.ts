@@ -1,6 +1,6 @@
 /**
  * Snapshot test for `buildFigmaTokens`. Runs as a standalone node script via
- * `pnpm -F \`@hex-core/mcp\` test:figma-tokens`. No test runner — the function
+ * `pnpm -F \`@hex-core/payload\` test:figma-tokens`. No test runner — the function
  * is pure and a format change should fail loudly here so it can be reviewed
  * deliberately.
  *
