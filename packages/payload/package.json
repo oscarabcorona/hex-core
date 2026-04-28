@@ -46,7 +46,8 @@
 		"test:resolver": "tsx src/builders/resolver.test.ts",
 		"test:app-context": "tsx src/builders/app-context.test.ts",
 		"test:figma-tokens": "tsx src/builders/figma-tokens.test.ts",
-		"test": "pnpm test:resolver && pnpm test:app-context && pnpm test:figma-tokens",
+		"test:registry-loader": "tsx src/loaders/registry-loader.test.ts",
+		"test": "pnpm test:resolver && pnpm test:app-context && pnpm test:figma-tokens && pnpm test:registry-loader",
 		"clean": "rm -rf dist registry"
 	},
 	"dependencies": {

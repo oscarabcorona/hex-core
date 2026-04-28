@@ -64,3 +64,12 @@ jobs:
         run: pnpm test
         env:
           CI: "1"
+
+      # Spawns `next start` on port 3010, scans every component page in
+      # light + dark with axe-core, exits non-zero on critical/serious
+      # violations (the script's default failOn). The script handles its
+      # own server lifecycle — no separate boot/teardown step needed.
+      - name: Accessibility audit
+        run: pnpm a11y-audit
+        env:
+          CI: "1"

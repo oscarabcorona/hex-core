@@ -3,14 +3,16 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
- * Locate the registry directory by searching known candidate paths.
- * Shared by every CLI command so they can't drift on where the registry
- * lives relative to the published CLI bundle.
- * @returns The absolute path to the registry directory, or null if not found
+ * Build the ordered list of registry-directory candidates for a given install
+ * shape. Exported so tests can lock down the priority — the bundled-tarball
+ * path must always win over monorepo-dev or cwd-mirror fallbacks, otherwise
+ * the round-tripped npx flow regresses (the original PR #88 install bug).
+ *
+ * @param here - The directory containing the calling module (typically `path.dirname(fileURLToPath(import.meta.url))`).
+ * @param cwd - The consumer's working directory (typically `process.cwd()`).
  */
-export function findRegistryDir(): string | null {
-	const here = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
+export function buildRegistryCandidates(here: string, cwd: string): string[] {
+	return [
 		// Bundled inside the published tarball: dist/index.js → ../registry
 		path.resolve(here, "../registry"),
 		// Defensive: dist/<subdir>/x.js → ../../registry
@@ -20,13 +22,29 @@ export function findRegistryDir(): string | null {
 		// Defensive: tsx run from packages/cli/src → ../../../registry
 		path.resolve(here, "../../../registry"),
 		// Last-resort: consumer mirrored registry/ next to their app
-		path.resolve(process.cwd(), "registry"),
+		path.resolve(cwd, "registry"),
 	];
+}
 
+/**
+ * Return the first candidate that exists on disk. Pure — exposed for tests.
+ */
+export function firstExistingPath(candidates: string[]): string | null {
 	for (const candidate of candidates) {
 		if (fs.existsSync(candidate)) return candidate;
 	}
 	return null;
+}
+
+/**
+ * Locate the registry directory by searching known candidate paths.
+ * Shared by every CLI command so they can't drift on where the registry
+ * lives relative to the published CLI bundle.
+ * @returns The absolute path to the registry directory, or null if not found
+ */
+export function findRegistryDir(): string | null {
+	const here = path.dirname(fileURLToPath(import.meta.url));
+	return firstExistingPath(buildRegistryCandidates(here, process.cwd()));
 }
 
 /**
