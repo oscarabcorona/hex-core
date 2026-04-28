@@ -18,7 +18,9 @@ jobs:
   build:
     name: Lint / Build / Test
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Was 5; the a11y-audit step alone takes ~3-5 min (118 page scans × light+dark)
+    # and the visual regression adds ~2-3 min. 20 leaves headroom without going wild.
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v6
