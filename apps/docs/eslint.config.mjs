@@ -13,6 +13,19 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // Pin React version explicitly so eslint-plugin-react doesn't auto-detect.
+  // Auto-detection in eslint-plugin-react@7.37.5 calls `context.getFilename()`
+  // which was removed in eslint@10 (replaced with `context.filename`); pinning
+  // `settings.react.version` skips that broken codepath. Required for
+  // dependabot's eslint 9 → 10 bump (PR #85). Drop this once
+  // eslint-plugin-react ships an eslint-10-compatible release.
+  {
+    settings: {
+      react: {
+        version: "19.2.5",
+      },
+    },
+  },
 ]);
 
 export default eslintConfig;
