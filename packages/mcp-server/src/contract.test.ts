@@ -3,7 +3,7 @@
  * Protocol-level contract test for the MCP server.
  *
  * Spawns the built server (dist/index.js) over stdio and drives it with the
- * canonical @modelcontextprotocol/sdk Client — the same SDK every supported
+ * canonical `@modelcontextprotocol/sdk` Client — the same SDK every supported
  * MCP client uses underneath. A green run proves the server speaks standard
  * MCP regardless of which downstream client (Claude Code, Cursor, Continue,
  * Gemini CLI, ChatGPT Desktop, Zed) opens the connection.
@@ -13,9 +13,11 @@
  *   2. tools/list returns the canonical TOOL_NAMES set
  *   3. tools/call list_themes returns a JSON array
  *   4. resources/list returns the hex://catalog resource
- *   5. client.close() disposes the transport without throwing
+ *   5. emit_app_context rejects unknown input fields (zod .strict() enforced)
+ *   6. emit_app_context output contains the canonical section headers
+ *   7. client.close() disposes the transport without throwing
  *
- * Run via `pnpm --filter @hex-core/mcp test:contract` (expects `pnpm build`
+ * Run via `pnpm --filter \@hex-core/mcp test:contract` (expects `pnpm build`
  * to have produced dist/index.js).
  */
 
@@ -29,13 +31,20 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 // `dist/contract-test.js` and `dist/index.js` live side-by-side after build.
 const SERVER_BIN = path.resolve(here, "index.js");
 
-/** Print the failure message and exit non-zero so CI sees the regression. */
+/**
+ * Print the failure message and exit non-zero so CI sees the regression.
+ * Never returns — terminates the process via `process.exit(1)`.
+ * @param message - One-line explanation of what failed (assertion + observed shape)
+ */
 function fail(message: string): never {
 	console.error(`✗ ${message}`);
 	process.exit(1);
 }
 
-/** Print a passing assertion to stdout for the test report. */
+/**
+ * Print a passing assertion to stdout for the test report.
+ * @param message - One-line explanation of what passed
+ */
 function pass(message: string): void {
 	console.log(`✓ ${message}`);
 }
@@ -110,13 +119,70 @@ async function main(): Promise<void> {
 			);
 		}
 		pass("resources/list contains hex://catalog");
+
+		// ─── 5. emit_app_context rejects unknown input fields ───
+		// Zod .strict() on the input schema surfaces InvalidParams via the SDK's
+		// `isError: true` tool-result path (NOT a thrown exception). Consumers
+		// reading the published JSON Schema's `additionalProperties: false`
+		// claim need this to be enforced at runtime, so the assertion is on
+		// shape: isError + a recognized-keys-rejection message.
+		//
+		// NOTE: The substring match below depends on Zod's error-code stability.
+		// Zod 4 emits `unrecognized_keys` (snake_case code) and "Unrecognized
+		// key:" (user-facing message) for strict-mode rejections. Both are
+		// matched as fallbacks so a future Zod major bump that renames one but
+		// keeps the other doesn't break this test silently. If both ever change,
+		// review the SDK validation path at:
+		//   node_modules/.pnpm/@modelcontextprotocol+sdk@*/...
+		//     /server/mcp.js:safeParseAsync
+		const strictResult = (await client.callTool({
+			name: TOOL.EMIT_APP_CONTEXT,
+			arguments: {
+				theme: "default",
+				components: ["button"],
+				junkField: "should-reject",
+			},
+		})) as { isError?: boolean; content?: Array<{ type: string; text?: string }> };
+		const strictText = strictResult.content?.[0]?.text ?? "";
+		const rejectedUnknownKey =
+			strictText.includes("unrecognized_keys") || strictText.includes("Unrecognized key");
+		if (!strictResult.isError || !rejectedUnknownKey) {
+			fail(
+				`emit_app_context did not reject unknown field — isError=${strictResult.isError}, text=${strictText.slice(0, 120)}`,
+			);
+		}
+		pass("emit_app_context rejects unknown input fields (strict mode)");
+
+		// ─── 6. emit_app_context output carries the canonical section headers ───
+		const ctxResult = await client.callTool({
+			name: TOOL.EMIT_APP_CONTEXT,
+			arguments: {
+				theme: "default",
+				components: ["button"],
+			},
+		});
+		const ctxPayload = ctxResult.content as Array<{ type: string; text?: string }>;
+		const ctxText = ctxPayload?.[0]?.text ?? "";
+		const requiredHeaders = [
+			"## Theme",
+			"## globals.css",
+			"## tailwind.config.ts",
+			"## Components",
+			"## Install",
+			"## Context prompt",
+		];
+		const missingHeaders = requiredHeaders.filter((h) => !ctxText.includes(h));
+		if (missingHeaders.length > 0) {
+			fail(`emit_app_context output missing headers: ${missingHeaders.join(", ")}`);
+		}
+		pass("emit_app_context output contains all canonical section headers");
 	} finally {
-		// ─── 5. Clean disposal — close should not throw ───
+		// ─── 7. Clean disposal — close should not throw ───
 		await client.close();
 		pass("client.close() disposed transport cleanly");
 	}
 
-	console.log("\nMCP contract test: all 5 assertions passed.");
+	console.log("\nMCP contract test: all 7 assertions passed.");
 }
 
 main().catch((err) => {
