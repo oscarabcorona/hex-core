@@ -26,6 +26,18 @@ interface Context {
 }
 
 /**
+ * A shared lib file is an idempotent utility that every component pulls in
+ * (lib/utils.ts, lib/color.ts). On a re-`add`, we silently skip these
+ * instead of nagging the user about `--overwrite` — they almost never want
+ * to clobber a customized lib/utils.ts just to install another component.
+ */
+function isSharedLibFile(file: { path: string; type?: string }): boolean {
+	if (file.type === "registry:lib") return true;
+	const normalized = file.path.replace(/\\/g, "/");
+	return normalized.startsWith("lib/") || normalized.startsWith("./lib/");
+}
+
+/**
  * Load aliases from `hex.config.json` if present; fall back to the defaults
  * `hex init` would have written. Missing or partial fields are filled in.
  */
@@ -82,6 +94,14 @@ function installOne(name: string, ctx: Context): string[] | null {
 		const targetDir = path.dirname(targetPath);
 
 		if (fs.existsSync(targetPath) && !ctx.options.overwrite) {
+			// Shared lib files (lib/utils.ts, lib/color.ts) are idempotent
+			// utilities every component depends on. Once any component is added,
+			// they're already on disk, and every subsequent `hex add` would print
+			// a misleading "use --overwrite" line for them — but you almost never
+			// want to clobber a customized lib/utils.ts just to add another
+			// component. Silently no-op for these. Component files keep the loud
+			// hint since "I want to refresh my Button source" is the common case.
+			if (isSharedLibFile(file)) continue;
 			console.log(`  Skip: ${file.path} (already exists, use --overwrite)`);
 			continue;
 		}
