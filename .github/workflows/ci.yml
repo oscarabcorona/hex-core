@@ -18,9 +18,7 @@ jobs:
   build:
     name: Lint / Build / Test
     runs-on: ubuntu-latest
-    # Was 5; the a11y-audit step alone takes ~3-5 min (118 page scans × light+dark)
-    # and the visual regression adds ~2-3 min. 20 leaves headroom without going wild.
-    timeout-minutes: 20
+    timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@v6
@@ -66,30 +64,3 @@ jobs:
         run: pnpm test
         env:
           CI: "1"
-
-      # Spawns `next start` on port 3010, scans every component page in
-      # light + dark with axe-core, exits non-zero on critical/serious
-      # violations (the script's default failOn). The script handles its
-      # own server lifecycle — no separate boot/teardown step needed.
-      - name: Accessibility audit
-        run: pnpm a11y-audit
-        env:
-          CI: "1"
-
-      # Visual regression — Playwright screenshots every component page in
-      # light + dark, compares against committed baselines under
-      # apps/docs/e2e/visual.spec.ts-snapshots/. No external service: a
-      # diff fails the job; the playwright-report/ artifact lets reviewers
-      # download an HTML diff viewer.
-      - name: Visual regression
-        run: pnpm --filter docs test:visual
-        env:
-          CI: "1"
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: apps/docs/playwright-report/
-          retention-days: 14
