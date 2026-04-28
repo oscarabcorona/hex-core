@@ -67,6 +67,10 @@ pnpm --filter @hex-core/mcp test:contract
 
 A green run proves the server speaks standard MCP regardless of which downstream client opens the connection. CI runs this on every push.
 
+## Upgrading from 0.3.0 → 0.4.0
+
+The `npx @hex-core/mcp` binary works exactly as before — no config changes for users of the stdio MCP server. Two breaking changes affect direct importers (Next.js apps, generator scripts, CI fixtures): the pure-function builders moved to a new package `@hex-core/payload`, and the published tarball no longer ships `registry/` directly. See [MIGRATION.md](./MIGRATION.md) for the full guide and replacement code snippets.
+
 ## Docs
 
 [hex-core.dev/docs/mcp](https://hex-core.dev/docs/mcp)
