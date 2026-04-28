@@ -7,7 +7,7 @@
 
 **The component layer for spec-driven UI development.**
 
-Hex UI turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 11 MCP tools over a catalog of 47 components.
+Hex UI turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 12 MCP tools over a catalog of 59 components.
 
 ## Why Hex UI?
 
@@ -16,7 +16,7 @@ shadcn/ui is built for humans browsing docs. Hex UI is built for **AI agents** t
 - **Machine-readable component specs** — Zod schemas with props, variants, slots, and constraints
 - **AI hints** — `whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes` per component
 - **Recipes** — six spec-driven blueprints (auth form, settings page, pricing table, data table, confirm-destructive, command palette) with ordered install steps and post-install checklists
-- **MCP server** — 11 tools for component discovery, installation, theming, scaffolding, and spec resolution
+- **MCP server** — 12 tools for component discovery, installation, theming, scaffolding, spec resolution, and emitting paste-into-LLM app context
 - **Token budgets** — each component declares its token cost for efficient LLM context usage
 
 ## Quick Start
@@ -41,8 +41,9 @@ Then ask Claude: *"Search hex-ui for a button component and add it to my project
 ### For Humans (CLI)
 
 ```bash
-npx @hex-core/cli init
-npx @hex-core/cli add button input label
+npx @hex-core/cli init                    # detects Tailwind v3 vs v4, scaffolds globals.css, auto-installs peer deps
+npx @hex-core/cli add button input label  # writes components, auto-installs Radix peers, rewrites imports to your @/ alias
+npx @hex-core/cli doctor                  # diagnose what's missing if anything breaks
 ```
 
 ## Packages
@@ -70,6 +71,7 @@ npx @hex-core/cli add button input label
 | `get_recipe` | Ordered install steps + post-install checklist |
 | `resolve_spec` | Deterministic brief → ranked component + recipe shortlist |
 | `verify_checklist` | Cross-check installed components against the internal-dep graph |
+| `emit_app_context` | Synthesize a paste-into-LLM markdown payload of theme + installed components |
 
 See **[hex-core.dev/docs/spec-driven](https://hex-core.dev/docs/spec-driven)** for the full spec-driven workflow.
 
@@ -103,7 +105,7 @@ This copies the skills into `.claude/skills/` so any agent working in your repo 
 
 ## Components
 
-**47 components** across primitives (Button, Input, Checkbox, Switch, Slider, …) and compounds (Combobox, DataTable, Command, Calendar, Date Picker, …). Every component ships with a machine-readable `.schema.ts` containing props, variants, AI hints (`whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes`), and a token budget.
+**59 components** across primitives (Button, Input, Checkbox, Switch, Slider, …) and compounds (Combobox, DataTable, Command, Calendar, Date Picker, …). Every component ships with a machine-readable `.schema.ts` containing props, variants, AI hints (`whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes`), and a token budget.
 
 Full catalog + live demos: **[hex-core.dev/docs](https://hex-core.dev/docs)**
 

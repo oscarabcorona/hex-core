@@ -13,13 +13,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * @throws {Error} If no candidate directory exists
  */
 function findRegistryDir(): string {
-	// Look for the registry directory relative to the package
-	// In development: ../../registry (from packages/mcp-server/src/tools/)
-	// In production (installed via npm): the registry is bundled or fetched
 	const candidates = [
-		path.resolve(__dirname, "../../../../registry"), // from src/tools/
-		path.resolve(__dirname, "../../../registry"), // from dist/
-		path.resolve(process.cwd(), "registry"), // from project root
+		// Bundled inside the published tarball: dist/index.js → ../registry
+		path.resolve(__dirname, "../registry"),
+		// Defensive: dist/<subdir>/x.js → ../../registry
+		path.resolve(__dirname, "../../registry"),
+		// Monorepo dev: packages/mcp-server/src/tools → ../../../../registry
+		path.resolve(__dirname, "../../../../registry"),
+		// Defensive: tsx run from packages/mcp-server/src → ../../../registry
+		path.resolve(__dirname, "../../../registry"),
+		// Last-resort: consumer-mirrored registry/ next to their cwd
+		path.resolve(process.cwd(), "registry"),
 	];
 
 	for (const candidate of candidates) {

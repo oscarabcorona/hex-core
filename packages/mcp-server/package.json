@@ -37,6 +37,7 @@
 	},
 	"files": [
 		"dist",
+		"registry",
 		"README.md",
 		"LICENSE"
 	],
@@ -44,7 +45,8 @@
 		"access": "public"
 	},
 	"scripts": {
-		"build": "pnpm clean && tsup && pnpm build:readme",
+		"prebuild": "rm -rf dist registry && cp -R ../../registry ./registry",
+		"build": "tsup && pnpm build:readme",
 		"build:readme": "node scripts/build-readme.mjs",
 		"start": "node dist/index.js",
 		"dev": "tsx src/index.ts",
@@ -52,7 +54,7 @@
 		"test:app-context": "tsx src/tools/app-context.test.ts",
 		"test:contract": "node dist/contract-test.js",
 		"test": "pnpm test:resolver && pnpm test:app-context && pnpm test:contract",
-		"clean": "rm -rf dist"
+		"clean": "rm -rf dist registry"
 	},
 	"dependencies": {
 		"@hex-core/registry": "workspace:^",

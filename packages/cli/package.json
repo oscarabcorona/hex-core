@@ -26,6 +26,7 @@
 	},
 	"files": [
 		"dist",
+		"registry",
 		"skills",
 		"README.md",
 		"LICENSE"
@@ -34,10 +35,10 @@
 		"access": "public"
 	},
 	"scripts": {
-		"prebuild": "rm -rf skills && cp -R ../../skills ./skills",
+		"prebuild": "rm -rf skills registry && cp -R ../../skills ./skills && cp -R ../../registry ./registry",
 		"build": "tsup",
 		"dev": "tsx src/index.ts",
-		"clean": "rm -rf dist skills",
+		"clean": "rm -rf dist skills registry",
 		"test": "vitest run"
 	},
 	"dependencies": {

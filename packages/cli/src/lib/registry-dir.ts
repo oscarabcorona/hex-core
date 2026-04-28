@@ -11,8 +11,15 @@ import { fileURLToPath } from "node:url";
 export function findRegistryDir(): string | null {
 	const here = path.dirname(fileURLToPath(import.meta.url));
 	const candidates = [
+		// Bundled inside the published tarball: dist/index.js → ../registry
+		path.resolve(here, "../registry"),
+		// Defensive: dist/<subdir>/x.js → ../../registry
+		path.resolve(here, "../../registry"),
+		// Monorepo dev: packages/cli/src/lib → ../../../../registry
 		path.resolve(here, "../../../../registry"),
+		// Defensive: tsx run from packages/cli/src → ../../../registry
 		path.resolve(here, "../../../registry"),
+		// Last-resort: consumer mirrored registry/ next to their app
 		path.resolve(process.cwd(), "registry"),
 	];
 

@@ -19,10 +19,11 @@ program
 	.option("-y, --yes", "Skip confirmation prompts", false)
 	.option("-o, --overwrite", "Overwrite existing files", false)
 	.option("--no-deps", "Don't install internal component dependencies recursively")
+	.option("--no-install", "Don't auto-install npm peer dependencies — only print the install line")
 	.action(
 		async (
 			components: string[],
-			options: { yes: boolean; overwrite: boolean; deps: boolean },
+			options: { yes: boolean; overwrite: boolean; deps: boolean; install: boolean },
 		) => {
 			const { addComponents } = await import("./commands/add.js");
 			await addComponents(components, options);
@@ -33,7 +34,9 @@ program
 	.command("init")
 	.description("Initialize Hex UI in your project")
 	.option("--theme <theme>", "Theme to use", "default")
-	.action(async (options: { theme: string }) => {
+	.option("--overwrite", "Replace existing globals.css and tailwind.config.ts", false)
+	.option("--no-install", "Don't auto-install peer dependencies — only print the install line")
+	.action(async (options: { theme: string; overwrite: boolean; install: boolean }) => {
 		const { initProject } = await import("./commands/init.js");
 		await initProject(options);
 	});
@@ -98,6 +101,16 @@ theme
 			await themeEdit({ file: options.file, tokens: options.token ?? [], mode: options.mode });
 		},
 	);
+
+program
+	.command("doctor")
+	.description("Diagnose your Hex UI install and report what's missing")
+	.action(async () => {
+		const { runDoctor, reportDoctor } = await import("./commands/doctor.js");
+		const checks = await runDoctor();
+		const code = reportDoctor(checks);
+		if (code !== 0) process.exit(code);
+	});
 
 const skills = program
 	.command("skills")
