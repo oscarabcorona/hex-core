@@ -1,7 +1,12 @@
 export interface AliasConfig {
 	components: string;
 	lib: string;
-	hooks: string;
+	/**
+	 * Optional — `hex init` no longer writes this by default since no registry
+	 * item imports from a `hooks/` path. Kept on the type for consumers who
+	 * extended their `hex.config.json` manually.
+	 */
+	hooks?: string;
 }
 
 /**
@@ -11,7 +16,6 @@ export interface AliasConfig {
 export const DEFAULT_ALIASES: AliasConfig = {
 	components: "@/components",
 	lib: "@/lib",
-	hooks: "@/hooks",
 };
 
 /**
