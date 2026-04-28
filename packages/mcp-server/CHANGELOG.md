@@ -1,5 +1,87 @@
 # @hex-core/mcp
 
+## 0.3.0
+
+### Minor Changes
+
+- d99548a: feat(mcp): extend emit_app_context with overrides, density, and full payload sections
+
+  `emit_app_context` now accepts two new optional inputs and emits three new sections,
+  locking the OS canonical to the Hex Studio "Copy for LLM" payload format documented
+  in `hex-ui-platform/docs/studio/copy-for-llm.md`.
+
+  **New inputs:**
+  - `overrides?: Record<string, string>` — per-token value overrides merged onto
+    the resolved theme's **light palette only** (dark + radius are out of scope
+    for v0.3.0; if you need them, call the tool a second time with a dark-shaped
+    theme). Keys absent from the base palette are still injected and flow into the
+    Tailwind config too. The highlight table marks overridden tokens with
+    `*(override)*`. Empty-string keys/values are rejected by the strict zod schema.
+  - `density?: "compact" | "comfortable" | "spacious"` — spacing-density preset
+    folded into the light palette before `globals.css` is rendered. Density
+    values WIN on key conflicts (e.g. a theme with `--space-4: 1rem` plus
+    `density: "compact"` emits `--space-4: 0.75rem` once, never both). `comfortable`
+    matches token defaults and is treated as a no-op. Density intentionally does
+    not apply to `.dark` — apps using class-based dark mode keep the same spacing
+    scale across light/dark, matching Studio's runtime canvas.
+
+  **New output sections** (theme-resolved cases only):
+  - `## globals.css` — full `@layer base { :root {} .dark {} }` block with all color
+    tokens, optional density vars, and overrides applied to light. Drop-in replacement
+    for a consumer's `app/globals.css`.
+  - `## tailwind.config.ts` — `theme.extend` block grouping six token buckets
+    (color, borderRadius, spacing, fontSize, transitionDuration, height) into
+    the right Tailwind fields so utility classes resolve. Empty buckets are
+    omitted. The same overridden + density-folded palette feeds both globals.css
+    and the Tailwind config, so brand-new override keys (e.g. `accent`) appear
+    in both surfaces consistently.
+  - `## Context prompt` — six LLM rules + scoped components-in-scope list + user-ask
+    placeholder. The "killer demo" section that lets a downstream model build
+    theme-perfect output on first try.
+
+  **Schema strictness:** the input schema's `.strict()` is exercised by a new
+  contract-test assertion — passing an unknown field now reliably surfaces as
+  InvalidParams from the SDK so consumers can trust `additionalProperties: false`
+  in the published JSON Schema.
+
+  Closes finding #5. Studio's `_lib/payload.ts` can drop its client-side template
+  in a follow-up `hex-ui-platform` PR and call `emit_app_context` directly via MCP.
+
+- ed8cd1e: feat(mcp): universal client support — six MCP clients verified, contract test in CI
+
+  Closes Theme C of the internal roadmap. The runtime was already universal (stdio-only `StdioServerTransport`, 12 client-agnostic tools, no Claude-specific code paths in `src/`) but the docs and metadata leaked Claude Code framing — only Claude Code and Cursor wiring snippets shipped, despite README copy claiming broader support.
+
+  This change replaces the duplicated snippets with a single source of truth and adds protocol-level proof that the server speaks standard MCP regardless of which downstream client opens the connection.
+
+  **New: `MCP_CLIENTS` data file**
+
+  [packages/mcp-server/src/clients.ts](packages/mcp-server/src/clients.ts) exports a typed array of 6 client wirings — Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, Zed — each carrying `configPath`, `format` (json / jsonc / yaml), `topLevelKey`, ready-to-paste `snippet`, `schemaStability`, `verifiedOn` (for the four volatile schemas), upstream `docsUrl`, and a `quirks` list. Re-exported via `package.json` `exports["./clients"]` so the docs app imports it as `@hex-core/mcp/clients`. Both the regenerated README and the [docs page](apps/docs/src/app/docs/mcp/page.tsx) render from this single array — no duplicate snippets.
+
+  **Per-client correctness**
+
+  Every snippet uses `npx -y @hex-core/mcp` (the `-y` flag prevents the first-run npx prompt from hanging stdio MCP clients). The four volatile-schema clients (Continue, Gemini CLI, ChatGPT Desktop, Zed) carry a `Verified 2026-04-27` badge so quarterly research-cadence refreshes can spot stale entries. Zed's `context_servers` (NOT `mcpServers`) and `source: "custom"` quirks are explicitly called out in both the README and the docs page.
+
+  **Contract test**
+
+  [packages/mcp-server/src/contract.test.ts](packages/mcp-server/src/contract.test.ts) drives the built server with the official `@modelcontextprotocol/sdk` Client over stdio — the same SDK every supported client uses underneath. A green run proves five end-to-end assertions:
+  1. `initialize` handshake completes
+  2. `tools/list` returns exactly the 12 canonical names from [src/tool-names.ts](packages/mcp-server/src/tool-names.ts) (set-equal, order-insensitive)
+  3. `tools/call list_themes` returns content where `content[0].text` parses as a JSON array
+  4. `resources/list` includes an entry with `uri === "hex://catalog"`
+  5. `client.close()` disposes the transport without throwing
+
+  The test runs in CI via the existing `pnpm test` cascade — no workflow changes needed. Build runs first, so `dist/contract-test.js` exists by the time the test fires.
+
+  **README regeneration**
+
+  [packages/mcp-server/scripts/build-readme.mjs](packages/mcp-server/scripts/build-readme.mjs) parses `clients.ts` and splices snippets into [packages/mcp-server/README.template.md](packages/mcp-server/README.template.md) at the `<!-- @generated:client-wiring -->` marker. Wired into the package's `build` script so README and the data file can never drift.
+
+  **Metadata cleanup**
+
+  `package.json` description switched from "Ships 12 tools over the registry for Claude Code / Cursor / any MCP client" to **"Universal MCP server for Hex UI — runs on Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, and Zed. 12 tools over the component registry."** Keywords drop `claude-code` and `cursor`; add `mcp-client-agnostic`.
+
+  Theme C success signal hit: **6/6 clients verified, zero Claude-only codepaths**.
+
 ## 0.2.0
 
 ### Minor Changes

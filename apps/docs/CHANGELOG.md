@@ -1,5 +1,13 @@
 # docs
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies [d99548a]
+- Updated dependencies [ed8cd1e]
+  - @hex-core/mcp@0.3.0
+
 ## 0.1.3
 
 ### Patch Changes
