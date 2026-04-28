@@ -21,6 +21,8 @@ shadcn/ui is built for humans browsing docs. Hex UI is built for **AI agents** t
 
 ## Quick Start
 
+> **Heads up:** the npm packages are scoped — `@hex-core/cli` and `@hex-core/mcp`. There is an unrelated `hex-core` package on npm by a different author; `npx hex-core …` will not work. Always use the scoped form below.
+
 ### For AI (MCP)
 
 Add to your Claude Code settings (`.claude/settings.json`):
