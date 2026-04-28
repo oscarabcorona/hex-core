@@ -55,8 +55,9 @@ describe("init", () => {
 		const css = fs.readFileSync(cssPath, "utf8");
 		expect(css).toContain(`@import "tailwindcss";`);
 		expect(css).toContain(`@import "tw-animate-css";`);
-		expect(css).toContain("@theme {");
-		expect(css).toContain("--color-background: hsl(");
+		expect(css).toContain("@theme inline {");
+		expect(css).toContain("--color-background: hsl(var(--background));");
+		expect(css).toMatch(/:root \{[\s\S]+?--background: [\d.]+ [\d.]+% [\d.]+%;/);
 
 		// v4 must NOT generate tailwind.config.ts
 		expect(fs.existsSync(path.join(tmpDir, "tailwind.config.ts"))).toBe(false);

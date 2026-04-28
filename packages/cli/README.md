@@ -6,15 +6,19 @@
 
 Copy Hex UI components into your project with one command. No runtime dependency on the library — you own the source.
 
+> **Package name:** the npm package is `@hex-core/cli` (scoped). The unscoped `hex-core` on npm is a different, unrelated project — `npx hex-core …` will not work. Always include the `@hex-core/` scope.
+
 ## Install & run
 
 No install required:
 
 ```bash
 pnpm dlx @hex-core/cli add button
+# or
+npx @hex-core/cli add button
 ```
 
-Or install globally:
+Or install globally — the binary is named `hex`:
 
 ```bash
 pnpm add -g @hex-core/cli

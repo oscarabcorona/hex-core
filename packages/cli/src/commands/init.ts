@@ -87,7 +87,6 @@ function writeHexConfig(configPath: string, theme: string): boolean {
 		aliases: {
 			components: "@/components",
 			lib: "@/lib",
-			hooks: "@/hooks",
 		},
 	};
 	fs.writeFileSync(configPath, JSON.stringify(config, null, 2));

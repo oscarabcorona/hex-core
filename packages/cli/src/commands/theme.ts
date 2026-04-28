@@ -138,6 +138,97 @@ function parseTokenOverrides(raw: string[]): Record<string, string> {
 	return overrides;
 }
 
+interface ApplyOptions {
+	name: string;
+	file: string;
+}
+
+/**
+ * Swap an existing globals.css to a different preset's tokens without
+ * touching @import directives, @theme inline blocks, body/border-color
+ * rules, or anything else the user might have customized. Replaces only
+ * the bodies of the `:root { ... }` and `.dark { ... }` token blocks.
+ *
+ * Designed to be the opposite of `hex theme init --overwrite`: that one
+ * regenerates the entire file from scratch (and clobbers user edits);
+ * this one is surgical, runs against an existing file, and is safe to
+ * re-run when switching themes.
+ *
+ * @param options - Configuration object.
+ * @param options.name - Preset to apply: default, midnight, or ember.
+ * @param options.file - Path to the globals.css to update (default: ./globals.css).
+ */
+export async function themeApply(options: ApplyOptions) {
+	const filePath = path.resolve(process.cwd(), options.file);
+	if (!fs.existsSync(filePath)) {
+		console.error(`${options.file} not found. Run 'hex init' first.`);
+		process.exit(1);
+	}
+
+	const presetName = options.name as PresetName;
+	if (!VALID_PRESETS.includes(presetName)) {
+		console.error(
+			`Unknown preset "${options.name}". Available: ${VALID_PRESETS.join(", ")}.`,
+		);
+		process.exit(1);
+	}
+
+	const tokens = await import("@hex-core/tokens");
+	const theme = tokens.getTheme(presetName);
+	if (!theme) {
+		console.error(`Preset "${presetName}" is registered but failed to load. This is a bug.`);
+		process.exit(1);
+	}
+
+	let css = fs.readFileSync(filePath, "utf8");
+	const replacedLight = replaceBlockBody(css, ":root", buildBlockBody(theme.tokens.light));
+	if (!replacedLight.updated) {
+		console.error(`Could not find a :root { ... } block in ${options.file}. Run 'hex init --overwrite' to regenerate from scratch.`);
+		process.exit(1);
+	}
+	css = replacedLight.css;
+	const replacedDark = replaceBlockBody(css, "\\.dark", buildBlockBody(theme.tokens.dark));
+	if (!replacedDark.updated) {
+		console.warn(`Could not find a .dark { ... } block — light theme updated, dark left untouched.`);
+	} else {
+		css = replacedDark.css;
+	}
+
+	fs.writeFileSync(filePath, css, "utf8");
+	console.log(`Applied "${theme.displayName}" preset to ${options.file}.`);
+	console.log(`Tokens: ${Object.keys(theme.tokens.light).length} light, ${Object.keys(theme.tokens.dark).length} dark.`);
+}
+
+function buildBlockBody(tokenSet: Record<string, unknown>): string {
+	const lines: string[] = [];
+	for (const [key, token] of Object.entries(tokenSet)) {
+		const value =
+			typeof token === "object" && token !== null && "value" in token
+				? String((token as { value: unknown }).value)
+				: String(token);
+		lines.push(`  --${key}: ${value};`);
+	}
+	return lines.join("\n");
+}
+
+interface BlockReplaceResult {
+	css: string;
+	updated: boolean;
+}
+
+/**
+ * Replace the body of `<selector> { ... }` with `body`. Preserves the
+ * selector + opening/closing braces so the file's overall shape stays
+ * intact. Non-greedy match on the body so an unrelated block later in
+ * the file isn't accidentally absorbed.
+ */
+function replaceBlockBody(css: string, blockSelector: string, body: string): BlockReplaceResult {
+	const re = new RegExp(`(${blockSelector}\\s*\\{)([\\s\\S]*?)(\\n\\})`, "m");
+	const match = css.match(re);
+	if (!match) return { css, updated: false };
+	return { css: css.replace(re, `$1\n${body}$3`), updated: true };
+}
+
 interface OverrideResult {
 	css: string;
 	updated: boolean;

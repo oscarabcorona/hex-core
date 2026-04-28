@@ -58,7 +58,6 @@ describe("rewriteRegistryImports", () => {
 		const out = rewriteRegistryImports(src, {
 			components: "~/ui",
 			lib: "~/utils",
-			hooks: "~/hooks",
 		});
 		expect(out).toBe(
 			`import { cn } from "~/utils/utils";\n` +
@@ -86,11 +85,10 @@ describe("rewriteRegistryImports", () => {
 		expect(out).toBe(`import { x } from "../command/popover";\n`);
 	});
 
-	it("default aliases match what hex init writes", () => {
+	it("default aliases match what hex init writes (no hooks — unused)", () => {
 		expect(DEFAULT_ALIASES).toEqual({
 			components: "@/components",
 			lib: "@/lib",
-			hooks: "@/hooks",
 		});
 	});
 });
