@@ -269,22 +269,40 @@ function generateGlobalsCssV4(theme: Theme): string {
 	lines.push("/* Class-based dark mode — set `.dark` on <html> via next-themes or your own provider. */");
 	lines.push("@custom-variant dark (&:is(.dark *));");
 	lines.push("");
+	// Bridge pattern: raw `H S% L%` triplets live in :root / .dark, and the
+	// @theme inline block aliases each `--color-<key>` to `hsl(var(--<key>))`.
+	// This shape is deliberate:
+	//   1. Keeps the raw `--<key>` triplet that `hex theme edit` searches for —
+	//      direct values inside @theme would silently break that command.
+	//   2. Keeps alpha-modifier utilities (bg-primary/50) cheap because the
+	//      `<H S% L%>` triplet composes via Tailwind v4's color-mix() machinery
+	//      with no per-utility re-derivation.
 	lines.push("/*");
-	lines.push(" * Color tokens use the --color-<key> namespace so generated utilities like");
-	lines.push(" * bg-background / text-muted-foreground emit var(--color-*), and the .dark");
-	lines.push(" * block below flips every usage at runtime.");
+	lines.push(" * Raw token triplets (H S% L%) — the source of truth that `hex theme edit`");
+	lines.push(" * mutates, and that the @theme inline block below aliases into Tailwind's");
+	lines.push(" * --color-<key> namespace.");
 	lines.push(" */");
-	lines.push("@theme {");
+	lines.push(":root {");
 	for (const [key, token] of Object.entries(theme.tokens.light)) {
-		if (extractType(token) !== "color") continue;
-		lines.push(`  --color-${key}: hsl(${extractValue(token)});`);
+		lines.push(`  --${key}: ${extractValue(token)};`);
 	}
 	lines.push("}");
 	lines.push("");
 	lines.push(".dark {");
 	for (const [key, token] of Object.entries(theme.tokens.dark)) {
+		lines.push(`  --${key}: ${extractValue(token)};`);
+	}
+	lines.push("}");
+	lines.push("");
+	lines.push("/*");
+	lines.push(" * Tailwind v4 namespace bridge — generated utilities like bg-background");
+	lines.push(" * resolve var(--color-background) here, which in turn reads var(--background)");
+	lines.push(" * from the blocks above.");
+	lines.push(" */");
+	lines.push("@theme inline {");
+	for (const [key, token] of Object.entries(theme.tokens.light)) {
 		if (extractType(token) !== "color") continue;
-		lines.push(`  --color-${key}: hsl(${extractValue(token)});`);
+		lines.push(`  --color-${key}: hsl(var(--${key}));`);
 	}
 	lines.push("}");
 	lines.push("");
