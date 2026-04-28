@@ -1,5 +1,13 @@
 # @hex-core/mcp
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [b9a072d]
+  - @hex-core/registry@0.3.0
+  - @hex-core/payload@0.2.1
+
 ## 0.4.0
 
 ### Minor Changes

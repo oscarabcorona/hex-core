@@ -1,5 +1,12 @@
 # @hex-core/components
 
+## 1.3.1
+
+### Patch Changes
+
+- Updated dependencies [b9a072d]
+  - @hex-core/registry@0.3.0
+
 ## 1.3.0
 
 ### Minor Changes

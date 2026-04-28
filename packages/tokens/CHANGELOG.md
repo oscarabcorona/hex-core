@@ -1,5 +1,12 @@
 # @hex-core/tokens
 
+## 1.2.1
+
+### Patch Changes
+
+- Updated dependencies [b9a072d]
+  - @hex-core/registry@0.3.0
+
 ## 1.2.0
 
 ### Minor Changes
