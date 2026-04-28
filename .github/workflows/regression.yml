@@ -1,14 +1,15 @@
 name: Regression (a11y + visual)
 
-# Post-merge gate. Runs the slow regression suite (~5–10 min) only after
-# changes land on main, so PR feedback stays fast (the lint/build/test
-# job in ci.yml still gates merges). If a regression slips through, this
-# workflow fails on main and the upload-artifact step preserves the
-# diffs / a11y reports for triage. `workflow_dispatch` lets the user
-# kick it manually against a feature branch when needed.
+# QA-stage gate. Runs the slow regression suite (~5–10 min) when changes
+# are promoted onto the `qa` branch — PRs to main stay fast (the
+# lint/build/test job in ci.yml gates merges to main); regression fires
+# only after main → qa promotion. `workflow_dispatch` lets the user
+# kick it manually against any branch when needed.
+#
+# Branch flow: feature → main → qa → release
 on:
   push:
-    branches: [main]
+    branches: [qa]
   workflow_dispatch:
 
 concurrency:
