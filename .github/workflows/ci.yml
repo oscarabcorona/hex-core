@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, qa, release]
+    branches: [main]
   pull_request:
-    branches: [main, qa, release]
+    branches: [main]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -20,7 +20,8 @@ permissions:
 # twice (once in `build`, once in `test`) — accepted as the cost of
 # parallel scheduling; remote turbo cache could remove the duplication
 # later. The slow regression suite (a11y + visual) lives in its own
-# workflow at regression.yml — runs on push to main, not on PRs.
+# workflow at regression.yml — workflow_dispatch only; the canonical
+# pre-release gate is `pnpm regression` run locally.
 jobs:
   lint:
     name: Lint
