@@ -183,15 +183,26 @@ async function main(): Promise<void> {
 		// values, not a stale inlined snapshot ───
 		// Before the @hex-core/payload extraction (PR #90), mcp inlined theme
 		// data per "to avoid runtime dependency on @hex-core/tokens" — that
-		// inlining drifted: mcp@0.3.0 shipped pre-v1.1.1 destructive (84.2%
-		// 60.2%) while @hex-core/tokens@latest already had 0 72% 45%. Lock
-		// the post-extraction shape: payload imports themes from tokens, so
-		// the emitted globals.css block must reflect the live tokens version.
-		// If this assertion fails, the inlining drift has crept back.
-		if (!ctxText.includes("--destructive: 0 72% 45%")) {
+		// inlining drifted (mcp@0.3.0 shipped pre-v1.1.1 destructive while
+		// @hex-core/tokens@latest already had a corrected value). Lock the
+		// post-extraction shape: payload imports themes from tokens, so the
+		// emitted globals.css block must reflect the LIVE tokens version.
+		//
+		// Read the expected value from the live default theme via payload
+		// (mcp-server doesn't depend on `@hex-core/tokens` directly — it
+		// goes through `@hex-core/payload`, same as the runtime). When
+		// default.ts changes (maintainer ships a new visual signature),
+		// this assertion stays green without a manual edit.
+		const { getTheme } = await import("@hex-core/payload");
+		const liveDefault = getTheme("default");
+		const expectedDestructive = liveDefault?.tokens.light.destructive?.value;
+		if (!expectedDestructive) {
+			fail("default theme's light destructive token missing — payload theme contract broken upstream.");
+		}
+		if (!ctxText.includes(`--destructive: ${expectedDestructive}`)) {
 			fail(
-				"emit_app_context globals.css block is stale — expected `--destructive: 0 72% 45%` " +
-					"from @hex-core/tokens@^1.2.0 (finding #18 regression). Got:\n" +
+				`emit_app_context globals.css block is stale — expected \`--destructive: ${expectedDestructive}\` ` +
+					"from @hex-core/tokens (finding #18 regression). Got:\n" +
 					(ctxText.match(/--destructive: [^;\n]+/)?.[0] ?? "<no destructive line>"),
 			);
 		}

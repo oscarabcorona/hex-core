@@ -20,24 +20,24 @@ const SECTIONS = [
 ];
 
 const COLOR_TOKENS_SNIPPET = `:root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%;
+  --background: 210 20% 98%;
+  --foreground: 222 30% 11%;
+  --card: 210 20% 98%;
+  --card-foreground: 222 30% 11%;
+  --primary: 222 25% 18%;
   --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  --destructive: 0 84.2% 60.2%;
+  --secondary: 222 5% 95.9%;
+  --secondary-foreground: 240 10% 3.9%;
+  --muted: 222 5% 95.9%;
+  --muted-foreground: 222 8% 38%;
+  --accent: 222 5% 95.9%;
+  --accent-foreground: 240 10% 3.9%;
+  --destructive: 0 65% 50%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
-  --radius: 0.625rem;
+  --border: 222 8% 90%;
+  --input: 222 8% 90%;
+  --ring: 222 25% 18%;
+  --radius: 0.375rem;
 }`;
 
 const LAYOUT_TOKENS_SNIPPET = `:root {
@@ -77,12 +77,12 @@ const LAYOUT_TOKENS_SNIPPET = `:root {
 }`;
 
 const DARK_SNIPPET = `.dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 70%;
-  --border: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
+  --background: 210 15% 2%;
+  --foreground: 222 22.5% 89%;
+  --muted: 222 3.8% 4.1%;
+  --muted-foreground: 0 0% 98%;
+  --border: 222 6% 10%;
+  --ring: 222 18.8% 82%;
 }`;
 
 const CUSTOM_PALETTE_SNIPPET = `/* Violet-tinted primary */

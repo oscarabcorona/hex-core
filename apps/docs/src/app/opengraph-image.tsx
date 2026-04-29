@@ -6,11 +6,11 @@ export const contentType = "image/png";
 export const alt = "Hex UI — AI-Native Component Library";
 
 /*
- * Color literals here are the RGB approximations of our HSL tokens
- * (`--color-background: hsl(240 10% 3.9%)` ≈ #0a0a0a; `--color-foreground:
- * hsl(0 0% 98%)` ≈ #fafafa). Satori cannot resolve CSS custom properties, so
- * they must be inlined. If the palette in `apps/docs/src/app/globals.css`
- * changes, refresh these to match.
+ * Colors here mirror the dark-mode palette in `apps/docs/src/app/globals.css`
+ * (`--color-background: hsl(210 15% 2%)`, `--color-foreground: hsl(222 22.5% 89%)`,
+ * `--color-primary: hsl(222 30% 60%)`, `--color-primary-foreground: hsl(210 15% 8%)`).
+ * Satori cannot resolve CSS custom properties, so they're inlined. If the
+ * palette in globals.css changes, refresh these to match.
  *
  * Satori requires every <div> with multiple children (text runs count too) to
  * declare `display: flex`. Every div below sets it explicitly.
@@ -33,8 +33,8 @@ export default function OpenGraphImage() {
 				width: "100%",
 				height: "100%",
 				padding: "80px",
-				background: "#0a0a0a",
-				color: "#fafafa",
+				background: "hsl(210 15% 2%)",
+				color: "hsl(222 22.5% 89%)",
 				fontFamily: "system-ui, -apple-system, sans-serif",
 			}}
 		>
@@ -47,8 +47,8 @@ export default function OpenGraphImage() {
 						width: 64,
 						height: 64,
 						borderRadius: 14,
-						background: "#fafafa",
-						color: "#0a0a0a",
+						background: "hsl(222 30% 60%)",
+						color: "hsl(210 15% 8%)",
 						fontWeight: 700,
 						fontSize: 36,
 					}}

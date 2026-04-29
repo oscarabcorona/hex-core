@@ -18,33 +18,35 @@
  * the docs site renders this file directly.
  */
 @theme {
-	--color-background: hsl(0 0% 100%);
-	--color-foreground: hsl(240 10% 3.9%);
-	--color-card: hsl(0 0% 100%);
-	--color-card-foreground: hsl(240 10% 3.9%);
-	--color-popover: hsl(0 0% 100%);
-	--color-popover-foreground: hsl(240 10% 3.9%);
-	--color-primary: hsl(240 5.9% 10%);
+	/* Modern minimalism — restrained cool grayscale (~222 hue) with a
+	 * graphite primary and a deliberate cool tint on the surface
+	 * background. The single-hue family carries identity across light +
+	 * dark; saturation stays low so the brand recedes and content leads.
+	 * High-contrast foreground (~16:1) and shadow elevation carry the
+	 * boundary identification on framed surfaces — same trade-off as
+	 * v1.0.2 when --secondary/--border were near-white. */
+	--color-background: hsl(210 20% 98%);
+	--color-foreground: hsl(222 30% 11%);
+	--color-card: hsl(210 20% 98%);
+	--color-card-foreground: hsl(222 30% 11%);
+	--color-popover: hsl(210 20% 98%);
+	--color-popover-foreground: hsl(222 30% 11%);
+	--color-primary: hsl(222 25% 18%);
 	--color-primary-foreground: hsl(0 0% 98%);
-	/* Default zinc neutral palette. --secondary, --border, and --input all sit
-	   at near-white values that fail strict WCAG 2.1 SC 1.4.11 (3:1) against
-	   --card (white). The L=58% strict fix shipped in v1.0.2 produced a
-	   visually heavy layout and was reverted in v1.1.x. High-contrast
-	   foreground text (~16:1) and shadow elevation carry the boundary
-	   identification on framed surfaces. */
-	--color-secondary: hsl(240 4.8% 95.9%);
-	--color-secondary-foreground: hsl(240 5.9% 10%);
-	--color-muted: hsl(240 4.8% 95.9%);
-	/* WCAG AA: muted-fg on muted-bg ~5.5:1 (was 4.39 — failed) */
-	--color-muted-foreground: hsl(240 4% 38%);
-	--color-accent: hsl(240 4.8% 95.9%);
-	--color-accent-foreground: hsl(240 5.9% 10%);
-	/* WCAG AA: destructive-fg on destructive-bg ~5.0:1 (was 3.6 — failed) */
-	--color-destructive: hsl(0 72% 45%);
+	--color-secondary: hsl(222 5% 95.9%);
+	--color-secondary-foreground: hsl(240 10% 3.9%);
+	--color-muted: hsl(222 5% 95.9%);
+	--color-muted-foreground: hsl(222 8% 38%);
+	--color-accent: hsl(222 5% 95.9%);
+	--color-accent-foreground: hsl(240 10% 3.9%);
+	/* Restrained destructive (65% saturation, vs shadcn-canon 72%) so the
+	 * red reads as "considered alarm" not "loud emergency." Contrast pairs
+	 * are gated by `pnpm a11y-audit` — no magic numbers in this comment. */
+	--color-destructive: hsl(0 65% 50%);
 	--color-destructive-foreground: hsl(0 0% 98%);
-	--color-border: hsl(240 5.9% 90%);
-	--color-input: hsl(240 5.9% 90%);
-	--color-ring: hsl(240 5.9% 10%);
+	--color-border: hsl(222 8% 90%);
+	--color-input: hsl(222 8% 90%);
+	--color-ring: hsl(222 25% 18%);
 	--shadow-glow: 0 0 4px rgb(0 0 0 / 0.1);
 }
 
@@ -52,7 +54,10 @@
 @theme inline {
 	--radius-sm: 0.25rem;
 	--radius-md: 0.5rem;
-	--radius-lg: 0.625rem;
+	/* radius-lg drives every Card / Dialog / Popover corner. Tightened from
+	 * shadcn-canon 0.625rem to 0.375rem in v1.3 — the modern-minimalist
+	 * signature. */
+	--radius-lg: 0.375rem;
 
 	--font-sans: var(--font-geist-sans);
 	--font-mono: var(--font-geist-mono);
@@ -84,34 +89,33 @@
 	--container-5xl: 66rem;
 }
 
-/* Dark-mode palette — applied when next-themes sets <html class="dark">. */
+/* Dark-mode palette — applied when next-themes sets <html class="dark">.
+ * Curated on top of the deriveDarkFromLight auto-derivation: card/popover
+ * lift one surface step above background so framed content reads as
+ * elevated; primary holds at a saturated mid-light slate (not near-white)
+ * so CTAs read as deliberate affordances; muted-foreground sits at
+ * perceptually-muted lightness so the "less important" semantic survives
+ * dark mode; border lifts so chrome is visible without heavy shadows. */
 .dark {
-	--color-background: hsl(240 10% 3.9%);
-	--color-foreground: hsl(0 0% 98%);
-	--color-card: hsl(240 10% 3.9%);
-	--color-card-foreground: hsl(0 0% 98%);
-	--color-popover: hsl(240 10% 3.9%);
-	--color-popover-foreground: hsl(0 0% 98%);
-	--color-primary: hsl(0 0% 98%);
-	--color-primary-foreground: hsl(240 5.9% 10%);
-	--color-secondary: hsl(240 3.7% 15.9%);
-	--color-secondary-foreground: hsl(0 0% 98%);
-	--color-muted: hsl(240 3.7% 15.9%);
-	/* WCAG AA: muted-foreground on muted-bg ~5.25:1 (was ~3.9:1 — failed) */
-	--color-muted-foreground: hsl(240 5% 70%);
-	--color-accent: hsl(240 3.7% 15.9%);
-	--color-accent-foreground: hsl(0 0% 98%);
-	/*
-	 * In dark mode the destructive token doubles as text on near-black surfaces
-	 * (alerts, error helper text). A lighter coral-red gives ~7:1 on background
-	 * and ~5:1 on the same color when used as a button bg paired with the
-	 * darker destructive-foreground below.
-	 */
-	--color-destructive: hsl(0 75% 65%);
-	--color-destructive-foreground: hsl(0 75% 15%);
-	--color-border: hsl(240 3.7% 15.9%);
-	--color-input: hsl(240 3.7% 15.9%);
-	--color-ring: hsl(240 4.9% 83.9%);
+	--color-background: hsl(210 15% 2%);
+	--color-foreground: hsl(222 22.5% 89%);
+	--color-card: hsl(210 15% 8%);
+	--color-card-foreground: hsl(222 22.5% 89%);
+	--color-popover: hsl(210 15% 8%);
+	--color-popover-foreground: hsl(222 22.5% 89%);
+	--color-primary: hsl(222 30% 60%);
+	--color-primary-foreground: hsl(210 15% 8%);
+	--color-secondary: hsl(222 8% 12%);
+	--color-secondary-foreground: hsl(222 22.5% 89%);
+	--color-muted: hsl(222 8% 12%);
+	--color-muted-foreground: hsl(222 8% 65%);
+	--color-accent: hsl(222 8% 12%);
+	--color-accent-foreground: hsl(222 22.5% 89%);
+	--color-destructive: hsl(0 48.8% 50%);
+	--color-destructive-foreground: hsl(0 0% 98%);
+	--color-border: hsl(222 8% 14%);
+	--color-input: hsl(222 8% 14%);
+	--color-ring: hsl(222 30% 60%);
 	--shadow-glow: 0 0 4px rgb(255 255 255 / 0.1);
 }
 
