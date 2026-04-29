@@ -39,7 +39,8 @@
 	},
 	"scripts": {
 		"build": "tsup",
-		"clean": "rm -rf dist"
+		"clean": "rm -rf dist",
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"clsx": "^2.1.0",
