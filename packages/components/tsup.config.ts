@@ -50,7 +50,16 @@ const entry = Object.fromEntries(
 export default defineConfig({
 	entry,
 	format: ["esm"],
-	dts: true,
+	// `experimentalDts` (tsup 8.x) drives type-decl generation through
+	// the TS compiler API + a lightweight rollup pass instead of the
+	// classic `rollup-plugin-dts` worker. The legacy path forced each
+	// of the 70+ entries to walk the FULL upstream type graph
+	// (streamdown → @ai-sdk → react-markdown → shiki's 600-literal
+	// `BundledLanguage`) inside a single worker, exhausting >4GB of
+	// heap. The experimental pipeline reuses TS's incremental program
+	// across entries and emits per-file `.d.ts` first, so the worker
+	// peaks at <1GB on this workspace.
+	experimentalDts: true,
 	clean: true,
 	sourcemap: true,
 	// `splitting: false` is critical for "use client" preservation. With

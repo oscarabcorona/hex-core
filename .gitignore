@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.tsup/
 .turbo/
 *.tsbuildinfo
 # CLI prebuild copies repo-root skills/ here. Source of truth is ./skills at repo root.

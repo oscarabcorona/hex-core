@@ -15,12 +15,6 @@
       "description": "Raw markdown. May be a partial chunk during streaming."
     },
     {
-      "name": "components",
-      "type": "object",
-      "required": false,
-      "description": "Per-element overrides (e.g. plug in CodeBlock for `pre`/`code`)."
-    },
-    {
       "name": "className",
       "type": "string",
       "required": false,
@@ -41,7 +35,7 @@
   "files": [
     {
       "path": "components/ui/markdown.tsx",
-      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Streamdown, type StreamdownProps } from \"streamdown\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Streaming-safe markdown renderer. Wraps Vercel's `streamdown` so partial\n * input mid-stream — unclosed code fences, half-typed tags, dangling\n * brackets — renders gracefully instead of throwing or flashing raw text.\n *\n * For per-element overrides (e.g. plug in a `<CodeBlock />` for `pre`/`code`\n * blocks, or a custom `<Citation />` for footnote-style links), pass\n * `components`. Exposes the underlying StreamdownProps so consumers can opt\n * into mermaid, math, line numbers, etc. without us mirroring the API.\n *\n * @example\n * <Message role=\"assistant\">\n *   <Markdown>{streamingText}</Markdown>\n * </Message>\n * @example\n * <Markdown components={{ pre: ({ children }) => <CodeBlock code={extractCode(children)} /> }}>\n *   {markdown}\n * </Markdown>\n */\nexport interface MarkdownProps extends Omit<StreamdownProps, \"children\"> {\n\t/** Raw markdown. May be a partial chunk during streaming. */\n\tchildren: string;\n\tclassName?: string;\n}\n\n/**\n * Renders streaming-safe markdown.\n * @param props - children string + optional Streamdown overrides\n * @returns A Streamdown root scoped with prose styles\n */\nfunction Markdown({ children, className, ...rest }: MarkdownProps) {\n\treturn (\n\t\t<Streamdown\n\t\t\tclassName={cn(\n\t\t\t\t\"prose prose-sm max-w-none text-foreground\",\n\t\t\t\t\"prose-headings:text-foreground prose-strong:text-foreground\",\n\t\t\t\t\"prose-a:text-primary prose-a:underline-offset-4 hover:prose-a:underline\",\n\t\t\t\t\"prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t\t{...rest}\n\t\t>\n\t\t\t{children}\n\t\t</Streamdown>\n\t);\n}\n\nexport { Markdown };\n",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Streamdown } from \"streamdown\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Streaming-safe markdown renderer. Wraps Vercel's `streamdown` so partial\n * input mid-stream — unclosed code fences, half-typed tags, dangling\n * brackets — renders gracefully instead of throwing or flashing raw text.\n *\n * Public prop surface is intentionally minimal (`children` + `className`)\n * so this primitive's DTS doesn't drag in `streamdown`'s full type graph.\n * Doing so would transitively pull Shiki's 600-literal `BundledLanguage`\n * union into the rollup-dts pass and exhaust heap. For per-element\n * overrides (custom `pre`, `code`, `a`, `img`, mermaid, math, line\n * numbers, plugins, etc.) drop down to `Streamdown` directly:\n *\n * ```tsx\n * import { Streamdown } from \"streamdown\";\n * import { CodeBlock } from \"@hex-core/components\";\n * <Streamdown components={{ pre: (p) => <CodeBlock {...p} /> }}>{md}</Streamdown>\n * ```\n *\n * @example\n * <Message role=\"assistant\">\n *   <Markdown>{streamingText}</Markdown>\n * </Message>\n */\nexport interface MarkdownProps {\n\t/** Raw markdown. May be a partial chunk during streaming. */\n\tchildren: string;\n\tclassName?: string;\n}\n\n/**\n * Renders streaming-safe markdown.\n * @param props - children string + optional Streamdown overrides\n * @returns A Streamdown root scoped with prose styles\n */\nfunction Markdown({ children, className }: MarkdownProps) {\n\treturn (\n\t\t<Streamdown\n\t\t\tclassName={cn(\n\t\t\t\t\"prose prose-sm max-w-none text-foreground\",\n\t\t\t\t\"prose-headings:text-foreground prose-strong:text-foreground\",\n\t\t\t\t\"prose-a:text-primary prose-a:underline-offset-4 hover:prose-a:underline\",\n\t\t\t\t\"prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t>\n\t\t\t{children}\n\t\t</Streamdown>\n\t);\n}\n\nexport { Markdown };\n",
       "type": "component"
     },
     {
@@ -85,9 +79,9 @@
       ]
     },
     {
-      "title": "Plug in CodeBlock for fenced code",
-      "description": "Override the default `pre` renderer to use Hex Core CodeBlock.",
-      "code": "<Markdown\n  components={{\n    pre: ({ children }) => {\n      const child = React.Children.only(children) as ReactElement<{ className?: string; children?: string }>;\n      const lang = child.props.className?.replace(/^language-/, \"\") ?? \"text\";\n      return <CodeBlock code={String(child.props.children).trim()} language={lang as SupportedLang} />;\n    },\n  }}\n>{markdown}</Markdown>",
+      "title": "Custom rendering: drop down to Streamdown",
+      "description": "For per-element overrides, use streamdown directly with our CodeBlock primitive.",
+      "code": "import { Streamdown } from \"streamdown\";\nimport { CodeBlock } from \"@hex-core/components\";\n\n<Streamdown components={{ pre: ({ children }) => <CodeBlock code={extractCode(children)} /> }}>\n  {markdown}\n</Streamdown>",
       "composition": [
         "chat",
         "code",
@@ -100,7 +94,7 @@
     "whenNotToUse": "Don't use for plain text without formatting (just render the string). Don't bypass it for streamed content — partial input WILL break a non-streaming parser.",
     "commonMistakes": [
       "Passing JSX children instead of a markdown string — Markdown only accepts strings",
-      "Disabling `parseIncompleteMarkdown` during streaming — that defeats the streaming-safe guarantee",
+      "Trying to override per-element renderers via Markdown — drop down to `Streamdown` directly for that (we keep our public surface minimal so the DTS bundle doesn't drag in shiki's giant language union)",
       "Forgetting Tailwind Typography (`prose`) classes are required to style the output"
     ],
     "relatedComponents": [

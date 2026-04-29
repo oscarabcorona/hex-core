@@ -9,7 +9,7 @@ export default tseslint.config(
 	jsdoc.configs["flat/recommended-typescript-flavor"],
 	prettier,
 	{
-		ignores: ["**/dist/**", "**/node_modules/**", "registry/**", "apps/**"],
+		ignores: ["**/dist/**", "**/node_modules/**", "**/.tsup/**", "registry/**", "apps/**"],
 	},
 	{
 		rules: {

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Streamdown, type StreamdownProps } from "streamdown";
+import { Streamdown } from "streamdown";
 import { cn } from "../../lib/utils.js";
 
 /**
@@ -9,21 +9,25 @@ import { cn } from "../../lib/utils.js";
  * input mid-stream — unclosed code fences, half-typed tags, dangling
  * brackets — renders gracefully instead of throwing or flashing raw text.
  *
- * For per-element overrides (e.g. plug in a `<CodeBlock />` for `pre`/`code`
- * blocks, or a custom `<Citation />` for footnote-style links), pass
- * `components`. Exposes the underlying StreamdownProps so consumers can opt
- * into mermaid, math, line numbers, etc. without us mirroring the API.
+ * Public prop surface is intentionally minimal (`children` + `className`)
+ * so this primitive's DTS doesn't drag in `streamdown`'s full type graph.
+ * Doing so would transitively pull Shiki's 600-literal `BundledLanguage`
+ * union into the rollup-dts pass and exhaust heap. For per-element
+ * overrides (custom `pre`, `code`, `a`, `img`, mermaid, math, line
+ * numbers, plugins, etc.) drop down to `Streamdown` directly:
+ *
+ * ```tsx
+ * import { Streamdown } from "streamdown";
+ * import { CodeBlock } from "@hex-core/components";
+ * <Streamdown components={{ pre: (p) => <CodeBlock {...p} /> }}>{md}</Streamdown>
+ * ```
  *
  * @example
  * <Message role="assistant">
  *   <Markdown>{streamingText}</Markdown>
  * </Message>
- * @example
- * <Markdown components={{ pre: ({ children }) => <CodeBlock code={extractCode(children)} /> }}>
- *   {markdown}
- * </Markdown>
  */
-export interface MarkdownProps extends Omit<StreamdownProps, "children"> {
+export interface MarkdownProps {
 	/** Raw markdown. May be a partial chunk during streaming. */
 	children: string;
 	className?: string;
@@ -34,7 +38,7 @@ export interface MarkdownProps extends Omit<StreamdownProps, "children"> {
  * @param props - children string + optional Streamdown overrides
  * @returns A Streamdown root scoped with prose styles
  */
-function Markdown({ children, className, ...rest }: MarkdownProps) {
+function Markdown({ children, className }: MarkdownProps) {
 	return (
 		<Streamdown
 			className={cn(
@@ -44,7 +48,6 @@ function Markdown({ children, className, ...rest }: MarkdownProps) {
 				"prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none",
 				className,
 			)}
-			{...rest}
 		>
 			{children}
 		</Streamdown>

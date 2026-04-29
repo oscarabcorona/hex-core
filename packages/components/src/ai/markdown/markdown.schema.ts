@@ -15,12 +15,6 @@ export const markdownSchema: ComponentSchemaDefinition = {
 			description: "Raw markdown. May be a partial chunk during streaming.",
 		},
 		{
-			name: "components",
-			type: "object",
-			required: false,
-			description: "Per-element overrides (e.g. plug in CodeBlock for `pre`/`code`).",
-		},
-		{
 			name: "className",
 			type: "string",
 			required: false,
@@ -50,9 +44,9 @@ export const markdownSchema: ComponentSchemaDefinition = {
 			composition: ["chat", "streaming", "markdown"],
 		},
 		{
-			title: "Plug in CodeBlock for fenced code",
-			description: "Override the default `pre` renderer to use Hex Core CodeBlock.",
-			code: '<Markdown\n  components={{\n    pre: ({ children }) => {\n      const child = React.Children.only(children) as ReactElement<{ className?: string; children?: string }>;\n      const lang = child.props.className?.replace(/^language-/, "") ?? "text";\n      return <CodeBlock code={String(child.props.children).trim()} language={lang as SupportedLang} />;\n    },\n  }}\n>{markdown}</Markdown>',
+			title: "Custom rendering: drop down to Streamdown",
+			description: "For per-element overrides, use streamdown directly with our CodeBlock primitive.",
+			code: 'import { Streamdown } from "streamdown";\nimport { CodeBlock } from "@hex-core/components";\n\n<Streamdown components={{ pre: ({ children }) => <CodeBlock code={extractCode(children)} /> }}>\n  {markdown}\n</Streamdown>',
 			composition: ["chat", "code", "override"],
 		},
 	],
@@ -63,7 +57,7 @@ export const markdownSchema: ComponentSchemaDefinition = {
 			"Don't use for plain text without formatting (just render the string). Don't bypass it for streamed content — partial input WILL break a non-streaming parser.",
 		commonMistakes: [
 			"Passing JSX children instead of a markdown string — Markdown only accepts strings",
-			"Disabling `parseIncompleteMarkdown` during streaming — that defeats the streaming-safe guarantee",
+			"Trying to override per-element renderers via Markdown — drop down to `Streamdown` directly for that (we keep our public surface minimal so the DTS bundle doesn't drag in shiki's giant language union)",
 			"Forgetting Tailwind Typography (`prose`) classes are required to style the output",
 		],
 		relatedComponents: ["message", "code-block", "citation"],

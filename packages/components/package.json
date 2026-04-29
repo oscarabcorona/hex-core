@@ -93,6 +93,7 @@
 	},
 	"devDependencies": {
 		"@hex-core/registry": "workspace:^",
+		"@microsoft/api-extractor": "^7.58.7",
 		"@tanstack/react-table": "^8.21.3",
 		"@types/react": "^19.0.0",
 		"@types/react-dom": "^19.0.0",

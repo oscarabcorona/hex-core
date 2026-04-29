@@ -1,18 +1,28 @@
 import * as React from "react";
 import { cache } from "react";
-import { type BundledLanguage, codeToHtml } from "shiki";
+import { codeToHtml } from "shiki";
 import { cn } from "../../lib/utils.js";
 import { CodeBlockCopy } from "./code-block-copy.js";
 
 /**
- * Languages we surface in the prop type. Defined as a strict subset of
- * Shiki's `BundledLanguage` (plus `"text"` from `PlainTextLanguage`) so the
- * `language` prop is type-checked against the real list of bundled grammars
- * without casting at the call site. Consumers needing other grammars can
- * widen this type and pass any Shiki language ID through.
+ * Languages we surface in the prop type. Plain literal union of real
+ * Shiki grammar IDs — kept literal (not `Extract<BundledLanguage, …>`)
+ * because Shiki's full bundled-language union is 600+ literals, and
+ * deriving from it forced the rollup-dts pass past a 4GB heap. The
+ * literals here are all standard Shiki grammar IDs; if Shiki removes
+ * one upstream, `codeToHtml` will throw at runtime — acceptable trade.
  */
 export type SupportedLang =
-	| Extract<BundledLanguage, "bash" | "ts" | "tsx" | "js" | "jsx" | "json" | "css" | "html" | "md" | "py">
+	| "bash"
+	| "ts"
+	| "tsx"
+	| "js"
+	| "jsx"
+	| "json"
+	| "css"
+	| "html"
+	| "md"
+	| "py"
 	| "text";
 
 const LABEL_TO_LANG: Record<string, SupportedLang> = {
