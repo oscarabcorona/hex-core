@@ -18,12 +18,12 @@ const SECTIONS = [
 ];
 
 const TAILWIND_SNIPPET = `@theme {
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(240 10% 3.9%);
-  --color-primary: hsl(240 5.9% 10%);
+  --color-background: hsl(210 20% 98%);
+  --color-foreground: hsl(222 30% 11%);
+  --color-primary: hsl(222 25% 18%);
   --color-primary-foreground: hsl(0 0% 98%);
-  --color-border: hsl(240 5.9% 90%);
-  --color-ring: hsl(240 5.9% 10%);
+  --color-border: hsl(222 8% 90%);
+  --color-ring: hsl(222 25% 18%);
 }`;
 
 /** Installation guide — requirements, CLI, manual, Tailwind config. */

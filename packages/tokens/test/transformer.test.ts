@@ -132,7 +132,12 @@ describe("themeToCss", () => {
 describe("themeToFlatJson", () => {
 	it("returns a flat record keyed by --token-name in light mode", () => {
 		const flat = themeToFlatJson(defaultTheme, "light");
-		expect(flat["--background"]).toBe("0 0% 100%");
+		// `--background` is theme-specific and shifts when the default
+		// palette changes (e.g. v1.3 moved off the shadcn-canon `0 0% 100%`
+		// to a cool-tinted `210 20% 98%`). Assert against the live theme
+		// value rather than a literal — this catches transformer drift
+		// without breaking on intentional palette swaps.
+		expect(flat["--background"]).toBe(defaultTheme.tokens.light.background?.value);
 		expect(flat["--space-4"]).toBe("1rem");
 	});
 

@@ -3,10 +3,14 @@
 import { useState } from "react";
 import { ColorPicker } from "../../components/ui";
 
+// Seeds match the live `defaultTheme.tokens.light` values so the demo
+// shows the actual palette consumers see in the catalog. If the default
+// theme changes, refresh these to match (or, future work, source them
+// from `@hex-core/tokens`'s `defaultTheme` directly).
 const TOKENS: ReadonlyArray<{ id: string; label: string; initial: string }> = [
-	{ id: "primary", label: "Primary", initial: "240 5.9% 10%" },
+	{ id: "primary", label: "Primary", initial: "222 25% 18%" },
 	{ id: "accent", label: "Accent", initial: "262 83% 58%" },
-	{ id: "destructive", label: "Destructive", initial: "0 72% 45%" },
+	{ id: "destructive", label: "Destructive", initial: "0 65% 50%" },
 ];
 
 /**
