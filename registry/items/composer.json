@@ -1,0 +1,153 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "composer",
+  "displayName": "Composer",
+  "description": "Multi-line input + submission shell for chat. Submits on Enter (Shift+Enter inserts newline). Trailing slot for attachment + send buttons.",
+  "category": "ai",
+  "subcategory": "input",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "value",
+      "type": "string",
+      "required": true,
+      "description": "Controlled textarea value."
+    },
+    {
+      "name": "onValueChange",
+      "type": "function",
+      "required": true,
+      "description": "Called with the new value on each keystroke."
+    },
+    {
+      "name": "onSubmit",
+      "type": "function",
+      "required": true,
+      "description": "Called with the trimmed value on Enter or form submit."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Lock the input and suppress submission (e.g. during streaming)."
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "required": false,
+      "description": "Textarea placeholder copy."
+    },
+    {
+      "name": "submitOnEnter",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Submit when Enter is pressed without Shift. Disable to require button click."
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Trailing slot — attachment buttons, voice toggle, send button, etc."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the form wrapper."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "children",
+      "description": "Trailing action buttons rendered after the textarea.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/composer.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Multi-line text input + submission shell for chat composers. Headless on\n * data flow — `value`/`onValueChange` are required so the consumer keeps\n * input state wherever fits (a `useChat` hook, a parent form, local state).\n *\n * Submits on Enter (without Shift). Children render after the textarea —\n * the canonical place for attachment buttons + a send button.\n *\n * Spreads remaining props onto the underlying `<form>`, so consumers can\n * pass `aria-label`, `id`, `name`, `data-*`, and similar attributes.\n *\n * @example\n * <Composer\n *   value={input}\n *   onValueChange={setInput}\n *   onSubmit={(v) => sendMessage(v)}\n *   placeholder=\"Ask anything…\"\n * >\n *   <Button type=\"submit\">Send</Button>\n * </Composer>\n */\nexport interface ComposerProps\n\textends Omit<React.FormHTMLAttributes<HTMLFormElement>, \"onSubmit\" | \"children\"> {\n\tvalue: string;\n\tonValueChange: (value: string) => void;\n\tonSubmit: (value: string) => void;\n\tdisabled?: boolean;\n\tplaceholder?: string;\n\t/** Submit on Enter without Shift. Default true. */\n\tsubmitOnEnter?: boolean;\n\t/** Accessible name for the textarea. Defaults to `placeholder` when set, else \"Message\". */\n\ttextareaAriaLabel?: string;\n\t/** Trailing slot — attachment buttons, send button, etc. */\n\tchildren?: React.ReactNode;\n}\n\n/**\n * Renders a chat composer with a textarea + slot for action buttons.\n * @param props - controlled value/handlers + slot children\n * @returns A form element with a textarea and trailing slot\n */\nfunction Composer({\n\tvalue,\n\tonValueChange,\n\tonSubmit,\n\tdisabled,\n\tplaceholder,\n\tsubmitOnEnter = true,\n\ttextareaAriaLabel,\n\tchildren,\n\tclassName,\n\t...rest\n}: ComposerProps) {\n\tfunction trySubmit() {\n\t\tconst trimmed = value.trim();\n\t\tif (!trimmed || disabled) return;\n\t\tonSubmit(trimmed);\n\t}\n\n\tfunction handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {\n\t\tif (!submitOnEnter) return;\n\t\tif (event.key === \"Enter\" && !event.shiftKey && !event.nativeEvent.isComposing) {\n\t\t\tevent.preventDefault();\n\t\t\ttrySubmit();\n\t\t}\n\t}\n\n\tfunction handleSubmit(event: React.FormEvent<HTMLFormElement>) {\n\t\tevent.preventDefault();\n\t\ttrySubmit();\n\t}\n\n\treturn (\n\t\t<form\n\t\t\t{...rest}\n\t\t\tonSubmit={handleSubmit}\n\t\t\tclassName={cn(\n\t\t\t\t\"flex items-end gap-2 rounded-lg border bg-background p-2\",\n\t\t\t\t\"focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2\",\n\t\t\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t>\n\t\t\t<textarea\n\t\t\t\tvalue={value}\n\t\t\t\tonChange={(event) => onValueChange(event.target.value)}\n\t\t\t\tonKeyDown={handleKeyDown}\n\t\t\t\tdisabled={disabled}\n\t\t\t\tplaceholder={placeholder}\n\t\t\t\taria-label={textareaAriaLabel ?? placeholder ?? \"Message\"}\n\t\t\t\trows={1}\n\t\t\t\tclassName={cn(\n\t\t\t\t\t\"flex-1 resize-none bg-transparent px-2 py-1.5 text-sm leading-6\",\n\t\t\t\t\t\"placeholder:text-muted-foreground focus:outline-none\",\n\t\t\t\t\t\"disabled:cursor-not-allowed disabled:opacity-50\",\n\t\t\t\t\t\"max-h-48 min-h-[2.25rem] overflow-y-auto\",\n\t\t\t\t)}\n\t\t\t/>\n\t\t\t{children}\n\t\t</form>\n\t);\n}\n\nexport { Composer };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "background",
+    "ring",
+    "muted-foreground"
+  ],
+  "examples": [
+    {
+      "title": "Basic composer",
+      "description": "Controlled input + send button.",
+      "code": "const [value, setValue] = useState(\"\");\n<Composer\n  value={value}\n  onValueChange={setValue}\n  onSubmit={(v) => { send(v); setValue(\"\"); }}\n  placeholder=\"Ask anything…\"\n>\n  <Button type=\"submit\" disabled={!value.trim()}>Send</Button>\n</Composer>",
+      "composition": [
+        "chat",
+        "form"
+      ]
+    },
+    {
+      "title": "With attachment slot",
+      "description": "Attach button on the leading edge of the trailing slot.",
+      "code": "<Composer value={v} onValueChange={setV} onSubmit={send}>\n  <Button variant=\"ghost\" size=\"icon\" onClick={pickFile}><Paperclip /></Button>\n  <Button type=\"submit\">Send</Button>\n</Composer>",
+      "composition": [
+        "chat",
+        "form",
+        "attachment"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Wrap any user-input surface in an AI app — chatbots, AI editors, agent prompts. Pair with `useChat` from @ai-sdk/react or any equivalent state hook.",
+    "whenNotToUse": "Don't use for non-chat forms (use Form + Textarea). Don't bake fetch/streaming logic into onSubmit — keep the network call in the consumer.",
+    "commonMistakes": [
+      "Calling onSubmit with the raw event instead of the value — onSubmit receives the trimmed string already",
+      "Forgetting to clear `value` after submit — Composer is fully controlled",
+      "Wrapping the component in <form> — Composer renders its own form element"
+    ],
+    "relatedComponents": [
+      "message-list",
+      "suggestion",
+      "loading-indicator"
+    ],
+    "accessibilityNotes": "Renders a real <form> + <textarea>, so Enter submission and screen-reader announcements work without extra ARIA. Pass `aria-label` on the wrapper if there's no visible label.",
+    "tokenBudget": 280
+  },
+  "tags": [
+    "ai",
+    "input",
+    "chat",
+    "form",
+    "composer",
+    "textarea"
+  ]
+}

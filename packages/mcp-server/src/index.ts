@@ -44,7 +44,7 @@ server.registerTool(
 					.optional()
 					.describe("Search query to match against name, description, and tags"),
 				category: z
-					.enum(["primitive", "component", "block", "example", "hook", "lib"])
+					.enum(["primitive", "component", "block", "example", "hook", "lib", "ai"])
 					.optional()
 					.describe("Filter by category"),
 				tags: z.array(z.string()).optional().describe("Filter by tags (matches any)"),

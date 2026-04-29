@@ -32,12 +32,24 @@ interface SchemaFile {
  * Discover all component schema files across category directories.
  * @returns An array of schema file descriptors with category, name, and file paths
  */
+/**
+ * Filesystem-directory → category-key map. Explicit so future additions
+ * (`hooks`, `libs`, `themes`) don't get silently mangled by a `replace(/s$/)`
+ * heuristic — `"libs"` would map to `"lib"` correctly, but `"docs"` would
+ * become `"doc"`. Add new entries here when adding new top-level dirs.
+ */
+const CATEGORY_DIR_TO_KEY = {
+	primitives: "primitive",
+	components: "component",
+	blocks: "block",
+	ai: "ai",
+} as const;
+
 function findSchemaFiles(): SchemaFile[] {
 	const results: SchemaFile[] = [];
-	const categories = ["primitives", "components", "blocks"];
 
-	for (const category of categories) {
-		const categoryDir = path.join(COMPONENTS_SRC, category);
+	for (const [dirName, categoryKey] of Object.entries(CATEGORY_DIR_TO_KEY)) {
+		const categoryDir = path.join(COMPONENTS_SRC, dirName);
 		if (!fs.existsSync(categoryDir)) continue;
 
 		for (const componentDir of fs.readdirSync(categoryDir)) {
@@ -49,7 +61,7 @@ function findSchemaFiles(): SchemaFile[] {
 
 			if (fs.existsSync(schemaFile) && fs.existsSync(componentFile)) {
 				results.push({
-					category: category === "primitives" ? "primitive" : category.replace(/s$/, ""),
+					category: categoryKey,
 					name: componentDir,
 					schemaPath: schemaFile,
 					componentPath: componentFile,

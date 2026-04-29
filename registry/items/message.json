@@ -1,0 +1,163 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "message",
+  "displayName": "Message",
+  "description": "Single chat-message row scoped to one speaker (user / assistant / system / tool). Headless content slot — pair with Markdown, CodeBlock, or ToolCall children.",
+  "category": "ai",
+  "subcategory": "chat",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "role",
+      "type": "enum",
+      "required": true,
+      "description": "Speaker. Drives variant styling and the data-role attribute.",
+      "enumValues": [
+        "user",
+        "assistant",
+        "system",
+        "tool"
+      ]
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Message content. Strings, Markdown, CodeBlock, ToolCall, or any composition."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes merged onto the row."
+    }
+  ],
+  "variants": [
+    {
+      "name": "role",
+      "description": "Visual treatment per speaker.",
+      "values": [
+        {
+          "value": "user",
+          "description": "Tinted secondary background — user turns.",
+          "useWhen": "The author is the human."
+        },
+        {
+          "value": "assistant",
+          "description": "Card background — model output.",
+          "useWhen": "The author is the LLM/agent."
+        },
+        {
+          "value": "system",
+          "description": "Muted, italic — system instructions.",
+          "useWhen": "Rendering a visible system prompt or framing message."
+        },
+        {
+          "value": "tool",
+          "description": "Accent left-border — tool messages distinct from assistant text.",
+          "useWhen": "Showing raw tool/function output as its own turn."
+        }
+      ],
+      "default": "assistant"
+    }
+  ],
+  "slots": [
+    {
+      "name": "children",
+      "description": "Message body. Compose with Markdown, CodeBlock, ToolCall, or plain text.",
+      "required": true,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/message.tsx",
+      "content": "import { type VariantProps, cva } from \"class-variance-authority\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\nimport type { Role } from \"../types.js\";\n\nconst messageVariants = cva(\n\t[\n\t\t\"flex w-full gap-3 px-4 py-3 text-sm\",\n\t\t\"transition-colors duration-[var(--duration-normal,200ms)] ease-out\",\n\t].join(\" \"),\n\t{\n\t\tvariants: {\n\t\t\trole: {\n\t\t\t\tuser: \"bg-secondary/40 text-foreground\",\n\t\t\t\tassistant: \"bg-card text-card-foreground\",\n\t\t\t\tsystem: \"bg-muted text-muted-foreground italic\",\n\t\t\t\ttool: \"bg-accent/15 text-accent-foreground border-l-2 border-accent\",\n\t\t\t},\n\t\t},\n\t\tdefaultVariants: {\n\t\t\trole: \"assistant\",\n\t\t},\n\t},\n);\n\n/**\n * Single chat message row. Renders content with role-specific styling and a\n * `data-role` attribute so consumers can target arbitrary roles via CSS.\n *\n * Headless: accepts any `children`. Pair with `Markdown` + `CodeBlock` for\n * assistant turns, with `ToolCall` for agent steps, or with plain strings.\n *\n * @example\n * <Message role=\"user\">What's the weather?</Message>\n * @example\n * <Message role=\"assistant\">\n *   <Markdown>{streamingText}</Markdown>\n *   <ToolCall name=\"getWeather\" state=\"result\" args={...} result={...} />\n * </Message>\n */\nexport interface MessageProps\n\textends Omit<React.HTMLAttributes<HTMLDivElement>, \"role\">,\n\t\tVariantProps<typeof messageVariants> {\n\t/** Speaker — drives variant styling and the `data-role` attribute. */\n\trole: Role;\n\tchildren: React.ReactNode;\n}\n\n/**\n * Renders a chat-message row scoped to one speaker.\n * @param props - role + content\n * @returns A styled div tagged with `data-role={role}`\n */\nfunction Message({ role, className, children, ...props }: MessageProps) {\n\treturn (\n\t\t<div data-role={role} className={cn(messageVariants({ role }), className)} {...props}>\n\t\t\t{children}\n\t\t</div>\n\t);\n}\n\nexport { Message, messageVariants };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils",
+      "ai/types"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "secondary",
+    "foreground",
+    "card",
+    "card-foreground",
+    "muted",
+    "muted-foreground",
+    "accent",
+    "accent-foreground"
+  ],
+  "examples": [
+    {
+      "title": "User and assistant turns",
+      "description": "Two messages alternating roles.",
+      "code": "<>\n  <Message role=\"user\">What's the capital of France?</Message>\n  <Message role=\"assistant\">Paris.</Message>\n</>",
+      "composition": [
+        "chat",
+        "turns"
+      ]
+    },
+    {
+      "title": "Composed assistant turn",
+      "description": "Markdown + ToolCall inside one assistant message.",
+      "code": "<Message role=\"assistant\">\n  <Markdown>{response}</Markdown>\n  <ToolCall name=\"search\" state=\"result\" result={hits} />\n</Message>",
+      "composition": [
+        "chat",
+        "agent",
+        "tool-use"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Wrap every conversation turn — user, assistant, system, or tool. Pair with MessageList for the scrolling viewport. Compose Markdown, CodeBlock, and ToolCall as children for rich assistant turns.",
+    "whenNotToUse": "Don't use for non-conversational text (use Card or plain elements). Don't put streaming logic here — the consumer drives state, Message just renders.",
+    "commonMistakes": [
+      "Adding streaming/fetch logic inside Message — keep it pure",
+      "Using `role=\"tool\"` for assistant text that mentions a tool — `tool` is for the actual tool turn",
+      "Hard-coding markdown rendering inside Message — pass <Markdown>{...}</Markdown> as a child instead"
+    ],
+    "relatedComponents": [
+      "message-list",
+      "markdown",
+      "code-block",
+      "tool-call",
+      "message-actions"
+    ],
+    "accessibilityNotes": "Renders as a div with `data-role`. For screen-reader chat semantics, wrap MessageList in `role=\"log\"` and consider `aria-live=\"polite\"` on the streaming container.",
+    "tokenBudget": 220
+  },
+  "tags": [
+    "ai",
+    "chat",
+    "message",
+    "turn",
+    "conversation"
+  ]
+}

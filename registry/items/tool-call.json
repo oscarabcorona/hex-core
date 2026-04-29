@@ -1,0 +1,146 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "tool-call",
+  "displayName": "ToolCall",
+  "description": "Collapsible card showing a tool/function invocation — name, lifecycle state badge, expandable args + result body.",
+  "category": "ai",
+  "subcategory": "agent",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "required": true,
+      "description": "Tool / function name (e.g. searchDocs, getWeather)."
+    },
+    {
+      "name": "state",
+      "type": "enum",
+      "required": true,
+      "description": "Lifecycle of the invocation.",
+      "enumValues": [
+        "pending",
+        "running",
+        "result",
+        "error"
+      ]
+    },
+    {
+      "name": "args",
+      "type": "object",
+      "required": false,
+      "description": "JSON-stringifiable input passed to the tool."
+    },
+    {
+      "name": "result",
+      "type": "object",
+      "required": false,
+      "description": "JSON-stringifiable output returned by the tool. May be a string for plain-text results."
+    },
+    {
+      "name": "defaultOpen",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Start expanded. Default collapsed to keep the chat clean."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the outer Collapsible root."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/tool-call.tsx",
+      "content": "\"use client\";\n\nimport * as CollapsiblePrimitive from \"@radix-ui/react-collapsible\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\nimport type { ToolCallState } from \"../types.js\";\n\nconst STATE_LABEL: Record<ToolCallState, string> = {\n\tpending: \"Pending\",\n\trunning: \"Running\",\n\tresult: \"Done\",\n\terror: \"Error\",\n};\n\nconst STATE_CLASSES: Record<ToolCallState, string> = {\n\tpending: \"bg-muted text-muted-foreground\",\n\trunning: \"bg-primary/15 text-primary animate-pulse\",\n\tresult: \"bg-accent/30 text-accent-foreground\",\n\terror: \"bg-destructive/15 text-destructive\",\n};\n\n/**\n * Collapsible card displaying a tool / function invocation. Header shows the\n * tool name and lifecycle state badge; body reveals the JSON-stringified\n * arguments and result on expand.\n *\n * Display-only — the component does not run the tool. Wire it up in the\n * consumer (AI SDK `tool-*` parts → ToolCall props, LangChain\n * `AIMessage.tool_calls` → ToolCall props).\n *\n * @example\n * <ToolCall\n *   name=\"searchDocs\"\n *   state=\"result\"\n *   args={{ query: \"auth\" }}\n *   result={{ hits: 12 }}\n * />\n */\nexport interface ToolCallProps {\n\tname: string;\n\tstate: ToolCallState;\n\targs?: unknown;\n\tresult?: unknown;\n\tdefaultOpen?: boolean;\n\tclassName?: string;\n}\n\n/**\n * Renders a tool-invocation card with collapsible details.\n * @param props - tool name, state, optional args/result\n * @returns A Collapsible wrapping a header + JSON body\n */\nfunction ToolCall({\n\tname,\n\tstate,\n\targs,\n\tresult,\n\tdefaultOpen = false,\n\tclassName,\n}: ToolCallProps) {\n\treturn (\n\t\t<CollapsiblePrimitive.Root\n\t\t\tdefaultOpen={defaultOpen}\n\t\t\tclassName={cn(\n\t\t\t\t\"overflow-hidden rounded-md border bg-card text-card-foreground\",\n\t\t\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\"data-[state=open]:shadow-sm\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t>\n\t\t\t<CollapsiblePrimitive.Trigger\n\t\t\t\tclassName={cn(\n\t\t\t\t\t\"group flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm\",\n\t\t\t\t\t\"hover:bg-muted/40\",\n\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t)}\n\t\t\t>\n\t\t\t\t<span className=\"flex min-w-0 items-center gap-2\">\n\t\t\t\t\t<ToolGlyph />\n\t\t\t\t\t<span className=\"truncate font-mono text-xs text-foreground\">{name}</span>\n\t\t\t\t\t<span\n\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\"inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium\",\n\t\t\t\t\t\t\tSTATE_CLASSES[state],\n\t\t\t\t\t\t)}\n\t\t\t\t\t>\n\t\t\t\t\t\t{STATE_LABEL[state]}\n\t\t\t\t\t</span>\n\t\t\t\t</span>\n\t\t\t\t<Chevron />\n\t\t\t</CollapsiblePrimitive.Trigger>\n\t\t\t<CollapsiblePrimitive.Content className=\"overflow-hidden border-t bg-muted/20 px-3 py-2 text-xs\">\n\t\t\t\t{args !== undefined ? <CodeSection label=\"Arguments\" value={args} /> : null}\n\t\t\t\t{result !== undefined ? <CodeSection label=\"Result\" value={result} /> : null}\n\t\t\t\t{args === undefined && result === undefined ? (\n\t\t\t\t\t<p className=\"text-muted-foreground\">No arguments or result yet.</p>\n\t\t\t\t) : null}\n\t\t\t</CollapsiblePrimitive.Content>\n\t\t</CollapsiblePrimitive.Root>\n\t);\n}\n\nfunction CodeSection({ label, value }: { label: string; value: unknown }) {\n\tconst text = typeof value === \"string\" ? value : safeStringify(value);\n\treturn (\n\t\t<div className=\"space-y-1 py-1\">\n\t\t\t<div className=\"text-[10px] uppercase tracking-wide text-muted-foreground\">{label}</div>\n\t\t\t<pre className=\"overflow-x-auto rounded bg-background/60 p-2 font-mono text-[11px] leading-snug\">\n\t\t\t\t{text}\n\t\t\t</pre>\n\t\t</div>\n\t);\n}\n\nfunction safeStringify(value: unknown): string {\n\ttry {\n\t\treturn JSON.stringify(value, null, 2);\n\t} catch {\n\t\treturn String(value);\n\t}\n}\n\nfunction ToolGlyph() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"14\"\n\t\t\theight=\"14\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.5\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\tclassName=\"shrink-0 text-muted-foreground\"\n\t\t>\n\t\t\t<path d=\"M11.5 1.5l3 3-2.5 2.5-3-3 2.5-2.5z\" />\n\t\t\t<path d=\"M9 4l-7 7v3h3l7-7\" />\n\t\t</svg>\n\t);\n}\n\nfunction Chevron() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"14\"\n\t\t\theight=\"14\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.5\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\tclassName=\"shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180\"\n\t\t>\n\t\t\t<path d=\"M4 6l4 4 4-4\" />\n\t\t</svg>\n\t);\n}\n\nexport { ToolCall };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-collapsible",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils",
+      "ai/types"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "card-foreground",
+    "muted",
+    "muted-foreground",
+    "primary",
+    "accent",
+    "accent-foreground",
+    "destructive",
+    "ring",
+    "background"
+  ],
+  "examples": [
+    {
+      "title": "Done invocation",
+      "description": "Map an AI SDK `tool-*` part to a ToolCall.",
+      "code": "<ToolCall\n  name=\"searchDocs\"\n  state=\"result\"\n  args={{ query: \"auth\" }}\n  result={{ hits: docs.length }}\n/>",
+      "composition": [
+        "agent",
+        "tool-use"
+      ]
+    },
+    {
+      "title": "Streaming run",
+      "description": "While the tool is executing, show running state without args.",
+      "code": "<ToolCall name=\"getWeather\" state=\"running\" args={{ city: \"NYC\" }} />",
+      "composition": [
+        "agent",
+        "tool-use",
+        "streaming"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Render every tool/function invocation in an agent UI. Map AI SDK v5 `tool-TOOLNAME` parts (state: input-streaming|input-available|output-available|output-error) or LangChain `AIMessage.tool_calls` directly.",
+    "whenNotToUse": "Don't use for plain assistant text (use Message). Don't render the tool's actual UI here — ToolCall is a debug/transparency card; for a rich tool UI, render that as a sibling node inside the Message.",
+    "commonMistakes": [
+      "Passing the entire AI SDK part object as `result` — extract the output payload first",
+      "Setting `defaultOpen` for every call — quickly clutters the chat",
+      "Using `state=\"result\"` for an error — use `error` so the user sees red"
+    ],
+    "relatedComponents": [
+      "message",
+      "reasoning",
+      "loading-indicator"
+    ],
+    "accessibilityNotes": "Built on Radix Collapsible — keyboard expand/collapse with Enter/Space works natively. Add `aria-label` on the trigger if the tool name is opaque.",
+    "tokenBudget": 320
+  },
+  "tags": [
+    "ai",
+    "agent",
+    "tool-call",
+    "function-call",
+    "collapsible",
+    "transparency"
+  ]
+}

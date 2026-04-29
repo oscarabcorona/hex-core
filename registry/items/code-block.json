@@ -1,0 +1,143 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "code-block",
+  "displayName": "CodeBlock",
+  "description": "Server-rendered, syntax-highlighted code block with a language-label header and a copy button. Dual-theme via Shiki — same HTML for light + dark.",
+  "category": "ai",
+  "subcategory": "content",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "code",
+      "type": "string",
+      "required": true,
+      "description": "The code to display. Plain text — no markdown fences."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "required": false,
+      "description": "Header label (e.g. \"pnpm\", \"tsx\"). Inferred from `language` if omitted."
+    },
+    {
+      "name": "language",
+      "type": "enum",
+      "required": false,
+      "description": "Shiki grammar key. Overrides inference from `label`.",
+      "enumValues": [
+        "bash",
+        "ts",
+        "tsx",
+        "js",
+        "jsx",
+        "json",
+        "css",
+        "html",
+        "md",
+        "py",
+        "text"
+      ]
+    },
+    {
+      "name": "themes",
+      "type": "object",
+      "required": false,
+      "default": {
+        "light": "github-light",
+        "dark": "github-dark"
+      },
+      "description": "Override the default theme pair. Keys: `light`, `dark` — values are Shiki theme IDs."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the outer card."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/code-block.tsx",
+      "content": "import * as React from \"react\";\nimport { cache } from \"react\";\nimport { codeToHtml } from \"shiki\";\nimport { cn } from \"../../lib/utils.js\";\nimport { CodeBlockCopy } from \"./code-block-copy.js\";\n\n/**\n * Languages we surface in the prop type. Plain literal union of real\n * Shiki grammar IDs — kept literal (not `Extract<BundledLanguage, …>`)\n * because Shiki's full bundled-language union is 600+ literals, and\n * deriving from it forced the rollup-dts pass past a 4GB heap. The\n * literals here are all standard Shiki grammar IDs; if Shiki removes\n * one upstream, `codeToHtml` will throw at runtime — acceptable trade.\n */\nexport type SupportedLang =\n\t| \"bash\"\n\t| \"ts\"\n\t| \"tsx\"\n\t| \"js\"\n\t| \"jsx\"\n\t| \"json\"\n\t| \"css\"\n\t| \"html\"\n\t| \"md\"\n\t| \"py\"\n\t| \"text\";\n\nconst LABEL_TO_LANG: Record<string, SupportedLang> = {\n\tpnpm: \"bash\",\n\tnpm: \"bash\",\n\tyarn: \"bash\",\n\tbun: \"bash\",\n\tbash: \"bash\",\n\tsh: \"bash\",\n\tshell: \"bash\",\n\tzsh: \"bash\",\n\tts: \"ts\",\n\ttypescript: \"ts\",\n\ttsx: \"tsx\",\n\tjs: \"js\",\n\tjavascript: \"js\",\n\tjsx: \"jsx\",\n\tjson: \"json\",\n\tcss: \"css\",\n\thtml: \"html\",\n\tmd: \"md\",\n\tmarkdown: \"md\",\n\tpy: \"py\",\n\tpython: \"py\",\n\ttext: \"text\",\n\tprompt: \"text\",\n\tplain: \"text\",\n};\n\nconst DEFAULT_THEMES = { light: \"github-light\", dark: \"github-dark\" } as const;\n\n/**\n * Per-render-tree memoization of `codeToHtml`. React's `cache()` dedupes\n * identical (code, lang, theme) combos within a single RSC render pass —\n * useful when a page renders many copies of the same install snippet.\n * Shiki itself caches grammars/themes per process, so this layer only\n * eliminates duplicate parse + tokenize work within one request.\n */\nconst cachedCodeToHtml = cache(\n\tasync (code: string, lang: SupportedLang, themesKey: string, themes: { light: string; dark: string }) => {\n\t\tvoid themesKey;\n\t\treturn codeToHtml(code, { lang, themes, defaultColor: false });\n\t},\n);\n\nfunction resolveLang(label?: string, language?: SupportedLang): SupportedLang {\n\tif (language) return language;\n\tif (label) {\n\t\tconst fromLabel = LABEL_TO_LANG[label.toLowerCase()];\n\t\tif (fromLabel) return fromLabel;\n\t}\n\treturn \"text\";\n}\n\n/**\n * Syntax-highlighted code block with a language-label header and a copy\n * button. Highlighting runs server-side via Shiki using a dual-theme\n * (default: github-light / github-dark) so the same HTML flips on\n * `data-theme`/`prefers-color-scheme` without client-side rehydration.\n *\n * Async Server Component — render inside RSC trees or pre-render in\n * static contexts. For client-side streaming code blocks, plug Streamdown's\n * built-in code rendering via `Markdown components={{ pre: … }}` instead.\n *\n * @example\n * <CodeBlock label=\"pnpm\" code=\"pnpm add @hex-core/components\" />\n * @example\n * <CodeBlock language=\"tsx\" code={src} />\n */\nexport interface CodeBlockProps {\n\tcode: string;\n\t/** Optional header label (e.g. \"pnpm\", \"tsx\"). Inferred from `language` if omitted. */\n\tlabel?: string;\n\t/** Explicit Shiki grammar key. Overrides inference from `label`. */\n\tlanguage?: SupportedLang;\n\t/** Override the default github-light / github-dark theme pair. */\n\tthemes?: { light: string; dark: string };\n\tclassName?: string;\n}\n\n/**\n * Async Server Component that highlights `code` server-side and emits the\n * resulting HTML with a header + copy island.\n *\n * @param props - code, optional label/language/themes\n * @returns A bordered card wrapping the highlighted code\n */\nasync function CodeBlock({\n\tcode,\n\tlabel,\n\tlanguage,\n\tthemes = DEFAULT_THEMES,\n\tclassName,\n}: CodeBlockProps) {\n\tconst lang = resolveLang(label, language);\n\tconst themesKey = `${themes.light}|${themes.dark}`;\n\tconst html = await cachedCodeToHtml(code, lang, themesKey, themes);\n\tconst displayLabel = label ?? lang;\n\n\treturn (\n\t\t<div\n\t\t\tclassName={cn(\n\t\t\t\t\"group relative overflow-hidden rounded-lg border bg-card text-card-foreground\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t>\n\t\t\t<div className=\"flex items-center justify-between border-b bg-muted/40 px-3 py-1.5\">\n\t\t\t\t<span className=\"font-mono text-xs font-medium text-muted-foreground\">{displayLabel}</span>\n\t\t\t\t<CodeBlockCopy code={code} />\n\t\t\t</div>\n\t\t\t<div\n\t\t\t\tdata-shiki=\"\"\n\t\t\t\tclassName=\"overflow-x-auto p-4 font-mono text-sm [&_pre]:!bg-transparent\"\n\t\t\t\t// biome-ignore lint/security/noDangerouslySetInnerHtml: Shiki output is trusted server-rendered HTML\n\t\t\t\tdangerouslySetInnerHTML={{ __html: html }}\n\t\t\t/>\n\t\t</div>\n\t);\n}\n\nexport { CodeBlock };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "shiki",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils",
+      "ai/code-block-copy"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "card-foreground",
+    "muted",
+    "muted-foreground",
+    "border"
+  ],
+  "examples": [
+    {
+      "title": "Install command",
+      "description": "Header label drives both the visible chip and Shiki grammar inference.",
+      "code": "<CodeBlock label=\"pnpm\" code=\"pnpm add @hex-core/components\" />",
+      "composition": [
+        "docs",
+        "install"
+      ]
+    },
+    {
+      "title": "Inline TS sample",
+      "description": "Explicit language overrides label inference.",
+      "code": "<CodeBlock language=\"tsx\" code={`<Button>Click</Button>`} />",
+      "composition": [
+        "docs",
+        "code"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Render any code snippet in docs, copy-to-clipboard install commands, or static AI chat output where server rendering is acceptable. Pair with Markdown's `components.pre` override to take over markdown code fences.",
+    "whenNotToUse": "Don't use for streaming chat where the code grows mid-render — async Server Components can't update token-by-token. Use Streamdown's built-in client CodeBlock for that.",
+    "commonMistakes": [
+      "Passing markdown-fenced code (with ```) — strip the fences first",
+      "Forgetting that this is async — must be awaited or rendered as RSC",
+      "Using a Shiki theme that isn't bundled — fails with a runtime fetch error"
+    ],
+    "relatedComponents": [
+      "markdown",
+      "message"
+    ],
+    "accessibilityNotes": "Highlighted output is plain text inside a `<pre>` — screen readers read it normally. The copy button has its own `aria-label`. Add a meaningful `aria-label` on the wrapper if the label alone isn't descriptive.",
+    "tokenBudget": 320
+  },
+  "tags": [
+    "ai",
+    "code",
+    "shiki",
+    "highlight",
+    "copy",
+    "rsc"
+  ]
+}

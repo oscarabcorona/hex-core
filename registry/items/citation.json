@@ -1,0 +1,129 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "citation",
+  "displayName": "Citation",
+  "description": "Source attribution chip — renders a citation for a RAG hit, search result, or any external reference. Becomes a focusable link when url is provided.",
+  "category": "ai",
+  "subcategory": "rag",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "title",
+      "type": "string",
+      "required": true,
+      "description": "Source title or filename (e.g. \"auth-overview.md\")."
+    },
+    {
+      "name": "url",
+      "type": "string",
+      "required": false,
+      "description": "If provided, the chip becomes an anchor opening in a new tab."
+    },
+    {
+      "name": "page",
+      "type": "number",
+      "required": false,
+      "description": "Optional page number (renders \"p.3\")."
+    },
+    {
+      "name": "index",
+      "type": "number",
+      "required": false,
+      "description": "Optional inline footnote number (renders \"[1]\")."
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Trailing slot — extra metadata (e.g. relevance score)."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "children",
+      "description": "Trailing extras — relevance score, badge, etc.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/citation.tsx",
+      "content": "import * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Source attribution chip — renders a citation for a RAG hit, search\n * result, or any external reference the assistant pulled from. Becomes a\n * clickable anchor when `url` is provided; otherwise a static span.\n *\n * @example\n * <Citation title=\"auth-overview.md\" url={src.url} page={3} />\n * @example\n * <Cluster gap=\"xs\">\n *   {sources.map((s, i) => (\n *     <Citation key={s.id} title={s.title} url={s.url} index={i + 1} />\n *   ))}\n * </Cluster>\n */\nexport interface CitationProps {\n\ttitle: string;\n\turl?: string;\n\tpage?: number;\n\t/** Numeric index for inline footnote-style display (e.g. \"[1] auth.md\"). */\n\tindex?: number;\n\tclassName?: string;\n\tchildren?: React.ReactNode;\n}\n\n/**\n * Renders a source citation chip. Uses an `<a>` when `url` is set so the\n * chip is keyboard-focusable + opens in a new tab; falls back to a\n * non-interactive span otherwise.\n *\n * @param props - title + optional url, page, index\n * @returns An anchor or span styled as a chip\n */\nfunction Citation({ title, url, page, index, className, children }: CitationProps) {\n\tconst baseClasses = cn(\n\t\t\"inline-flex items-center gap-1.5 rounded-md border border-foreground/15 bg-card px-2 py-0.5 text-xs\",\n\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\tclassName,\n\t);\n\n\tconst body = (\n\t\t<>\n\t\t\t{typeof index === \"number\" ? (\n\t\t\t\t<span className=\"font-mono text-[10px] font-semibold text-muted-foreground\">[{index}]</span>\n\t\t\t) : (\n\t\t\t\t<DocGlyph />\n\t\t\t)}\n\t\t\t<span className=\"truncate text-foreground\">{title}</span>\n\t\t\t{typeof page === \"number\" ? (\n\t\t\t\t<span className=\"text-muted-foreground\">p.{page}</span>\n\t\t\t) : null}\n\t\t\t{children}\n\t\t</>\n\t);\n\n\tif (url) {\n\t\treturn (\n\t\t\t<a\n\t\t\t\thref={url}\n\t\t\t\ttarget=\"_blank\"\n\t\t\t\trel=\"noreferrer noopener\"\n\t\t\t\tclassName={cn(\n\t\t\t\t\tbaseClasses,\n\t\t\t\t\t\"hover:border-foreground/30 hover:bg-secondary/40 hover:shadow-sm\",\n\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t)}\n\t\t\t>\n\t\t\t\t{body}\n\t\t\t</a>\n\t\t);\n\t}\n\n\treturn <span className={baseClasses}>{body}</span>;\n}\n\nfunction DocGlyph() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"11\"\n\t\t\theight=\"11\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.5\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\tclassName=\"shrink-0 text-muted-foreground\"\n\t\t>\n\t\t\t<path d=\"M9 1.5H4.5A1.5 1.5 0 0 0 3 3v10a1.5 1.5 0 0 0 1.5 1.5h7A1.5 1.5 0 0 0 13 13V5.5L9 1.5z\" />\n\t\t\t<path d=\"M9 1.5V5.5h4\" />\n\t\t</svg>\n\t);\n}\n\nexport { Citation };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "secondary",
+    "ring",
+    "foreground",
+    "muted-foreground"
+  ],
+  "examples": [
+    {
+      "title": "Footnote-style citations",
+      "description": "Numbered citations after an assistant turn.",
+      "code": "<Cluster gap=\"xs\">\n  {sources.map((s, i) => (\n    <Citation key={s.id} title={s.title} url={s.url} index={i + 1} />\n  ))}\n</Cluster>",
+      "composition": [
+        "rag",
+        "citations"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Surface RAG/search-result sources after an assistant message. Use `index` for footnote-style numbering tied to inline `[1]` markers in the answer.",
+    "whenNotToUse": "Don't use for general external links in chat (use Markdown). Don't fabricate sources — only render Citation for retrievals the model actually used.",
+    "commonMistakes": [
+      "Showing the URL twice (in `title` AND `url`) — pick a human title separately",
+      "Skipping `target=\"_blank\"` — handled automatically when url is set; don't override"
+    ],
+    "relatedComponents": [
+      "message",
+      "cluster"
+    ],
+    "accessibilityNotes": "With `url`, renders a real anchor (`rel=\"noreferrer noopener\"`). Without `url`, renders a static span. Add `aria-label` on the wrapper if title alone lacks context.",
+    "tokenBudget": 240
+  },
+  "tags": [
+    "ai",
+    "rag",
+    "citation",
+    "source",
+    "footnote",
+    "chip"
+  ]
+}

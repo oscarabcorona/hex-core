@@ -87,10 +87,13 @@
 		"@radix-ui/react-tooltip": "^1.2.8",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.0",
+		"shiki": "^4.0.2",
+		"streamdown": "^2.5.0",
 		"tailwind-merge": "^3.5.0"
 	},
 	"devDependencies": {
 		"@hex-core/registry": "workspace:^",
+		"@microsoft/api-extractor": "^7.58.7",
 		"@tanstack/react-table": "^8.21.3",
 		"@types/react": "^19.0.0",
 		"@types/react-dom": "^19.0.0",

@@ -294,6 +294,32 @@ export {
 	useSidebar,
 } from "./components/sidebar/sidebar.js";
 
+// AI
+export type { Role, ToolCallState } from "./ai/types.js";
+export { Message, messageVariants, type MessageProps } from "./ai/message/message.js";
+export { MessageList, type MessageListProps } from "./ai/message-list/message-list.js";
+export { Composer, type ComposerProps } from "./ai/composer/composer.js";
+export {
+	LoadingIndicator,
+	loadingIndicatorVariants,
+	type LoadingIndicatorProps,
+} from "./ai/loading-indicator/loading-indicator.js";
+export { Suggestion, type SuggestionProps } from "./ai/suggestion/suggestion.js";
+export { ToolCall, type ToolCallProps } from "./ai/tool-call/tool-call.js";
+export { Reasoning, type ReasoningProps } from "./ai/reasoning/reasoning.js";
+export { MessageActions, type MessageActionsProps } from "./ai/message-actions/message-actions.js";
+export { Citation, type CitationProps } from "./ai/citation/citation.js";
+export { Markdown, type MarkdownProps } from "./ai/markdown/markdown.js";
+export {
+	CodeBlock,
+	type CodeBlockProps,
+	type SupportedLang,
+} from "./ai/code-block/code-block.js";
+export {
+	CodeBlockCopy,
+	type CodeBlockCopyProps,
+} from "./ai/code-block/code-block-copy.js";
+
 // Schemas live in `@hex-core/components/schemas` (1.4.0+) so the runtime
 // barrel doesn't pull in the `@hex-core/registry` type at the consumer's
 // declaration boundary. Tooling that needs the manifest imports from

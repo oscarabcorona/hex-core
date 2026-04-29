@@ -28,6 +28,7 @@ const entryFiles = fg.sync(
 		"src/schemas.ts",
 		"src/primitives/*/*.tsx",
 		"src/components/*/*.tsx",
+		"src/ai/*/*.tsx",
 	],
 	{
 		ignore: ["**/*.test.tsx", "**/*.schema.ts", "**/_shared/**"],
@@ -49,7 +50,16 @@ const entry = Object.fromEntries(
 export default defineConfig({
 	entry,
 	format: ["esm"],
-	dts: true,
+	// `experimentalDts` (tsup 8.x) drives type-decl generation through
+	// the TS compiler API + a lightweight rollup pass instead of the
+	// classic `rollup-plugin-dts` worker. The legacy path forced each
+	// of the 70+ entries to walk the FULL upstream type graph
+	// (streamdown → @ai-sdk → react-markdown → shiki's 600-literal
+	// `BundledLanguage`) inside a single worker, exhausting >4GB of
+	// heap. The experimental pipeline reuses TS's incremental program
+	// across entries and emits per-file `.d.ts` first, so the worker
+	// peaks at <1GB on this workspace.
+	experimentalDts: true,
 	clean: true,
 	sourcemap: true,
 	// `splitting: false` is critical for "use client" preservation. With
@@ -83,5 +93,17 @@ export default defineConfig({
 		"class-variance-authority",
 		"clsx",
 		"tailwind-merge",
+		// Cross-entry boundary: keep the sibling import in `code-block.tsx`
+		// (async Server Component) pointing at the separate `"use client"`
+		// `code-block-copy.tsx` island at runtime. Without this, `splitting:
+		// false` inlines the client hooks (`useState`, `navigator.clipboard`)
+		// into the server bundle and the RSC boundary collapses.
+		//
+		// The regex MUST be anchored to the sibling-relative form so the
+		// flat-dist barrel re-export `from "./ai/code-block/code-block-copy.js"`
+		// in `src/index.ts` is NOT treated as external (it has no
+		// corresponding nested file in the flat `dist/`; it must be inlined
+		// + rewritten to the sibling `./code-block-copy.js`).
+		/^\.\/code-block-copy(\.js)?$/,
 	],
 });
