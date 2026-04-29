@@ -137,6 +137,16 @@ Each component has two files:
 - `{name}.tsx` — React component (Radix UI + Tailwind + CVA)
 - `{name}.schema.ts` — Machine-readable spec with props, variants, AI hints
 
+## Branches & releases
+
+Three long-lived branches; changes promote in order: `feature → main → qa → release`.
+
+- **`main`** — feature PRs land here. CI runs `Lint` / `Build` / `Test` in parallel (~2 min).
+- **`qa`** — promotion target from `main`. Adds the regression workflow: a11y axe-scan + Playwright visual diff across every component in light + dark.
+- **`release`** — promotion target from `qa`. npm publish happens from here via the `/release` skill (changesets-driven).
+
+Full flow + workflow map: [CONTRIBUTING.md#branch-flow](CONTRIBUTING.md#branch-flow).
+
 ## License
 
 [MIT](LICENSE)
