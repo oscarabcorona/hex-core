@@ -123,19 +123,30 @@
   ],
   "examples": [
     {
-      "title": "Basic slider",
-      "description": "Single-thumb slider",
-      "code": "<Slider defaultValue={[50]} max={100} step={1} />"
+      "title": "Volume control with display",
+      "description": "Single-thumb slider paired with the live numeric value — the canonical 'continuous range with feedback' pattern",
+      "code": "function VolumeControl() {\n  const [value, setValue] = React.useState([60]);\n  return (\n    <div className=\"space-y-2\">\n      <div className=\"flex justify-between text-sm\">\n        <Label htmlFor=\"vol\">Volume</Label>\n        <span className=\"text-muted-foreground tabular-nums\">{value[0]}%</span>\n      </div>\n      <Slider id=\"vol\" value={value} onValueChange={setValue} max={100} step={1} aria-label=\"Volume\" />\n    </div>\n  );\n}",
+      "composition": [
+        "form",
+        "settings",
+        "continuous-range",
+        "with-display"
+      ]
     },
     {
-      "title": "Range slider",
-      "description": "Two-thumb range",
-      "code": "<Slider defaultValue={[20, 80]} max={100} step={1} />"
+      "title": "Price-range filter",
+      "description": "Two-thumb range slider with per-thumb labels — the canonical e-commerce filter UI",
+      "code": "<Slider\n  defaultValue={[20, 80]}\n  max={100}\n  step={1}\n  thumbLabels={[\"Minimum price\", \"Maximum price\"]}\n/>",
+      "composition": [
+        "filter",
+        "range",
+        "ecommerce"
+      ]
     }
   ],
   "ai": {
     "whenToUse": "Use for continuous numeric inputs with a known range: volume, brightness, price range filter, opacity. Pair value with a visible number display when the exact value matters.",
-    "whenNotToUse": "Don't use when the user needs to enter an exact number (use Input type=number). Don't use for discrete choices (use Select or RadioGroup).",
+    "whenNotToUse": "Don't use when the user needs to enter an exact number (use Input type=number). Don't use for discrete choices (use Select or RadioGroup). Don't use for boolean on/off (use Switch).",
     "commonMistakes": [
       "Using Slider for exact values without showing the number",
       "Missing min/max bounds",
@@ -144,8 +155,27 @@
       "Range slider with only Root aria-label and no thumbLabels — both thumbs fall back to '(N of 2)' indexed names instead of meaningful per-thumb labels",
       "thumbLabels.length !== value.length — extra labels are ignored, missing labels fall back to indexed names (dev-mode warning)"
     ],
+    "antiPatterns": [
+      {
+        "mistake": "Using Slider with min=0/max=1 to represent on/off",
+        "insteadUse": "switch",
+        "why": "Slider is 'continuous range'. Switch is 'boolean'. Assistive tech announces them differently — Slider says '0 of 1, 1 of 1'; Switch says 'on / off'. Always reach for Switch when the values are binary."
+      },
+      {
+        "mistake": "Using Slider for picking a number from a small discrete set (1–5 rating, 'pages per row')",
+        "insteadUse": "radio-group",
+        "why": "Sliders make exact target values hard to land on. RadioGroup gives 5 buttons that name themselves and are easier with assistive tech. Reach for Slider only when 50+ values are valid."
+      },
+      {
+        "mistake": "Using Slider for the user to type a known exact number (price, age, count)",
+        "insteadUse": "input",
+        "why": "Drag-to-set is slower and less accurate than typing. Use <Input type='number'> when the user has the exact value in mind."
+      }
+    ],
     "relatedComponents": [
-      "input"
+      "input",
+      "switch",
+      "radio-group"
     ],
     "accessibilityNotes": "Arrow keys step by step, Home/End jump to min/max, PageUp/PageDown step larger. Radix handles aria-valuemin/max/now. Each thumb has its own accessible name: explicit via thumbLabels[i], else mirrored from the Root's aria-label (single thumb) or indexed '(i of N)' fallback (range). Add aria-label / aria-labelledby on the Root when there's no visible label.",
     "tokenBudget": 450

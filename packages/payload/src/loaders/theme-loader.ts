@@ -17,6 +17,7 @@
  */
 
 export {
+	defaultSemanticTokens,
 	defaultTheme,
 	emberTheme,
 	generateGlobalsCss,

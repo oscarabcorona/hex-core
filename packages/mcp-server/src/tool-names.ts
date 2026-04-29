@@ -20,6 +20,8 @@ export const TOOL = {
 	VERIFY_CHECKLIST: "verify_checklist",
 	EMIT_APP_CONTEXT: "emit_app_context",
 	EMIT_FIGMA_TOKENS: "emit_figma_tokens",
+	DESCRIBE_INTENT: "describe_intent",
+	SEARCH_COMPOSITIONS: "search_compositions",
 } as const;
 
 export const TOOL_NAMES = Object.values(TOOL) as readonly ToolName[];

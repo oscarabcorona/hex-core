@@ -2,10 +2,12 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { variantSchema } from "@hex-core/registry";
 import { z } from "zod";
 import {
 	buildAppContext,
 	buildFigmaTokens,
+	defaultSemanticTokens,
 	generateGlobalsCss,
 	getTheme,
 	internalDepToSlug,
@@ -795,6 +797,181 @@ server.registerTool(
 		});
 		return {
 			content: [{ type: "text" as const, text: markdown }],
+		};
+	},
+);
+
+// ─── Tool 14: describe_intent ───
+
+server.registerTool(
+	TOOL.DESCRIBE_INTENT,
+	{
+		description:
+			"Return the AI-native intent payload for a component: per-variant `useWhen` strings, structured `antiPatterns` (with the suggested `insteadUse` slug), `commonMistakes` notes, and the slice of `defaultSemanticTokens` that names the component's tokens by intent. Call this BEFORE generating JSX — the per-variant intent + structured anti-patterns prevent the canonical LLM failure modes (picking destructive for recoverable actions, picking Slider for booleans, nesting Cards). Pair with `get_component_schema` when you need props/types for an already-installed component; `describe_intent` is the intent-first surface for assembly.",
+		inputSchema: z
+			.object({
+				name: z.string().describe("Component slug (e.g. 'button', 'dialog', 'switch')"),
+			})
+			.strict(),
+	},
+	async ({ name }) => {
+		const item = loadRegistryItem(name);
+		if (!item) {
+			return {
+				content: [
+					{ type: "text" as const, text: `Component "${name}" not found.` },
+				],
+			};
+		}
+
+		const semanticPrefix = `${item.name}.`;
+		const relevantSemantic = Object.fromEntries(
+			Object.entries(defaultSemanticTokens).filter(([key]) =>
+				key.startsWith(semanticPrefix),
+			),
+		);
+
+		// Validate variants + examples through the canonical Zod schemas
+		// rather than casting `unknown[]` blind. A future component that
+		// emits a non-conformant row gets a structured error instead of a
+		// runtime TypeError inside the .map() loops.
+		const variantsParse = z.array(variantSchema).safeParse(item.variants);
+		if (!variantsParse.success) {
+			return {
+				content: [
+					{
+						type: "text" as const,
+						text: `Component "${name}" has malformed variants: ${variantsParse.error.message}`,
+					},
+				],
+			};
+		}
+
+		const intent = {
+			name: item.name,
+			displayName: item.displayName,
+			whenToUse: item.ai.whenToUse,
+			whenNotToUse: item.ai.whenNotToUse,
+			variants: variantsParse.data.map((v) => ({
+				name: v.name,
+				default: v.default,
+				values: v.values.map((value) => ({
+					value: value.value,
+					useWhen: value.useWhen ?? null,
+				})),
+			})),
+			antiPatterns: (item.ai as { antiPatterns?: unknown[] }).antiPatterns ?? [],
+			commonMistakes: item.ai.commonMistakes ?? [],
+			semanticTokens: relevantSemantic,
+			relatedComponents: item.ai.relatedComponents,
+			coverage: {
+				// Surfaces the intent-rollout state so callers know whether
+				// to trust the absence of antiPatterns ("intentionally none")
+				// vs treat it as a TODO ("schema not yet enriched"). 5/47
+				// at 0.4.0 (button, card, dialog, slider, switch); rolls
+				// up as future PRs enrich more schemas.
+				hasAntiPatterns:
+					Array.isArray((item.ai as { antiPatterns?: unknown[] }).antiPatterns) &&
+					((item.ai as { antiPatterns?: unknown[] }).antiPatterns?.length ?? 0) > 0,
+				hasVariantUseWhen: variantsParse.data.some((v) =>
+					v.values.some((vv) => typeof vv.useWhen === "string"),
+				),
+				hasSemanticTokens: Object.keys(relevantSemantic).length > 0,
+			},
+		};
+
+		return {
+			content: [
+				{ type: "text" as const, text: JSON.stringify(intent, null, 2) },
+			],
+		};
+	},
+);
+
+// ─── Tool 15: search_compositions ───
+
+server.registerTool(
+	TOOL.SEARCH_COMPOSITIONS,
+	{
+		description:
+			"Search component examples by composition tags (e.g. 'destructive', 'confirm', 'form-action', 'dashboard'). Returns examples whose `composition` array overlaps the query tags. Use this to retrieve a real composition (Button-inside-AlertDialog confirming a delete) rather than a bare primitive — the killer use case for LLMs assembling UI from intent.",
+		inputSchema: z
+			.object({
+				tags: z
+					.array(z.string().toLowerCase())
+					.min(1)
+					.describe("Composition tags to match (e.g. ['dialog', 'destructive']). Match is union — any tag overlap counts."),
+				limit: z
+					.number()
+					.int()
+					.min(1)
+					.max(20)
+					.optional()
+					.default(5)
+					.describe("Max examples to return (default 5)"),
+			})
+			.strict(),
+	},
+	async ({ tags, limit }) => {
+		type Match = {
+			component: string;
+			displayName: string;
+			title: string;
+			description: string;
+			composition: string[];
+			code: string;
+			overlap: number;
+		};
+
+		// `examples` is `unknown[]` on the loader-side type — re-narrow to the
+		// schema-known shape at the boundary.
+		type ExampleRow = {
+			title: string;
+			description: string;
+			code: string;
+			composition?: string[];
+		};
+
+		const matches: Match[] = [];
+		for (const indexEntry of registry.items) {
+			const item = loadRegistryItem(indexEntry.name);
+			if (!item) continue;
+			const examples = (item.examples ?? []) as ExampleRow[];
+			for (const example of examples) {
+				const composition = example.composition ?? [];
+				const overlap = composition.filter((c) => tags.includes(c.toLowerCase())).length;
+				if (overlap === 0) continue;
+				matches.push({
+					component: item.name,
+					displayName: item.displayName,
+					title: example.title,
+					description: example.description,
+					composition,
+					code: example.code,
+					overlap,
+				});
+			}
+		}
+
+		// Higher overlap first; ties broken by component name.
+		matches.sort((a, b) => b.overlap - a.overlap || a.component.localeCompare(b.component));
+		const trimmed = matches.slice(0, limit);
+
+		if (trimmed.length === 0) {
+			return {
+				content: [
+					{
+						type: "text" as const,
+						text: `No compositions found matching tags: ${tags.join(", ")}.`,
+					},
+				],
+			};
+		}
+
+		return {
+			content: [
+				{ type: "text" as const, text: JSON.stringify(trimmed, null, 2) },
+			],
 		};
 	},
 );

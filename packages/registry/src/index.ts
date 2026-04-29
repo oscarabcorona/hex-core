@@ -1,5 +1,6 @@
 export {
 	aiHintSchema,
+	antiPatternSchema,
 	categoryEnum,
 	colorTokenSchema,
 	componentSchemaDefinition,
@@ -20,6 +21,8 @@ export {
 	registryItemSchema,
 	REQUIRED_COLOR_TOKENS,
 	REQUIRED_RADIUS_TOKENS,
+	semanticTokenEntrySchema,
+	semanticTokenSetSchema,
 	shadowTokenSchema,
 	slotSchema,
 	spacingTokenSchema,
@@ -38,6 +41,7 @@ export {
 
 export type {
 	AIHint,
+	AntiPattern,
 	Category,
 	ColorToken,
 	ComponentSchemaDefinition,
@@ -56,6 +60,8 @@ export type {
 	RegistryIndex,
 	RegistryIndexItem,
 	RegistryItem,
+	SemanticTokenEntry,
+	SemanticTokenSet,
 	ShadowToken,
 	Slot,
 	SpacingToken,
@@ -66,6 +72,7 @@ export type {
 	TokenValue,
 	UsageExample,
 	Variant,
+	VariantValue,
 } from "./schema.js";
 
 export {

@@ -24,9 +24,24 @@ export type Prop = z.infer<typeof propSchema>;
 
 // ─── Variant Schema ───
 
+/**
+ * One value of a variant axis (e.g. `{ value: "outline", description: "..." }`).
+ *
+ * `useWhen` is the AI-native intent payload introduced in `@hex-core/registry`
+ * 0.4.0 — a short, opinionated sentence telling the model when this specific
+ * value is the right choice ("secondary actions next to a primary CTA"). The
+ * field is optional so existing schemas still parse, but every shipped
+ * `*.schema.ts` should populate it. Without `useWhen`, an LLM picking between
+ * `"outline"` and `"ghost"` falls back to whatever shadcn's docs taught its
+ * training data — i.e. not necessarily the posture this library wants.
+ *
+ * Keep `useWhen` short (≤120 chars) and prescriptive: lead with the situation,
+ * not the implementation.
+ */
 export const variantValueSchema = z.object({
 	value: z.string(),
 	description: z.string(),
+	useWhen: z.string().optional(),
 });
 
 export const variantSchema = z.object({
@@ -37,6 +52,7 @@ export const variantSchema = z.object({
 });
 
 export type Variant = z.infer<typeof variantSchema>;
+export type VariantValue = z.infer<typeof variantValueSchema>;
 
 // ─── Slot Schema (composition points) ───
 
@@ -71,20 +87,53 @@ export type Dependencies = z.infer<typeof dependencySchema>;
 
 // ─── Usage Example Schema ───
 
+/**
+ * `composition` (added 0.4.0) tags the surrounding context the example
+ * demonstrates — `["dialog", "form-action", "destructive"]` for a delete-
+ * confirm Button, `["form", "field", "validation"]` for a Form example.
+ *
+ * MCP search ranks examples by tag overlap, so a query like "destructive
+ * confirm" returns this example over a bare-Button one. Tags are
+ * lowercased; the canonical vocabulary is documented in
+ * `packages/registry/COMPOSITION_TAGS.md` — extend it carefully (each new
+ * tag fragments search results).
+ */
 export const usageExampleSchema = z.object({
 	title: z.string(),
 	description: z.string(),
 	code: z.string(),
+	composition: z.array(z.string()).optional(),
 });
 
 export type UsageExample = z.infer<typeof usageExampleSchema>;
 
 // ─── AI Hint Schema ───
 
+/**
+ * One structured anti-pattern (added 0.4.0). `mistake` describes what NOT
+ * to do; `insteadUse` MUST be a slug from the registry index so MCP can
+ * follow the link and return the suggested alternative as a real
+ * registry entry, not free text.
+ *
+ * Compare with `aiHintSchema.commonMistakes` (free-form strings, kept for
+ * back-compat). New schemas should populate `antiPatterns` and leave
+ * `commonMistakes` empty. The `build:registry` step copies
+ * `antiPatterns[].mistake` into `commonMistakes` automatically so existing
+ * MCP clients stay working.
+ */
+export const antiPatternSchema = z.object({
+	mistake: z.string(),
+	insteadUse: z.string().regex(/^[a-z][a-z0-9-]*$/),
+	why: z.string().optional(),
+});
+
+export type AntiPattern = z.infer<typeof antiPatternSchema>;
+
 export const aiHintSchema = z.object({
 	whenToUse: z.string(),
 	whenNotToUse: z.string(),
 	commonMistakes: z.array(z.string()),
+	antiPatterns: z.array(antiPatternSchema).optional(),
 	relatedComponents: z.array(z.string()),
 	accessibilityNotes: z.string(),
 	tokenBudget: z.number().optional(),
@@ -445,6 +494,45 @@ export const strictThemeSchema = z.object({
  * validating themes for npm publication.
  */
 export type StrictTheme = z.infer<typeof strictThemeSchema>;
+
+// ─── Semantic Tokens (intent layer over raw tokens, added 0.4.0) ───
+
+/**
+ * One semantic-token entry. The raw `@hex-core/tokens` ships values
+ * (`--color-destructive: hsl(0 84% 60%)`); semantic tokens add the
+ * **intent** layer on top — "for which kind of UI element is this the
+ * right choice?". An LLM asked "what's the right token for a delete
+ * button" can reach for `button.destructive.bg` instead of guessing
+ * `bg-red-500`.
+ *
+ * `value` references a raw token by flat curly-brace syntax —
+ * `"{destructive}"`, `"{duration-normal}"`, `"{radius}"`. The token name
+ * inside the braces matches the literal key in
+ * `defaultTheme.tokens.light/dark`, so resolution is a single-hop
+ * lookup with no namespace traversal. (Earlier prototypes used
+ * dot-namespaced names like `{color.destructive}`; that's been dropped
+ * because the underlying token store is flat.)
+ */
+export const semanticTokenEntrySchema = z.object({
+	value: z.string().regex(/^\{[a-z][a-z0-9-]*\}$/),
+	useWhen: z.string(),
+	type: tokenTypeEnum,
+});
+
+export type SemanticTokenEntry = z.infer<typeof semanticTokenEntrySchema>;
+
+/**
+ * A flat dictionary of semantic-token name → entry. Names are
+ * dot-namespaced (`button.destructive.bg`, `dialog.overlay.bg`,
+ * `form.field.border-error`) so consumers can group/filter by component.
+ *
+ * The dot-namespace IS the API — MCP tools surface entries grouped by the
+ * leading segment. Don't switch to nested objects without updating the
+ * MCP layer.
+ */
+export const semanticTokenSetSchema = z.record(z.string().regex(/^[a-z][a-z0-9.-]*$/), semanticTokenEntrySchema);
+
+export type SemanticTokenSet = z.infer<typeof semanticTokenSetSchema>;
 
 // ─── Component Schema Definition (used in .schema.ts files) ───
 
