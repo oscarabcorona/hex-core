@@ -9,7 +9,25 @@ export {
 export { defaultTheme } from "./themes/default.js";
 export { midnightTheme } from "./themes/midnight.js";
 export { emberTheme } from "./themes/ember.js";
+export { sharedTokens } from "./themes/shared.js";
 export { defaultSemanticTokens, resolveSemanticToken } from "./semantic.js";
+export {
+	COLOR_MODE_BANDS,
+	colorInputToTokenValue,
+	contrastRatio,
+	deriveDarkFromLight,
+	deriveForegroundFor,
+	deriveSecondaryFromPrimary,
+	RADIUS_PRESETS,
+	tokenLuminance,
+} from "./lib/derive.js";
+export type {
+	ColorMode,
+	DeriveDarkOptions,
+	DeriveForegroundOptions,
+	DeriveSecondaryOptions,
+	RadiusPreset,
+} from "./lib/derive.js";
 
 import type { Theme } from "@hex-core/registry";
 import { defaultTheme } from "./themes/default.js";

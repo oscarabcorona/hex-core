@@ -70,15 +70,27 @@ const theme = program
 
 theme
 	.command("init")
-	.description("Scaffold a globals.css (or JSON) theme file from a Hex Core preset")
-	.option("--name <preset>", "Preset to scaffold from: default | midnight | ember", "default")
+	.description("Scaffold a theme file. Pass -i to author interactively from seed colors; otherwise scaffolds from a Hex Core preset.")
+	.option("-i, --interactive", "Walk through prompts to author from seeds (use for new themes)", false)
+	.option("--name <preset>", "Preset to scaffold from when not interactive: default | midnight | ember", "default")
 	.option("--out <path>", "Output file path", "./globals.css")
-	.option("--format <kind>", "Output format: css | json", "css")
+	.option("--format <kind>", "Output format: css | json | ts", "css")
 	.option("--overwrite", "Overwrite the output file if it exists", false)
 	.action(
-		async (options: { name: string; out: string; format: "css" | "json"; overwrite: boolean }) => {
+		async (options: {
+			interactive: boolean;
+			name: string;
+			out: string;
+			format: "css" | "json" | "ts";
+			overwrite: boolean;
+		}) => {
+			if (options.interactive) {
+				const { themeInitInteractive } = await import("./commands/theme-interactive.js");
+				await themeInitInteractive({ out: options.out, format: options.format, overwrite: options.overwrite });
+				return;
+			}
 			const { themeInit } = await import("./commands/theme.js");
-			await themeInit(options);
+			await themeInit({ name: options.name, out: options.out, format: options.format, overwrite: options.overwrite });
 		},
 	);
 

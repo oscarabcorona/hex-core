@@ -45,9 +45,11 @@
 	},
 	"dependencies": {
 		"@hex-core/registry": "workspace:^",
+		"culori": "^4.0.2",
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
+		"@types/culori": "^4.0.1",
 		"postcss": "^8.5.0",
 		"tsup": "^8.3.0",
 		"typescript": "^6.0.3"

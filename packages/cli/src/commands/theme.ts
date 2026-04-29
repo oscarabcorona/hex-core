@@ -4,7 +4,7 @@ import * as path from "node:path";
 interface InitOptions {
 	name: string;
 	out: string;
-	format: "css" | "json";
+	format: "css" | "json" | "ts";
 	overwrite: boolean;
 }
 
@@ -51,14 +51,8 @@ export async function themeInit(options: InitOptions) {
 		process.exit(1);
 	}
 
-	let content: string;
-	if (options.format === "json") {
-		const lightFlat = tokens.themeToFlatJson(theme, "light");
-		const darkFlat = tokens.themeToFlatJson(theme, "dark");
-		content = JSON.stringify({ name: theme.name, light: lightFlat, dark: darkFlat }, null, 2);
-	} else {
-		content = tokens.generateGlobalsCss(theme);
-	}
+	const { renderTheme } = await import("./theme-interactive.js");
+	const content = renderTheme(theme, options.format);
 
 	fs.mkdirSync(path.dirname(outPath), { recursive: true });
 	fs.writeFileSync(outPath, content, "utf8");
