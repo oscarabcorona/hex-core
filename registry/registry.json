@@ -1031,6 +1031,214 @@
       ],
       "internalDeps": [],
       "tokenBudget": 300
+    },
+    {
+      "name": "citation",
+      "displayName": "Citation",
+      "description": "Source attribution chip — renders a citation for a RAG hit, search result, or any external reference. Becomes a focusable link when url is provided.",
+      "category": "ai",
+      "subcategory": "rag",
+      "tags": [
+        "ai",
+        "rag",
+        "citation",
+        "source",
+        "footnote",
+        "chip"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 240
+    },
+    {
+      "name": "code-block",
+      "displayName": "CodeBlock",
+      "description": "Server-rendered, syntax-highlighted code block with a language-label header and a copy button. Dual-theme via Shiki — same HTML for light + dark.",
+      "category": "ai",
+      "subcategory": "content",
+      "tags": [
+        "ai",
+        "code",
+        "shiki",
+        "highlight",
+        "copy",
+        "rsc"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "ai/code-block-copy"
+      ],
+      "tokenBudget": 320
+    },
+    {
+      "name": "composer",
+      "displayName": "Composer",
+      "description": "Multi-line input + submission shell for chat. Submits on Enter (Shift+Enter inserts newline). Trailing slot for attachment + send buttons.",
+      "category": "ai",
+      "subcategory": "input",
+      "tags": [
+        "ai",
+        "input",
+        "chat",
+        "form",
+        "composer",
+        "textarea"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 280
+    },
+    {
+      "name": "loading-indicator",
+      "displayName": "LoadingIndicator",
+      "description": "Streaming/typing feedback with three motion variants — dots, pulse, bar.",
+      "category": "ai",
+      "subcategory": "feedback",
+      "tags": [
+        "ai",
+        "loading",
+        "spinner",
+        "typing",
+        "indicator",
+        "streaming"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 200
+    },
+    {
+      "name": "markdown",
+      "displayName": "Markdown",
+      "description": "Streaming-safe markdown renderer wrapping Vercel's streamdown. Handles partial input mid-stream without throwing.",
+      "category": "ai",
+      "subcategory": "content",
+      "tags": [
+        "ai",
+        "markdown",
+        "streaming",
+        "content",
+        "renderer"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 280
+    },
+    {
+      "name": "message",
+      "displayName": "Message",
+      "description": "Single chat-message row scoped to one speaker (user / assistant / system / tool). Headless content slot — pair with Markdown, CodeBlock, or ToolCall children.",
+      "category": "ai",
+      "subcategory": "chat",
+      "tags": [
+        "ai",
+        "chat",
+        "message",
+        "turn",
+        "conversation"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "ai/types"
+      ],
+      "tokenBudget": 220
+    },
+    {
+      "name": "message-actions",
+      "displayName": "MessageActions",
+      "description": "Inline action-button row beneath a message — copy, regenerate, thumbs-up/down. Pure container; consumer supplies the buttons + handlers.",
+      "category": "ai",
+      "subcategory": "chat",
+      "tags": [
+        "ai",
+        "chat",
+        "actions",
+        "row",
+        "container"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 180
+    },
+    {
+      "name": "message-list",
+      "displayName": "MessageList",
+      "description": "Auto-scrolling viewport for a chat stream. Pins to the bottom during streaming unless the user scrolls up to read history.",
+      "category": "ai",
+      "subcategory": "chat",
+      "tags": [
+        "ai",
+        "chat",
+        "scroll",
+        "viewport",
+        "streaming"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 240
+    },
+    {
+      "name": "reasoning",
+      "displayName": "Reasoning",
+      "description": "Collapsible thinking-trace block for Anthropic-style reasoning or chain-of-thought scratchpads. Optional duration in the header.",
+      "category": "ai",
+      "subcategory": "agent",
+      "tags": [
+        "ai",
+        "agent",
+        "reasoning",
+        "thinking",
+        "chain-of-thought",
+        "collapsible"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 280
+    },
+    {
+      "name": "suggestion",
+      "displayName": "Suggestion",
+      "description": "Clickable prompt pill / quick-action chip. Forwards a payload to onSelect on click.",
+      "category": "ai",
+      "subcategory": "input",
+      "tags": [
+        "ai",
+        "suggestion",
+        "prompt",
+        "pill",
+        "chip",
+        "quick-action"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 220
+    },
+    {
+      "name": "tool-call",
+      "displayName": "ToolCall",
+      "description": "Collapsible card showing a tool/function invocation — name, lifecycle state badge, expandable args + result body.",
+      "category": "ai",
+      "subcategory": "agent",
+      "tags": [
+        "ai",
+        "agent",
+        "tool-call",
+        "function-call",
+        "collapsible",
+        "transparency"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "ai/types"
+      ],
+      "tokenBudget": 320
     }
   ]
 }

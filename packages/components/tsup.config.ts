@@ -28,6 +28,7 @@ const entryFiles = fg.sync(
 		"src/schemas.ts",
 		"src/primitives/*/*.tsx",
 		"src/components/*/*.tsx",
+		"src/ai/*/*.tsx",
 	],
 	{
 		ignore: ["**/*.test.tsx", "**/*.schema.ts", "**/_shared/**"],
@@ -83,5 +84,11 @@ export default defineConfig({
 		"class-variance-authority",
 		"clsx",
 		"tailwind-merge",
+		// Cross-entry boundary: keep `code-block.tsx` (async Server Component)
+		// importing the separate `"use client"` `code-block-copy.tsx` island
+		// at runtime. Without this, `splitting: false` inlines the client
+		// hooks (`useState`, `navigator.clipboard`) into the server bundle and
+		// the RSC boundary collapses.
+		/(\.\/)?code-block-copy(\.js)?$/,
 	],
 });

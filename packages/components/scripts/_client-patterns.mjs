@@ -31,6 +31,7 @@ export const CLIENT_PATTERNS = [
 	/from ['"]react-resizable-panels['"]/,
 	/from ['"]next-themes['"]/,
 	/from ['"]next\//,
+	/from ['"]streamdown['"]/,
 	// React hook calls — `useX(` covers useState/useEffect/useRef/useReducer/
 	// useContext/useId/useMemo/useCallback/useLayoutEffect/useTransition/
 	// useDeferredValue/useSyncExternalStore/useFormStatus and any custom

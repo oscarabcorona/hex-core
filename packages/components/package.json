@@ -87,6 +87,8 @@
 		"@radix-ui/react-tooltip": "^1.2.8",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.0",
+		"shiki": "^4.0.2",
+		"streamdown": "^2.5.0",
 		"tailwind-merge": "^3.5.0"
 	},
 	"devDependencies": {

@@ -72,13 +72,14 @@ export function listComponents(): RegistryIndexItem[] {
 /** Display labels for the `category` field on each registry item. */
 export const CATEGORY_LABELS: Record<string, string> = {
 	primitive: "Primitives",
+	ai: "AI",
 	component: "Components",
 	block: "Blocks",
 	hook: "Hooks",
 };
 
 /** Preferred display order of categories across the docs surface. */
-export const CATEGORY_ORDER = ["primitive", "component", "block", "hook"] as const;
+export const CATEGORY_ORDER = ["primitive", "ai", "component", "block", "hook"] as const;
 
 /**
  * Group components by `category` (primitive, component, block, etc.). Return

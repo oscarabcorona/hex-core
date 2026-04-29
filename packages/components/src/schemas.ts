@@ -71,3 +71,17 @@ export { sheetSchema } from "./components/sheet/sheet.schema.js";
 export { drawerSchema } from "./components/drawer/drawer.schema.js";
 export { resizableSchema } from "./components/resizable/resizable.schema.js";
 export { sidebarSchema } from "./components/sidebar/sidebar.schema.js";
+
+// AI primitives
+export type { Role, ToolCallState } from "./ai/types.js";
+export { messageSchema } from "./ai/message/message.schema.js";
+export { messageListSchema } from "./ai/message-list/message-list.schema.js";
+export { composerSchema } from "./ai/composer/composer.schema.js";
+export { loadingIndicatorSchema } from "./ai/loading-indicator/loading-indicator.schema.js";
+export { suggestionSchema } from "./ai/suggestion/suggestion.schema.js";
+export { toolCallSchema } from "./ai/tool-call/tool-call.schema.js";
+export { reasoningSchema } from "./ai/reasoning/reasoning.schema.js";
+export { messageActionsSchema } from "./ai/message-actions/message-actions.schema.js";
+export { citationSchema } from "./ai/citation/citation.schema.js";
+export { markdownSchema } from "./ai/markdown/markdown.schema.js";
+export { codeBlockSchema } from "./ai/code-block/code-block.schema.js";

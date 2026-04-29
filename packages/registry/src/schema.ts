@@ -151,6 +151,7 @@ export const categoryEnum = z.enum([
 	"theme",
 	"hook",
 	"lib",
+	"ai",
 ]);
 
 export type Category = z.infer<typeof categoryEnum>;

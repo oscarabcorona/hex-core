@@ -1,0 +1,121 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "markdown",
+  "displayName": "Markdown",
+  "description": "Streaming-safe markdown renderer wrapping Vercel's streamdown. Handles partial input mid-stream without throwing.",
+  "category": "ai",
+  "subcategory": "content",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "children",
+      "type": "string",
+      "required": true,
+      "description": "Raw markdown. May be a partial chunk during streaming."
+    },
+    {
+      "name": "components",
+      "type": "object",
+      "required": false,
+      "description": "Per-element overrides (e.g. plug in CodeBlock for `pre`/`code`)."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the root element."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "children",
+      "description": "Markdown source as a string.",
+      "required": true,
+      "acceptedTypes": [
+        "string"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/markdown.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Streamdown, type StreamdownProps } from \"streamdown\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Streaming-safe markdown renderer. Wraps Vercel's `streamdown` so partial\n * input mid-stream — unclosed code fences, half-typed tags, dangling\n * brackets — renders gracefully instead of throwing or flashing raw text.\n *\n * For per-element overrides (e.g. plug in a `<CodeBlock />` for `pre`/`code`\n * blocks, or a custom `<Citation />` for footnote-style links), pass\n * `components`. Exposes the underlying StreamdownProps so consumers can opt\n * into mermaid, math, line numbers, etc. without us mirroring the API.\n *\n * @example\n * <Message role=\"assistant\">\n *   <Markdown>{streamingText}</Markdown>\n * </Message>\n * @example\n * <Markdown components={{ pre: ({ children }) => <CodeBlock code={extractCode(children)} /> }}>\n *   {markdown}\n * </Markdown>\n */\nexport interface MarkdownProps extends Omit<StreamdownProps, \"children\"> {\n\t/** Raw markdown. May be a partial chunk during streaming. */\n\tchildren: string;\n\tclassName?: string;\n}\n\n/**\n * Renders streaming-safe markdown.\n * @param props - children string + optional Streamdown overrides\n * @returns A Streamdown root scoped with prose styles\n */\nfunction Markdown({ children, className, ...rest }: MarkdownProps) {\n\treturn (\n\t\t<Streamdown\n\t\t\tclassName={cn(\n\t\t\t\t\"prose prose-sm max-w-none text-foreground\",\n\t\t\t\t\"prose-headings:text-foreground prose-strong:text-foreground\",\n\t\t\t\t\"prose-a:text-primary prose-a:underline-offset-4 hover:prose-a:underline\",\n\t\t\t\t\"prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t\t{...rest}\n\t\t>\n\t\t\t{children}\n\t\t</Streamdown>\n\t);\n}\n\nexport { Markdown };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "streamdown",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "foreground",
+    "primary"
+  ],
+  "examples": [
+    {
+      "title": "Streaming assistant turn",
+      "description": "Render the in-flight assistant message as it arrives.",
+      "code": "<Message role=\"assistant\">\n  <Markdown>{message.content}</Markdown>\n</Message>",
+      "composition": [
+        "chat",
+        "streaming",
+        "markdown"
+      ]
+    },
+    {
+      "title": "Plug in CodeBlock for fenced code",
+      "description": "Override the default `pre` renderer to use Hex Core CodeBlock.",
+      "code": "<Markdown\n  components={{\n    pre: ({ children }) => {\n      const child = React.Children.only(children) as ReactElement<{ className?: string; children?: string }>;\n      const lang = child.props.className?.replace(/^language-/, \"\") ?? \"text\";\n      return <CodeBlock code={String(child.props.children).trim()} language={lang as SupportedLang} />;\n    },\n  }}\n>{markdown}</Markdown>",
+      "composition": [
+        "chat",
+        "code",
+        "override"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Render any markdown content from an LLM — assistant turns, system messages with formatting, RAG citations with inline links. Required for streaming because raw markdown parsers throw on unfinished input.",
+    "whenNotToUse": "Don't use for plain text without formatting (just render the string). Don't bypass it for streamed content — partial input WILL break a non-streaming parser.",
+    "commonMistakes": [
+      "Passing JSX children instead of a markdown string — Markdown only accepts strings",
+      "Disabling `parseIncompleteMarkdown` during streaming — that defeats the streaming-safe guarantee",
+      "Forgetting Tailwind Typography (`prose`) classes are required to style the output"
+    ],
+    "relatedComponents": [
+      "message",
+      "code-block",
+      "citation"
+    ],
+    "accessibilityNotes": "Inherits semantics from streamdown: real headings, lists, links. Verify Tailwind Typography (prose) is enabled in your CSS — without it, output renders unstyled.",
+    "tokenBudget": 280
+  },
+  "tags": [
+    "ai",
+    "markdown",
+    "streaming",
+    "content",
+    "renderer"
+  ]
+}

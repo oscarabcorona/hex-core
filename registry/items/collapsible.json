@@ -49,7 +49,7 @@
   "files": [
     {
       "path": "components/ui/collapsible.tsx",
-      "content": "import * as CollapsiblePrimitive from \"@radix-ui/react-collapsible\";\n\n/** Root container controlling the expanded state of the content. */\nconst Collapsible = CollapsiblePrimitive.Root;\n\n/** The element that toggles the Collapsible open/closed. */\nconst CollapsibleTrigger = CollapsiblePrimitive.CollapsibleTrigger;\n\n/** The collapsible content shown/hidden by the trigger. */\nconst CollapsibleContent = CollapsiblePrimitive.CollapsibleContent;\n\nexport { Collapsible, CollapsibleTrigger, CollapsibleContent };\n",
+      "content": "\"use client\";\n\nimport * as CollapsiblePrimitive from \"@radix-ui/react-collapsible\";\n\n/** Root container controlling the expanded state of the content. */\nconst Collapsible = CollapsiblePrimitive.Root;\n\n/** The element that toggles the Collapsible open/closed. */\nconst CollapsibleTrigger = CollapsiblePrimitive.CollapsibleTrigger;\n\n/** The collapsible content shown/hidden by the trigger. */\nconst CollapsibleContent = CollapsiblePrimitive.CollapsibleContent;\n\nexport { Collapsible, CollapsibleTrigger, CollapsibleContent };\n",
       "type": "component"
     },
     {
