@@ -1,5 +1,21 @@
 # @hex-core/components
 
+## 1.5.0
+
+### Minor Changes
+
+- feat(components): add ai primitive category — 11 components
+
+  New top-level `ai/` category with SDK-agnostic primitives that map
+  cleanly to AI SDK v5 UIMessage parts, LangChain BaseMessage, and
+  Mastra agent outputs.
+
+  Components: Message, MessageList, Composer, ToolCall, LoadingIndicator,
+  Suggestion, MessageActions, Reasoning, Citation, Markdown, CodeBlock.
+
+  New deps: `shiki` (CodeBlock syntax highlighting via async RSC),
+  `streamdown` (streaming-safe Markdown rendering).
+
 ## 1.4.0
 
 ### Minor Changes
