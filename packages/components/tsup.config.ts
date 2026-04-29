@@ -93,11 +93,17 @@ export default defineConfig({
 		"class-variance-authority",
 		"clsx",
 		"tailwind-merge",
-		// Cross-entry boundary: keep `code-block.tsx` (async Server Component)
-		// importing the separate `"use client"` `code-block-copy.tsx` island
-		// at runtime. Without this, `splitting: false` inlines the client
-		// hooks (`useState`, `navigator.clipboard`) into the server bundle and
-		// the RSC boundary collapses.
-		/(\.\/)?code-block-copy(\.js)?$/,
+		// Cross-entry boundary: keep the sibling import in `code-block.tsx`
+		// (async Server Component) pointing at the separate `"use client"`
+		// `code-block-copy.tsx` island at runtime. Without this, `splitting:
+		// false` inlines the client hooks (`useState`, `navigator.clipboard`)
+		// into the server bundle and the RSC boundary collapses.
+		//
+		// The regex MUST be anchored to the sibling-relative form so the
+		// flat-dist barrel re-export `from "./ai/code-block/code-block-copy.js"`
+		// in `src/index.ts` is NOT treated as external (it has no
+		// corresponding nested file in the flat `dist/`; it must be inlined
+		// + rewritten to the sibling `./code-block-copy.js`).
+		/^\.\/code-block-copy(\.js)?$/,
 	],
 });
