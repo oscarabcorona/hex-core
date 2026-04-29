@@ -1,15 +1,14 @@
 name: Regression (a11y + visual)
 
-# QA-stage gate. Runs the slow regression suite (~5–10 min) when changes
-# are promoted onto the `qa` branch — PRs to main stay fast (the
-# lint/build/test job in ci.yml gates merges to main); regression fires
-# only after main → qa promotion. `workflow_dispatch` lets the user
-# kick it manually against any branch when needed.
-#
-# Branch flow: feature → main → qa → release
+# Manual-only gate. Hit the 20-min job timeout the only time we wired it
+# to `push: [qa]` (PR #102) — the a11y audit alone runs ~10 min for 118
+# pages × light/dark, which is fine locally but unreliable in CI. The
+# canonical pre-release gate is `pnpm regression` on the maintainer's
+# machine; this workflow is kept on `workflow_dispatch` so artifacts
+# (playwright-report, a11y-report) can be uploaded when remote logs are
+# wanted. Don't add a push trigger without parallelizing the a11y audit
+# first.
 on:
-  push:
-    branches: [qa]
   workflow_dispatch:
 
 concurrency:
