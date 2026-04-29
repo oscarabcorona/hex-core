@@ -1,33 +1,42 @@
 import { describe, expect, it } from "vitest";
-import { defaultSemanticTokens, defaultTheme, resolveSemanticToken } from "../src/index.js";
+import {
+	defaultSemanticTokens,
+	defaultTheme,
+	emberTheme,
+	midnightTheme,
+	resolveSemanticToken,
+} from "../src/index.js";
 
 /**
  * Locks in the contract that every value in `defaultSemanticTokens`
- * resolves against the canonical light + dark `TokenSet`s. Earlier
- * prototype used dot-namespaced refs (`{color.destructive}`) that
- * didn't match the flat token store — this test would have failed
- * loudly under that mismatch.
+ * resolves against ALL OSS preset themes (light + dark, default +
+ * midnight + ember). Earlier prototype used dot-namespaced refs
+ * (`{color.destructive}`) that didn't match the flat token store —
+ * this test would have failed loudly under that mismatch. The
+ * theme-portability claim in the JSDoc + changeset depends on this:
+ * a future preset theme that drops a referenced flat token name
+ * fails the suite before it ships.
  */
-describe("defaultSemanticTokens", () => {
-	it("every entry references a token that exists in defaultTheme.light", () => {
-		for (const [name, entry] of Object.entries(defaultSemanticTokens)) {
-			const resolved = resolveSemanticToken(entry.value, defaultTheme.tokens.light);
-			expect(
-				resolved,
-				`semantic token ${name} → ${entry.value} resolves to nothing in defaultTheme.light`,
-			).not.toBeNull();
-		}
-	});
+const THEMES = [
+	["default", defaultTheme],
+	["midnight", midnightTheme],
+	["ember", emberTheme],
+] as const;
 
-	it("every entry references a token that exists in defaultTheme.dark", () => {
-		for (const [name, entry] of Object.entries(defaultSemanticTokens)) {
-			const resolved = resolveSemanticToken(entry.value, defaultTheme.tokens.dark);
-			expect(
-				resolved,
-				`semantic token ${name} → ${entry.value} resolves to nothing in defaultTheme.dark`,
-			).not.toBeNull();
+describe("defaultSemanticTokens", () => {
+	for (const [name, theme] of THEMES) {
+		for (const mode of ["light", "dark"] as const) {
+			it(`every entry resolves against ${name}.${mode}`, () => {
+				for (const [slot, entry] of Object.entries(defaultSemanticTokens)) {
+					const resolved = resolveSemanticToken(entry.value, theme.tokens[mode]);
+					expect(
+						resolved,
+						`semantic token ${slot} → ${entry.value} resolves to nothing in ${name}.${mode}`,
+					).not.toBeNull();
+				}
+			});
 		}
-	});
+	}
 
 	it("the resolved type matches the declared semantic-entry type", () => {
 		for (const [name, entry] of Object.entries(defaultSemanticTokens)) {

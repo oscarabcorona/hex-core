@@ -819,7 +819,10 @@ server.registerTool(
 		if (!item) {
 			return {
 				content: [
-					{ type: "text" as const, text: `Component "${name}" not found.` },
+					{
+						type: "text" as const,
+						text: `Component "${name}" not found. Use search_components to discover available components.`,
+					},
 				],
 			};
 		}

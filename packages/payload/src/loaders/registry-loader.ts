@@ -132,22 +132,15 @@ const registryItemCache = new Map<string, RegistryItem>();
  * Load a single registry item by name. Memoized after first read — the
  * registry directory is bundled into the published tarball and doesn't
  * change at runtime, so the cache never needs invalidation in normal
- * MCP operation. Pass `{ fresh: true }` to bypass the cache (useful in
- * tests that mutate the on-disk fixtures).
+ * MCP operation.
  * @param name - The component name (must match `SLUG_REGEX`)
- * @param options - Pass `{ fresh: true }` to skip the in-memory cache
  * @returns The parsed registry item, or null if the name is invalid or not found
  */
-export function loadRegistryItem(
-	name: string,
-	options: { fresh?: boolean } = {},
-): RegistryItem | null {
+export function loadRegistryItem(name: string): RegistryItem | null {
 	if (!SLUG_REGEX.test(name)) return null;
 
-	if (!options.fresh) {
-		const cached = registryItemCache.get(name);
-		if (cached) return cached;
-	}
+	const cached = registryItemCache.get(name);
+	if (cached) return cached;
 
 	const dir = getRegistryDir();
 	const itemPath = path.join(dir, "items", `${name}.json`);
