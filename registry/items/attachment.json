@@ -1,0 +1,180 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "attachment",
+  "displayName": "Attachment",
+  "description": "File / image thumbnail with optional remove affordance + upload-progress overlay. Composes with the AI Composer for multimodal message drafts. Auto-detects image vs file variant from MIME type + preview URL.",
+  "category": "ai",
+  "subcategory": "input",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "file",
+      "type": "object",
+      "required": true,
+      "description": "Native File OR { name, size, type, preview? } metadata. Drives variant auto-detection (image+preview → thumbnail; else file icon + name + size)."
+    },
+    {
+      "name": "onRemove",
+      "type": "function",
+      "required": false,
+      "description": "Click handler for the × overlay button. Signature: () => void."
+    },
+    {
+      "name": "progress",
+      "type": "number",
+      "required": false,
+      "description": "Upload progress in [0, 1]. When set and < 1, renders an aria-valuenow progressbar at the bottom edge."
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "required": false,
+      "description": "Override the auto-detected variant. 'image' renders a thumbnail; 'file' renders icon + name + size.",
+      "enumValues": [
+        "file",
+        "image"
+      ]
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes"
+    }
+  ],
+  "variants": [
+    {
+      "name": "variant",
+      "description": "Visual layout. Auto-detected unless overridden.",
+      "values": [
+        {
+          "value": "file",
+          "description": "Generic file icon + name + size. Bordered card with horizontal padding.",
+          "useWhen": "the attachment is a non-image (PDF, code, archive, audio) OR an image without a preview URL"
+        },
+        {
+          "value": "image",
+          "description": "80×80 thumbnail of the preview URL. Zero padding so the image fills the card.",
+          "useWhen": "the attachment is an image AND a preview URL is available (use URL.createObjectURL on the File before passing in)"
+        }
+      ],
+      "default": "file"
+    }
+  ],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/attachment.tsx",
+      "content": "\"use client\";\n\nimport { type VariantProps, cva } from \"class-variance-authority\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/** A file-shaped attachment metadata object accepted by `<Attachment>`. */\nexport interface AttachmentFile {\n\t/** Display name. */\n\tname: string;\n\t/** Bytes. Used to render a human-readable size. */\n\tsize: number;\n\t/** MIME type. Drives the auto-detected `variant`. */\n\ttype: string;\n\t/**\n\t * Optional preview URL for images. When `type` starts with `image/`\n\t * AND `preview` is set, the attachment renders a thumbnail; otherwise\n\t * it falls back to a typed file icon + name + size.\n\t */\n\tpreview?: string;\n}\n\nconst attachmentVariants = cva(\n\t[\n\t\t\"group/attachment relative inline-flex items-center gap-[var(--gap-sm,0.5rem)] rounded-md border border-border bg-card\",\n\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t].join(\" \"),\n\t{\n\t\tvariants: {\n\t\t\tvariant: {\n\t\t\t\tfile: \"px-[var(--space-3,0.75rem)] py-[var(--space-2,0.5rem)] max-w-xs\",\n\t\t\t\timage: \"p-0 overflow-hidden\",\n\t\t\t},\n\t\t},\n\t\tdefaultVariants: { variant: \"file\" },\n\t},\n);\n\nexport interface AttachmentProps\n\textends Omit<React.HTMLAttributes<HTMLDivElement>, \"onProgress\">,\n\t\tVariantProps<typeof attachmentVariants> {\n\t/** Native `File` OR a metadata object. */\n\tfile: File | AttachmentFile;\n\t/** Click handler for the remove button. When provided, a × button overlays the attachment. */\n\tonRemove?: () => void;\n\t/** Upload progress in `[0, 1]`. Renders an `aria-valuenow` progressbar overlay. */\n\tprogress?: number;\n}\n\n/**\n * Format a byte count as a human-readable size (`\"24.3 KB\"`, `\"1.2 MB\"`).\n *\n * @param bytes - Raw byte count.\n * @returns A short human-readable string.\n */\nfunction formatSize(bytes: number): string {\n\tif (bytes < 1024) return `${bytes} B`;\n\tif (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;\n\tif (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;\n\treturn `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;\n}\n\n/**\n * Decide whether to render the image variant (thumbnail) vs the file\n * variant (icon + name + size). Images need both an image MIME type AND\n * a `preview` URL — without preview we can't actually show the image, so\n * we fall back to the file variant.\n *\n * @param file - The attachment input.\n * @returns `\"image\"` when both conditions hold, else `\"file\"`.\n */\nfunction detectVariant(file: File | AttachmentFile): \"image\" | \"file\" {\n\tconst preview = \"preview\" in file ? file.preview : undefined;\n\tconst isImage = file.type.startsWith(\"image/\");\n\treturn isImage && preview ? \"image\" : \"file\";\n}\n\n/**\n * Resolve the preview URL for an attachment input. Native `File`s don't\n * carry a preview; consumers create one via `URL.createObjectURL(file)`\n * before handing the file in.\n *\n * @param file - The attachment input.\n * @returns The preview URL, or undefined.\n */\nfunction resolvePreview(file: File | AttachmentFile): string | undefined {\n\treturn \"preview\" in file ? file.preview : undefined;\n}\n\n/**\n * A file / image attachment thumbnail with an optional remove affordance\n * and optional upload-progress overlay. Composes with the existing\n * `Composer` AI primitive (drop into Composer's children slot to render\n * as part of the message draft).\n *\n * Auto-detects the visual variant: image MIME + `preview` URL → image\n * thumbnail; everything else → typed file icon with name + size.\n *\n * Distinct from {@link Dropzone} (the upload-input affordance) and\n * static {@link Card} previews (no remove/progress UI).\n *\n * @example\n * ```tsx\n * <Attachment\n *   file={{ name: \"screenshot.png\", size: 124000, type: \"image/png\", preview: objectUrl }}\n *   onRemove={() => removeFromDraft(\"screenshot.png\")}\n * />\n * ```\n */\nconst Attachment = React.forwardRef<HTMLDivElement, AttachmentProps>(\n\t({ className, variant, file, onRemove, progress, ...props }, ref) => {\n\t\tconst resolvedVariant = variant ?? detectVariant(file);\n\t\tconst preview = resolvePreview(file);\n\t\tconst showProgress = typeof progress === \"number\" && progress >= 0 && progress < 1;\n\n\t\treturn (\n\t\t\t<div\n\t\t\t\tref={ref}\n\t\t\t\tclassName={cn(attachmentVariants({ variant: resolvedVariant }), className)}\n\t\t\t\t{...props}\n\t\t\t>\n\t\t\t\t{resolvedVariant === \"image\" && preview ? (\n\t\t\t\t\t<img\n\t\t\t\t\t\tsrc={preview}\n\t\t\t\t\t\talt={file.name}\n\t\t\t\t\t\tclassName=\"block h-20 w-20 object-cover\"\n\t\t\t\t\t/>\n\t\t\t\t) : (\n\t\t\t\t\t<>\n\t\t\t\t\t\t<FileIcon className=\"h-5 w-5 shrink-0 text-muted-foreground\" />\n\t\t\t\t\t\t<div className=\"flex min-w-0 flex-col\">\n\t\t\t\t\t\t\t<span className=\"truncate text-sm font-medium text-foreground\">{file.name}</span>\n\t\t\t\t\t\t\t<span className=\"text-xs text-muted-foreground\">{formatSize(file.size)}</span>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</>\n\t\t\t\t)}\n\n\t\t\t\t{showProgress ? (\n\t\t\t\t\t<div\n\t\t\t\t\t\trole=\"progressbar\"\n\t\t\t\t\t\taria-valuemin={0}\n\t\t\t\t\t\taria-valuemax={1}\n\t\t\t\t\t\taria-valuenow={progress}\n\t\t\t\t\t\taria-label={`Uploading ${file.name}`}\n\t\t\t\t\t\tclassName=\"absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded-b-md bg-muted\"\n\t\t\t\t\t>\n\t\t\t\t\t\t<div\n\t\t\t\t\t\t\tclassName=\"h-full bg-primary transition-[width] duration-[var(--duration-normal,200ms)] ease-out\"\n\t\t\t\t\t\t\tstyle={{ width: `${Math.round(progress * 100)}%` }}\n\t\t\t\t\t\t/>\n\t\t\t\t\t</div>\n\t\t\t\t) : null}\n\n\t\t\t\t{onRemove ? (\n\t\t\t\t\t<button\n\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\tonClick={onRemove}\n\t\t\t\t\t\taria-label={`Remove ${file.name}`}\n\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\"absolute -right-2 -top-2 inline-flex h-5 w-5 items-center justify-center rounded-full\",\n\t\t\t\t\t\t\t\"bg-card border border-border text-foreground shadow-sm\",\n\t\t\t\t\t\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\t\t\t\"hover:bg-accent hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1\",\n\t\t\t\t\t\t\t\"active:scale-90\",\n\t\t\t\t\t\t)}\n\t\t\t\t\t>\n\t\t\t\t\t\t<svg\n\t\t\t\t\t\t\txmlns=\"http://www.w3.org/2000/svg\"\n\t\t\t\t\t\t\tviewBox=\"0 0 24 24\"\n\t\t\t\t\t\t\tfill=\"none\"\n\t\t\t\t\t\t\tstroke=\"currentColor\"\n\t\t\t\t\t\t\tstrokeWidth=\"2.5\"\n\t\t\t\t\t\t\tstrokeLinecap=\"round\"\n\t\t\t\t\t\t\tstrokeLinejoin=\"round\"\n\t\t\t\t\t\t\tclassName=\"size-3\"\n\t\t\t\t\t\t\taria-hidden=\"true\"\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\" />\n\t\t\t\t\t\t\t<line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\" />\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t</button>\n\t\t\t\t) : null}\n\t\t\t</div>\n\t\t);\n\t},\n);\nAttachment.displayName = \"Attachment\";\n\n/** Generic file icon (page-with-fold). */\nfunction FileIcon(props: React.SVGAttributes<SVGElement>) {\n\treturn (\n\t\t<svg\n\t\t\txmlns=\"http://www.w3.org/2000/svg\"\n\t\t\tviewBox=\"0 0 24 24\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"2\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\taria-hidden=\"true\"\n\t\t\t{...props}\n\t\t>\n\t\t\t<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\" />\n\t\t\t<polyline points=\"14 2 14 8 20 8\" />\n\t\t</svg>\n\t);\n}\n\nexport { Attachment, attachmentVariants };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "border",
+    "foreground",
+    "muted",
+    "muted-foreground",
+    "primary",
+    "accent",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Image preview in composer",
+      "description": "Image attachment with remove affordance",
+      "code": "function ComposerWithImage() {\n  const [file, setFile] = React.useState<File | null>(null);\n  const preview = file ? URL.createObjectURL(file) : null;\n  return (\n    <Composer>\n      {file && preview ? (\n        <Attachment\n          file={{ name: file.name, size: file.size, type: file.type, preview }}\n          onRemove={() => setFile(null)}\n        />\n      ) : null}\n      {/* …textarea + send button… */}\n    </Composer>\n  );\n}",
+      "composition": [
+        "composer",
+        "ai",
+        "image",
+        "removable"
+      ]
+    },
+    {
+      "title": "Upload progress",
+      "description": "File attachment with live progress overlay",
+      "code": "<Attachment\n  file={{ name: \"report.pdf\", size: 2_400_000, type: \"application/pdf\" }}\n  progress={uploadProgress}\n  onRemove={() => cancelUpload()}\n/>",
+      "composition": [
+        "upload",
+        "progress",
+        "removable"
+      ]
+    },
+    {
+      "title": "Static file preview (no remove)",
+      "description": "Read-only attachment in a sent message",
+      "code": "<Attachment file={{ name: \"diagram.svg\", size: 18000, type: \"image/svg+xml\" }} />",
+      "composition": [
+        "read-only",
+        "message"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use inside a Composer to show pending attachments the user can remove before sending, or inside a Message to show attached files in a sent turn. Pair native File objects with URL.createObjectURL(file) before rendering — the component doesn't manage object URLs.",
+    "whenNotToUse": "Don't use for the upload-target affordance itself (that's Dropzone — it handles drag-drop + click-to-pick). Don't use for static document previews outside a chat composer (use Card with a file icon). Don't use for inline images in markdown — use Markdown's image rendering.",
+    "commonMistakes": [
+      "Forgetting URL.createObjectURL on a native File — preview won't render and the variant falls back to file",
+      "Not revoking object URLs when the attachment is removed — leaks memory",
+      "Using Attachment without onRemove inside a Composer — leaves the user unable to remove"
+    ],
+    "antiPatterns": [
+      {
+        "mistake": "Using Attachment as the upload-input affordance (drag-drop area, click-to-pick)",
+        "insteadUse": "dropzone",
+        "why": "Dropzone is purpose-built for the upload-target — drag/drop semantics, click-to-pick, accept-MIME validation. Attachment SHOWS the result; Dropzone is the input."
+      },
+      {
+        "mistake": "Using Attachment for static document previews on a profile / details page",
+        "insteadUse": "card",
+        "why": "Card is the static-content surface. Attachment ships remove + progress overlays consumers don't need outside the chat-composer flow."
+      },
+      {
+        "mistake": "Using Attachment to render an inline image inside markdown body text",
+        "insteadUse": "markdown",
+        "why": "Markdown's `![alt](url)` already renders an inline image with the right semantics. Attachment is for the discrete-attachment-token UX (with name, size, remove); markdown handles inline media."
+      }
+    ],
+    "relatedComponents": [
+      "composer",
+      "dropzone",
+      "message",
+      "message-list"
+    ],
+    "accessibilityNotes": "Image variant uses <img alt> from the file name. Remove button gets aria-label='Remove ${name}'. Progress overlay is role='progressbar' with aria-valuemin/max/now and a generic 'Uploading ${name}' aria-label.",
+    "tokenBudget": 500
+  },
+  "tags": [
+    "attachment",
+    "ai",
+    "composer",
+    "file",
+    "image",
+    "upload",
+    "multimodal"
+  ]
+}

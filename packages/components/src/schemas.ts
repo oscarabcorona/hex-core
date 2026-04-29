@@ -72,6 +72,15 @@ export { drawerSchema } from "./components/drawer/drawer.schema.js";
 export { resizableSchema } from "./components/resizable/resizable.schema.js";
 export { sidebarSchema } from "./components/sidebar/sidebar.schema.js";
 
+// Tier-1 gap batch (1.5.x+)
+export { emptySchema } from "./primitives/empty/empty.schema.js";
+export { loadingSchema } from "./primitives/loading/loading.schema.js";
+export { errorStateSchema } from "./primitives/error-state/error-state.schema.js";
+export { tagSchema } from "./primitives/tag/tag.schema.js";
+export { treeSchema } from "./components/tree/tree.schema.js";
+export { toolbarSchema } from "./components/toolbar/toolbar.schema.js";
+export { attachmentSchema } from "./ai/attachment/attachment.schema.js";
+
 // AI primitives
 export type { Role, ToolCallState } from "./ai/types.js";
 export { messageSchema } from "./ai/message/message.schema.js";
