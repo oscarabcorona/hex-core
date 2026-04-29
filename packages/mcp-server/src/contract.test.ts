@@ -233,13 +233,64 @@ async function main(): Promise<void> {
 			fail(`emit_figma_tokens output missing keys: ${missingFigma.join(", ")}`);
 		}
 		pass("emit_figma_tokens emits a Figma POST-shaped JSON body");
+
+		// ─── 8. describe_intent returns variant useWhen + antiPatterns + semantic tokens ───
+		const intentResult = (await client.callTool({
+			name: TOOL.DESCRIBE_INTENT,
+			arguments: { name: "button" },
+		})) as { content?: Array<{ type: string; text?: string }> };
+		const intentText = intentResult.content?.[0]?.text ?? "";
+		let intentParsed: {
+			variants?: Array<{ name: string; values: Array<{ value: string; useWhen: string | null }> }>;
+			antiPatterns?: Array<{ mistake: string; insteadUse: string }>;
+			semanticTokens?: Record<string, unknown>;
+		};
+		try {
+			intentParsed = JSON.parse(intentText);
+		} catch (err) {
+			fail(`describe_intent did not return valid JSON: ${(err as Error).message}`);
+		}
+		const variantUseWhen = intentParsed.variants?.[0]?.values?.[0]?.useWhen;
+		if (typeof variantUseWhen !== "string" || variantUseWhen.length === 0) {
+			fail("describe_intent: button.variants[0].values[0].useWhen missing — variant intent payload not surfaced.");
+		}
+		if (!Array.isArray(intentParsed.antiPatterns) || intentParsed.antiPatterns.length === 0) {
+			fail("describe_intent: button.antiPatterns missing or empty — structured anti-pattern payload not surfaced.");
+		}
+		if (!intentParsed.semanticTokens || Object.keys(intentParsed.semanticTokens).length === 0) {
+			fail("describe_intent: button.semanticTokens missing — defaultSemanticTokens not filtered through.");
+		}
+		pass("describe_intent surfaces variant useWhen + antiPatterns + semantic tokens");
+
+		// ─── 9. search_compositions returns examples by tag overlap ───
+		const compResult = (await client.callTool({
+			name: TOOL.SEARCH_COMPOSITIONS,
+			arguments: { tags: ["destructive", "confirm"], limit: 5 },
+		})) as { content?: Array<{ type: string; text?: string }> };
+		const compText = compResult.content?.[0]?.text ?? "";
+		let compParsed: Array<{ component: string; composition: string[]; overlap: number }>;
+		try {
+			compParsed = JSON.parse(compText);
+		} catch (err) {
+			fail(`search_compositions did not return valid JSON: ${(err as Error).message}`);
+		}
+		if (!Array.isArray(compParsed) || compParsed.length === 0) {
+			fail("search_compositions returned empty for ['destructive', 'confirm'] — at least one Button or Dialog example should match.");
+		}
+		const allOverlap = compParsed.every(
+			(m) => m.composition.some((c) => ["destructive", "confirm"].includes(c.toLowerCase())),
+		);
+		if (!allOverlap) {
+			fail("search_compositions returned examples that don't actually overlap the query tags.");
+		}
+		pass("search_compositions returns tag-matched examples ranked by overlap");
 	} finally {
-		// ─── 8. Clean disposal — close should not throw ───
+		// ─── 10. Clean disposal — close should not throw ───
 		await client.close();
 		pass("client.close() disposed transport cleanly");
 	}
 
-	console.log("\nMCP contract test: all 9 assertions passed.");
+	console.log("\nMCP contract test: all 11 assertions passed.");
 }
 
 main().catch((err) => {

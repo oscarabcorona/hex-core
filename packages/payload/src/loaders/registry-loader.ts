@@ -120,19 +120,35 @@ export function loadRegistry(): RegistryIndex {
 	return JSON.parse(content);
 }
 
+// Module-level cache for registry items so MCP tools that fan out across
+// the catalog (search_compositions, verify_checklist, emit_app_context)
+// don't re-read + re-parse the same JSON files on every call. Cache is
+// keyed by item name; entries are immutable from the consumer's POV
+// (registry tarball is bundled at publish time). A long-running MCP
+// process holds at most ~47 entries (~1MB total) — bounded.
+const registryItemCache = new Map<string, RegistryItem>();
+
 /**
- * Load a single registry item by name.
+ * Load a single registry item by name. Memoized after first read — the
+ * registry directory is bundled into the published tarball and doesn't
+ * change at runtime, so the cache never needs invalidation in normal
+ * MCP operation.
  * @param name - The component name (must match `SLUG_REGEX`)
  * @returns The parsed registry item, or null if the name is invalid or not found
  */
 export function loadRegistryItem(name: string): RegistryItem | null {
 	if (!SLUG_REGEX.test(name)) return null;
 
+	const cached = registryItemCache.get(name);
+	if (cached) return cached;
+
 	const dir = getRegistryDir();
 	const itemPath = path.join(dir, "items", `${name}.json`);
 	if (!fs.existsSync(itemPath)) return null;
 
 	const content = fs.readFileSync(itemPath, "utf-8");
-	return JSON.parse(content);
+	const parsed = JSON.parse(content) as RegistryItem;
+	registryItemCache.set(name, parsed);
+	return parsed;
 }
 

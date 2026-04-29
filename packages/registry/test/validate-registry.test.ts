@@ -66,6 +66,30 @@ describe("registry schema validation", () => {
 			);
 		}
 	});
+
+	it("antiPatterns never self-reference (insteadUse !== item.name)", () => {
+		// AntiPattern.insteadUse names a DIFFERENT component to redirect to.
+		// A self-reference is a contract violation: an MCP follower lands
+		// back on the same intent payload, no information gained. "Use the
+		// same component differently" notes belong in commonMistakes.
+		const offenders: string[] = [];
+		for (const file of itemFiles) {
+			const item = readJson<{
+				name: string;
+				ai?: { antiPatterns?: Array<{ mistake: string; insteadUse: string }> };
+			}>(file);
+			const antiPatterns = item.ai?.antiPatterns ?? [];
+			for (const ap of antiPatterns) {
+				if (ap.insteadUse === item.name) {
+					offenders.push(`${item.name}: "${ap.mistake.slice(0, 60)}..."`);
+				}
+			}
+		}
+		expect(
+			offenders,
+			`antiPatterns may not redirect to their own component:\n${offenders.join("\n")}`,
+		).toEqual([]);
+	});
 });
 
 describe("recipe schema validation", () => {

@@ -343,7 +343,7 @@
         "setting"
       ],
       "internalDeps": [],
-      "tokenBudget": 250
+      "tokenBudget": 350
     },
     {
       "name": "textarea",

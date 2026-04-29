@@ -41,6 +41,7 @@ export {
 
 // ─── Loaders (filesystem-coupled) ───
 export {
+	defaultSemanticTokens,
 	getTheme,
 	listThemes,
 	themes,

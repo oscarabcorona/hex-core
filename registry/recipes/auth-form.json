@@ -158,26 +158,26 @@
       "source": "derived-a11y"
     },
     {
-      "id": "button-using-destructive-variant-for-non-destructive-ac",
-      "check": "[Button] Avoid: Using 'destructive' variant for non-destructive actions",
-      "severity": "warn",
-      "source": "derived-mistake"
-    },
-    {
       "id": "button-nesting-interactive-elements-inside-aschild-butt",
       "check": "[Button] Avoid: Nesting interactive elements inside asChild button",
       "severity": "warn",
       "source": "derived-mistake"
     },
     {
-      "id": "button-missing-aria-label-when-using-icon-only-size-ico",
-      "check": "[Button] Avoid: Missing aria-label when using icon-only size='icon' variant",
+      "id": "button-using-button-with-plain-onclick-for-navigation-i",
+      "check": "[Button] Avoid: Using <Button> with plain onClick for navigation instead of <Button asChild><a href=...></a></Button> — breaks middle-click, cmd-click, and right-click → 'open in new tab', and skips the browser history entry",
       "severity": "warn",
       "source": "derived-mistake"
     },
     {
-      "id": "button-using-onclick-for-navigation-instead-of-aschild-",
-      "check": "[Button] Avoid: Using onClick for navigation instead of asChild with a link",
+      "id": "button-using-button-variant-destructive-for-recoverable",
+      "check": "[Button] Avoid: Using <Button variant='destructive'> for recoverable actions like 'Reset filters' — reserve destructive for delete/archive/leave; use 'secondary' or 'ghost' for resets",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-size-icon-without-an-aria-label-scr",
+      "check": "[Button] Avoid: Using <Button size='icon'> without an aria-label — screen readers have nothing to announce; always pair icon-only buttons with aria-label or visible text",
       "severity": "warn",
       "source": "derived-mistake"
     },

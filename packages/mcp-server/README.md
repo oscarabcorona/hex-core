@@ -158,6 +158,12 @@ Spec-driven build flow:
 - `resolve_spec(brief)` — deterministic brief → ranked component + recipe shortlist (no LLM call server-side)
 - `verify_checklist(components, recipe?)` — cross-check installed components against the internal-dependency graph and the recipe's checklist
 - `emit_app_context(theme, components, recipes?)` — synthesize a paste-into-LLM markdown payload describing the chosen stack
+- `emit_figma_tokens(theme)` — render a theme as a Figma Variables REST POST payload
+
+AI-native intent layer (0.4.0+):
+
+- `describe_intent(name)` — variant `useWhen` strings, structured `antiPatterns` with `insteadUse` slug, and the slice of `defaultSemanticTokens` for the component. Use BEFORE generating JSX — the per-variant intent + structured anti-patterns prevent the canonical LLM mistakes (picking destructive for non-destructive, picking Slider for booleans, nesting Cards, etc.).
+- `search_compositions(tags, limit?)` — return component examples whose `composition` tags overlap the query. `["dialog", "destructive", "confirm"]` returns the canonical AlertDialog-with-delete-Button composition, not a bare `<Button variant="destructive">`. Ranked by overlap count.
 
 ## Prompts that "just work"
 

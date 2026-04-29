@@ -9,6 +9,7 @@ export {
 export { defaultTheme } from "./themes/default.js";
 export { midnightTheme } from "./themes/midnight.js";
 export { emberTheme } from "./themes/ember.js";
+export { defaultSemanticTokens, resolveSemanticToken } from "./semantic.js";
 
 import type { Theme } from "@hex-core/registry";
 import { defaultTheme } from "./themes/default.js";
