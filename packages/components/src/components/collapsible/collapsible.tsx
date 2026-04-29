@@ -1,3 +1,5 @@
+"use client";
+
 import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
 
 /** Root container controlling the expanded state of the content. */

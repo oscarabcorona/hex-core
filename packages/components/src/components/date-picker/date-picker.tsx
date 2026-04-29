@@ -1,3 +1,5 @@
+"use client";
+
 import { format } from "date-fns";
 import * as React from "react";
 import { Calendar } from "../calendar/calendar.js";
