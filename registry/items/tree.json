@@ -1,0 +1,158 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "tree",
+  "displayName": "Tree",
+  "description": "Generic hierarchical list with roving-tabindex keyboard navigation. Distinct from FileTree (which adds folder/file icon-by-extension logic) — Tree is content-agnostic for org charts, taxonomy pickers, navigation trees.",
+  "category": "component",
+  "subcategory": "navigation",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "data",
+      "type": "object",
+      "required": true,
+      "description": "Root nodes (TreeNode[])."
+    },
+    {
+      "name": "defaultExpanded",
+      "type": "object",
+      "required": false,
+      "description": "Initial expanded ids (uncontrolled). string[]."
+    },
+    {
+      "name": "expanded",
+      "type": "object",
+      "required": false,
+      "description": "Controlled expanded ids. string[]."
+    },
+    {
+      "name": "onExpandedChange",
+      "type": "function",
+      "required": false,
+      "description": "Callback (ids: string[]) => void."
+    },
+    {
+      "name": "selected",
+      "type": "string",
+      "required": false,
+      "description": "Controlled selected node id."
+    },
+    {
+      "name": "onSelect",
+      "type": "function",
+      "required": false,
+      "description": "Callback (id: string) => void on activation."
+    },
+    {
+      "name": "aria-label",
+      "type": "string",
+      "required": true,
+      "description": "Accessible name for the tree landmark."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes"
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/tree.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * One node in a Tree. Generic — the shape is content-agnostic so consumers\n * can render org charts, taxonomy pickers, navigation trees, etc.\n *\n * For filesystem-shaped data (with file-extension icon logic baked in),\n * prefer {@link FileTree} instead.\n */\nexport interface TreeNode {\n\t/** Stable unique id used as React key + ARIA target. */\n\tid: string;\n\t/** Display name. */\n\tlabel: React.ReactNode;\n\t/** Nested children. Presence (even empty array) marks the node as a parent. */\n\tchildren?: TreeNode[];\n\t/** Optional icon (default: a chevron + dot). */\n\ticon?: React.ReactNode;\n\t/** Disable selection + expand toggle. */\n\tdisabled?: boolean;\n}\n\nexport interface TreeProps {\n\t/** Root nodes. */\n\tdata: TreeNode[];\n\t/** Uncontrolled initial expanded ids. */\n\tdefaultExpanded?: string[];\n\t/** Controlled expanded ids. */\n\texpanded?: string[];\n\t/** Fired when expanded set changes (array of ids). */\n\tonExpandedChange?: (ids: string[]) => void;\n\t/** Controlled selected node id. */\n\tselected?: string;\n\t/** Fired when the user activates a node (click, Enter, or Space). */\n\tonSelect?: (id: string) => void;\n\t/** Required accessible name. */\n\t\"aria-label\": string;\n\t/** Optional additional class names. */\n\tclassName?: string;\n}\n\n/** Recursively flatten a tree into the visible-row order (respecting collapsed parents). */\nfunction flattenVisible(nodes: TreeNode[], expanded: Set<string>): Array<{ node: TreeNode; depth: number; parentId: string | null }> {\n\tconst out: Array<{ node: TreeNode; depth: number; parentId: string | null }> = [];\n\tfunction walk(items: TreeNode[], depth: number, parentId: string | null) {\n\t\tfor (const node of items) {\n\t\t\tout.push({ node, depth, parentId });\n\t\t\tif (node.children && expanded.has(node.id)) {\n\t\t\t\twalk(node.children, depth + 1, node.id);\n\t\t\t}\n\t\t}\n\t}\n\twalk(nodes, 0, null);\n\treturn out;\n}\n\n/**\n * Generic hierarchical list with roving-tabindex keyboard navigation —\n * arrow keys move focus, → expands, ← collapses, Home / End jump to\n * first / last visible row, Enter / Space activates the focused node.\n *\n * Distinct from {@link FileTree} (which adds folder/file icon-by-extension\n * logic baked in) and {@link Accordion} (two-level groupings without\n * item-selection semantics).\n *\n * @example\n * ```tsx\n * <Tree\n *   aria-label=\"Org chart\"\n *   data={[\n *     { id: \"ceo\", label: \"CEO\", children: [\n *       { id: \"cto\", label: \"CTO\", children: [\n *         { id: \"eng-lead\", label: \"Eng Lead\" },\n *       ]},\n *       { id: \"cmo\", label: \"CMO\" },\n *     ]},\n *   ]}\n *   defaultExpanded={[\"ceo\"]}\n *   onSelect={(id) => console.log(id)}\n * />\n * ```\n */\nconst Tree = React.forwardRef<HTMLUListElement, TreeProps>(\n\t(\n\t\t{\n\t\t\tdata,\n\t\t\tdefaultExpanded,\n\t\t\texpanded: expandedProp,\n\t\t\tonExpandedChange,\n\t\t\tselected: selectedProp,\n\t\t\tonSelect,\n\t\t\t\"aria-label\": ariaLabel,\n\t\t\tclassName,\n\t\t},\n\t\tref,\n\t) => {\n\t\tconst [internalExpanded, setInternalExpanded] = React.useState<Set<string>>(\n\t\t\t() => new Set(defaultExpanded ?? []),\n\t\t);\n\t\tconst expanded = React.useMemo(\n\t\t\t() => (expandedProp ? new Set(expandedProp) : internalExpanded),\n\t\t\t[expandedProp, internalExpanded],\n\t\t);\n\n\t\tconst [internalSelected, setInternalSelected] = React.useState<string | null>(null);\n\t\tconst selected = selectedProp ?? internalSelected;\n\n\t\tconst visible = React.useMemo(() => flattenVisible(data, expanded), [data, expanded]);\n\n\t\tconst [focusedId, setFocusedId] = React.useState<string | null>(\n\t\t\t() => visible[0]?.node.id ?? null,\n\t\t);\n\n\t\t// If the focused node disappeared (parent collapsed), retarget to the parent.\n\t\tReact.useEffect(() => {\n\t\t\tif (focusedId && !visible.some((row) => row.node.id === focusedId)) {\n\t\t\t\tsetFocusedId(visible[0]?.node.id ?? null);\n\t\t\t}\n\t\t}, [visible, focusedId]);\n\n\t\tconst setExpandedSet = React.useCallback(\n\t\t\t(next: Set<string>) => {\n\t\t\t\tif (expandedProp) {\n\t\t\t\t\tonExpandedChange?.([...next]);\n\t\t\t\t} else {\n\t\t\t\t\tsetInternalExpanded(next);\n\t\t\t\t\tonExpandedChange?.([...next]);\n\t\t\t\t}\n\t\t\t},\n\t\t\t[expandedProp, onExpandedChange],\n\t\t);\n\n\t\tconst toggleExpand = React.useCallback(\n\t\t\t(id: string) => {\n\t\t\t\tconst next = new Set(expanded);\n\t\t\t\tif (next.has(id)) next.delete(id);\n\t\t\t\telse next.add(id);\n\t\t\t\tsetExpandedSet(next);\n\t\t\t},\n\t\t\t[expanded, setExpandedSet],\n\t\t);\n\n\t\tconst activate = React.useCallback(\n\t\t\t(id: string) => {\n\t\t\t\tif (selectedProp === undefined) setInternalSelected(id);\n\t\t\t\tonSelect?.(id);\n\t\t\t},\n\t\t\t[selectedProp, onSelect],\n\t\t);\n\n\t\tconst handleKeyDown = React.useCallback(\n\t\t\t(e: React.KeyboardEvent<HTMLUListElement>) => {\n\t\t\t\tif (!focusedId) return;\n\t\t\t\tconst idx = visible.findIndex((row) => row.node.id === focusedId);\n\t\t\t\tif (idx < 0) return;\n\t\t\t\tconst row = visible[idx];\n\t\t\t\tif (!row) return;\n\t\t\t\tconst node = row.node;\n\t\t\t\tconst isParent = !!node.children;\n\t\t\t\tconst isExpanded = expanded.has(node.id);\n\n\t\t\t\tswitch (e.key) {\n\t\t\t\t\tcase \"ArrowDown\": {\n\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\tconst next = visible[idx + 1];\n\t\t\t\t\t\tif (next) setFocusedId(next.node.id);\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase \"ArrowUp\": {\n\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\tconst prev = visible[idx - 1];\n\t\t\t\t\t\tif (prev) setFocusedId(prev.node.id);\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase \"ArrowRight\": {\n\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\tif (isParent && !isExpanded) toggleExpand(node.id);\n\t\t\t\t\t\telse if (isParent && isExpanded) {\n\t\t\t\t\t\t\tconst next = visible[idx + 1];\n\t\t\t\t\t\t\tif (next) setFocusedId(next.node.id);\n\t\t\t\t\t\t}\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase \"ArrowLeft\": {\n\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\tif (isParent && isExpanded) toggleExpand(node.id);\n\t\t\t\t\t\telse if (row.parentId) {\n\t\t\t\t\t\t\tsetFocusedId(row.parentId);\n\t\t\t\t\t\t}\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase \"Home\": {\n\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\tif (visible[0]) setFocusedId(visible[0].node.id);\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase \"End\": {\n\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\tconst last = visible[visible.length - 1];\n\t\t\t\t\t\tif (last) setFocusedId(last.node.id);\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase \"Enter\":\n\t\t\t\t\tcase \" \": {\n\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\tif (node.disabled) return;\n\t\t\t\t\t\tif (isParent) toggleExpand(node.id);\n\t\t\t\t\t\tactivate(node.id);\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tdefault:\n\t\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t},\n\t\t\t[focusedId, visible, expanded, toggleExpand, activate],\n\t\t);\n\n\t\treturn (\n\t\t\t<ul\n\t\t\t\tref={ref}\n\t\t\t\trole=\"tree\"\n\t\t\t\taria-label={ariaLabel}\n\t\t\t\tclassName={cn(\"flex flex-col text-sm text-foreground\", className)}\n\t\t\t\tonKeyDown={handleKeyDown}\n\t\t\t>\n\t\t\t\t{data.map((node) => (\n\t\t\t\t\t<TreeItem\n\t\t\t\t\t\tkey={node.id}\n\t\t\t\t\t\tnode={node}\n\t\t\t\t\t\tdepth={0}\n\t\t\t\t\t\texpanded={expanded}\n\t\t\t\t\t\tselected={selected}\n\t\t\t\t\t\tfocusedId={focusedId}\n\t\t\t\t\t\tonFocus={setFocusedId}\n\t\t\t\t\t\tonToggleExpand={toggleExpand}\n\t\t\t\t\t\tonActivate={activate}\n\t\t\t\t\t/>\n\t\t\t\t))}\n\t\t\t</ul>\n\t\t);\n\t},\n);\nTree.displayName = \"Tree\";\n\ninterface TreeItemProps {\n\tnode: TreeNode;\n\tdepth: number;\n\texpanded: Set<string>;\n\tselected: string | null;\n\tfocusedId: string | null;\n\tonFocus: (id: string) => void;\n\tonToggleExpand: (id: string) => void;\n\tonActivate: (id: string) => void;\n}\n\n/** One row inside a Tree. Recurses through children when expanded. */\nfunction TreeItem({\n\tnode,\n\tdepth,\n\texpanded,\n\tselected,\n\tfocusedId,\n\tonFocus,\n\tonToggleExpand,\n\tonActivate,\n}: TreeItemProps) {\n\tconst isParent = !!node.children;\n\tconst isExpanded = expanded.has(node.id);\n\tconst isSelected = selected === node.id;\n\tconst isFocused = focusedId === node.id;\n\n\tconst handleClick = () => {\n\t\tif (node.disabled) return;\n\t\tonFocus(node.id);\n\t\tif (isParent) onToggleExpand(node.id);\n\t\tonActivate(node.id);\n\t};\n\n\treturn (\n\t\t<li\n\t\t\trole=\"treeitem\"\n\t\t\taria-expanded={isParent ? isExpanded : undefined}\n\t\t\taria-selected={isSelected || undefined}\n\t\t\taria-disabled={node.disabled || undefined}\n\t\t\ttabIndex={isFocused ? 0 : -1}\n\t\t\tclassName=\"outline-none\"\n\t\t>\n\t\t\t<button\n\t\t\t\ttype=\"button\"\n\t\t\t\tdisabled={node.disabled}\n\t\t\t\tonClick={handleClick}\n\t\t\t\tonFocus={() => onFocus(node.id)}\n\t\t\t\ttabIndex={-1}\n\t\t\t\tclassName={cn(\n\t\t\t\t\t\"flex w-full items-center gap-[var(--gap-xs,0.25rem)] rounded-sm px-[var(--space-2,0.5rem)] py-[var(--space-1,0.25rem)] text-left\",\n\t\t\t\t\t\"transition-colors duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\t\"hover:bg-accent hover:text-accent-foreground\",\n\t\t\t\t\t\"focus-visible:outline-none\",\n\t\t\t\t\tisFocused && \"ring-2 ring-ring ring-offset-1\",\n\t\t\t\t\tisSelected && \"bg-accent text-accent-foreground font-medium\",\n\t\t\t\t\tnode.disabled && \"opacity-50 pointer-events-none\",\n\t\t\t\t)}\n\t\t\t\tstyle={{ paddingLeft: `calc(${depth} * var(--space-4, 1rem) + var(--space-2, 0.5rem))` }}\n\t\t\t>\n\t\t\t\t{isParent ? (\n\t\t\t\t\t<span aria-hidden=\"true\" className=\"inline-flex h-4 w-4 shrink-0 items-center justify-center\">\n\t\t\t\t\t\t<svg\n\t\t\t\t\t\t\txmlns=\"http://www.w3.org/2000/svg\"\n\t\t\t\t\t\t\tviewBox=\"0 0 24 24\"\n\t\t\t\t\t\t\tfill=\"none\"\n\t\t\t\t\t\t\tstroke=\"currentColor\"\n\t\t\t\t\t\t\tstrokeWidth=\"2\"\n\t\t\t\t\t\t\tstrokeLinecap=\"round\"\n\t\t\t\t\t\t\tstrokeLinejoin=\"round\"\n\t\t\t\t\t\t\tclassName={cn(\"h-3 w-3 transition-transform duration-[var(--duration-normal,200ms)] ease-out\", isExpanded ? \"rotate-90\" : \"rotate-0\")}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<polyline points=\"9 18 15 12 9 6\" />\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t</span>\n\t\t\t\t) : (\n\t\t\t\t\t<span aria-hidden=\"true\" className=\"inline-block h-4 w-4 shrink-0\" />\n\t\t\t\t)}\n\t\t\t\t{node.icon ? (\n\t\t\t\t\t<span aria-hidden=\"true\" className=\"inline-flex h-4 w-4 shrink-0 items-center justify-center [&_svg]:size-4\">\n\t\t\t\t\t\t{node.icon}\n\t\t\t\t\t</span>\n\t\t\t\t) : null}\n\t\t\t\t<span className=\"truncate\">{node.label}</span>\n\t\t\t</button>\n\t\t\t{isParent && isExpanded ? (\n\t\t\t\t<ul role=\"group\" className=\"flex flex-col\">\n\t\t\t\t\t{node.children!.map((child) => (\n\t\t\t\t\t\t<TreeItem\n\t\t\t\t\t\t\tkey={child.id}\n\t\t\t\t\t\t\tnode={child}\n\t\t\t\t\t\t\tdepth={depth + 1}\n\t\t\t\t\t\t\texpanded={expanded}\n\t\t\t\t\t\t\tselected={selected}\n\t\t\t\t\t\t\tfocusedId={focusedId}\n\t\t\t\t\t\t\tonFocus={onFocus}\n\t\t\t\t\t\t\tonToggleExpand={onToggleExpand}\n\t\t\t\t\t\t\tonActivate={onActivate}\n\t\t\t\t\t\t/>\n\t\t\t\t\t))}\n\t\t\t\t</ul>\n\t\t\t) : null}\n\t\t</li>\n\t);\n}\n\nexport { Tree };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "foreground",
+    "accent",
+    "accent-foreground",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Org chart",
+      "description": "Hierarchical staff tree with expand/select",
+      "code": "<Tree\n  aria-label=\"Org chart\"\n  data={[\n    { id: \"ceo\", label: \"CEO\", children: [\n      { id: \"cto\", label: \"CTO\", children: [{ id: \"eng-lead\", label: \"Eng Lead\" }] },\n      { id: \"cmo\", label: \"CMO\" },\n    ]},\n  ]}\n  defaultExpanded={[\"ceo\"]}\n  onSelect={(id) => console.log(id)}\n/>",
+      "composition": [
+        "tree",
+        "navigation",
+        "hierarchy"
+      ]
+    },
+    {
+      "title": "Taxonomy picker",
+      "description": "Categorize a record by picking a leaf in a 3-level taxonomy",
+      "code": "<Tree\n  aria-label=\"Category\"\n  data={taxonomy}\n  selected={category}\n  onSelect={setCategory}\n/>",
+      "composition": [
+        "tree",
+        "form",
+        "picker"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use for hierarchical data the user navigates by keyboard or click — org charts, taxonomy pickers, generic nav trees. Pair with selected + onSelect for picker semantics; pair with onExpandedChange to control expansion externally.",
+    "whenNotToUse": "Don't use for filesystem-shaped data — FileTree adds folder/file icon-by-extension. Don't use for two-level groupings without item-selection — Accordion is the cleaner abstraction. Don't use for primary site nav (NavigationMenu).",
+    "commonMistakes": [
+      "Forgetting aria-label — required, no fallback",
+      "Confusing data prop (TreeNode[]) with FileTree's nodes prop (FileTreeNode[]) — same shape but different icon defaults",
+      "Trying to pass selected without onSelect — controlled-mode without an updater leaves it stuck"
+    ],
+    "antiPatterns": [
+      {
+        "mistake": "Using Tree for filesystem-shaped data (folders + files with icon-by-extension)",
+        "insteadUse": "file-tree",
+        "why": "FileTree ships file/folder icon defaults + extension-based color hints. Tree is icon-agnostic — using it for files means hand-wiring icon logic each time."
+      },
+      {
+        "mistake": "Using Tree for a two-level grouping (sections that expand to reveal content) without item-selection",
+        "insteadUse": "accordion",
+        "why": "Accordion is purpose-built for collapse-content-into-sections. Tree's role='tree' implies item-selection semantics that don't fit pure expand/collapse content groups."
+      },
+      {
+        "mistake": "Using Tree for primary site / app navigation",
+        "insteadUse": "navigation-menu",
+        "why": "NavigationMenu ships landmark role + skip links + the right ARIA for primary nav. Tree's tree role is for data, not routing."
+      }
+    ],
+    "relatedComponents": [
+      "file-tree",
+      "accordion",
+      "navigation-menu"
+    ],
+    "accessibilityNotes": "role='tree' on root, role='treeitem' per row, aria-expanded on parents, aria-selected on the chosen leaf. Keyboard: ↑↓ move focus, → expand (or jump to first child if expanded), ← collapse (or jump to parent), Home/End first/last visible row, Enter/Space activate.",
+    "tokenBudget": 700
+  },
+  "tags": [
+    "tree",
+    "hierarchy",
+    "navigation",
+    "picker",
+    "ARIA-tree"
+  ]
+}

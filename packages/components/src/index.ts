@@ -23,6 +23,10 @@ export { Toggle, toggleVariants } from "./primitives/toggle/toggle.js";
 export { ToggleGroup, ToggleGroupItem } from "./primitives/toggle-group/toggle-group.js";
 export { Avatar, AvatarImage, AvatarFallback } from "./primitives/avatar/avatar.js";
 export { Skeleton } from "./primitives/skeleton/skeleton.js";
+export { Empty, emptyVariants, type EmptyProps } from "./primitives/empty/empty.js";
+export { Loading, loadingVariants, type LoadingProps } from "./primitives/loading/loading.js";
+export { ErrorState, errorStateVariants, type ErrorStateProps } from "./primitives/error-state/error-state.js";
+export { Tag, tagVariants, type TagProps } from "./primitives/tag/tag.js";
 export { Progress } from "./primitives/progress/progress.js";
 export { ScrollArea, ScrollBar } from "./primitives/scroll-area/scroll-area.js";
 export { AspectRatio } from "./primitives/aspect-ratio/aspect-ratio.js";
@@ -254,6 +258,17 @@ export {
 	type FileTreeNode,
 	type FileTreeProps,
 } from "./components/file-tree/file-tree.js";
+export { Tree, type TreeNode, type TreeProps } from "./components/tree/tree.js";
+export {
+	Toolbar,
+	ToolbarButton,
+	ToolbarLink,
+	ToolbarSeparator,
+	ToolbarToggleGroup,
+	ToolbarToggleItem,
+	toolbarVariants,
+	type ToolbarProps,
+} from "./components/toolbar/toolbar.js";
 export {
 	Sheet,
 	SheetPortal,
@@ -319,6 +334,12 @@ export {
 	CodeBlockCopy,
 	type CodeBlockCopyProps,
 } from "./ai/code-block/code-block-copy.js";
+export {
+	Attachment,
+	attachmentVariants,
+	type AttachmentFile,
+	type AttachmentProps,
+} from "./ai/attachment/attachment.js";
 
 // Schemas live in `@hex-core/components/schemas` (1.4.0+) so the runtime
 // barrel doesn't pull in the `@hex-core/registry` type at the consumer's

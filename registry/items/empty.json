@@ -1,0 +1,213 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "empty",
+  "displayName": "Empty",
+  "description": "A zero-state surface for lists, dashboards, and search results with no content. Explains why the slot is empty + provides a call-to-action.",
+  "category": "primitive",
+  "subcategory": "feedback",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "icon",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Icon (typically an <svg>) rendered in a circular muted container above the title."
+    },
+    {
+      "name": "title",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Heading copy. Becomes the region's accessible name via aria-labelledby."
+    },
+    {
+      "name": "description",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Supporting copy that explains why the slot is empty + what to do next."
+    },
+    {
+      "name": "action",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Call-to-action — typically a <Button> that creates the missing record."
+    },
+    {
+      "name": "titleAs",
+      "type": "enum",
+      "required": false,
+      "default": "h3",
+      "description": "Heading level for the title. Pick to match surrounding heading hierarchy.",
+      "enumValues": [
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "p"
+      ]
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "required": false,
+      "default": "default",
+      "description": "Visual scale.",
+      "enumValues": [
+        "sm",
+        "default",
+        "lg"
+      ]
+    }
+  ],
+  "variants": [
+    {
+      "name": "size",
+      "description": "Vertical density of the empty-state surface.",
+      "values": [
+        {
+          "value": "sm",
+          "description": "Compact — fits inside a card / panel.",
+          "useWhen": "the empty surface is one of several stacked pieces of content; full-bleed would dominate"
+        },
+        {
+          "value": "default",
+          "description": "Standard — for table / list / dashboard widget empty states.",
+          "useWhen": "default everywhere; the only size you need on most surfaces"
+        },
+        {
+          "value": "lg",
+          "description": "Large — for full-page empty states (no items at all yet).",
+          "useWhen": "the empty surface owns the entire page — onboarding, first-run, no records yet"
+        }
+      ],
+      "default": "default"
+    }
+  ],
+  "slots": [
+    {
+      "name": "icon",
+      "description": "Icon rendered in the circular muted container above the title.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    },
+    {
+      "name": "action",
+      "description": "Call-to-action button under the description.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/empty.tsx",
+      "content": "import { type VariantProps, cva } from \"class-variance-authority\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\nconst emptyVariants = cva(\n\t[\n\t\t\"flex flex-col items-center justify-center text-center\",\n\t\t\"rounded-md border border-dashed border-border bg-muted/30\",\n\t].join(\" \"),\n\t{\n\t\tvariants: {\n\t\t\tsize: {\n\t\t\t\tsm: \"gap-[var(--space-2,0.5rem)] px-[var(--space-4,1rem)] py-[var(--space-6,1.5rem)] text-sm\",\n\t\t\t\tdefault: \"gap-[var(--space-3,0.75rem)] px-[var(--space-6,1.5rem)] py-[var(--space-8,2rem)]\",\n\t\t\t\tlg: \"gap-[var(--space-4,1rem)] px-[var(--space-8,2rem)] py-[var(--space-12,3rem)]\",\n\t\t\t},\n\t\t},\n\t\tdefaultVariants: { size: \"default\" },\n\t},\n);\n\nconst emptyIconWrapperVariants = cva(\n\t\"flex shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground [&_svg]:size-5\",\n\t{\n\t\tvariants: {\n\t\t\tsize: {\n\t\t\t\tsm: \"h-9 w-9\",\n\t\t\t\tdefault: \"h-12 w-12 [&_svg]:size-6\",\n\t\t\t\tlg: \"h-16 w-16 [&_svg]:size-7\",\n\t\t\t},\n\t\t},\n\t\tdefaultVariants: { size: \"default\" },\n\t},\n);\n\nconst emptyTitleVariants = cva(\"font-semibold text-foreground\", {\n\tvariants: {\n\t\tsize: {\n\t\t\tsm: \"text-sm\",\n\t\t\tdefault: \"text-base\",\n\t\t\tlg: \"text-lg\",\n\t\t},\n\t},\n\tdefaultVariants: { size: \"default\" },\n});\n\nconst emptyDescriptionVariants = cva(\"max-w-md text-muted-foreground\", {\n\tvariants: {\n\t\tsize: {\n\t\t\tsm: \"text-xs\",\n\t\t\tdefault: \"text-sm\",\n\t\t\tlg: \"text-base\",\n\t\t},\n\t},\n\tdefaultVariants: { size: \"default\" },\n});\n\n/** Heading element used to render the Empty title. Defaults to `h3`. */\ntype EmptyTitleAs = \"h2\" | \"h3\" | \"h4\" | \"h5\" | \"h6\" | \"p\";\n\nexport interface EmptyProps\n\textends Omit<React.HTMLAttributes<HTMLDivElement>, \"title\">,\n\t\tVariantProps<typeof emptyVariants> {\n\t/** Optional icon (typically an `<svg>`) rendered in a circular muted container. */\n\ticon?: React.ReactNode;\n\t/** Required heading copy. Becomes the region's accessible name via `aria-labelledby`. */\n\ttitle: React.ReactNode;\n\t/** Optional supporting copy that explains why the slot is empty + what to do next. */\n\tdescription?: React.ReactNode;\n\t/** Optional call-to-action — typically a `<Button>` that creates the missing record. */\n\taction?: React.ReactNode;\n\t/** Heading level for the title — pick to match surrounding hierarchy (default `h3`). */\n\ttitleAs?: EmptyTitleAs;\n}\n\n/**\n * A \"zero-state\" surface for lists, dashboards, and search results that have\n * no content to show. Use to explain *why* the slot is empty and *what to do*\n * next; pair the `action` slot with a button that creates the missing record.\n *\n * Distinct from {@link Loading} (transient, has a measurable wait) and\n * {@link ErrorState} (something failed and may need a retry). If you're\n * thinking \"show a message because the request just hasn't returned yet,\"\n * reach for `Loading` — Empty is for \"the request returned, and there's\n * nothing to show.\"\n *\n * @example\n * ```tsx\n * <Empty\n *   icon={<InboxIcon />}\n *   title=\"No messages yet\"\n *   description=\"When someone sends you a message, it'll show up here.\"\n *   action={<Button>Compose</Button>}\n * />\n * ```\n *\n * @returns A region landmark labeled by the title.\n */\nconst Empty = React.forwardRef<HTMLDivElement, EmptyProps>(\n\t(\n\t\t{ className, size, icon, title, description, action, titleAs = \"h3\", ...props },\n\t\tref,\n\t) => {\n\t\tconst titleId = React.useId();\n\t\tconst TitleComp = titleAs;\n\t\treturn (\n\t\t\t<div\n\t\t\t\tref={ref}\n\t\t\t\trole=\"region\"\n\t\t\t\taria-labelledby={titleId}\n\t\t\t\tclassName={cn(emptyVariants({ size }), className)}\n\t\t\t\t{...props}\n\t\t\t>\n\t\t\t\t{icon ? (\n\t\t\t\t\t<div className={emptyIconWrapperVariants({ size })} aria-hidden=\"true\">\n\t\t\t\t\t\t{icon}\n\t\t\t\t\t</div>\n\t\t\t\t) : null}\n\t\t\t\t<TitleComp id={titleId} className={emptyTitleVariants({ size })}>\n\t\t\t\t\t{title}\n\t\t\t\t</TitleComp>\n\t\t\t\t{description ? (\n\t\t\t\t\t<div className={emptyDescriptionVariants({ size })}>{description}</div>\n\t\t\t\t) : null}\n\t\t\t\t{action ? <div className=\"mt-[var(--space-2,0.5rem)]\">{action}</div> : null}\n\t\t\t</div>\n\t\t);\n\t},\n);\nEmpty.displayName = \"Empty\";\n\nexport { Empty, emptyVariants };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "muted",
+    "muted-foreground",
+    "foreground",
+    "border"
+  ],
+  "examples": [
+    {
+      "title": "List zero-state",
+      "description": "Inbox with no messages — icon + title + description + compose button",
+      "code": "<Empty\n  icon={<InboxIcon />}\n  title=\"No messages yet\"\n  description=\"When someone sends a message, it shows up here.\"\n  action={<Button>Compose</Button>}\n/>",
+      "composition": [
+        "zero-state",
+        "list",
+        "with-action"
+      ]
+    },
+    {
+      "title": "Search zero-state",
+      "description": "Search returned zero results — show the query + suggest a reset",
+      "code": "<Empty\n  icon={<SearchIcon />}\n  title=\"No results found\"\n  description={`No items match \"${query}\". Try a different search.`}\n  action={<Button variant=\"secondary\" onClick={onReset}>Clear search</Button>}\n  size=\"sm\"\n/>",
+      "composition": [
+        "zero-state",
+        "search"
+      ]
+    },
+    {
+      "title": "Onboarding",
+      "description": "Full-page first-run state",
+      "code": "<Empty\n  icon={<SparklesIcon />}\n  title=\"Welcome to your dashboard\"\n  description=\"Create your first project to get started.\"\n  action={<Button size=\"lg\">Create project</Button>}\n  size=\"lg\"\n  titleAs=\"h1\"\n/>",
+      "composition": [
+        "zero-state",
+        "onboarding",
+        "first-run"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use for lists, search results, or dashboards where the request returned successfully but there's nothing to show. Explain why and what to do — the title names the absence, the description sets context, the action gives a way out.",
+    "whenNotToUse": "Don't use while data is still loading (use Loading). Don't use when something failed (use ErrorState). Don't use for inline form-field 'no options' messages (use Combobox's empty slot or Form's helper text).",
+    "commonMistakes": [
+      "Using Empty without an action — leaves the user stuck",
+      "Long descriptions — keep to one sentence; this is a state surface, not documentation",
+      "Forgetting titleAs when the page already has an h2 above (heading hierarchy break)"
+    ],
+    "antiPatterns": [
+      {
+        "mistake": "Using Empty while data is still being fetched",
+        "insteadUse": "loading",
+        "why": "Empty announces 'no items exist'; Loading announces 'fetching items.' Showing Empty during the fetch flashes a misleading 'no results' state then snaps to real data on resolution."
+      },
+      {
+        "mistake": "Using Empty to display a fetch failure",
+        "insteadUse": "error-state",
+        "why": "ErrorState carries role='alert' so screen readers announce the failure on first render, AND it ships a retry affordance. Empty is silent on retry semantics."
+      },
+      {
+        "mistake": "Using Empty as an inline 'no matching options' notice inside a Combobox or Select",
+        "insteadUse": "combobox",
+        "why": "Combobox + Command already render a sub-AA-conformant empty state inside the listbox. Using Empty there leaks the page-level zero-state language into a focused interaction."
+      }
+    ],
+    "relatedComponents": [
+      "loading",
+      "error-state",
+      "alert",
+      "card",
+      "skeleton"
+    ],
+    "accessibilityNotes": "Wrapped in a region landmark labeled by the title (aria-labelledby + auto-generated id). Icon is decorative (aria-hidden). Pair the action with a Button that has a visible label.",
+    "tokenBudget": 350
+  },
+  "tags": [
+    "empty",
+    "zero-state",
+    "feedback",
+    "list",
+    "dashboard"
+  ]
+}

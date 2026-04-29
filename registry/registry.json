@@ -126,6 +126,38 @@
       "tokenBudget": 250
     },
     {
+      "name": "empty",
+      "displayName": "Empty",
+      "description": "A zero-state surface for lists, dashboards, and search results with no content. Explains why the slot is empty + provides a call-to-action.",
+      "category": "primitive",
+      "subcategory": "feedback",
+      "tags": [
+        "empty",
+        "zero-state",
+        "feedback",
+        "list",
+        "dashboard"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 350
+    },
+    {
+      "name": "error-state",
+      "displayName": "ErrorState",
+      "description": "A surface for failed-fetch / failed-action states. Visually mirrors Empty but with destructive bias and an optional retry button. Mounts with role='alert' so screen readers announce on first render.",
+      "category": "primitive",
+      "subcategory": "feedback",
+      "tags": [
+        "error",
+        "error-state",
+        "failure",
+        "retry",
+        "feedback"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 450
+    },
+    {
       "name": "grid",
       "displayName": "Grid",
       "description": "CSS grid with column-count presets and token-bound gap. Pass `cols=\"auto-fit\"` + `minColWidth` for responsive grids without media queries.",
@@ -174,6 +206,23 @@
       ],
       "internalDeps": [],
       "tokenBudget": 200
+    },
+    {
+      "name": "loading",
+      "displayName": "Loading",
+      "description": "A composed loading-placeholder pattern for lists, cards, and stacks. Skeleton is the atom; Loading is the canonical molecule most surfaces want.",
+      "category": "primitive",
+      "subcategory": "feedback",
+      "tags": [
+        "loading",
+        "skeleton",
+        "placeholder",
+        "feedback"
+      ],
+      "internalDeps": [
+        "skeleton"
+      ],
+      "tokenBudget": 300
     },
     {
       "name": "progress",
@@ -341,6 +390,23 @@
         "form",
         "boolean",
         "setting"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 350
+    },
+    {
+      "name": "tag",
+      "displayName": "Tag",
+      "description": "Interactive tag / chip primitive — Badge with an optional dismiss button. Mirrors Badge's variants so the visual sibling is obvious; ships with a close affordance for filter pills, multi-select selections, draft attachments.",
+      "category": "primitive",
+      "subcategory": "feedback",
+      "tags": [
+        "tag",
+        "chip",
+        "pill",
+        "filter",
+        "removable",
+        "multi-select"
       ],
       "internalDeps": [],
       "tokenBudget": 350
@@ -1017,6 +1083,21 @@
       "tokenBudget": 1100
     },
     {
+      "name": "toolbar",
+      "displayName": "Toolbar",
+      "description": "A horizontal or vertical group of related controls (buttons, toggles, links, separators) with arrow-key roving focus. Wraps Radix Toolbar so the keyboard semantics are correct out of the box.",
+      "category": "component",
+      "subcategory": "navigation",
+      "tags": [
+        "toolbar",
+        "editor",
+        "controls",
+        "command-group"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
       "name": "tooltip",
       "displayName": "Tooltip",
       "description": "A small floating label that reveals on hover or focus. Wrap your app in TooltipProvider, then use Tooltip/TooltipTrigger/TooltipContent per tooltip.",
@@ -1031,6 +1112,40 @@
       ],
       "internalDeps": [],
       "tokenBudget": 300
+    },
+    {
+      "name": "tree",
+      "displayName": "Tree",
+      "description": "Generic hierarchical list with roving-tabindex keyboard navigation. Distinct from FileTree (which adds folder/file icon-by-extension logic) — Tree is content-agnostic for org charts, taxonomy pickers, navigation trees.",
+      "category": "component",
+      "subcategory": "navigation",
+      "tags": [
+        "tree",
+        "hierarchy",
+        "navigation",
+        "picker",
+        "ARIA-tree"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
+      "name": "attachment",
+      "displayName": "Attachment",
+      "description": "File / image thumbnail with optional remove affordance + upload-progress overlay. Composes with the AI Composer for multimodal message drafts. Auto-detects image vs file variant from MIME type + preview URL.",
+      "category": "ai",
+      "subcategory": "input",
+      "tags": [
+        "attachment",
+        "ai",
+        "composer",
+        "file",
+        "image",
+        "upload",
+        "multimodal"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 500
     },
     {
       "name": "citation",
