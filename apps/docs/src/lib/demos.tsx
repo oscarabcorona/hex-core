@@ -58,6 +58,24 @@ import { TimelineDemo } from "../app/demos/timeline-demo";
 import { ToggleDemo } from "../app/demos/toggle-demo";
 import { ToggleGroupDemo } from "../app/demos/toggle-group-demo";
 import { TooltipDemo } from "../app/demos/tooltip-demo";
+import { AttachmentDemo } from "../app/demos/attachment-demo";
+import { CitationDemo } from "../app/demos/citation-demo";
+import { CodeBlockDemo } from "../app/demos/code-block-demo";
+import { ComposerDemo } from "../app/demos/composer-demo";
+import { EmptyDemo } from "../app/demos/empty-demo";
+import { ErrorStateDemo } from "../app/demos/error-state-demo";
+import { LoadingDemo } from "../app/demos/loading-demo";
+import { LoadingIndicatorDemo } from "../app/demos/loading-indicator-demo";
+import { MarkdownDemo } from "../app/demos/markdown-demo";
+import { MessageDemo } from "../app/demos/message-demo";
+import { MessageActionsDemo } from "../app/demos/message-actions-demo";
+import { MessageListDemo } from "../app/demos/message-list-demo";
+import { ReasoningDemo } from "../app/demos/reasoning-demo";
+import { SuggestionDemo } from "../app/demos/suggestion-demo";
+import { TagDemo } from "../app/demos/tag-demo";
+import { ToolCallDemo } from "../app/demos/tool-call-demo";
+import { ToolbarDemo } from "../app/demos/toolbar-demo";
+import { TreeDemo } from "../app/demos/tree-demo";
 
 /**
  * Map of component slug → rendered demo component.
@@ -128,6 +146,24 @@ export const demos: Record<string, ComponentType> = {
 	toggle: ToggleDemo,
 	"toggle-group": ToggleGroupDemo,
 	tooltip: TooltipDemo,
+	attachment: AttachmentDemo,
+	citation: CitationDemo,
+	"code-block": CodeBlockDemo,
+	composer: ComposerDemo,
+	empty: EmptyDemo,
+	"error-state": ErrorStateDemo,
+	loading: LoadingDemo,
+	"loading-indicator": LoadingIndicatorDemo,
+	markdown: MarkdownDemo,
+	message: MessageDemo,
+	"message-actions": MessageActionsDemo,
+	"message-list": MessageListDemo,
+	reasoning: ReasoningDemo,
+	suggestion: SuggestionDemo,
+	tag: TagDemo,
+	"tool-call": ToolCallDemo,
+	toolbar: ToolbarDemo,
+	tree: TreeDemo,
 };
 
 /**

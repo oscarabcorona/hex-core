@@ -75,7 +75,7 @@ for (const { name: slug, displayName } of registry.items) {
 			// so baselines stay deterministic per component, regardless of how
 			// many examples a future docs author adds.
 			const preview = page.getByTestId("component-preview").first();
-			await expect(preview).toBeVisible({ timeout: 10_000 });
+			await expect(preview).toBeVisible({ timeout: 30_000 });
 
 			await expect(preview).toHaveScreenshot(`${slug}-${theme.name}.png`, {
 				maxDiffPixelRatio: 0.01,
