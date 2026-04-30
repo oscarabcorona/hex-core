@@ -50,7 +50,7 @@ export const defaultTheme: Theme = {
 			"secondary-foreground": { value: "222 22.5% 89%", type: "color" },
 			"muted-foreground": { value: "222 8% 65%", type: "color" },
 			"accent-foreground": { value: "222 22.5% 89%", type: "color" },
-			"destructive-foreground": { value: "0 0% 98%", type: "color" },
+			"destructive-foreground": { value: "0 0% 8%", type: "color" },
 			...sharedTokens,
 		},
 	},

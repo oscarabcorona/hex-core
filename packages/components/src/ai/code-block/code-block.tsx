@@ -52,7 +52,7 @@ const LABEL_TO_LANG: Record<string, SupportedLang> = {
 	plain: "text",
 };
 
-const DEFAULT_THEMES = { light: "github-light", dark: "github-dark" } as const;
+const DEFAULT_THEMES = { light: "github-light-high-contrast", dark: "github-dark" } as const;
 
 /**
  * Per-render-tree memoization of `codeToHtml`. React's `cache()` dedupes

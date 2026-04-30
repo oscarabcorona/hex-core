@@ -8,11 +8,12 @@
 export const DOCS_CONTENT_WRAPPER = "mx-auto max-w-3xl xl:max-w-4xl";
 
 /**
- * Shiki dual-theme pair. Light stays on `github-light`; dark uses
- * `github-dark-dimmed` because it's lower-saturation and reads better on our
- * zinc background than plain `github-dark`.
+ * Shiki dual-theme pair. Light uses `github-light-high-contrast` for WCAG AA
+ * bracket-pair colors (#e36209 in github-light fails 4.5:1 on white bg).
+ * Dark uses `github-dark-dimmed` — lower-saturation, reads well on our
+ * graphite background.
  */
 export const SHIKI_THEMES = {
-	light: "github-light",
+	light: "github-light-high-contrast",
 	dark: "github-dark-dimmed",
 } as const;

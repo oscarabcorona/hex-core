@@ -31,7 +31,7 @@ export const codeBlockSchema: ComponentSchemaDefinition = {
 			name: "themes",
 			type: "object",
 			required: false,
-			default: { light: "github-light", dark: "github-dark" },
+			default: { light: "github-light-high-contrast", dark: "github-dark" },
 			description: "Override the default theme pair. Keys: `light`, `dark` — values are Shiki theme IDs.",
 		},
 		{
