@@ -191,13 +191,17 @@ describe("Dropzone", () => {
 		expect(onRejected).toHaveBeenCalledTimes(1);
 	});
 
-	it("hidden file input is sr-only but stays in the accessibility tree (no aria-hidden)", () => {
+	it("hidden file input is sr-only, aria-hidden, and outside the button (no nested-interactive)", () => {
 		const { container } = render(<Dropzone aria-label="Upload" />);
 		const input = container.querySelector(
 			'input[type="file"]',
 		) as HTMLInputElement;
+		const button = container.querySelector('[role="button"]') as HTMLElement;
 		expect(input.className).toContain("sr-only");
-		expect(input).not.toHaveAttribute("aria-hidden");
-		expect(input).not.toHaveAttribute("tabindex", "-1");
+		// Input is aria-hidden: outer role="button" is the AT surface (axe nested-interactive fix)
+		expect(input).toHaveAttribute("aria-hidden", "true");
+		expect(input).toHaveAttribute("tabindex", "-1");
+		// Input must be a sibling of the button, NOT a descendant
+		expect(button.contains(input)).toBe(false);
 	});
 });

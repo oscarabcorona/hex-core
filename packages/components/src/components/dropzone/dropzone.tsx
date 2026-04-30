@@ -193,77 +193,78 @@ function Dropzone({
 	};
 
 	return (
-		<div
-			role="button"
-			tabIndex={disabled ? -1 : 0}
-			aria-label={ariaLabel}
-			aria-disabled={disabled || undefined}
-			data-drag-over={isDragOver || undefined}
-			onClick={openFileDialog}
-			onKeyDown={handleKeyDown}
-			onDragEnter={handleDragEnter}
-			onDragOver={handleDragOver}
-			onDragLeave={handleDragLeave}
-			onDrop={handleDrop}
-			className={cn(
-				"flex w-full cursor-pointer select-none flex-col items-center justify-center gap-[var(--space-2,0.5rem)] rounded-md border-2 border-dashed border-input bg-background px-[var(--space-6,1.5rem)] py-[var(--space-8,2rem)] text-center text-sm transition-all duration-[var(--duration-normal,200ms)] ease-out",
-				"hover:bg-accent hover:text-accent-foreground",
-				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-				isDragOver && "border-primary bg-accent text-accent-foreground",
-				disabled && "pointer-events-none opacity-50",
-				className,
-			)}
-			{...rest}
-		>
-			{typeof children === "function"
-				? children(renderState)
-				: (children ?? (
-						<>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								className="h-6 w-6 text-muted-foreground"
-								aria-hidden="true"
-							>
-								<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-								<polyline points="17 8 12 3 7 8" />
-								<line x1="12" y1="3" x2="12" y2="15" />
-							</svg>
-							<span className="font-medium">
-								{isDragOver ? "Drop files to upload" : "Drag files here or click to browse"}
-							</span>
-							{accept ? (
-								<span className="text-xs text-muted-foreground">{accept}</span>
-							) : null}
-						</>
-					))}
+		<>
+			<div
+				role="button"
+				tabIndex={disabled ? -1 : 0}
+				aria-label={ariaLabel}
+				aria-disabled={disabled || undefined}
+				data-drag-over={isDragOver || undefined}
+				onClick={openFileDialog}
+				onKeyDown={handleKeyDown}
+				onDragEnter={handleDragEnter}
+				onDragOver={handleDragOver}
+				onDragLeave={handleDragLeave}
+				onDrop={handleDrop}
+				className={cn(
+					"flex w-full cursor-pointer select-none flex-col items-center justify-center gap-[var(--space-2,0.5rem)] rounded-md border-2 border-dashed border-input bg-background px-[var(--space-6,1.5rem)] py-[var(--space-8,2rem)] text-center text-sm transition-all duration-[var(--duration-normal,200ms)] ease-out",
+					"hover:bg-accent hover:text-accent-foreground",
+					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+					isDragOver && "border-primary bg-accent text-accent-foreground",
+					disabled && "pointer-events-none opacity-50",
+					className,
+				)}
+				{...rest}
+			>
+				{typeof children === "function"
+					? children(renderState)
+					: (children ?? (
+							<>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									className="h-6 w-6 text-muted-foreground"
+									aria-hidden="true"
+								>
+									<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+									<polyline points="17 8 12 3 7 8" />
+									<line x1="12" y1="3" x2="12" y2="15" />
+								</svg>
+								<span className="font-medium">
+									{isDragOver ? "Drop files to upload" : "Drag files here or click to browse"}
+								</span>
+								{accept ? (
+									<span className="text-xs text-muted-foreground">{accept}</span>
+								) : null}
+							</>
+						))}
+			</div>
+			{/*
+			 * Input lives OUTSIDE the role="button" container to satisfy axe
+			 * nested-interactive. It is aria-hidden (outer button is the AT
+			 * surface) and clicked programmatically via inputRef.current?.click().
+			 */}
 			<input
 				ref={inputRef}
 				type="file"
 				accept={accept}
 				multiple={multiple}
 				disabled={disabled}
-				aria-label={ariaLabel}
+				aria-hidden="true"
 				tabIndex={-1}
 				className="sr-only"
-				/*
-				 * aria-label mirrors the outer region so AT forms-mode can
-				 * find the labeled input. tabIndex={-1} removes it from the
-				 * tab sequence (outer role="button" is the keyboard surface)
-				 * which also resolves the nested-interactive axe rule.
-				 */
 				onChange={(e) => {
 					emit(e.target.files);
 					// Reset so picking the same file twice still fires onChange
 					e.target.value = "";
 				}}
 			/>
-		</div>
+		</>
 	);
 }
 Dropzone.displayName = "Dropzone";

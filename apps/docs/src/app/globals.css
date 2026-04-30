@@ -39,10 +39,9 @@
 	--color-muted-foreground: hsl(222 8% 38%);
 	--color-accent: hsl(222 5% 95.9%);
 	--color-accent-foreground: hsl(240 10% 3.9%);
-	/* Restrained destructive (65% saturation, vs shadcn-canon 72%) so the
-	 * red reads as "considered alarm" not "loud emergency." Contrast pairs
-	 * are gated by `pnpm a11y-audit` — no magic numbers in this comment. */
-	--color-destructive: hsl(0 65% 50%);
+	/* Restrained destructive — L=43% achieves ≥4.5:1 on destructive/5 bg
+	 * (alert variant). Gated by `pnpm a11y-audit`. */
+	--color-destructive: hsl(0 65% 43%);
 	--color-destructive-foreground: hsl(0 0% 98%);
 	--color-border: hsl(222 8% 90%);
 	--color-input: hsl(222 8% 90%);
@@ -111,7 +110,7 @@
 	--color-muted-foreground: hsl(222 8% 65%);
 	--color-accent: hsl(222 8% 12%);
 	--color-accent-foreground: hsl(222 22.5% 89%);
-	--color-destructive: hsl(0 48.8% 50%);
+	--color-destructive: hsl(0 48.8% 58%);
 	--color-destructive-foreground: hsl(0 0% 98%);
 	--color-border: hsl(222 8% 14%);
 	--color-input: hsl(222 8% 14%);
