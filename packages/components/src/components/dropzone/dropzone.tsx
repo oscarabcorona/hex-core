@@ -248,11 +248,14 @@ function Dropzone({
 				accept={accept}
 				multiple={multiple}
 				disabled={disabled}
+				aria-label={ariaLabel}
+				tabIndex={-1}
 				className="sr-only"
 				/*
-				 * Intentionally NOT aria-hidden + NOT tabIndex=-1: the input
-				 * stays in the a11y tree so AT-driven file pickers (NVDA's
-				 * forms mode, JAWS) can find it. Visually hidden via sr-only.
+				 * aria-label mirrors the outer region so AT forms-mode can
+				 * find the labeled input. tabIndex={-1} removes it from the
+				 * tab sequence (outer role="button" is the keyboard surface)
+				 * which also resolves the nested-interactive axe rule.
 				 */
 				onChange={(e) => {
 					emit(e.target.files);

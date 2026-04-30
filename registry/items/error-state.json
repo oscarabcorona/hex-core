@@ -28,17 +28,10 @@
       "description": "Body copy explaining what failed and (optionally) what the user can do."
     },
     {
-      "name": "onRetry",
-      "type": "function",
+      "name": "action",
+      "type": "ReactNode",
       "required": false,
-      "description": "Render a retry button when provided. Click handler: () => void."
-    },
-    {
-      "name": "retryLabel",
-      "type": "string",
-      "required": false,
-      "default": "Retry",
-      "description": "Override the retry button label."
+      "description": "Call-to-action slot — typically a <Button onClick={refetch}>Retry</Button>. Consumer controls the button variant, loading state, and asChild composition."
     },
     {
       "name": "variant",
@@ -79,12 +72,20 @@
       "acceptedTypes": [
         "ReactNode"
       ]
+    },
+    {
+      "name": "action",
+      "description": "Call-to-action — typically a Button. Consumer composes the button variant + click handler.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
     }
   ],
   "files": [
     {
       "path": "components/ui/error-state.tsx",
-      "content": "import { type VariantProps, cva } from \"class-variance-authority\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\nconst errorStateVariants = cva(\n\t[\n\t\t\"flex flex-col items-center justify-center text-center\",\n\t\t\"rounded-md border px-[var(--space-6,1.5rem)] py-[var(--space-8,2rem)] gap-[var(--space-3,0.75rem)]\",\n\t].join(\" \"),\n\t{\n\t\tvariants: {\n\t\t\tvariant: {\n\t\t\t\tdefault: \"border-border bg-muted/30\",\n\t\t\t\tdestructive: \"border-destructive/30 bg-destructive/5\",\n\t\t\t},\n\t\t},\n\t\tdefaultVariants: { variant: \"default\" },\n\t},\n);\n\nconst errorIconWrapperVariants = cva(\n\t\"flex h-12 w-12 shrink-0 items-center justify-center rounded-full [&_svg]:size-6\",\n\t{\n\t\tvariants: {\n\t\t\tvariant: {\n\t\t\t\tdefault: \"bg-muted text-muted-foreground\",\n\t\t\t\tdestructive: \"bg-destructive/10 text-destructive\",\n\t\t\t},\n\t\t},\n\t\tdefaultVariants: { variant: \"default\" },\n\t},\n);\n\nexport interface ErrorStateProps\n\textends Omit<React.HTMLAttributes<HTMLDivElement>, \"title\">,\n\t\tVariantProps<typeof errorStateVariants> {\n\t/** Optional icon (typically an alert / x-circle SVG). */\n\ticon?: React.ReactNode;\n\t/** Optional heading copy. Falls back to a generic \"Something went wrong\" if omitted. */\n\ttitle?: React.ReactNode;\n\t/** Required body copy explaining what failed. */\n\tmessage: React.ReactNode;\n\t/** Render a retry button when provided. The button label is \"Retry\" by default. */\n\tonRetry?: () => void;\n\t/** Override the retry button label. */\n\tretryLabel?: string;\n}\n\n/**\n * A surface for rendering a failed-fetch / failed-action state. Visually\n * similar to {@link Empty} but ships with a destructive-tone bias and an\n * optional retry affordance.\n *\n * Mounts with `role=\"alert\"` so screen readers announce the failure on\n * first render.\n *\n * Distinct from {@link Empty} (request returned, no items) and\n * {@link Loading} (request still in flight). For inline form-field\n * errors, use Form's `<FormMessage>` instead. For blocking destructive\n * confirmations, use AlertDialog.\n *\n * @example\n * ```tsx\n * <ErrorState\n *   icon={<AlertCircleIcon />}\n *   title=\"Couldn't load messages\"\n *   message=\"The server didn't respond. Check your connection and try again.\"\n *   onRetry={() => refetch()}\n * />\n * ```\n *\n * @returns A `role=\"alert\"` region with an optional retry button.\n */\nconst ErrorState = React.forwardRef<HTMLDivElement, ErrorStateProps>(\n\t(\n\t\t{\n\t\t\tclassName,\n\t\t\tvariant,\n\t\t\ticon,\n\t\t\ttitle = \"Something went wrong\",\n\t\t\tmessage,\n\t\t\tonRetry,\n\t\t\tretryLabel = \"Retry\",\n\t\t\t...props\n\t\t},\n\t\tref,\n\t) => {\n\t\treturn (\n\t\t\t<div\n\t\t\t\tref={ref}\n\t\t\t\trole=\"alert\"\n\t\t\t\tclassName={cn(errorStateVariants({ variant }), className)}\n\t\t\t\t{...props}\n\t\t\t>\n\t\t\t\t{icon ? (\n\t\t\t\t\t<div className={errorIconWrapperVariants({ variant })} aria-hidden=\"true\">\n\t\t\t\t\t\t{icon}\n\t\t\t\t\t</div>\n\t\t\t\t) : null}\n\t\t\t\t<div className=\"font-semibold text-foreground\">{title}</div>\n\t\t\t\t<div className=\"max-w-md text-sm text-muted-foreground\">{message}</div>\n\t\t\t\t{onRetry ? (\n\t\t\t\t\t<button\n\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\tonClick={onRetry}\n\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\"mt-[var(--space-2,0.5rem)] inline-flex h-[var(--control-height-sm,2.25rem)] items-center justify-center rounded-md px-[var(--space-3,0.75rem)] text-sm font-medium\",\n\t\t\t\t\t\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t\t\t\t\"active:scale-[0.98]\",\n\t\t\t\t\t\t\tvariant === \"destructive\"\n\t\t\t\t\t\t\t\t? \"bg-destructive text-destructive-foreground shadow-sm shadow-destructive/20 hover:bg-destructive/90 hover:shadow-md\"\n\t\t\t\t\t\t\t\t: \"bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary/90 hover:shadow-md\",\n\t\t\t\t\t\t)}\n\t\t\t\t\t>\n\t\t\t\t\t\t{retryLabel}\n\t\t\t\t\t</button>\n\t\t\t\t) : null}\n\t\t\t</div>\n\t\t);\n\t},\n);\nErrorState.displayName = \"ErrorState\";\n\nexport { ErrorState, errorStateVariants };\n",
+      "content": "import { type VariantProps, cva } from \"class-variance-authority\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\nconst errorStateVariants = cva(\n\t[\n\t\t\"flex flex-col items-center justify-center text-center\",\n\t\t\"rounded-md border px-[var(--space-6,1.5rem)] py-[var(--space-8,2rem)] gap-[var(--space-3,0.75rem)]\",\n\t].join(\" \"),\n\t{\n\t\tvariants: {\n\t\t\tvariant: {\n\t\t\t\tdefault: \"border-border bg-muted/30\",\n\t\t\t\tdestructive: \"border-destructive/30 bg-destructive/5\",\n\t\t\t},\n\t\t},\n\t\tdefaultVariants: { variant: \"default\" },\n\t},\n);\n\nconst errorIconWrapperVariants = cva(\n\t\"flex h-12 w-12 shrink-0 items-center justify-center rounded-full [&_svg]:size-6\",\n\t{\n\t\tvariants: {\n\t\t\tvariant: {\n\t\t\t\tdefault: \"bg-muted text-muted-foreground\",\n\t\t\t\tdestructive: \"bg-destructive/10 text-destructive\",\n\t\t\t},\n\t\t},\n\t\tdefaultVariants: { variant: \"default\" },\n\t},\n);\n\nexport interface ErrorStateProps\n\textends Omit<React.HTMLAttributes<HTMLDivElement>, \"title\">,\n\t\tVariantProps<typeof errorStateVariants> {\n\t/** Forwarded ref onto the alert region. */\n\tref?: React.Ref<HTMLDivElement>;\n\t/** Optional icon (typically an alert / x-circle SVG). */\n\ticon?: React.ReactNode;\n\t/** Optional heading copy. Falls back to a generic \"Something went wrong\" if omitted. */\n\ttitle?: React.ReactNode;\n\t/** Required body copy explaining what failed. */\n\tmessage: React.ReactNode;\n\t/**\n\t * Optional call-to-action — typically a `<Button>` with `onClick={refetch}`.\n\t * Slot pattern (matching `Empty.action`) so consumers control the button's\n\t * variant / loading state / asChild composition without ErrorState\n\t * re-implementing those concerns.\n\t */\n\taction?: React.ReactNode;\n}\n\n/**\n * A surface for rendering a failed-fetch / failed-action state. Visually\n * similar to {@link Empty} but ships with a destructive-tone bias and\n * mounts with `role=\"alert\"` so screen readers announce the failure on\n * first render.\n *\n * Distinct from {@link Empty} (request returned, no items) and\n * {@link Loading} (request still in flight). For inline form-field\n * errors, use Form's `<FormMessage>` instead. For blocking destructive\n * confirmations, use AlertDialog.\n *\n * @example\n * ```tsx\n * <ErrorState\n *   icon={<AlertCircleIcon />}\n *   title=\"Couldn't load messages\"\n *   message=\"The server didn't respond. Check your connection and try again.\"\n *   action={<Button onClick={refetch}>Retry</Button>}\n * />\n * ```\n *\n * @returns A `role=\"alert\"` region with an optional action slot.\n */\nfunction ErrorState({\n\tclassName,\n\tvariant,\n\ticon,\n\ttitle = \"Something went wrong\",\n\tmessage,\n\taction,\n\tref,\n\t...props\n}: ErrorStateProps) {\n\treturn (\n\t\t<div\n\t\t\tref={ref}\n\t\t\trole=\"alert\"\n\t\t\tclassName={cn(errorStateVariants({ variant }), className)}\n\t\t\t{...props}\n\t\t>\n\t\t\t{icon ? (\n\t\t\t\t<div className={errorIconWrapperVariants({ variant })} aria-hidden=\"true\">\n\t\t\t\t\t{icon}\n\t\t\t\t</div>\n\t\t\t) : null}\n\t\t\t<div className=\"font-semibold text-foreground\">{title}</div>\n\t\t\t<div className=\"max-w-md text-sm text-muted-foreground\">{message}</div>\n\t\t\t{action ? <div className=\"mt-[var(--space-2,0.5rem)]\">{action}</div> : null}\n\t\t</div>\n\t);\n}\n\nexport { ErrorState, errorStateVariants };\n",
       "type": "component"
     },
     {
@@ -112,20 +113,16 @@
   },
   "tokensUsed": [
     "destructive",
-    "destructive-foreground",
     "muted",
     "muted-foreground",
     "foreground",
-    "border",
-    "primary",
-    "primary-foreground",
-    "ring"
+    "border"
   ],
   "examples": [
     {
       "title": "Fetch failure with retry",
-      "description": "Couldn't load messages — show the error + onRetry handler",
-      "code": "<ErrorState\n  icon={<AlertCircleIcon />}\n  title=\"Couldn't load messages\"\n  message=\"The server didn't respond. Check your connection and try again.\"\n  onRetry={() => refetch()}\n/>",
+      "description": "Couldn't load messages — show the error + a Retry button in the action slot",
+      "code": "<ErrorState\n  icon={<AlertCircleIcon />}\n  title=\"Couldn't load messages\"\n  message=\"The server didn't respond. Check your connection and try again.\"\n  action={<Button onClick={() => refetch()}>Retry</Button>}\n/>",
       "composition": [
         "error-state",
         "retry",
@@ -149,7 +146,8 @@
     "commonMistakes": [
       "Generic 'Something went wrong' message without context — at minimum, name what failed",
       "Using destructive variant for recoverable network blips (cries wolf)",
-      "Wiring onRetry to a function that doesn't actually re-trigger the failed operation"
+      "Wiring the action's click handler to a function that doesn't actually re-trigger the failed operation",
+      "Forgetting the action slot when the failure IS retryable — leaves the user stuck"
     ],
     "antiPatterns": [
       {
