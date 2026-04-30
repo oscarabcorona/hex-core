@@ -101,7 +101,8 @@ theme
 
 theme
 	.command("edit")
-	.description("Override one or more token values in an existing globals.css")
+	.description("Override one or more token values in an existing globals.css. Pass -i to walk the tokens interactively with swatches and AA contrast warnings.")
+	.option("-i, --interactive", "Walk tokens with prompts (visual swatches, contrast warnings)", false)
 	.option("--file <path>", "Path to the globals.css to edit", "./globals.css")
 	.option(
 		"--token <key=value...>",
@@ -110,10 +111,25 @@ theme
 	.option("--mode <kind>", "Which color mode to update: light | dark | both", "both")
 	.action(
 		async (options: {
+			interactive: boolean;
 			file: string;
 			token?: string[];
 			mode: "light" | "dark" | "both";
 		}) => {
+			if (options.interactive) {
+				// --token / non-default --mode are silently ignored under -i (the
+				// interactive flow asks for both per token). Warn so the user
+				// doesn't think their flags took effect.
+				if (options.token && options.token.length > 0) {
+					console.warn("warn: --token is ignored when -i is set; entering interactive flow.");
+				}
+				if (options.mode !== "both") {
+					console.warn(`warn: --mode=${options.mode} is ignored when -i is set; mode is asked per token.`);
+				}
+				const { themeEditInteractive } = await import("./commands/theme-edit-interactive.js");
+				await themeEditInteractive({ file: options.file });
+				return;
+			}
 			const { themeEdit } = await import("./commands/theme.js");
 			await themeEdit({ file: options.file, tokens: options.token ?? [], mode: options.mode });
 		},
