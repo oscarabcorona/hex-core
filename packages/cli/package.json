@@ -1,6 +1,6 @@
 {
 	"name": "@hex-core/cli",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"description": "CLI for Hex UI — copy components into your project with one command.",
 	"keywords": [
 		"hex-ui",
