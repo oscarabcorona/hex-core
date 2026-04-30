@@ -1,5 +1,9 @@
 # @hex-core/themes
 
+[![npm](https://img.shields.io/npm/v/@hex-core/themes.svg)](https://www.npmjs.com/package/@hex-core/themes)
+[![downloads](https://img.shields.io/npm/dm/@hex-core/themes.svg)](https://www.npmjs.com/package/@hex-core/themes)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/oscarabcorona/hex-core/blob/main/LICENSE)
+
 Premium theme catalog for Hex UI — preset palettes that consume the same `Theme` shape as `@hex-core/tokens`.
 
 ## Why this is its own package
