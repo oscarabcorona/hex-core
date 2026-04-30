@@ -315,6 +315,10 @@ export { Message, messageVariants, type MessageProps } from "./ai/message/messag
 export { MessageList, type MessageListProps } from "./ai/message-list/message-list.js";
 export { Composer, type ComposerProps } from "./ai/composer/composer.js";
 export {
+	SpeechRecognition,
+	type SpeechRecognitionProps,
+} from "./ai/speech-recognition/speech-recognition.js";
+export {
 	LoadingIndicator,
 	loadingIndicatorVariants,
 	type LoadingIndicatorProps,
