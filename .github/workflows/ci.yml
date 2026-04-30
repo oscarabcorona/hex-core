@@ -106,3 +106,28 @@ jobs:
         run: pnpm test
         env:
           CI: "1"
+
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.0
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      # HIGH/CRITICAL surface only, scoped to runtime deps. continue-on-error
+      # so a transitive advisory with no upstream patch doesn't block every
+      # merge — the job still reports red in the PR check, just non-gating.
+      # Triage lower-severity items via Dependabot PRs.
+      - name: pnpm audit
+        continue-on-error: true
+        run: pnpm audit --audit-level=high --prod

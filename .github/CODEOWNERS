@@ -1,0 +1,16 @@
+# Default owner for everything
+*                       @oscarabcorona
+
+# Packages
+/packages/components/   @oscarabcorona
+/packages/cli/          @oscarabcorona
+/packages/mcp-server/   @oscarabcorona
+/packages/registry/     @oscarabcorona
+/packages/tokens/       @oscarabcorona
+/packages/themes/       @oscarabcorona
+/packages/preview/      @oscarabcorona
+/packages/payload/      @oscarabcorona
+
+# CI / release
+/.github/               @oscarabcorona
+/scripts/               @oscarabcorona

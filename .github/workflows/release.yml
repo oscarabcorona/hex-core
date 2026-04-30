@@ -1,0 +1,57 @@
+name: Release
+
+# Manual-only for the initial roll-out: gives the maintainer a chance to
+# configure npm Trusted Publishers for all 8 @hex-core/* packages BEFORE
+# the first publish attempts OIDC token exchange. Flip to `push: [main]`
+# in a follow-up PR once the first CI release has succeeded.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+# id-token: write is required for npm OIDC trusted publishing.
+# contents: write + pull-requests: write let changesets/action open
+# the "Version Packages" PR.
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  release:
+    name: Version or Publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.0
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build packages
+        run: pnpm build
+      # If pending changesets exist, this opens/updates a "Version Packages" PR.
+      # When that PR is merged (no changesets remain), this same step runs
+      # `pnpm changeset publish` and ships the new versions to npm with
+      # provenance attestation via OIDC. No NPM_TOKEN is needed once each
+      # @hex-core/* package has a Trusted Publisher configured on npmjs.com.
+      - name: Create release PR or publish
+        uses: changesets/action@v1
+        with:
+          publish: pnpm changeset publish
+          version: pnpm run version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
