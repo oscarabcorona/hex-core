@@ -1,11 +1,11 @@
 # Release process
 
-Hex Core has two release paths:
+Hex Core publishes manually from a maintainer's machine. There is no CI publish workflow — the tradeoff is a 30-second local command instead of debugging broken CI auth on every release.
 
-1. **Default — CI release via GitHub Actions** (uses OIDC trusted publishing + npm provenance, no long-lived token).
-2. **Fallback — manual local publish** via `scripts/publish-local.sh` (kept for emergencies when CI is unavailable).
+## Tooling
 
-Both paths use [Changesets](https://github.com/changesets/changesets) for versioning + per-package CHANGELOG generation.
+- [Changesets](https://github.com/changesets/changesets) for versioning + CHANGELOG generation
+- [`scripts/publish-local.sh`](./scripts/publish-local.sh) for the actual publish
 
 ## Adding a changeset
 
@@ -23,43 +23,16 @@ The CLI asks:
 
 It writes `.changeset/<random-name>.md`. Commit it with the rest of your PR.
 
-## Default: CI release via GitHub Actions
+## Cutting a release
 
-Workflow: [`.github/workflows/release.yml`](./.github/workflows/release.yml).
-
-**Trigger:** `workflow_dispatch` only (manual). The maintainer triggers each release run from the Actions tab. This is intentional for the initial roll-out — it lets us configure npm Trusted Publishers before the first publish attempt and avoids surprise releases from unrelated `main` merges. Flip to `push: [main]` in a follow-up PR once the first CI release has succeeded.
-
-Two-phase flow driven by [`changesets/action`](https://github.com/changesets/action):
-
-1. **While `.changeset/*.md` files exist on `main`:** the workflow opens (or updates) a `chore: version packages` PR that consumes the changesets, bumps versions, and regenerates `CHANGELOG.md` files. Review and merge that PR when you're ready to release.
-2. **When the version PR is merged (no changesets remain):** trigger the workflow again from Actions → Release → Run workflow. It executes `pnpm changeset publish`, which publishes every changed package to npm with provenance attestation (`NPM_CONFIG_PROVENANCE=true`) signed via OIDC.
-
-No `NPM_TOKEN` secret is configured — auth happens at publish time via the GitHub OIDC token.
-
-### One-time setup: npm Trusted Publisher
-
-For each `@hex-core/*` package, configure a trusted publisher on npmjs.com **once**:
-
-1. Go to `https://www.npmjs.com/package/<pkg>/access`
-2. Trusted publishers → Add → GitHub Actions
-3. Repository: `oscarabcorona/hex-core`
-4. Workflow: `.github/workflows/release.yml`
-5. Environment: *(leave blank)*
-
-Packages to configure: `@hex-core/registry`, `@hex-core/tokens`, `@hex-core/themes`, `@hex-core/components`, `@hex-core/cli`, `@hex-core/payload`, `@hex-core/mcp`, `@hex-core/preview`.
-
-After this, every CI release is signed with provenance and visible on each package's npm page under "Provenance".
-
-## Fallback: manual local publish
-
-Use only when CI is unavailable. Releases will not carry provenance.
+When you're ready to publish accumulated changesets:
 
 ```bash
-# 1. Consume changesets locally
+# 1. Consume changesets → bump versions + generate CHANGELOG.md files
 pnpm run version
 
 # 2. Review + commit the version bumps
-git diff
+git diff            # inspect version bumps and CHANGELOGs
 git add -A
 git commit -m "chore(release): version packages"
 git push origin main
@@ -70,11 +43,10 @@ export NPM_TOKEN=npm_xxx   # granular token, R/W to @hex-core scope
 ```
 
 The script:
-
 - Validates `NPM_TOKEN`, working-tree state, and current branch
 - Creates a temporary `.npmrc` (auto-cleaned on exit; git-ignored)
 - Verifies auth via `npm whoami`
-- Builds all `@hex-core/*` packages
+- Builds all 8 `@hex-core/*` packages
 - Publishes in dependency order (`registry → tokens → themes → components → cli → payload → mcp-server → preview`)
 - **Skips versions already on npm** (idempotent — safe to re-run if one package fails mid-way)
 - Prints a summary with npm URLs
@@ -84,7 +56,7 @@ Flags:
 - `--dry-run` — simulate without publishing
 - `--yes` / `-y` — skip confirmations (non-interactive)
 
-### Required access (manual path)
+## Required access
 
 Your npm account must be an **Owner** of the `hex-core` org (https://www.npmjs.com/settings/hex-core/members).
 
@@ -95,10 +67,18 @@ Generate a **Granular Access Token** at https://www.npmjs.com/settings/~YOUR_USE
 - Bypass 2FA: ✓
 - Expiration: 90 days (npm's cap for write tokens)
 
+## Provenance
+
+Provenance is **not** attached to current releases because it requires OIDC from a CI/CD provider. To re-enable in the future:
+
+- Option A: configure [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers) per package (now that packages exist) and rebuild a CI workflow around it — no token needed.
+- Option B: use `npm publish --provenance` from a GitHub Actions runner with `id-token: write` permission.
+
+For now, releases are token-authenticated without provenance. Contributors can verify integrity via the published shasum + integrity hash in each release's npm page.
+
 ## Troubleshooting
 
-- **CI release didn't publish** — check that the version PR was merged AND that no `.changeset/*.md` files remain on `main` other than `config.json` and `README.md`.
-- **CI publish fails with `OIDC token exchange failed`** — Trusted Publisher isn't configured for that package on npmjs.com. See "One-time setup" above.
-- **`npm whoami` fails (manual path)** — token expired or missing write permission. Regenerate at npmjs.com.
-- **404 on publish (manual path)** — token doesn't have scope write access OR your npm account isn't an owner of the `hex-core` org.
+- **`npm whoami` fails** — token expired or missing write permission. Regenerate at npmjs.com.
+- **404 on publish** — token doesn't have scope write access OR your npm account isn't an owner of the `hex-core` org.
 - **`pnpm run version` says "No unreleased changesets"** — no files in `.changeset/` beyond `config.json` and `README.md`. Add one with `pnpm changeset`.
+- **Script skips a package** — that version is already on npm. Bump the version or delete the skip check for re-publishing (rarely needed; npm disallows republishing the same version anyway).
