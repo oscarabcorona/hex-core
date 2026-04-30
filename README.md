@@ -4,6 +4,7 @@
 [![npm](https://img.shields.io/npm/v/@hex-core/components.svg?label=%40hex-core%2Fcomponents)](https://www.npmjs.com/package/@hex-core/components)
 [![downloads](https://img.shields.io/npm/dm/@hex-core/components.svg)](https://www.npmjs.com/package/@hex-core/components)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Sponsor](https://img.shields.io/github/sponsors/oscarabcorona?label=Sponsor&logo=GitHub)](https://github.com/sponsors/oscarabcorona)
 
 **The component layer for spec-driven UI development.**
 
@@ -140,6 +141,10 @@ Each component has two files:
 ## Releases
 
 Feature branch → PR → `main` → `/release` skill. CI on `main` runs `Lint` / `Build` / `Test` (~2 min). Slow regression checks (a11y axe-scan + Playwright visual diffs) run locally via `pnpm regression` as a pre-release gate; see [CONTRIBUTING.md](CONTRIBUTING.md#releasing).
+
+## Sponsor
+
+If hex-core saves you time, consider [sponsoring development on GitHub](https://github.com/sponsors/oscarabcorona).
 
 ## License
 
