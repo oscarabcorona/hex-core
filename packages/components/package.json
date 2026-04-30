@@ -1,6 +1,6 @@
 {
 	"name": "@hex-core/components",
-	"version": "1.5.0",
+	"version": "1.6.0",
 	"description": "AI-native React components for Hex UI — Radix UI + Tailwind CSS with machine-readable schemas. RSC-aware per-component bundles + tree-shakable.",
 	"keywords": [
 		"react",
