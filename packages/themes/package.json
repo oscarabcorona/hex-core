@@ -26,6 +26,18 @@
 		".": {
 			"import": "./dist/index.js",
 			"types": "./dist/index.d.ts"
+		},
+		"./presets": {
+			"import": "./dist/presets/index.js",
+			"types": "./dist/presets/index.d.ts"
+		},
+		"./presets/*": {
+			"import": "./dist/presets/*.js",
+			"types": "./dist/presets/*.d.ts"
+		},
+		"./presets/_briefs/*": {
+			"import": "./dist/presets/_briefs/*.js",
+			"types": "./dist/presets/_briefs/*.d.ts"
 		}
 	},
 	"files": [

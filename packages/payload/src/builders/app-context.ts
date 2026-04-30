@@ -24,6 +24,11 @@ export interface AppContextToken {
 /**
  * Subset of theme fields surfaced in the markdown payload. Both palettes are
  * required so the `## globals.css` block can emit a `:root {}` + `.dark {}` pair.
+ *
+ * `brand` / `category` / `tags` / `designBrief` / `attribution` are optional —
+ * voltagent-derived presets carry them; first-party themes generally don't.
+ * When present, the brief is emitted as a `## Design brief` block so the
+ * LLM gets typography, motion, and composition guidance alongside tokens.
  */
 export interface AppContextTheme {
 	name: string;
@@ -33,6 +38,11 @@ export interface AppContextTheme {
 		light: Record<string, AppContextToken>;
 		dark: Record<string, AppContextToken>;
 	};
+	brand?: string;
+	category?: string;
+	tags?: string[];
+	designBrief?: string;
+	attribution?: { source: string; license: string; url: string; brand?: string };
 }
 
 /** One component slot in the input — the item is null when the slug was unknown. */
@@ -400,6 +410,20 @@ export function buildAppContext(input: AppContextInput): string {
 	if (input.theme.resolved) {
 		const t = input.theme.resolved;
 		lines.push(`**${t.displayName}** (\`${t.name}\`) — ${t.description}`);
+		if (t.brand || t.category || (t.tags && t.tags.length > 0)) {
+			const meta: string[] = [];
+			if (t.brand) meta.push(`brand: \`${t.brand}\``);
+			if (t.category) meta.push(`category: \`${t.category}\``);
+			if (t.tags && t.tags.length > 0) meta.push(`tags: ${t.tags.map((tag) => `\`${tag}\``).join(", ")}`);
+			lines.push("");
+			lines.push(meta.join(" · "));
+		}
+		if (t.attribution) {
+			lines.push("");
+			lines.push(
+				`_Source: [${t.attribution.source}](${t.attribution.url}) (${t.attribution.license})${t.attribution.brand ? ` — style inspired by ${t.attribution.brand}` : ""}_`,
+			);
+		}
 		lines.push("");
 		lines.push("| Token | Value |");
 		lines.push("|---|---|");
@@ -456,6 +480,20 @@ export function buildAppContext(input: AppContextInput): string {
 		lines.push(buildTailwindConfig(mergedLight));
 		lines.push("```");
 		lines.push("");
+
+		// Design brief — surfaces non-token guidance (typography, motion,
+		// composition, anti-patterns) so the LLM can apply brand intent at
+		// the layout / micro-interaction layer the tokens can't carry.
+		if (input.theme.resolved.designBrief) {
+			lines.push("## Design brief");
+			lines.push("");
+			lines.push(
+				"Authoring guidance from the source design system. Apply this AFTER the tokens — it covers typography, motion, layout rhythm, and brand-specific anti-patterns the token palette doesn't encode.",
+			);
+			lines.push("");
+			lines.push(input.theme.resolved.designBrief.trim());
+			lines.push("");
+		}
 	}
 
 	// ─── Components ───

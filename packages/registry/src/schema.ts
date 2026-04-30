@@ -461,6 +461,39 @@ export const strictTokenSetSchema = z
  */
 export type StrictTokenSet = z.infer<typeof strictTokenSetSchema>;
 
+/**
+ * The 9 theme categories used by the brand-derived preset library.
+ * Studio's theme picker can surface `themesByCategory` directly without
+ * authoring a separate enum at the consumer side.
+ */
+export const themeCategorySchema = z.enum([
+	"ai",
+	"dev-tools",
+	"backend",
+	"productivity",
+	"design",
+	"fintech",
+	"ecommerce",
+	"media",
+	"automotive",
+]);
+
+export type ThemeCategory = z.infer<typeof themeCategorySchema>;
+
+/**
+ * Provenance metadata for presets derived from third-party sources
+ * (e.g. voltagent/awesome-design-md MIT briefs). Studio surfaces the
+ * source link in its picker and the LLM-context payload includes it.
+ */
+export const themeAttributionSchema = z.object({
+	source: z.string(),
+	license: z.string(),
+	url: z.string(),
+	brand: z.string().optional(),
+});
+
+export type ThemeAttribution = z.infer<typeof themeAttributionSchema>;
+
 export const themeSchema = z.object({
 	name: z.string(),
 	displayName: z.string(),
@@ -469,6 +502,11 @@ export const themeSchema = z.object({
 		light: tokenSetSchema,
 		dark: tokenSetSchema,
 	}),
+	brand: z.string().optional(),
+	category: themeCategorySchema.optional(),
+	tags: z.array(z.string()).optional(),
+	designBrief: z.string().optional(),
+	attribution: themeAttributionSchema.optional(),
 });
 
 export type Theme = z.infer<typeof themeSchema>;
@@ -486,6 +524,11 @@ export const strictThemeSchema = z.object({
 		light: strictTokenSetSchema,
 		dark: strictTokenSetSchema,
 	}),
+	brand: z.string().optional(),
+	category: themeCategorySchema.optional(),
+	tags: z.array(z.string()).optional(),
+	designBrief: z.string().optional(),
+	attribution: themeAttributionSchema.optional(),
 });
 
 /**

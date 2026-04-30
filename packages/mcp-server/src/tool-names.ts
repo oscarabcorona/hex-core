@@ -12,6 +12,7 @@ export const TOOL = {
 	GET_COMPONENT_SCHEMA: "get_component_schema",
 	GET_THEME: "get_theme",
 	LIST_THEMES: "list_themes",
+	SEARCH_THEMES: "search_themes",
 	SCAFFOLD_PROJECT: "scaffold_project",
 	CUSTOMIZE_COMPONENT: "customize_component",
 	LIST_RECIPES: "list_recipes",

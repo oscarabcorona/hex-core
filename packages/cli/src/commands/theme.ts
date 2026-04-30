@@ -14,34 +14,32 @@ interface EditOptions {
 	mode: "light" | "dark" | "both";
 }
 
-const VALID_PRESETS = ["default", "midnight", "ember"] as const;
-type PresetName = (typeof VALID_PRESETS)[number];
-
 /**
- * Initialize a theme file from one of the `@hex-core/tokens` presets.
- * Writes either a globals.css (with the `:root` and `.dark` token blocks) or
- * a flat JSON map of CSS variables.
+ * Initialize a theme file from any preset shipped by @hex-core/* —
+ * the OSS trio (`default`, `midnight`, `ember`) plus the 71 voltagent
+ * brand-derived presets (`tesla`, `stripe`, `linear`, …).
+ *
+ * Writes either a globals.css (with `:root` + `.dark` token blocks),
+ * a flat JSON map, or a TypeScript Theme module.
  *
  * @param options - Configuration object.
- * @param options.name - Preset to scaffold from: default, midnight, or ember.
+ * @param options.name - Preset slug. Use `hex theme list` to see all options.
  * @param options.out - Output file path relative to the current working directory.
- * @param options.format - `"css"` for globals.css, `"json"` for a flat token map.
+ * @param options.format - `"css"` for globals.css, `"json"` for a flat token map, `"ts"` for a Theme module.
  * @param options.overwrite - If false and the file exists, abort with non-zero exit.
  */
 export async function themeInit(options: InitOptions) {
 	const tokens = await import("@hex-core/tokens");
-	const presetName = options.name as PresetName;
-
-	if (!VALID_PRESETS.includes(presetName)) {
-		console.error(
-			`Unknown preset "${options.name}". Available: ${VALID_PRESETS.join(", ")}.`,
-		);
-		process.exit(1);
-	}
-
-	const theme = tokens.getTheme(presetName);
+	const themesPkg = await import("@hex-core/themes");
+	// Lookup order: OSS presets first (so `default`/`midnight`/`ember`
+	// resolve to the canonical tokens objects), then the merged
+	// premium catalog which also carries the voltagent brand presets.
+	const theme = tokens.getTheme(options.name) ?? themesPkg.getPremiumTheme(options.name);
 	if (!theme) {
-		console.error(`Preset "${presetName}" is registered but failed to load. This is a bug.`);
+		const all = [...new Set([...Object.keys(tokens.themes), ...Object.keys(themesPkg.premiumThemes)])].sort();
+		console.error(
+			`Unknown preset "${options.name}". Run \`hex theme list\` to see all ${all.length} available presets.`,
+		);
 		process.exit(1);
 	}
 	const outPath = path.resolve(process.cwd(), options.out);
@@ -159,18 +157,14 @@ export async function themeApply(options: ApplyOptions) {
 		process.exit(1);
 	}
 
-	const presetName = options.name as PresetName;
-	if (!VALID_PRESETS.includes(presetName)) {
-		console.error(
-			`Unknown preset "${options.name}". Available: ${VALID_PRESETS.join(", ")}.`,
-		);
-		process.exit(1);
-	}
-
 	const tokens = await import("@hex-core/tokens");
-	const theme = tokens.getTheme(presetName);
+	const themesPkg = await import("@hex-core/themes");
+	const theme = tokens.getTheme(options.name) ?? themesPkg.getPremiumTheme(options.name);
 	if (!theme) {
-		console.error(`Preset "${presetName}" is registered but failed to load. This is a bug.`);
+		const all = [...new Set([...Object.keys(tokens.themes), ...Object.keys(themesPkg.premiumThemes)])].sort();
+		console.error(
+			`Unknown preset "${options.name}". Run \`hex theme list\` to see all ${all.length} available presets.`,
+		);
 		process.exit(1);
 	}
 

@@ -96,11 +96,17 @@ const CUSTOM_PALETTE_SNIPPET = `/* Violet-tinted primary */
   --primary-foreground: 240 10% 3.9%;
 }`;
 
-const CLI_INIT_SNIPPET = `# Scaffold a globals.css from a preset
-pnpm dlx @hex-core/cli theme init --name midnight --out app/globals.css
+const CLI_INIT_SNIPPET = `# Browse the full catalog (3 first-party + 71 brand presets, grouped by category)
+pnpm dlx @hex-core/cli theme list
+pnpm dlx @hex-core/cli theme list --category fintech
+
+# Scaffold a globals.css from a preset (any of 70+ slugs)
+pnpm dlx @hex-core/cli theme init --preset midnight --out app/globals.css
+pnpm dlx @hex-core/cli theme init --preset tesla --out app/globals.css
+pnpm dlx @hex-core/cli theme init --preset stripe --out app/globals.css
 
 # Or get the token set as flat JSON (for tooling / LLM context)
-pnpm dlx @hex-core/cli theme init --name default --out tokens.json --format json`;
+pnpm dlx @hex-core/cli theme init --preset linear --out tokens.json --format json`;
 
 const CLI_EDIT_SNIPPET = `# Override one token across both :root and .dark
 pnpm dlx @hex-core/cli theme edit --file app/globals.css --token "primary=258 90% 66%"
@@ -154,10 +160,34 @@ export default function ThemingPage() {
 
 			<DocSection id="cli" title="hex theme CLI">
 				<p className="text-sm leading-6">
-					The fastest path: scaffold a starter theme file from one of the three presets
-					(<InlineCode>default</InlineCode>, <InlineCode>midnight</InlineCode>,{" "}
-					<InlineCode>ember</InlineCode>), then tweak tokens from the command line.
+					The fastest path: scaffold a starter theme file from one of the{" "}
+					<strong>74 presets</strong> — <InlineCode>default</InlineCode>,{" "}
+					<InlineCode>midnight</InlineCode>, <InlineCode>ember</InlineCode> (first-party),{" "}
+					plus 71 brand-derived presets (<InlineCode>tesla</InlineCode>,{" "}
+					<InlineCode>stripe</InlineCode>, <InlineCode>linear</InlineCode>,{" "}
+					<InlineCode>notion</InlineCode>, <InlineCode>apple</InlineCode>, etc.) sourced
+					from{" "}
+					<a
+						href="https://github.com/voltagent/awesome-design-md"
+						className="underline underline-offset-2"
+					>
+						voltagent/awesome-design-md
+					</a>{" "}
+					(MIT-licensed). Each brand preset can lazy-load the original markdown design
+					brief via <InlineCode>loadThemeBrief(slug)</InlineCode>, so AI agents reading
+					the LLM-context payload get typography + motion + composition guidance
+					alongside the tokens.
 				</p>
+				<aside className="mt-4 rounded-md border border-border bg-muted/40 p-4 text-xs leading-5 text-muted-foreground">
+					<strong className="text-foreground">Trademark notice.</strong> Brand
+					presets are <em>style references inspired by publicly visible design
+					systems</em>, not endorsements. Names like Tesla, Stripe, Apple, Notion,
+					Linear, and every other brand referenced are trademarks of their
+					respective owners. Hex UI is not affiliated with, endorsed by, or
+					sponsored by any of these companies. Each preset file carries the same
+					notice in its header comment, and the source MIT license is preserved
+					at <InlineCode>LICENSES/voltagent-MIT.md</InlineCode> in the repo.
+				</aside>
 				<h4 className="text-sm font-semibold mt-4">Initialize a theme file</h4>
 				<CodeBlock label="bash" code={CLI_INIT_SNIPPET} />
 				<p className="text-sm leading-6 mt-4">
