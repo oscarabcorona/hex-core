@@ -72,7 +72,8 @@ theme
 	.command("init")
 	.description("Scaffold a theme file. Pass -i to author interactively from seed colors; otherwise scaffolds from a Hex Core preset.")
 	.option("-i, --interactive", "Walk through prompts to author from seeds (use for new themes)", false)
-	.option("--name <preset>", "Preset to scaffold from when not interactive: default | midnight | ember", "default")
+	.option("--name <preset>", "Preset slug to scaffold from when not interactive (alias: --preset). Run `hex theme list` to see all 70+ options.", "default")
+	.option("--preset <slug>", "Alias for --name")
 	.option("--out <path>", "Output file path", "./globals.css")
 	.option("--format <kind>", "Output format: css | json | ts", "css")
 	.option("--overwrite", "Overwrite the output file if it exists", false)
@@ -80,6 +81,7 @@ theme
 		async (options: {
 			interactive: boolean;
 			name: string;
+			preset?: string;
 			out: string;
 			format: "css" | "json" | "ts";
 			overwrite: boolean;
@@ -89,8 +91,11 @@ theme
 				await themeInitInteractive({ out: options.out, format: options.format, overwrite: options.overwrite });
 				return;
 			}
+			// --preset is the more discoverable alias for --name; users
+			// who pass both get the preset value (preset wins).
+			const slug = options.preset ?? options.name;
 			const { themeInit } = await import("./commands/theme.js");
-			await themeInit({ name: options.name, out: options.out, format: options.format, overwrite: options.overwrite });
+			await themeInit({ name: slug, out: options.out, format: options.format, overwrite: options.overwrite });
 		},
 	);
 
@@ -113,6 +118,17 @@ theme
 			await themeEdit({ file: options.file, tokens: options.token ?? [], mode: options.mode });
 		},
 	);
+
+theme
+	.command("list")
+	.description("List every available theme preset (first-party + 71 voltagent brand presets), grouped by category")
+	.option("--category <name>", "Filter to a single category: ai, dev-tools, backend, productivity, design, fintech, ecommerce, media, automotive")
+	.option("--tag <name>", "Filter to a single tag")
+	.option("--json", "Emit JSON instead of grouped human output (for piping)", false)
+	.action(async (options: { category?: string; tag?: string; json?: boolean }) => {
+		const { themeList } = await import("./commands/theme-list.js");
+		await themeList(options);
+	});
 
 theme
 	.command("apply")

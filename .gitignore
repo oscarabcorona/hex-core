@@ -13,6 +13,7 @@ packages/payload/registry/
 .env
 .env.local
 .npmrc.publish-local
+.cache/
 .claude/
 .idea/
 .playwright-mcp/

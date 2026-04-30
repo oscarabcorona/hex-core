@@ -6,6 +6,8 @@
 	"scripts": {
 		"build": "turbo build",
 		"build:registry": "tsx scripts/build-registry.ts",
+		"import:themes:fetch": "tsx scripts/fetch-getdesign-templates.ts",
+		"import:themes": "tsx scripts/import-voltagent.ts",
 		"a11y-audit": "tsx scripts/a11y-audit.ts",
 		"regression": "pnpm build && pnpm run build:registry && pnpm a11y-audit && pnpm --filter docs test:visual",
 		"validate": "turbo validate",
@@ -23,6 +25,7 @@
 		"@changesets/cli": "^2.31.0",
 		"@eslint/js": "^10.0.1",
 		"@hex-core/registry": "workspace:^",
+		"@hex-core/tokens": "workspace:^",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/react": "^16.3.2",
 		"@testing-library/user-event": "^14.6.1",

@@ -21,6 +21,8 @@ export {
 	RADIUS_PRESETS,
 	tokenLuminance,
 } from "./lib/derive.js";
+export { buildTokenSet } from "./lib/build-token-set.js";
+export type { TokenSetSeeds } from "./lib/build-token-set.js";
 export type {
 	ColorMode,
 	DeriveDarkOptions,
