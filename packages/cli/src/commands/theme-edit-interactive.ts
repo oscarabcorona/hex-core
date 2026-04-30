@@ -43,12 +43,21 @@ interface PendingOverride {
  */
 export async function themeEditInteractive(options: InteractiveEditOptions) {
 	const filePath = path.resolve(process.cwd(), options.file);
-	if (!fs.existsSync(filePath)) {
-		console.error(`${options.file} not found. Run 'hex theme init' first.`);
-		process.exit(1);
+	// Read directly instead of existsSync→readFileSync. With prompts running
+	// between these two filesystem calls, an existsSync gate opens a
+	// time-of-check-to-time-of-use race (CodeQL js/file-system-race). The
+	// readFileSync below either succeeds with the file's content or throws
+	// with a typed ENOENT we re-frame for the user.
+	let initialCss: string;
+	try {
+		initialCss = fs.readFileSync(filePath, "utf8");
+	} catch (err) {
+		if (isNodeFsError(err) && err.code === "ENOENT") {
+			console.error(`${options.file} not found. Run 'hex theme init' first.`);
+			process.exit(1);
+		}
+		throw err;
 	}
-
-	const initialCss = fs.readFileSync(filePath, "utf8");
 	const parsed = parseGlobalsCss(initialCss);
 
 	if (Object.keys(parsed.light).length === 0) {
@@ -344,4 +353,18 @@ const FOREGROUND_PAIRS: Record<string, string> = {
 
 function tokenIsForegroundLike(key: string): boolean {
 	return key in FOREGROUND_PAIRS;
+}
+
+/**
+ * Narrow `unknown` (the type of a caught value) to a Node fs error
+ * with a typed `code` field. Anything that walks like an
+ * ErrnoException — an Error subclass with a string `code` — counts.
+ *
+ * `instanceof Error` + `"code" in err` together narrow the access of
+ * `err.code` to `unknown` without a cast (TS 4.9+ in-narrowing).
+ */
+function isNodeFsError(err: unknown): err is NodeJS.ErrnoException {
+	if (!(err instanceof Error)) return false;
+	if (!("code" in err)) return false;
+	return typeof err.code === "string";
 }
