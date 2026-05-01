@@ -14,7 +14,7 @@ const STATE_LABEL: Record<ToolCallState, string> = {
 
 const STATE_CLASSES: Record<ToolCallState, string> = {
 	pending: "bg-muted text-muted-foreground",
-	running: "bg-primary/15 text-primary animate-pulse",
+	running: "bg-muted text-primary animate-pulse",
 	result: "bg-accent/30 text-accent-foreground",
 	error: "bg-destructive/15 text-destructive",
 };

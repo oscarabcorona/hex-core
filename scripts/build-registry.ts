@@ -182,6 +182,11 @@ interface RegistryFile {
  *      install the producing component first.
  *   3. Shared imports `from "../_shared/<name>"` — ship at
  *      `components/_shared/<name>.tsx`, matching `rewriteRegistryImports` rule 3.
+ *   4. Same-directory sibling imports `from "./<name>"` (e.g. extracted
+ *      utility modules like `./close-unterminated.js`) — flatten into
+ *      `components/ui/<name>.ts(x)`. Skips `*-variants` (rule 1 owns
+ *      those) and the entry file's self-reference. Keeps the original
+ *      extension so pure `.ts` utilities don't masquerade as `.tsx`.
  *
  * Files dedup by target path; the caller appends to `registryItem.files`.
  */
@@ -242,6 +247,33 @@ function discoverDependencies(
 			console.warn(`  Warning: could not locate ${importSpec} from ${mainName}`);
 			continue;
 		}
+		out.set(targetPath, {
+			path: targetPath,
+			content: fs.readFileSync(sourcePath, "utf-8"),
+			type: "component",
+		});
+	}
+
+	// 4. Direct same-directory sibling imports: `./<name>[.js]`. Skips
+	//    `*-variants` (rule 1) and the entry's own filename. The shipped
+	//    file keeps its source extension (.ts vs .tsx) so utility modules
+	//    don't pretend to be React components.
+	const siblingImports =
+		/(?:from|import|export\s+(?:\*|\{[^}]*\})\s+from)\s+["']\.\/([a-z][a-z0-9-]*)(?:\.js)?["']/g;
+	for (const m of source.matchAll(siblingImports)) {
+		const name = m[1];
+		if (!name) continue;
+		if (name === mainName) continue;
+		if (/-variants$/.test(name)) continue;
+		const importSpec = m[0].match(/["']([^"']+)["']/)?.[1] ?? "";
+		const sourcePath = resolveSourceFile(componentDir, importSpec);
+		if (!sourcePath) {
+			console.warn(`  Warning: could not locate ${importSpec} from ${mainName}`);
+			continue;
+		}
+		const ext = sourcePath.endsWith(".tsx") ? ".tsx" : ".ts";
+		const targetPath = `components/ui/${name}${ext}`;
+		if (out.has(targetPath)) continue;
 		out.set(targetPath, {
 			path: targetPath,
 			content: fs.readFileSync(sourcePath, "utf-8"),
