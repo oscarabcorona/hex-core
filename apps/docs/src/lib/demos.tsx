@@ -83,6 +83,8 @@ import { CanvasDemo } from "../app/demos/canvas-demo";
 import { AudioPlayerDemo } from "../app/demos/audio-player-demo";
 import { AudioWaveformDemo } from "../app/demos/audio-waveform-demo";
 import { DiagramDemo } from "../app/demos/diagram-demo";
+import { SortableCardsDemo } from "../app/demos/sortable-cards-demo";
+import { KanbanDemo } from "../app/demos/kanban-demo";
 import { SuggestionDemo } from "../app/demos/suggestion-demo";
 import { TagDemo } from "../app/demos/tag-demo";
 import { ToolCallDemo } from "../app/demos/tool-call-demo";
@@ -223,6 +225,8 @@ export const demos: Record<string, ComponentType> = {
 	"audio-player": AudioPlayerDemo,
 	"audio-waveform": AudioWaveformDemo,
 	diagram: DiagramDemo,
+	dnd: SortableCardsDemo,
+	kanban: KanbanDemo,
 	empty: EmptyDemo,
 	"error-state": ErrorStateDemo,
 	loading: LoadingDemo,

@@ -1,8 +1,8 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { useMemo } from "react";
-import { Badge, DataTable } from "../../components/ui";
+import { useMemo, useState } from "react";
+import { Badge, Button, DataTable } from "../../components/ui";
 
 interface Payment {
 	id: string;
@@ -11,7 +11,7 @@ interface Payment {
 	email: string;
 }
 
-const data: Payment[] = [
+const initial: Payment[] = [
 	{ id: "m5gr84i9", amount: 316, status: "success", email: "ken99@yahoo.com" },
 	{ id: "3u1reuv4", amount: 242, status: "success", email: "abe45@gmail.com" },
 	{
@@ -34,6 +34,9 @@ const data: Payment[] = [
  * right-aligned currency formatting.
  */
 export function DataTableDemo() {
+	const [data, setData] = useState(initial);
+	const [reorder, setReorder] = useState(false);
+
 	const columns = useMemo<ColumnDef<Payment>[]>(
 		() => [
 			{
@@ -68,11 +71,31 @@ export function DataTableDemo() {
 	);
 
 	return (
-		<div className="w-full max-w-2xl">
+		<div className="w-full max-w-2xl space-y-3">
+			<div className="flex items-center justify-between">
+				<p className="text-xs text-muted-foreground">
+					{reorder
+						? "Drag the handle on the left of any row to reorder."
+						: "Toggle to enable drag-to-reorder rows."}
+				</p>
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={() => setReorder((v) => !v)}
+				>
+					{reorder ? "Disable reorder" : "Enable reorder"}
+				</Button>
+			</div>
 			<DataTable
 				columns={columns}
 				data={data}
 				caption="Recent payments by status, email, and amount."
+				reorderableRows={reorder}
+				getRowId={(row) => row.id}
+				onRowReorder={(orderedIds) => {
+					const byId = new Map(data.map((r) => [r.id, r]));
+					setData(orderedIds.map((id) => byId.get(id)!).filter(Boolean));
+				}}
 			/>
 		</div>
 	);

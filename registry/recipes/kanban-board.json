@@ -1,0 +1,243 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "kanban-board",
+  "kind": "component",
+  "title": "Kanban board",
+  "summary": "Drag-and-drop Kanban board with multi-column cards, persistence on drop, and a richer card composing <Card>.",
+  "tags": [
+    "kanban",
+    "board",
+    "dnd",
+    "project-management",
+    "agent-tasks"
+  ],
+  "brief": "Build a multi-column Kanban view for tasks/agents/issues. Columns are static (e.g. To do / Doing / Done); cards drag within and across columns. Persist the order on drop and reload it on mount.",
+  "steps": [
+    {
+      "component": "kanban",
+      "reason": "Headless Kanban + DnD wiring",
+      "role": "primary"
+    },
+    {
+      "component": "dnd",
+      "reason": "Shared DnD primitives that Kanban + future sortable surfaces consume",
+      "role": "supporting"
+    },
+    {
+      "component": "card",
+      "reason": "Optional richer card UI inside KanbanCard",
+      "role": "supporting"
+    },
+    {
+      "component": "badge",
+      "reason": "Card metadata chips (priority, assignee, tag)",
+      "role": "supporting"
+    },
+    {
+      "component": "avatar",
+      "reason": "Card assignee avatar",
+      "role": "supporting"
+    },
+    {
+      "component": "button",
+      "reason": "Top-of-board actions (Add card, Filter)",
+      "role": "supporting"
+    }
+  ],
+  "sections": [],
+  "checklist": [
+    {
+      "id": "stable-card-ids",
+      "check": "Card ids are stable strings (not array indices) — DnD breaks on reorder if ids shift.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "ids-globally-unique",
+      "check": "Card ids are unique across ALL columns, not just within one column. Cross-column drag uses ids as the canonical identity.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "persist-on-drop",
+      "check": "onChange persists the new shape (PATCH backend, write IndexedDB, etc.) — otherwise a refresh wipes the reorder.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "optimistic-server-write",
+      "check": "Server persistence is debounced or optimistic — synchronous fetch in onChange blocks the UI under fast drags.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "keyboard-flow",
+      "check": "Verified keyboard drag: Tab to a card, Space to pick up, arrows to move (within + across columns), Space to drop, Esc to cancel.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "kanban-mutating-the-columns-array-in-onchange-pass-the-",
+      "check": "[Kanban] Avoid: Mutating the columns array in onChange — pass the returned array verbatim. Mutation breaks React's identity-based re-render and causes ghost cards",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "kanban-using-array-indices-as-cardids-indices-shift-on-",
+      "check": "[Kanban] Avoid: Using array indices as cardIds — indices shift on reorder and break DnD. Use stable string IDs",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "kanban-forgetting-that-each-kanbancard-id-must-be-uniqu",
+      "check": "[Kanban] Avoid: Forgetting that each KanbanCard id must be unique ACROSS columns, not just within one column — ids are the canonical identity for cross-column drag",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "kanban-wrapping-the-whole-kanban-in-an-extra-dndcontext",
+      "check": "[Kanban] Avoid: Wrapping the whole Kanban in an extra DndContext — Kanban already provides one. Nested contexts confuse dnd-kit's collision detection",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "kanban-a11y",
+      "check": "[Kanban] A11y: @dnd-kit's KeyboardSensor is wired by default — Tab to focus a card, Space/Enter to pick up, arrow keys to move (within or across columns), Space/Enter to drop, Escape to cancel. Live-region announcements describe drag state for screen readers. The drag-handle visual is the entire card; consumers can override the cursor via className.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "dnd-forgetting-that-each-item-needs-a-stable-id-fiel",
+      "check": "[DnD] Avoid: Forgetting that each item needs a stable `id` field — re-using array index as id breaks DnD on reorder because the indices shift",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "dnd-mutating-the-items-array-in-onchange-instead-of-",
+      "check": "[DnD] Avoid: Mutating the items array in onChange instead of replacing it — use the returned array verbatim",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "dnd-calling-usesortableitem-outside-a-sortablecontex",
+      "check": "[DnD] Avoid: Calling useSortableItem outside a SortableContext — the hook will throw or no-op silently. SortableList provides one automatically; manual DndProvider users must wrap with <SortableContext items={ids} strategy={...}>",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "dnd-spreading-listeners-on-a-separate-handle-without",
+      "check": "[DnD] Avoid: Spreading `listeners` on a separate handle without keeping `attributes` on the wrapper — the wrapper needs ARIA wiring even if the handle is the only drag target",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "dnd-a11y",
+      "check": "[DnD] A11y: @dnd-kit ships KeyboardSensor by default — Tab to focus a draggable, Space/Enter to pick up, arrow keys to move, Space/Enter to drop, Escape to cancel. Live-region announcements are built in. The PointerSensor uses a 4px activation distance so accidental clicks don't trigger drag.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "card-nesting-cards",
+      "check": "[Card] Avoid: Nesting cards",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "card-using-card-when-a-simple-div-with-border-would-s",
+      "check": "[Card] Avoid: Using Card when a simple div with border would suffice",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "card-forgetting-cardcontent-padding-when-placing-form",
+      "check": "[Card] Avoid: Forgetting CardContent padding when placing forms inside",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "card-a11y",
+      "check": "[Card] A11y: Card is a div by default. Add role='region' and aria-labelledby (pointing to CardTitle's id) for landmark cards. CardTitle renders h3 — ensure heading hierarchy is correct on the page.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "badge-using-destructive-variant-for-non-error-states",
+      "check": "[Badge] Avoid: Using destructive variant for non-error states",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "badge-badge-text-too-long",
+      "check": "[Badge] Avoid: Badge text too long",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "badge-a11y",
+      "check": "[Badge] A11y: Purely decorative by default. Add role='status' for dynamic status badges.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "avatar-missing-alt-text-on-avatarimage",
+      "check": "[Avatar] Avoid: Missing alt text on AvatarImage",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "avatar-no-avatarfallback-shows-nothing-when-image-is-mi",
+      "check": "[Avatar] Avoid: No AvatarFallback — shows nothing when image is missing or errors",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "avatar-omitting-delayms-on-avatarfallback-causes-flicke",
+      "check": "[Avatar] Avoid: Omitting delayMs on AvatarFallback causes flicker for fast-loading images",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "avatar-using-for-non-circular-images-override-rounded-f",
+      "check": "[Avatar] Avoid: Using for non-circular images (override rounded-full if needed)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "avatar-a11y",
+      "check": "[Avatar] A11y: AvatarImage requires alt text. AvatarFallback renders initials or an icon — ensure the visible text is meaningful.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "button-nesting-interactive-elements-inside-aschild-butt",
+      "check": "[Button] Avoid: Nesting interactive elements inside asChild button",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-with-plain-onclick-for-navigation-i",
+      "check": "[Button] Avoid: Using <Button> with plain onClick for navigation instead of <Button asChild><a href=...></a></Button> — breaks middle-click, cmd-click, and right-click → 'open in new tab', and skips the browser history entry",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-variant-destructive-for-recoverable",
+      "check": "[Button] Avoid: Using <Button variant='destructive'> for recoverable actions like 'Reset filters' — reserve destructive for delete/archive/leave; use 'secondary' or 'ghost' for resets",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-size-icon-without-an-aria-label-scr",
+      "check": "[Button] Avoid: Using <Button size='icon'> without an aria-label — screen readers have nothing to announce; always pair icon-only buttons with aria-label or visible text",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-a11y",
+      "check": "[Button] A11y: Automatically handles focus ring, disabled state, and aria attributes. Icon-only buttons MUST have aria-label. Loading state automatically sets disabled.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 2400
+}

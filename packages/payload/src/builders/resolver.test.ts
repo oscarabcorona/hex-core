@@ -25,17 +25,16 @@ interface Case {
 }
 
 const CASES: Case[] = [
-	// Regression: "kanban board with drag and drop columns" used to rank
-	// `command-palette` at score 12 because "and" substring-matched
-	// "command" and "board" substring-matched "keyboard". Word-boundary
-	// scoring in resolver.ts eliminates those hits.
+	// Used to test that "kanban board with drag and drop columns" did NOT
+	// substring-match `command-palette` (where "and" matched "command" and
+	// "board" matched "keyboard"). Word-boundary scoring fixed that.
+	// As of the dnd/kanban sprint, a real `kanban-board` recipe exists and
+	// IS the correct top match for this brief — so the assertion flips to
+	// "matches kanban-board specifically, not command-palette."
 	{
-		name: "kanban brief must not substring-match command-palette",
+		name: "kanban brief resolves to kanban-board (and not command-palette)",
 		brief: "kanban board with drag and drop columns",
-		expect: {
-			topRecipe: null,
-			maxRecipeScore: 6, // noise floor from filler tokens is acceptable
-		},
+		expect: { topRecipe: "kanban-board" },
 	},
 	{
 		name: "settings brief resolves to settings-page",
