@@ -1,6 +1,6 @@
 {
 	"name": "@hex-core/registry",
-	"version": "0.3.2",
+	"version": "0.3.3",
 	"description": "Zod schemas and types for the Hex UI component registry — shared between @hex-core/components, cli, and mcp.",
 	"keywords": [
 		"hex-ui",
