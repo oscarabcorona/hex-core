@@ -85,6 +85,82 @@ describe("rewriteRegistryImports", () => {
 		expect(out).toBe(`import { x } from "../command/popover";\n`);
 	});
 
+	it("rewrites sibling-file variants imports (button.tsx → ./button-variants)", () => {
+		const src = `import { type ButtonVariantsProps, buttonVariants } from "./button-variants.js";\n`;
+		const out = rewriteRegistryImports(src);
+		expect(out).toBe(
+			`import { type ButtonVariantsProps, buttonVariants } from "@/components/ui/button-variants";\n`,
+		);
+	});
+
+	it("rewrites cross-package variants imports (pagination → button-variants)", () => {
+		const src = `import { buttonVariants } from "../../primitives/button/button-variants.js";\n`;
+		const out = rewriteRegistryImports(src);
+		expect(out).toBe(`import { buttonVariants } from "@/components/ui/button-variants";\n`);
+	});
+
+	it("rewrites multi-line cross-package variants imports", () => {
+		const src =
+			`import {\n` +
+			`\ttype ButtonVariantsProps,\n` +
+			`\tbuttonVariants,\n` +
+			`} from "../../primitives/button/button-variants.js";\n`;
+		const out = rewriteRegistryImports(src);
+		expect(out).toBe(
+			`import {\n` +
+				`\ttype ButtonVariantsProps,\n` +
+				`\tbuttonVariants,\n` +
+				`} from "@/components/ui/button-variants";\n`,
+		);
+	});
+
+	it("does not collide variants rules with the existing _shared rule", () => {
+		// `_shared/layout-variants` must still go to components/_shared/, not
+		// components/ui/ — rule 4a's directory capture excludes leading underscores.
+		const src = `import { gapVariants } from "../_shared/layout-variants.js";\n`;
+		const out = rewriteRegistryImports(src);
+		expect(out).toBe(`import { gapVariants } from "@/components/_shared/layout-variants";\n`);
+	});
+
+	it("variants rewrites honor a custom alias config", () => {
+		const src = `import { buttonVariants } from "./button-variants.js";\n`;
+		const out = rewriteRegistryImports(src, { components: "~/ui", lib: "~/utils" });
+		expect(out).toBe(`import { buttonVariants } from "~/ui/ui/button-variants";\n`);
+	});
+
+	it("does not match specifiers that only resemble -variants", () => {
+		// `./button-variants-extra` and `./button-variants.test` look superficially
+		// like the rewrite target but must NOT match — the closing-quote anchor
+		// guarantees only paths ending exactly in `-variants[.js]` get rewritten.
+		const src =
+			`import a from "./button-variants-extra.js";\n` +
+			`import b from "./button-variants.test.js";\n`;
+		const out = rewriteRegistryImports(src);
+		// The .js still gets stripped by rule 5; that's fine.
+		expect(out).toBe(
+			`import a from "./button-variants-extra";\n` +
+				`import b from "./button-variants.test";\n`,
+		);
+	});
+
+	it("does not match capital-letter slugs (variants rules are lowercase only)", () => {
+		// `[a-z]` excludes capitals so renamed/wrong-cased dirs don't sneak through.
+		const src = `import x from "../primitives/Button/Button-variants.js";\n`;
+		const out = rewriteRegistryImports(src);
+		expect(out).toBe(`import x from "../primitives/Button/Button-variants";\n`);
+	});
+
+	it("rewrite is idempotent (running it twice produces the same result)", () => {
+		const src =
+			`import { cn } from "../../lib/utils.js";\n` +
+			`import { buttonVariants } from "./button-variants.js";\n` +
+			`import { Button } from "../../primitives/button/button.js";\n` +
+			`import { gapVariants } from "../_shared/layout-variants.js";\n`;
+		const once = rewriteRegistryImports(src);
+		const twice = rewriteRegistryImports(once);
+		expect(twice).toBe(once);
+	});
+
 	it("default aliases match what hex init writes (no hooks — unused)", () => {
 		expect(DEFAULT_ALIASES).toEqual({
 			components: "@/components",

@@ -104,7 +104,7 @@
       "tailwind-merge"
     ],
     "internal": [
-      "toggle"
+      "primitives/toggle/toggle"
     ],
     "peer": [
       "react",

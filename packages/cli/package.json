@@ -29,7 +29,8 @@
 		"registry",
 		"skills",
 		"README.md",
-		"LICENSE"
+		"LICENSE",
+		"package.json"
 	],
 	"publishConfig": {
 		"access": "public"
