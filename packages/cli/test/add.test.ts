@@ -67,6 +67,60 @@ describe("addComponents — shared lib file behavior", () => {
 		expect(after).not.toBe("// stale\n");
 		expect(after).toContain("twMerge"); // sentinel from the real registry's lib/utils.ts
 	});
+});
+
+/**
+ * Heavy-peer aggregation across multiple components in a single `hex add`
+ * invocation. Uses the real `terminal` (xterm peer), `diagram` (mermaid),
+ * and the audio-* pair (shared wavesurfer.js peer) to exercise the
+ * dedupe + requiredBy accumulation path. Runs with `install: false` so
+ * the prompt+install branch isn't reached — the manual-install branch
+ * prints all the same data the prompt would.
+ */
+describe("addComponents — heavy peer aggregation", () => {
+	it("collects a single heavy peer from one component (--no-install path)", async () => {
+		await addComponents(["terminal"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).toContain("heavy peer dependencies were skipped");
+		expect(stdout).toContain("@xterm/xterm@^5.5.0");
+		expect(stdout).toContain("~150 KB gzip");
+		// And the component source still landed.
+		expect(fs.existsSync(path.join(tmpDir, "components/ui/terminal.tsx"))).toBe(true);
+	});
+
+	it("dedupes shared heavy peer across multiple components (audio-player + audio-waveform → one wavesurfer.js entry)", async () => {
+		await addComponents(["audio-player", "audio-waveform"], {
+			yes: false,
+			overwrite: false,
+			deps: false,
+			install: false,
+		});
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		// One line in the bullet list (carries the "~50 KB gzip" tag) PLUS
+		// the line in the "Run yourself: …" install command. Filter the
+		// disclosure list to the size-tagged bullet.
+		const disclosureLines = stdout
+			.split("\n")
+			.filter((line) => line.includes("wavesurfer.js") && line.includes("KB gzip"));
+		expect(disclosureLines).toHaveLength(1);
+		expect(disclosureLines[0]).toContain("~50 KB gzip");
+	});
+
+	it("aggregates DIFFERENT heavy peers across components (terminal + diagram → xterm + mermaid)", async () => {
+		await addComponents(["terminal", "diagram"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).toContain("@xterm/xterm@^5.5.0");
+		expect(stdout).toContain("mermaid@^11.0.0");
+		// Manual install command lists both peers.
+		expect(stdout).toMatch(/Run yourself: \w+ (?:add|install) .*@xterm\/xterm.*mermaid/);
+	});
+
+	it("does NOT prompt or print heavy-peer messages for components without a heavy peer", async () => {
+		await addComponents(["button"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).not.toContain("heavy peer dependencies");
+		expect(stdout).not.toContain("Install now?");
+	});
 
 	it("hex add sonner prints a Toaster mount reminder at the end", async () => {
 		await addComponents(["sonner"], { yes: false, overwrite: false, deps: false, install: false });

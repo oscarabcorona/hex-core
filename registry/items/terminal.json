@@ -1,0 +1,153 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "terminal",
+  "displayName": "Terminal",
+  "description": "Headless terminal display backed by xterm.js. Consumer owns the data flow — pass `output` to display, receive typed bytes via `onInput`. No PTY, no shell.",
+  "category": "ai",
+  "subcategory": "code",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "output",
+      "type": "string",
+      "required": false,
+      "description": "Bytes to display (string or string[] — array joined). Diffed against prior render — appending to a streaming buffer is O(delta), not O(n)."
+    },
+    {
+      "name": "onInput",
+      "type": "function",
+      "required": false,
+      "description": "Receives bytes the user typed (incl. control sequences). Wire to a WebSocket / IPC / fetch stream — Terminal doesn't care about transport."
+    },
+    {
+      "name": "cols",
+      "type": "number",
+      "required": false,
+      "default": 80,
+      "description": "Initial cols. Mount-time only (no runtime resize in v1)."
+    },
+    {
+      "name": "rows",
+      "type": "number",
+      "required": false,
+      "default": 24,
+      "description": "Initial rows. Mount-time only."
+    },
+    {
+      "name": "theme",
+      "type": "enum",
+      "required": false,
+      "default": "dark",
+      "description": "Color scheme for background / foreground / cursor. One of \"dark\" | \"light\"."
+    },
+    {
+      "name": "cursorBlink",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Animate the cursor."
+    },
+    {
+      "name": "disableInput",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Read-only mode — onInput will not fire."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the container div."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/terminal.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Headless terminal display backed by xterm.js. Renders an xterm grid\n * inside a div the consumer styles. No PTY, no shell — the consumer\n * owns the data-flow:\n *\n *   - Pass `output` (string or string[]) to write to the display. Each\n *     change is diffed against the prior render and only the new tail\n *     is `term.write()`-ed, so feeding a streaming buffer doesn't redraw.\n *   - Pass `onInput` to receive bytes the user typed. Wire it to a\n *     WebSocket / IPC / fetch stream — terminal doesn't care.\n *\n * Heavy peer: requires `@xterm/xterm` (~150 KB gzip). The hex-core CLI's\n * `add` flow prompts before installing.\n *\n * @example\n * <Terminal\n *   output={[\"$ ls\\r\\n\", \"package.json  src/\\r\\n\", \"$ \"]}\n *   onInput={(data) => ws.send(data)}\n *   rows={24}\n *   cols={80}\n * />\n */\nexport interface TerminalProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\" | \"onInput\"> {\n\t/**\n\t * Bytes to display. String is written verbatim; string[] is joined.\n\t * On change, only the suffix beyond the prior render is emitted, so\n\t * appending to a streaming buffer is O(delta).\n\t */\n\toutput?: string | string[];\n\t/** Receive bytes the user typed (incl. control sequences). */\n\tonInput?: (data: string) => void;\n\t/** Initial cols. xterm allows runtime resize via fit-addon (not bundled). Default 80. */\n\tcols?: number;\n\t/** Initial rows. Default 24. */\n\trows?: number;\n\t/** Theme tokens — defaults to neutral light/dark via CSS vars. */\n\ttheme?: \"dark\" | \"light\";\n\t/** Enable cursor blink. Default true. */\n\tcursorBlink?: boolean;\n\t/** Whether the user can type into the terminal. Default true. */\n\tdisableInput?: boolean;\n}\n\nconst DARK_THEME = {\n\tbackground: \"#0a0a0a\",\n\tforeground: \"#e5e5e5\",\n\tcursor: \"#e5e5e5\",\n\tselectionBackground: \"#404040\",\n};\nconst LIGHT_THEME = {\n\tbackground: \"#fafafa\",\n\tforeground: \"#171717\",\n\tcursor: \"#171717\",\n\tselectionBackground: \"#d4d4d4\",\n};\n\n/**\n * Renders an xterm.js terminal display.\n * @param props - Terminal output + input handler + display options\n * @returns A div containing the xterm grid\n */\nfunction Terminal({\n\toutput,\n\tonInput,\n\tcols = 80,\n\trows = 24,\n\ttheme = \"dark\",\n\tcursorBlink = true,\n\tdisableInput = false,\n\tclassName,\n\t...rest\n}: TerminalProps) {\n\tconst containerRef = React.useRef<HTMLDivElement | null>(null);\n\tconst termRef = React.useRef<import(\"@xterm/xterm\").Terminal | null>(null);\n\tconst writtenRef = React.useRef<string>(\"\");\n\tconst onInputRef = React.useRef(onInput);\n\tonInputRef.current = onInput;\n\n\tconst initialOutput = React.useMemo(\n\t\t() => normalizeOutput(output),\n\t\t// initial-only: subsequent diffs are handled by the output effect.\n\t\t[],\n\t);\n\n\t// Initialize xterm once on mount. Dynamic import keeps the engine out\n\t// of consumers' bundles unless they actually mount the component.\n\tReact.useEffect(() => {\n\t\tif (!containerRef.current) return;\n\n\t\tlet disposed = false;\n\t\tlet inputDispose: { dispose: () => void } | null = null;\n\n\t\tvoid (async () => {\n\t\t\tconst xtermModule = await import(\"@xterm/xterm\");\n\t\t\tif (disposed || !containerRef.current) return;\n\n\t\t\tconst term = new xtermModule.Terminal({\n\t\t\t\tcols,\n\t\t\t\trows,\n\t\t\t\tcursorBlink,\n\t\t\t\tdisableStdin: disableInput,\n\t\t\t\ttheme: theme === \"dark\" ? DARK_THEME : LIGHT_THEME,\n\t\t\t\tfontFamily: \"ui-monospace, SFMono-Regular, Menlo, monospace\",\n\t\t\t\tfontSize: 13,\n\t\t\t});\n\t\t\tterm.open(containerRef.current);\n\t\t\ttermRef.current = term;\n\n\t\t\tif (initialOutput) {\n\t\t\t\tterm.write(initialOutput);\n\t\t\t\twrittenRef.current = initialOutput;\n\t\t\t}\n\n\t\t\tinputDispose = term.onData((data) => {\n\t\t\t\tonInputRef.current?.(data);\n\t\t\t});\n\t\t})();\n\n\t\treturn () => {\n\t\t\tdisposed = true;\n\t\t\tinputDispose?.dispose();\n\t\t\ttermRef.current?.dispose();\n\t\t\ttermRef.current = null;\n\t\t\twrittenRef.current = \"\";\n\t\t};\n\t\t// cols/rows/theme/cursorBlink/disableInput are mount-time options.\n\t\t// Changing them mid-session would force a full re-init that'd lose\n\t\t// scrollback — out of scope for v1.\n\t}, []);\n\n\t// Diff `output` against what's already on screen and write only the new tail.\n\tReact.useEffect(() => {\n\t\tconst term = termRef.current;\n\t\tif (!term) return;\n\t\tconst next = normalizeOutput(output);\n\t\tif (next === writtenRef.current) return;\n\t\tif (next.startsWith(writtenRef.current)) {\n\t\t\tconst delta = next.slice(writtenRef.current.length);\n\t\t\tif (delta) term.write(delta);\n\t\t} else {\n\t\t\t// Non-suffix change (e.g. consumer cleared the buffer or replaced it\n\t\t\t// with unrelated content) — reset the screen and write fresh.\n\t\t\tterm.reset();\n\t\t\tif (next) term.write(next);\n\t\t}\n\t\twrittenRef.current = next;\n\t}, [output]);\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tref={containerRef}\n\t\t\tdata-hex-terminal\n\t\t\tdata-theme={theme}\n\t\t\tclassName={cn(\n\t\t\t\t\"overflow-hidden rounded-md border bg-background p-2\",\n\t\t\t\t\"font-mono text-sm leading-tight\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t/>\n\t);\n}\n\nfunction normalizeOutput(value: string | string[] | undefined): string {\n\tif (value == null) return \"\";\n\treturn Array.isArray(value) ? value.join(\"\") : value;\n}\n\nexport { Terminal };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ],
+    "heavyPeer": [
+      {
+        "name": "@xterm/xterm",
+        "version": "^5.5.0",
+        "bundleKbGzip": 150,
+        "reason": "Renders the terminal grid + handles input/output"
+      }
+    ]
+  },
+  "tokensUsed": [
+    "background"
+  ],
+  "examples": [
+    {
+      "title": "Static log display",
+      "description": "Read-only terminal showing pre-formatted output.",
+      "code": "<Terminal\n  output=\"$ ls -la\\r\\ndrwx package.json  src/\\r\\n$ \"\n  disableInput\n/>",
+      "composition": [
+        "log",
+        "viewer"
+      ]
+    },
+    {
+      "title": "Interactive shell over WebSocket",
+      "description": "Bidirectional terminal — output streams in, input sends out.",
+      "code": "const [output, setOutput] = useState(\"\");\nconst ws = useWebSocket(...);\nws.onmessage = (e) => setOutput((o) => o + e.data);\n<Terminal\n  output={output}\n  onInput={(data) => ws.send(data)}\n  rows={32}\n/>",
+      "composition": [
+        "shell",
+        "interactive"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Display agent shell sessions, code execution sandboxes, build/test logs, or anywhere your AI app needs to surface terminal output with optional user input. Pair with WebSocket / Server-Sent Events for live streaming.",
+    "whenNotToUse": "Don't use for plain log viewing without ANSI codes (use `<pre>` + Markdown). Don't use as a code editor (use a CodeMirror wrapper). Don't try to render hundreds of MB of scrollback — xterm caps internal buffer; truncate upstream.",
+    "commonMistakes": [
+      "Passing the entire log buffer on every render instead of letting Terminal diff — works (it diffs internally) but consumer-side memoization is still smart for huge buffers",
+      "Wiring onInput before the consumer has a transport ready — the user types into a black hole. Disable input or render a placeholder until the socket is open",
+      "Forgetting that xterm is a peer dep — install via `hex add terminal` (CLI prompts) or manually `pnpm add @xterm/xterm`",
+      "Trying to mutate cols/rows mid-session — current version is mount-time only; remount with new dimensions to resize"
+    ],
+    "relatedComponents": [
+      "code-block",
+      "composer"
+    ],
+    "accessibilityNotes": "xterm.js renders into a canvas + hidden screen-reader text layer; standard SR navigation works. The container exposes `data-hex-terminal` for downstream styling. For agent log displays, also consider an aria-live region above the terminal that announces summaries.",
+    "tokenBudget": 360
+  },
+  "tags": [
+    "ai",
+    "terminal",
+    "xterm",
+    "shell",
+    "code",
+    "sandbox",
+    "agent"
+  ]
+}

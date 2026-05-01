@@ -1,0 +1,133 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "audio-player",
+  "displayName": "Audio Player",
+  "description": "Audio playback control backed by wavesurfer.js. Renders a play/pause button + linear waveform progress + duration. Pair with `<AudioWaveform>` for a standalone waveform display.",
+  "category": "ai",
+  "subcategory": "voice",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "src",
+      "type": "string",
+      "required": true,
+      "description": "Audio source — URL string or Blob (both accepted). Re-loads when changed."
+    },
+    {
+      "name": "autoPlay",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Auto-play once the file is decoded and ready."
+    },
+    {
+      "name": "onEnded",
+      "type": "function",
+      "required": false,
+      "description": "Called when playback reaches the end."
+    },
+    {
+      "name": "onError",
+      "type": "function",
+      "required": false,
+      "description": "Called on engine error (network, decode, codec unsupported)."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the container."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/audio-player.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Audio playback control backed by wavesurfer.js. Renders a play/pause\n * button + linear progress bar + duration. Pair with `<AudioWaveform>`\n * for the visual waveform display (separate component, same engine).\n *\n * Headless on data: pass `src` (URL or Blob); the engine streams + decodes.\n *\n * Heavy peer: requires `wavesurfer.js` (~50 KB gzip, shared with\n * AudioWaveform). The hex-core CLI's `add` flow prompts before installing.\n *\n * @example\n * <AudioPlayer src=\"/podcast.mp3\" />\n * <AudioPlayer src={voicemailBlob} autoPlay onEnded={markRead} />\n */\nexport interface AudioPlayerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\" | \"onError\"> {\n\t/** Audio source — URL string or Blob. Re-loads when changed. */\n\tsrc: string | Blob;\n\t/** Auto-play once loaded. Default false. */\n\tautoPlay?: boolean;\n\t/** Called when playback finishes. */\n\tonEnded?: () => void;\n\t/** Called on engine error (network, decode, etc.). */\n\tonError?: (message: string) => void;\n}\n\n/**\n * Renders an audio player UI driven by wavesurfer.js.\n * @param props - Audio source + playback callbacks\n * @returns A div containing play/pause control + progress bar\n */\nfunction AudioPlayer({ src, autoPlay = false, onEnded, onError, className, ...rest }: AudioPlayerProps) {\n\tconst containerRef = React.useRef<HTMLDivElement | null>(null);\n\tconst wsRef = React.useRef<import(\"wavesurfer.js\").default | null>(null);\n\tconst onEndedRef = React.useRef(onEnded);\n\tconst onErrorRef = React.useRef(onError);\n\tonEndedRef.current = onEnded;\n\tonErrorRef.current = onError;\n\n\tconst [isPlaying, setIsPlaying] = React.useState(false);\n\tconst [duration, setDuration] = React.useState(0);\n\tconst [currentTime, setCurrentTime] = React.useState(0);\n\tconst [isReady, setIsReady] = React.useState(false);\n\n\tReact.useEffect(() => {\n\t\tif (!containerRef.current) return;\n\t\tlet disposed = false;\n\n\t\tvoid (async () => {\n\t\t\tconst { default: WaveSurfer } = await import(\"wavesurfer.js\");\n\t\t\tif (disposed || !containerRef.current) return;\n\n\t\t\tconst ws = WaveSurfer.create({\n\t\t\t\tcontainer: containerRef.current,\n\t\t\t\twaveColor: \"#a3a3a3\",\n\t\t\t\tprogressColor: \"#171717\",\n\t\t\t\tcursorColor: \"transparent\",\n\t\t\t\theight: 32,\n\t\t\t\tbarWidth: 2,\n\t\t\t\tbarGap: 1,\n\t\t\t\tbarRadius: 1,\n\t\t\t\tnormalize: true,\n\t\t\t});\n\n\t\t\tws.on(\"ready\", () => {\n\t\t\t\tsetIsReady(true);\n\t\t\t\tsetDuration(ws.getDuration());\n\t\t\t\tif (autoPlay) void ws.play();\n\t\t\t});\n\t\t\tws.on(\"play\", () => setIsPlaying(true));\n\t\t\tws.on(\"pause\", () => setIsPlaying(false));\n\t\t\tws.on(\"finish\", () => {\n\t\t\t\tsetIsPlaying(false);\n\t\t\t\tonEndedRef.current?.();\n\t\t\t});\n\t\t\tws.on(\"timeupdate\", (t) => setCurrentTime(t));\n\t\t\tws.on(\"error\", (err: Error) => {\n\t\t\t\tonErrorRef.current?.(err.message);\n\t\t\t});\n\n\t\t\tconst url = src instanceof Blob ? URL.createObjectURL(src) : src;\n\t\t\tvoid ws.load(url);\n\t\t\twsRef.current = ws;\n\t\t})();\n\n\t\treturn () => {\n\t\t\tdisposed = true;\n\t\t\twsRef.current?.destroy();\n\t\t\twsRef.current = null;\n\t\t};\n\t\t// autoPlay is mount-only; src changes trigger a separate effect.\n\t}, [src]);\n\n\tfunction togglePlay() {\n\t\tconst ws = wsRef.current;\n\t\tif (!ws || !isReady) return;\n\t\tvoid ws.playPause();\n\t}\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tdata-hex-audio-player\n\t\t\tclassName={cn(\"flex items-center gap-3 rounded-md border bg-background p-2\", className)}\n\t\t>\n\t\t\t<button\n\t\t\t\ttype=\"button\"\n\t\t\t\tonClick={togglePlay}\n\t\t\t\tdisabled={!isReady}\n\t\t\t\taria-label={isPlaying ? \"Pause\" : \"Play\"}\n\t\t\t\tclassName={cn(\n\t\t\t\t\t\"inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md\",\n\t\t\t\t\t\"bg-foreground text-background transition-opacity\",\n\t\t\t\t\t\"hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50\",\n\t\t\t\t)}\n\t\t\t>\n\t\t\t\t{isPlaying ? <PauseIcon /> : <PlayIcon />}\n\t\t\t</button>\n\t\t\t<div ref={containerRef} className=\"flex-1 min-w-0\" />\n\t\t\t<span className=\"shrink-0 text-xs tabular-nums text-muted-foreground\">\n\t\t\t\t{formatTime(currentTime)} / {formatTime(duration)}\n\t\t\t</span>\n\t\t</div>\n\t);\n}\n\nfunction formatTime(seconds: number): string {\n\tif (!Number.isFinite(seconds) || seconds < 0) return \"0:00\";\n\tconst m = Math.floor(seconds / 60);\n\tconst s = Math.floor(seconds % 60);\n\treturn `${m}:${s.toString().padStart(2, \"0\")}`;\n}\n\nfunction PlayIcon() {\n\treturn (\n\t\t<svg aria-hidden viewBox=\"0 0 16 16\" width=\"12\" height=\"12\" fill=\"currentColor\">\n\t\t\t<path d=\"M5 3.5v9l8-4.5z\" />\n\t\t</svg>\n\t);\n}\n\nfunction PauseIcon() {\n\treturn (\n\t\t<svg aria-hidden viewBox=\"0 0 16 16\" width=\"12\" height=\"12\" fill=\"currentColor\">\n\t\t\t<rect x=\"4\" y=\"3\" width=\"3\" height=\"10\" rx=\"0.5\" />\n\t\t\t<rect x=\"9\" y=\"3\" width=\"3\" height=\"10\" rx=\"0.5\" />\n\t\t</svg>\n\t);\n}\n\nexport { AudioPlayer };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ],
+    "heavyPeer": [
+      {
+        "name": "wavesurfer.js",
+        "version": "^7.8.0",
+        "bundleKbGzip": 50,
+        "reason": "Audio decode + waveform rendering engine"
+      }
+    ]
+  },
+  "tokensUsed": [
+    "background",
+    "foreground",
+    "muted-foreground"
+  ],
+  "examples": [
+    {
+      "title": "Play a podcast URL",
+      "description": "Simplest case — URL src with default controls.",
+      "code": "<AudioPlayer src=\"/podcast.mp3\" />",
+      "composition": [
+        "audio",
+        "playback"
+      ]
+    },
+    {
+      "title": "Voicemail with auto-play",
+      "description": "Blob src + auto-play + ended callback to mark as read.",
+      "code": "<AudioPlayer\n  src={voicemailBlob}\n  autoPlay\n  onEnded={() => markRead(voicemailId)}\n/>",
+      "composition": [
+        "audio",
+        "voicemail"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Voicemail playback, AI-generated speech preview (TTS output), podcast/transcript pairings, voice-message threads. Pair with `<AudioWaveform>` if you need a standalone waveform without the play control.",
+    "whenNotToUse": "Don't use for video (use `<video>` directly). Don't use for streaming live audio with no fixed duration (use the native MediaSource API). Don't bundle this for an app that only plays the OS notification chime — use `<audio>`.",
+    "commonMistakes": [
+      "Passing a fresh `new Blob()` reference on every render — the src effect re-loads on identity change, which restarts playback. Memoize with useMemo",
+      "Forgetting that wavesurfer.js needs the audio file to be CORS-accessible — same-origin or correct Access-Control-Allow-Origin",
+      "Setting autoPlay={true} for unmuted audio — most browsers block this; first interaction is required",
+      "Forgetting to handle onError — a 404 or codec failure leaves the play button disabled forever with no user feedback"
+    ],
+    "relatedComponents": [
+      "audio-waveform",
+      "speech-recognition"
+    ],
+    "accessibilityNotes": "The play button has aria-label that flips between Play/Pause. The waveform is decorative; screen readers get current/total duration via the visible time text. For agent voice messages, also set an aria-label on the wrapper describing the message context.",
+    "tokenBudget": 360
+  },
+  "tags": [
+    "ai",
+    "audio",
+    "voice",
+    "playback",
+    "wavesurfer",
+    "podcast",
+    "tts"
+  ]
+}
