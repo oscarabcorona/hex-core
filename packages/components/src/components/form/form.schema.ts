@@ -27,7 +27,7 @@ export const formSchema: ComponentSchemaDefinition = {
 			"clsx",
 			"tailwind-merge",
 		],
-		internal: ["label"],
+		internal: ["primitives/label/label"],
 		peer: ["react", "react-dom"],
 	},
 	tokensUsed: ["destructive", "muted-foreground"],

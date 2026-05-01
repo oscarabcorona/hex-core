@@ -76,7 +76,7 @@ export const toggleGroupSchema: ComponentSchemaDefinition = {
 			"clsx",
 			"tailwind-merge",
 		],
-		internal: ["toggle"],
+		internal: ["primitives/toggle/toggle"],
 		peer: ["react", "react-dom"],
 	},
 	tokensUsed: ["muted", "accent", "accent-foreground", "ring"],

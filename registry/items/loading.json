@@ -90,7 +90,7 @@
       "tailwind-merge"
     ],
     "internal": [
-      "skeleton"
+      "primitives/skeleton/skeleton"
     ],
     "peer": [
       "react",

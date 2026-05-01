@@ -29,12 +29,15 @@ export const DEFAULT_ALIASES: AliasConfig = {
  *   import { Command, ... } from "../command/command.js"        // sibling-dir
  *   import { Button } from "../../primitives/button/button.js"  // legacy primitive
  *   import { ... } from "../_shared/layout-variants.js"
+ *   import { buttonVariants } from "./button-variants.js"       // sibling-file (extracted CVA)
+ *   import { buttonVariants } from "../../primitives/button/button-variants.js"  // cross-pkg variants
  *
  * After rewrite (with @/-style aliases):
  *   import { cn } from "@/lib/utils"
  *   import { Command, ... } from "@/components/ui/command"
  *   import { Button } from "@/components/ui/button"
  *   import { ... } from "@/components/_shared/layout-variants"
+ *   import { buttonVariants } from "@/components/ui/button-variants"
  */
 export function rewriteRegistryImports(content: string, aliases: AliasConfig = DEFAULT_ALIASES): string {
 	let out = content;
@@ -60,7 +63,22 @@ export function rewriteRegistryImports(content: string, aliases: AliasConfig = D
 		(_, q, name) => `${q}${aliases.components}/_shared/${name}${q}`,
 	);
 
-	// 4. Any remaining relative import ending in `.js` — drop the suffix.
+	// 4a. Cross-package variants `../<...>/<dir>/<dir>-variants[.js]` — the
+	//     file slug differs from the dir slug, so rule 2's `\2` backreference
+	//     skips it. Flatten to components/ui/<dir>-variants for consumers.
+	out = out.replace(
+		/(["'])(?:\.\.\/)+(?:primitives\/|components\/)?([a-z][a-z0-9-]*)\/\2-variants(?:\.js)?\1/g,
+		(_, q, name) => `${q}${aliases.components}/ui/${name}-variants${q}`,
+	);
+
+	// 4b. Sibling variants `./<slug>-variants` — alias the relative path so
+	//     resolution stays consistent with the rest of components/ui/.
+	out = out.replace(
+		/(["'])\.\/([a-z][a-z0-9-]*-variants)(?:\.js)?\1/g,
+		(_, q, name) => `${q}${aliases.components}/ui/${name}${q}`,
+	);
+
+	// 5. Any remaining relative import ending in `.js` — drop the suffix.
 	//    Restricted to specifiers that begin with `.` so bare specifiers
 	//    (`react`, `@radix-ui/...`) are untouched.
 	out = out.replace(
