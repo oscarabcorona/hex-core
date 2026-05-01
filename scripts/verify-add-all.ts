@@ -6,7 +6,7 @@
  * Each component runs in its own temp dir so dependency-graph walks are
  * tested in isolation, not piggy-backed on previous installs.
  */
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -49,7 +49,9 @@ for (const slug of slugs) {
 	try {
 		fs.writeFileSync(path.join(tmp, "hex.config.json"), JSON.stringify(HEX_CONFIG, null, 2));
 		try {
-			execSync(`node ${JSON.stringify(CLI_BIN)} add ${slug} --no-install`, {
+			// execFileSync (no shell) — args are passed verbatim, eliminating
+			// any shell-injection surface from path or slug values.
+			execFileSync("node", [CLI_BIN, "add", slug, "--no-install"], {
 				cwd: tmp,
 				stdio: "pipe",
 			});
