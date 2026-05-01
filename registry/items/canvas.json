@@ -1,0 +1,172 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "canvas",
+  "displayName": "Canvas",
+  "description": "Headless node-graph canvas backed by reactflow. Renders interactive agent workflows, RAG graphs, document relationships. Default Background + Controls; slot for MiniMap or custom overlays.",
+  "category": "ai",
+  "subcategory": "code",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "nodes",
+      "type": "object",
+      "required": true,
+      "description": "Reactflow Node[] — array of node objects. See reactflow docs for shape."
+    },
+    {
+      "name": "edges",
+      "type": "object",
+      "required": true,
+      "description": "Reactflow Edge[] — array of edge objects."
+    },
+    {
+      "name": "onNodesChange",
+      "type": "function",
+      "required": false,
+      "description": "Forwarded to ReactFlow.onNodesChange — fires on drag/select/remove."
+    },
+    {
+      "name": "onEdgesChange",
+      "type": "function",
+      "required": false,
+      "description": "Forwarded to ReactFlow.onEdgesChange."
+    },
+    {
+      "name": "onConnect",
+      "type": "function",
+      "required": false,
+      "description": "Forwarded to ReactFlow.onConnect — fires when the user draws an edge."
+    },
+    {
+      "name": "hideControls",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Hide the bottom-left zoom/pan/fit controls."
+    },
+    {
+      "name": "hideBackground",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Hide the dotted background."
+    },
+    {
+      "name": "fitView",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Auto-fit the view to all nodes on first render."
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Slot for MiniMap, Panel, or custom overlays inside ReactFlow."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the container div."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "children",
+      "description": "Rendered inside ReactFlow — for MiniMap, Panel, or custom overlays.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/canvas.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Headless node-graph canvas backed by reactflow. Renders an interactive\n * graph of agent steps, workflow nodes, RAG document refs — anywhere your\n * AI app needs to visualize relationships.\n *\n * Controlled: pass `nodes` and `edges`; receive change events. Reactflow's\n * default Background + Controls are rendered automatically; pass `children`\n * to add Panels, MiniMap, or custom overlays.\n *\n * Heavy peer: requires `reactflow` (~80 KB gzip). The hex-core CLI's `add`\n * flow prompts before installing.\n *\n * @example\n * import \"reactflow/dist/style.css\"; // once in your app entry\n * <Canvas\n *   nodes={[{ id: \"1\", position: { x: 0, y: 0 }, data: { label: \"Agent\" } }]}\n *   edges={[]}\n *   onNodesChange={onNodesChange}\n *   onEdgesChange={onEdgesChange}\n * />\n */\nexport interface CanvasProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\" | \"onError\"> {\n\t/** Node objects passed to ReactFlow. See reactflow docs for shape. */\n\tnodes: import(\"reactflow\").Node[];\n\t/** Edge objects passed to ReactFlow. */\n\tedges: import(\"reactflow\").Edge[];\n\t/** Forwarded to ReactFlow.onNodesChange. */\n\tonNodesChange?: import(\"reactflow\").OnNodesChange;\n\t/** Forwarded to ReactFlow.onEdgesChange. */\n\tonEdgesChange?: import(\"reactflow\").OnEdgesChange;\n\t/** Forwarded to ReactFlow.onConnect (fires when user wires two nodes). */\n\tonConnect?: import(\"reactflow\").OnConnect;\n\t/** Hide the bottom-left zoom/pan/fit controls. Default false (visible). */\n\thideControls?: boolean;\n\t/** Hide the dotted background. Default false (visible). */\n\thideBackground?: boolean;\n\t/** Auto-fit the view to all nodes on first render. Default true. */\n\tfitView?: boolean;\n\t/** Slot for MiniMap, Panel, or custom overlays rendered inside ReactFlow. */\n\tchildren?: React.ReactNode;\n}\n\n/**\n * Renders a ReactFlow graph with sensible defaults.\n * @param props - Controlled nodes/edges + interaction handlers\n * @returns A div containing the ReactFlow canvas\n */\nfunction Canvas({\n\tnodes,\n\tedges,\n\tonNodesChange,\n\tonEdgesChange,\n\tonConnect,\n\thideControls = false,\n\thideBackground = false,\n\tfitView = true,\n\tchildren,\n\tclassName,\n\t...rest\n}: CanvasProps) {\n\t// Lazy-loaded reactflow modules. Held in state so a re-render kicks in\n\t// once the dynamic import resolves; until then we render a placeholder.\n\tconst [rf, setRf] = React.useState<typeof import(\"reactflow\") | null>(null);\n\n\tReact.useEffect(() => {\n\t\tlet cancelled = false;\n\t\tvoid import(\"reactflow\").then((mod) => {\n\t\t\tif (!cancelled) setRf(mod);\n\t\t});\n\t\treturn () => {\n\t\t\tcancelled = true;\n\t\t};\n\t}, []);\n\n\tif (!rf) {\n\t\treturn (\n\t\t\t<div\n\t\t\t\t{...rest}\n\t\t\t\tdata-hex-canvas-loading\n\t\t\t\tclassName={cn(\"h-full w-full bg-muted/20\", className)}\n\t\t\t\taria-busy=\"true\"\n\t\t\t/>\n\t\t);\n\t}\n\n\tconst { ReactFlow, Background, Controls } = rf;\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tdata-hex-canvas\n\t\t\tclassName={cn(\"h-full w-full\", className)}\n\t\t>\n\t\t\t<ReactFlow\n\t\t\t\tnodes={nodes}\n\t\t\t\tedges={edges}\n\t\t\t\tonNodesChange={onNodesChange}\n\t\t\t\tonEdgesChange={onEdgesChange}\n\t\t\t\tonConnect={onConnect}\n\t\t\t\tfitView={fitView}\n\t\t\t>\n\t\t\t\t{!hideBackground && <Background />}\n\t\t\t\t{!hideControls && <Controls />}\n\t\t\t\t{children}\n\t\t\t</ReactFlow>\n\t\t</div>\n\t);\n}\n\nexport { Canvas };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ],
+    "heavyPeer": [
+      {
+        "name": "reactflow",
+        "version": "^11.11.0",
+        "bundleKbGzip": 80,
+        "reason": "Renders the node graph + handles drag/zoom/pan"
+      }
+    ]
+  },
+  "tokensUsed": [
+    "muted"
+  ],
+  "examples": [
+    {
+      "title": "Static agent workflow",
+      "description": "Render a fixed graph of agent steps.",
+      "code": "import \"reactflow/dist/style.css\";\n\nconst nodes = [\n  { id: \"1\", position: { x: 0, y: 0 }, data: { label: \"Receive query\" } },\n  { id: \"2\", position: { x: 250, y: 100 }, data: { label: \"Retrieve context\" } },\n];\nconst edges = [{ id: \"e1-2\", source: \"1\", target: \"2\" }];\n<Canvas nodes={nodes} edges={edges} />",
+      "composition": [
+        "workflow",
+        "diagram"
+      ]
+    },
+    {
+      "title": "Editable graph with onConnect",
+      "description": "Let the user wire nodes together.",
+      "code": "const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);\nconst [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);\nconst onConnect = useCallback((p) => setEdges((e) => addEdge(p, e)), []);\n<Canvas\n  nodes={nodes}\n  edges={edges}\n  onNodesChange={onNodesChange}\n  onEdgesChange={onEdgesChange}\n  onConnect={onConnect}\n/>",
+      "composition": [
+        "workflow",
+        "interactive"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize agent workflows, multi-step plans, RAG document graphs, or any DAG-shaped AI process where nodes/edges convey meaning. Pair with `useNodesState` / `useEdgesState` from reactflow for editable graphs.",
+    "whenNotToUse": "Don't use for tabular data (use `data-table`). Don't use for trees with no horizontal relationships (use `tree`). Don't use as a static SVG diagram (use `<Diagram>` with mermaid for that).",
+    "commonMistakes": [
+      "Forgetting `import \"reactflow/dist/style.css\"` — without it, nodes render as unstyled divs and the canvas appears empty",
+      "Setting fitView={false} without specifying viewport bounds — nodes may render off-screen",
+      "Re-creating the nodes/edges arrays on every render without memoization — reactflow re-runs layout on identity change",
+      "Forgetting the canvas needs explicit height — wrap in a sized container or it collapses to 0px"
+    ],
+    "relatedComponents": [
+      "diagram",
+      "tree"
+    ],
+    "accessibilityNotes": "Reactflow's accessibility is limited (the canvas is a div graph, not native semantics). For agent-workflow visualization, also expose a parallel screen-reader-friendly text/list representation of the nodes via aria-describedby.",
+    "tokenBudget": 380
+  },
+  "tags": [
+    "ai",
+    "canvas",
+    "graph",
+    "workflow",
+    "reactflow",
+    "node-graph",
+    "dag"
+  ]
+}

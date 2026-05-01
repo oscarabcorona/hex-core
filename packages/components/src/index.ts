@@ -318,6 +318,11 @@ export {
 	SpeechRecognition,
 	type SpeechRecognitionProps,
 } from "./ai/speech-recognition/speech-recognition.js";
+export { Terminal, type TerminalProps } from "./ai/terminal/terminal.js";
+export { Canvas, type CanvasProps } from "./ai/canvas/canvas.js";
+export { AudioPlayer, type AudioPlayerProps } from "./ai/audio-player/audio-player.js";
+export { AudioWaveform, type AudioWaveformProps } from "./ai/audio-waveform/audio-waveform.js";
+export { Diagram, type DiagramProps } from "./ai/diagram/diagram.js";
 export {
 	LoadingIndicator,
 	loadingIndicatorVariants,

@@ -72,6 +72,11 @@ import { MessageActionsDemo } from "../app/demos/message-actions-demo";
 import { MessageListDemo } from "../app/demos/message-list-demo";
 import { ReasoningDemo } from "../app/demos/reasoning-demo";
 import { SpeechRecognitionDemo } from "../app/demos/speech-recognition-demo";
+import { TerminalDemo } from "../app/demos/terminal-demo";
+import { CanvasDemo } from "../app/demos/canvas-demo";
+import { AudioPlayerDemo } from "../app/demos/audio-player-demo";
+import { AudioWaveformDemo } from "../app/demos/audio-waveform-demo";
+import { DiagramDemo } from "../app/demos/diagram-demo";
 import { SuggestionDemo } from "../app/demos/suggestion-demo";
 import { TagDemo } from "../app/demos/tag-demo";
 import { ToolCallDemo } from "../app/demos/tool-call-demo";
@@ -152,6 +157,11 @@ export const demos: Record<string, ComponentType> = {
 	"code-block": CodeBlockDemo,
 	composer: ComposerDemo,
 	"speech-recognition": SpeechRecognitionDemo,
+	terminal: TerminalDemo,
+	canvas: CanvasDemo,
+	"audio-player": AudioPlayerDemo,
+	"audio-waveform": AudioWaveformDemo,
+	diagram: DiagramDemo,
 	empty: EmptyDemo,
 	"error-state": ErrorStateDemo,
 	loading: LoadingDemo,

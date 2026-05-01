@@ -1148,6 +1148,65 @@
       "tokenBudget": 500
     },
     {
+      "name": "audio-player",
+      "displayName": "Audio Player",
+      "description": "Audio playback control backed by wavesurfer.js. Renders a play/pause button + linear waveform progress + duration. Pair with `<AudioWaveform>` for a standalone waveform display.",
+      "category": "ai",
+      "subcategory": "voice",
+      "tags": [
+        "ai",
+        "audio",
+        "voice",
+        "playback",
+        "wavesurfer",
+        "podcast",
+        "tts"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 360
+    },
+    {
+      "name": "audio-waveform",
+      "displayName": "Audio Waveform",
+      "description": "Standalone audio waveform display backed by wavesurfer.js — for voice-message previews, audio thumbnails, recording indicators. No playback controls (use `<AudioPlayer>` for that).",
+      "category": "ai",
+      "subcategory": "voice",
+      "tags": [
+        "ai",
+        "audio",
+        "waveform",
+        "voice",
+        "wavesurfer",
+        "thumbnail"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 320
+    },
+    {
+      "name": "canvas",
+      "displayName": "Canvas",
+      "description": "Headless node-graph canvas backed by reactflow. Renders interactive agent workflows, RAG graphs, document relationships. Default Background + Controls; slot for MiniMap or custom overlays.",
+      "category": "ai",
+      "subcategory": "code",
+      "tags": [
+        "ai",
+        "canvas",
+        "graph",
+        "workflow",
+        "reactflow",
+        "node-graph",
+        "dag"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 380
+    },
+    {
       "name": "citation",
       "displayName": "Citation",
       "description": "Source attribution chip — renders a citation for a RAG hit, search result, or any external reference. Becomes a focusable link when url is provided.",
@@ -1204,6 +1263,25 @@
         "lib/utils"
       ],
       "tokenBudget": 280
+    },
+    {
+      "name": "diagram",
+      "displayName": "Diagram",
+      "description": "Render a Mermaid diagram from a source string. For AI outputs that emit flowcharts / sequence / class diagrams — pipe the Markdown code-fence body straight in.",
+      "category": "ai",
+      "subcategory": "code",
+      "tags": [
+        "ai",
+        "diagram",
+        "mermaid",
+        "flowchart",
+        "sequence",
+        "documentation"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 380
     },
     {
       "name": "loading-indicator",
@@ -1357,6 +1435,26 @@
         "lib/utils"
       ],
       "tokenBudget": 220
+    },
+    {
+      "name": "terminal",
+      "displayName": "Terminal",
+      "description": "Headless terminal display backed by xterm.js. Consumer owns the data flow — pass `output` to display, receive typed bytes via `onInput`. No PTY, no shell.",
+      "category": "ai",
+      "subcategory": "code",
+      "tags": [
+        "ai",
+        "terminal",
+        "xterm",
+        "shell",
+        "code",
+        "sandbox",
+        "agent"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 360
     },
     {
       "name": "tool-call",
