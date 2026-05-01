@@ -59,7 +59,7 @@ export const loadingSchema: ComponentSchemaDefinition = {
 	slots: [],
 	dependencies: {
 		npm: ["class-variance-authority", "clsx", "tailwind-merge"],
-		internal: ["skeleton"],
+		internal: ["primitives/skeleton/skeleton"],
 		peer: ["react", "react-dom"],
 	},
 	tokensUsed: ["muted", "card", "border"],

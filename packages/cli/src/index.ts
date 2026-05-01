@@ -1,8 +1,22 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { Command } from "commander";
+
+// Read at runtime — a build-time JSON import would inline the version
+// into the bundle and drift on every publish. Fallback so a malformed
+// tarball missing package.json doesn't brick `hex add`.
+const __dirname = dirname(fileURLToPath(import.meta.url));
+let pkg: { version: string };
+try {
+	pkg = JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf-8"));
+} catch {
+	pkg = { version: "0.0.0-unknown" };
+}
 
 const program = new Command();
 
-program.name("hex").description("Hex UI — AI-native component library").version("0.1.0");
+program.name("hex").description("Hex UI — AI-native component library").version(pkg.version);
 
 program
 	.command("list")

@@ -198,7 +198,16 @@ function installOne(name: string, ctx: Context): string[] | null {
 	const internalSlugs: string[] = [];
 	for (const dep of (deps.internal ?? []) as string[]) {
 		const depSlug = internalDepToSlug(dep);
-		if (!depSlug) continue;
+		if (!depSlug) {
+			// `lib/utils` is the conventional ref to the shared util module, not
+			// a component slug — exempt so the warning stays signal, not noise.
+			if (dep && dep !== "lib/utils") {
+				console.warn(
+					`  Warning: ignoring unrecognized internal dep "${dep}" — expected "primitives/<slug>/<slug>", "components/<slug>/<slug>", or "blocks/<slug>/<slug>".`,
+				);
+			}
+			continue;
+		}
 		internalSlugs.push(depSlug);
 	}
 

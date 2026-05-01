@@ -20,9 +20,10 @@ shadcn/ui is built for humans browsing docs. Hex UI is built for **AI agents** t
 - **MCP server** — 12 tools for component discovery, installation, theming, scaffolding, spec resolution, and emitting paste-into-LLM app context
 - **Token budgets** — each component declares its token cost for efficient LLM context usage
 
-## Quick Start
+> [!WARNING]
+> **Use the scoped package names.** The npm packages are `@hex-core/cli` and `@hex-core/mcp`. An unrelated `hex-core` package is published on npm by a different author — `npx hex-core …` will fail with `npm error could not determine executable to run`. Always include the `@hex-core/` scope in install commands.
 
-> **Heads up:** the npm packages are scoped — `@hex-core/cli` and `@hex-core/mcp`. There is an unrelated `hex-core` package on npm by a different author; `npx hex-core …` will not work. Always use the scoped form below.
+## Quick Start
 
 ### For AI (MCP)
 

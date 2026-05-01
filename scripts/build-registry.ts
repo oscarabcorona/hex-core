@@ -166,6 +166,107 @@ function readLibFiles(): Array<{ path: string; content: string; type: string }> 
 	return files;
 }
 
+interface RegistryFile {
+	path: string;
+	content: string;
+	type: string;
+}
+
+/**
+ * Discover sibling/cross-package files a component depends on, so the
+ * registry manifest ships them alongside the main component:
+ *
+ *   1. Co-located `*-variants.{ts,tsx}` siblings — flatten into `components/ui/`.
+ *   2. Cross-package variants `from "../<...>/<dir>/<dir>-variants"` — flatten
+ *      into `components/ui/<dir>-variants.tsx` so consumers don't need to
+ *      install the producing component first.
+ *   3. Shared imports `from "../_shared/<name>"` — ship at
+ *      `components/_shared/<name>.tsx`, matching `rewriteRegistryImports` rule 3.
+ *
+ * Files dedup by target path; the caller appends to `registryItem.files`.
+ */
+function discoverDependencies(
+	componentPath: string,
+	source: string,
+	mainName: string,
+): RegistryFile[] {
+	const out = new Map<string, RegistryFile>();
+	const componentDir = path.dirname(componentPath);
+
+	// 1. Sibling -variants files in the same directory.
+	for (const f of fs.readdirSync(componentDir)) {
+		if (!/-variants\.(ts|tsx)$/.test(f)) continue;
+		if (f === `${mainName}.tsx`) continue;
+		const baseName = f.replace(/\.ts$/, "").replace(/\.tsx$/, "");
+		const targetPath = `components/ui/${baseName}.tsx`;
+		if (out.has(targetPath)) continue;
+		out.set(targetPath, {
+			path: targetPath,
+			content: fs.readFileSync(path.join(componentDir, f), "utf-8"),
+			type: "component",
+		});
+	}
+
+	// 2. Cross-package variants: `../<...>/<dir>/<dir>-variants[.js]`.
+	//    Match `from`, `import`, and `export … from` so static, side-effect,
+	//    and re-export shapes all surface their dependencies.
+	const xPkgVariants =
+		/(?:from|import|export\s+(?:\*|\{[^}]*\})\s+from)\s+["'](?:\.\.\/)+(?:primitives\/|components\/)?([a-z][a-z0-9-]*)\/\1-variants(?:\.js)?["']/g;
+	for (const m of source.matchAll(xPkgVariants)) {
+		const dirName = m[1];
+		const targetPath = `components/ui/${dirName}-variants.tsx`;
+		if (out.has(targetPath)) continue;
+		const importSpec = m[0].match(/["']([^"']+)["']/)?.[1] ?? "";
+		const sourcePath = resolveSourceFile(componentDir, importSpec);
+		if (!sourcePath) {
+			console.warn(`  Warning: could not locate ${importSpec} from ${mainName}`);
+			continue;
+		}
+		out.set(targetPath, {
+			path: targetPath,
+			content: fs.readFileSync(sourcePath, "utf-8"),
+			type: "component",
+		});
+	}
+
+	// 3. _shared imports: `../_shared/<name>[.js]` — same import-shape coverage as rule 2.
+	const sharedImports =
+		/(?:from|import|export\s+(?:\*|\{[^}]*\})\s+from)\s+["'](?:\.\.\/)+_shared\/([a-z][a-z0-9-]*)(?:\.js)?["']/g;
+	for (const m of source.matchAll(sharedImports)) {
+		const name = m[1];
+		const targetPath = `components/_shared/${name}.tsx`;
+		if (out.has(targetPath)) continue;
+		const importSpec = m[0].match(/["']([^"']+)["']/)?.[1] ?? "";
+		const sourcePath = resolveSourceFile(componentDir, importSpec);
+		if (!sourcePath) {
+			console.warn(`  Warning: could not locate ${importSpec} from ${mainName}`);
+			continue;
+		}
+		out.set(targetPath, {
+			path: targetPath,
+			content: fs.readFileSync(sourcePath, "utf-8"),
+			type: "component",
+		});
+	}
+
+	return [...out.values()];
+}
+
+/**
+ * Resolve a relative `.js`-suffixed monorepo import to an actual `.ts(x)`
+ * file on disk. Tries `.ts` first, then `.tsx`. Returns null if neither
+ * exists — callers warn and skip rather than crashing the build.
+ */
+function resolveSourceFile(fromDir: string, spec: string): string | null {
+	const stripped = spec.replace(/\.js$/, "");
+	const base = path.resolve(fromDir, stripped);
+	for (const ext of [".ts", ".tsx"]) {
+		const candidate = `${base}${ext}`;
+		if (fs.existsSync(candidate)) return candidate;
+	}
+	return null;
+}
+
 // ─── Main ───
 
 console.log("Building Hex UI registry...\n");
@@ -219,6 +320,7 @@ for (const sf of schemaFiles) {
 	const schema: ComponentSchemaDefinition = parsed.data;
 
 	const componentSource = readComponentSource(sf.componentPath);
+	const dependencyFiles = discoverDependencies(sf.componentPath, componentSource, sf.name);
 
 	// Build the registry item
 	const registryItem = {
@@ -239,6 +341,7 @@ for (const sf of schemaFiles) {
 				content: componentSource,
 				type: "component",
 			},
+			...dependencyFiles,
 			...libFiles,
 		],
 		dependencies: schema.dependencies,

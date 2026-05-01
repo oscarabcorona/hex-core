@@ -6,7 +6,8 @@
 
 Copy Hex UI components into your project with one command. No runtime dependency on the library — you own the source.
 
-> **Package name:** the npm package is `@hex-core/cli` (scoped). The unscoped `hex-core` on npm is a different, unrelated project — `npx hex-core …` will not work. Always include the `@hex-core/` scope.
+> [!WARNING]
+> **Use the scoped package name.** This package is `@hex-core/cli` (with the `@hex-core/` scope). An unrelated `hex-core` package is published on npm by a different author — `npx hex-core …` will fail with `npm error could not determine executable to run`. Always include the scope in `npx` / `pnpm dlx` commands.
 
 ## Install & run
 

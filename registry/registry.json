@@ -220,7 +220,7 @@
         "feedback"
       ],
       "internalDeps": [
-        "skeleton"
+        "primitives/skeleton/skeleton"
       ],
       "tokenBudget": 300
     },
@@ -457,7 +457,7 @@
         "multi-select"
       ],
       "internalDeps": [
-        "toggle"
+        "primitives/toggle/toggle"
       ],
       "tokenBudget": 500
     },
@@ -797,7 +797,7 @@
         "field"
       ],
       "internalDeps": [
-        "label"
+        "primitives/label/label"
       ],
       "tokenBudget": 900
     },

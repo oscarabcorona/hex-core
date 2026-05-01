@@ -47,7 +47,7 @@
       "tailwind-merge"
     ],
     "internal": [
-      "label"
+      "primitives/label/label"
     ],
     "peer": [
       "react",
