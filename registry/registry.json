@@ -1439,7 +1439,7 @@
     {
       "name": "markdown",
       "displayName": "Markdown",
-      "description": "Streaming-safe markdown renderer wrapping Vercel's streamdown. Handles partial input mid-stream without throwing.",
+      "description": "Streaming-safe markdown renderer with AI-aware element slots. Native pipeline (react-markdown + remark-gfm + rehype-raw + rehype-sanitize) with slot wiring for fenced code, footnote citations, tool-call elements, and [!think] admonitions.",
       "category": "ai",
       "subcategory": "content",
       "tags": [
@@ -1447,12 +1447,16 @@
         "markdown",
         "streaming",
         "content",
-        "renderer"
+        "renderer",
+        "slots"
       ],
       "internalDeps": [
-        "lib/utils"
+        "lib/utils",
+        "ai/citation",
+        "ai/tool-call",
+        "ai/reasoning"
       ],
-      "tokenBudget": 280
+      "tokenBudget": 320
     },
     {
       "name": "message",

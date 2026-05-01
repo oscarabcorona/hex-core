@@ -14,12 +14,7 @@ const STATE_LABEL: Record<ToolCallState, string> = {
 
 const STATE_CLASSES: Record<ToolCallState, string> = {
 	pending: "bg-muted text-muted-foreground",
-	// Solid primary bg + primary-foreground text in dark mode — the
-	// previously tinted `bg-primary/15` made the badge fg/bg too close in
-	// hue at 10px to clear WCAG AA (was 4.41:1, fails the 4.5 floor).
-	// Light mode keeps the soft tint where contrast holds; dark mode uses
-	// the solid surface for guaranteed ≥7:1 contrast.
-	running: "bg-primary/15 text-primary dark:bg-primary dark:text-primary-foreground animate-pulse",
+	running: "bg-muted text-primary animate-pulse",
 	result: "bg-accent/30 text-accent-foreground",
 	error: "bg-destructive/15 text-destructive",
 };
