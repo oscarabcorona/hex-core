@@ -1,0 +1,168 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "speech-recognition",
+  "displayName": "Speech Recognition",
+  "description": "Browser Web Speech API toggle button. Emits transcript chunks via callback; consumer keeps the text. Renders a disabled state when the browser doesn't support SpeechRecognition.",
+  "category": "ai",
+  "subcategory": "voice",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "isListening",
+      "type": "boolean",
+      "required": true,
+      "description": "Controlled listening state."
+    },
+    {
+      "name": "onListeningChange",
+      "type": "function",
+      "required": true,
+      "description": "Called when listening starts/stops (user toggle or browser auto-end after silence/error)."
+    },
+    {
+      "name": "onTranscript",
+      "type": "function",
+      "required": true,
+      "description": "Called per transcript chunk: `(text, isFinal)`. `isFinal=true` indicates a finalized phrase you should append; `isFinal=false` is an in-progress interim result you should replace on the next event."
+    },
+    {
+      "name": "onError",
+      "type": "function",
+      "required": false,
+      "description": "Called on browser error. Common values: \"not-allowed\" (mic permission denied), \"no-speech\", \"network\", \"audio-capture\"."
+    },
+    {
+      "name": "lang",
+      "type": "string",
+      "required": false,
+      "default": "en-US",
+      "description": "BCP-47 language tag (e.g. \"es-ES\", \"ja-JP\")."
+    },
+    {
+      "name": "continuous",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Keep listening across pauses. Set false for single-utterance dictation."
+    },
+    {
+      "name": "interimResults",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Emit interim (in-progress) results. Set false to receive only finalized phrases."
+    },
+    {
+      "name": "startLabel",
+      "type": "string",
+      "required": false,
+      "default": "Start dictation",
+      "description": "Accessible name + tooltip when idle."
+    },
+    {
+      "name": "stopLabel",
+      "type": "string",
+      "required": false,
+      "default": "Stop dictation",
+      "description": "Accessible name + tooltip when listening."
+    },
+    {
+      "name": "notSupportedLabel",
+      "type": "string",
+      "required": false,
+      "default": "Speech recognition not supported in this browser",
+      "description": "Accessible name + tooltip when the browser lacks the Web Speech API."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the button."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/speech-recognition.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Browser SpeechRecognition wrapper. Renders a mic toggle button that\n * starts/stops the Web Speech API and emits transcript chunks.\n *\n * Headless on data: `isListening` + `onListeningChange` are required so\n * the consumer keeps state where it fits (a `useChat` hook, redux,\n * local state). `onTranscript` fires per result with `isFinal` so the\n * consumer can append finalized phrases and replace interim ones.\n *\n * Falls back to a disabled button labeled `notSupportedLabel` when the\n * browser lacks `SpeechRecognition` (Firefox as of 2026, older Safari).\n *\n * @example\n * const [listening, setListening] = useState(false);\n * const [text, setText] = useState(\"\");\n * <SpeechRecognition\n *   isListening={listening}\n *   onListeningChange={setListening}\n *   onTranscript={(chunk, isFinal) => {\n *     if (isFinal) setText((t) => t + chunk);\n *   }}\n * />\n */\ntype SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;\n\ninterface SpeechRecognitionResultLike {\n\treadonly isFinal: boolean;\n\treadonly length: number;\n\treadonly [index: number]: { readonly transcript: string };\n}\n\ninterface SpeechRecognitionResultListLike {\n\treadonly length: number;\n\treadonly [index: number]: SpeechRecognitionResultLike;\n}\n\ninterface SpeechRecognitionEventLike {\n\treadonly resultIndex: number;\n\treadonly results: SpeechRecognitionResultListLike;\n}\n\ninterface SpeechRecognitionErrorEventLike {\n\treadonly error: string;\n\treadonly message?: string;\n}\n\ninterface SpeechRecognitionInstance {\n\tcontinuous: boolean;\n\tinterimResults: boolean;\n\tlang: string;\n\tonresult: ((event: SpeechRecognitionEventLike) => void) | null;\n\tonerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;\n\tonend: (() => void) | null;\n\tstart(): void;\n\tstop(): void;\n\tabort(): void;\n}\n\nfunction getSpeechRecognitionCtor(): SpeechRecognitionConstructor | null {\n\tif (typeof window === \"undefined\") return null;\n\tconst w = window as unknown as {\n\t\tSpeechRecognition?: SpeechRecognitionConstructor;\n\t\twebkitSpeechRecognition?: SpeechRecognitionConstructor;\n\t};\n\treturn w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;\n}\n\nexport interface SpeechRecognitionProps\n\textends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, \"onError\"> {\n\t/** Controlled listening state. */\n\tisListening: boolean;\n\t/** Called when listening starts/stops (user toggle or browser auto-end). */\n\tonListeningChange: (listening: boolean) => void;\n\t/** Called per transcript chunk. `isFinal` indicates a finalized phrase. */\n\tonTranscript: (text: string, isFinal: boolean) => void;\n\t/** Called on browser error (e.g. \"not-allowed\", \"no-speech\", \"network\"). */\n\tonError?: (error: string, message?: string) => void;\n\t/** BCP-47 language tag. Default `\"en-US\"`. */\n\tlang?: string;\n\t/** Keep listening across pauses. Default `true`. */\n\tcontinuous?: boolean;\n\t/** Emit interim (in-progress) results. Default `true`. */\n\tinterimResults?: boolean;\n\t/** Accessible name when idle. Default `\"Start dictation\"`. */\n\tstartLabel?: string;\n\t/** Accessible name when listening. Default `\"Stop dictation\"`. */\n\tstopLabel?: string;\n\t/** Accessible name + tooltip when the browser lacks the API. */\n\tnotSupportedLabel?: string;\n}\n\n/**\n * Renders a mic toggle button wired to the Web Speech API.\n * @param props - controlled listening state + transcript callback\n * @returns A button element that toggles speech recognition\n */\nfunction SpeechRecognition({\n\tisListening,\n\tonListeningChange,\n\tonTranscript,\n\tonError,\n\tlang = \"en-US\",\n\tcontinuous = true,\n\tinterimResults = true,\n\tstartLabel = \"Start dictation\",\n\tstopLabel = \"Stop dictation\",\n\tnotSupportedLabel = \"Speech recognition not supported in this browser\",\n\tdisabled,\n\tclassName,\n\t...rest\n}: SpeechRecognitionProps) {\n\tconst recognitionRef = React.useRef<SpeechRecognitionInstance | null>(null);\n\tconst [isSupported, setIsSupported] = React.useState(true);\n\n\t// \"Latest ref\" pattern, assigned synchronously in render so a Web Speech\n\t// callback firing between commit and a useEffect can never see stale\n\t// closures. React permits ref mutation during render when the assignment\n\t// is purely a latest-value mirror.\n\tconst onTranscriptRef = React.useRef(onTranscript);\n\tconst onListeningChangeRef = React.useRef(onListeningChange);\n\tconst onErrorRef = React.useRef(onError);\n\tonTranscriptRef.current = onTranscript;\n\tonListeningChangeRef.current = onListeningChange;\n\tonErrorRef.current = onError;\n\n\t// Mounted guard: the engine fires onend asynchronously, sometimes after\n\t// the React tree has been torn down. Without this, a stale handler can\n\t// invoke setState on an unmounted parent.\n\tconst mountedRef = React.useRef(true);\n\tReact.useEffect(\n\t\t() => () => {\n\t\t\tmountedRef.current = false;\n\t\t},\n\t\t[],\n\t);\n\n\t// Set when the lifecycle effect's cleanup runs because of a prop change\n\t// (lang/continuous/interimResults), not user-initiated stop. The about-\n\t// to-fire onend should NOT bubble back as `onListeningChange(false)` in\n\t// that case — the new effect run is about to re-create the engine.\n\tconst rebuildingRef = React.useRef(false);\n\t// Latest `isListening` mirror so cleanup can read the NEW value (closure\n\t// captures OLD). NEW=true means this is a prop-change rebuild; NEW=false\n\t// means the user stopped.\n\tconst isListeningRef = React.useRef(isListening);\n\tisListeningRef.current = isListening;\n\n\t// SSR: ctor lookup must run after mount.\n\tReact.useEffect(() => {\n\t\tconst Ctor = getSpeechRecognitionCtor();\n\t\tsetIsSupported(Ctor !== null);\n\t}, []);\n\n\t// Toggle the engine on `isListening` change. Recreate per session so a\n\t// stuck session can't leak — Chrome's recognition is single-use after\n\t// onend in some failure modes.\n\tReact.useEffect(() => {\n\t\tif (!isListening) return;\n\n\t\tconst Ctor = getSpeechRecognitionCtor();\n\t\tif (!Ctor) return;\n\n\t\tconst instance = new Ctor();\n\t\tinstance.continuous = continuous;\n\t\tinstance.interimResults = interimResults;\n\t\tinstance.lang = lang;\n\n\t\tinstance.onresult = (event) => {\n\t\t\tif (!mountedRef.current) return;\n\t\t\tfor (let i = event.resultIndex; i < event.results.length; i++) {\n\t\t\t\tconst result = event.results[i];\n\t\t\t\tconst transcript = result[0]?.transcript ?? \"\";\n\t\t\t\tif (transcript) onTranscriptRef.current(transcript, result.isFinal);\n\t\t\t}\n\t\t};\n\t\tinstance.onerror = (event) => {\n\t\t\tif (!mountedRef.current) return;\n\t\t\tonErrorRef.current?.(event.error, event.message);\n\t\t\t// \"aborted\" is a normal stop signal — don't toggle off twice.\n\t\t\tif (event.error !== \"aborted\") onListeningChangeRef.current(false);\n\t\t};\n\t\tinstance.onend = () => {\n\t\t\tif (!mountedRef.current) return;\n\t\t\t// Skip the off-toggle when cleanup is from a prop-change rebuild;\n\t\t\t// the next effect run will re-start with the new options.\n\t\t\tif (rebuildingRef.current) return;\n\t\t\tonListeningChangeRef.current(false);\n\t\t};\n\n\t\trecognitionRef.current = instance;\n\t\ttry {\n\t\t\tinstance.start();\n\t\t} catch (err) {\n\t\t\t// Chrome throws if start() is called twice; surface as an error\n\t\t\t// rather than letting it crash the React tree.\n\t\t\tonErrorRef.current?.(\"start-failed\", err instanceof Error ? err.message : String(err));\n\t\t\tonListeningChangeRef.current(false);\n\t\t}\n\n\t\treturn () => {\n\t\t\t// Mark this teardown as a rebuild iff isListening is STILL true\n\t\t\t// in the latest render (only lang/continuous/interimResults\n\t\t\t// changed). On a real user-stop the NEW isListening is false and\n\t\t\t// any synchronous onend-from-abort should toggle parent state.\n\t\t\trebuildingRef.current = isListeningRef.current;\n\t\t\tinstance.onresult = null;\n\t\t\tinstance.onerror = null;\n\t\t\tinstance.onend = null;\n\t\t\ttry {\n\t\t\t\tinstance.abort();\n\t\t\t} catch {\n\t\t\t\t// abort() throws if the engine never started; safe to ignore.\n\t\t\t}\n\t\t\trecognitionRef.current = null;\n\t\t\t// Reset on next microtask so a follow-up effect run sees a clean slate.\n\t\t\tqueueMicrotask(() => {\n\t\t\t\trebuildingRef.current = false;\n\t\t\t});\n\t\t};\n\t}, [isListening, continuous, interimResults, lang]);\n\n\tconst tooltip = !isSupported\n\t\t? notSupportedLabel\n\t\t: isListening\n\t\t\t? stopLabel\n\t\t\t: startLabel;\n\t// aria-label is stable when supported so screen readers don't re-announce\n\t// the entire button on each toggle. State is conveyed via aria-pressed.\n\t// Only the unsupported case swaps the accessible name.\n\tconst accessibleName = isSupported ? startLabel : notSupportedLabel;\n\tconst isDisabled = disabled || !isSupported;\n\n\treturn (\n\t\t<button\n\t\t\ttype=\"button\"\n\t\t\t{...rest}\n\t\t\tdisabled={isDisabled}\n\t\t\taria-label={accessibleName}\n\t\t\taria-pressed={isListening}\n\t\t\ttitle={tooltip}\n\t\t\tonClick={(event) => {\n\t\t\t\trest.onClick?.(event);\n\t\t\t\tif (event.defaultPrevented || isDisabled) return;\n\t\t\t\tonListeningChange(!isListening);\n\t\t\t}}\n\t\t\tclassName={cn(\n\t\t\t\t\"inline-flex h-9 w-9 items-center justify-center rounded-md border bg-background\",\n\t\t\t\t\"text-foreground transition-colors duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\"hover:bg-accent hover:text-accent-foreground\",\n\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t\"disabled:cursor-not-allowed disabled:opacity-50\",\n\t\t\t\tisListening && \"animate-pulse border-destructive text-destructive\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t>\n\t\t\t<svg\n\t\t\t\taria-hidden\n\t\t\t\tviewBox=\"0 0 16 16\"\n\t\t\t\twidth=\"14\"\n\t\t\t\theight=\"14\"\n\t\t\t\tfill=\"none\"\n\t\t\t\tstroke=\"currentColor\"\n\t\t\t\tstrokeWidth=\"1.5\"\n\t\t\t\tstrokeLinecap=\"round\"\n\t\t\t\tstrokeLinejoin=\"round\"\n\t\t\t>\n\t\t\t\t<rect x=\"6\" y=\"2\" width=\"4\" height=\"8\" rx=\"2\" />\n\t\t\t\t<path d=\"M3.5 7.5a4.5 4.5 0 0 0 9 0\" />\n\t\t\t\t<path d=\"M8 12v2\" />\n\t\t\t\t<path d=\"M5.5 14h5\" />\n\t\t\t</svg>\n\t\t</button>\n\t);\n}\n\nexport { SpeechRecognition };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "background",
+    "foreground",
+    "accent",
+    "accent-foreground",
+    "ring",
+    "destructive"
+  ],
+  "examples": [
+    {
+      "title": "Dictation into a Composer",
+      "description": "Append finalized phrases to the composer's value.",
+      "code": "const [listening, setListening] = useState(false);\nconst [text, setText] = useState(\"\");\n<Composer\n  value={text}\n  onValueChange={setText}\n  onSubmit={(v) => { send(v); setText(\"\"); }}\n>\n  <SpeechRecognition\n    isListening={listening}\n    onListeningChange={setListening}\n    onTranscript={(chunk, isFinal) => { if (isFinal) setText((t) => t + chunk); }}\n  />\n  <Button type=\"submit\">Send</Button>\n</Composer>",
+      "composition": [
+        "chat",
+        "voice",
+        "form"
+      ]
+    },
+    {
+      "title": "Live transcription preview",
+      "description": "Show the in-progress interim result alongside finalized text.",
+      "code": "const [final, setFinal] = useState(\"\");\nconst [interim, setInterim] = useState(\"\");\n<>\n  <SpeechRecognition\n    isListening={listening}\n    onListeningChange={setListening}\n    onTranscript={(chunk, isFinal) => {\n      if (isFinal) { setFinal((t) => t + chunk); setInterim(\"\"); }\n      else setInterim(chunk);\n    }}\n  />\n  <p>{final}<span className=\"opacity-60\">{interim}</span></p>\n</>",
+      "composition": [
+        "voice",
+        "transcription"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Voice input for chat, dictation, accessibility-first forms, or any AI app where typing is friction. Pair with Composer for chat, or with a Textarea for long-form dictation.",
+    "whenNotToUse": "Don't use for high-accuracy transcription (browser models are coarse — use a server-side STT API like Whisper). Don't use as the sole input on a form (always pair with a typed fallback for users without mic access or unsupported browsers).",
+    "commonMistakes": [
+      "Treating every onTranscript event as final — you must check `isFinal` to know when to append vs. replace",
+      "Forgetting that browser support is uneven — Firefox lacks the API; always render the fallback state",
+      "Not handling \"not-allowed\" — when the user denies mic permission, the next start attempt fails silently unless you surface onError",
+      "Mutating recognition.lang mid-session — the wrapper recreates the engine on prop change, but rapid toggles can drop transcripts"
+    ],
+    "relatedComponents": [
+      "composer"
+    ],
+    "accessibilityNotes": "Renders a real <button> with aria-pressed reflecting listening state and aria-label that updates between start/stop/not-supported. The pulsing border (when listening) is decorative — screen readers get the state via aria-pressed.",
+    "tokenBudget": 320
+  },
+  "tags": [
+    "ai",
+    "voice",
+    "speech",
+    "dictation",
+    "transcription",
+    "microphone"
+  ]
+}

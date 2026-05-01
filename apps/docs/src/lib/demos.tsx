@@ -71,6 +71,7 @@ import { MessageDemo } from "../app/demos/message-demo";
 import { MessageActionsDemo } from "../app/demos/message-actions-demo";
 import { MessageListDemo } from "../app/demos/message-list-demo";
 import { ReasoningDemo } from "../app/demos/reasoning-demo";
+import { SpeechRecognitionDemo } from "../app/demos/speech-recognition-demo";
 import { SuggestionDemo } from "../app/demos/suggestion-demo";
 import { TagDemo } from "../app/demos/tag-demo";
 import { ToolCallDemo } from "../app/demos/tool-call-demo";
@@ -150,6 +151,7 @@ export const demos: Record<string, ComponentType> = {
 	citation: CitationDemo,
 	"code-block": CodeBlockDemo,
 	composer: ComposerDemo,
+	"speech-recognition": SpeechRecognitionDemo,
 	empty: EmptyDemo,
 	"error-state": ErrorStateDemo,
 	loading: LoadingDemo,

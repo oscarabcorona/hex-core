@@ -60,7 +60,7 @@ interface SeedColors {
  * @param defaultValue - HSL-triplet pre-filled into the prompt
  * @returns The parsed HSL-triplet token value
  */
-async function promptColor(label: string, defaultValue: string): Promise<string> {
+export async function promptColor(label: string, defaultValue: string): Promise<string> {
 	while (true) {
 		const raw = await input({
 			message: `${label} ${pc.dim(`(hex / hsl() / triplet — default: ${defaultValue})`)}`,

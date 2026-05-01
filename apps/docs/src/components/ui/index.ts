@@ -292,6 +292,8 @@ export {
 	type CodeBlockCopyProps,
 	Composer,
 	type ComposerProps,
+	SpeechRecognition,
+	type SpeechRecognitionProps,
 	LoadingIndicator,
 	type LoadingIndicatorProps,
 	Markdown,

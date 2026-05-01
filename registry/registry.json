@@ -1317,6 +1317,25 @@
       "tokenBudget": 280
     },
     {
+      "name": "speech-recognition",
+      "displayName": "Speech Recognition",
+      "description": "Browser Web Speech API toggle button. Emits transcript chunks via callback; consumer keeps the text. Renders a disabled state when the browser doesn't support SpeechRecognition.",
+      "category": "ai",
+      "subcategory": "voice",
+      "tags": [
+        "ai",
+        "voice",
+        "speech",
+        "dictation",
+        "transcription",
+        "microphone"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 320
+    },
+    {
       "name": "suggestion",
       "displayName": "Suggestion",
       "description": "Clickable prompt pill / quick-action chip. Forwards a payload to onSelect on click.",

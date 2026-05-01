@@ -233,7 +233,7 @@ interface OverrideResult {
  * @param mode - Which block to update: `"light"` for `:root`, `"dark"` for `.dark`, or `"both"`.
  * @returns The updated CSS plus a flag indicating whether any replacement happened.
  */
-function applyTokenOverride(
+export function applyTokenOverride(
 	css: string,
 	key: string,
 	value: string,
