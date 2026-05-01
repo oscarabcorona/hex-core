@@ -8,7 +8,7 @@
 
 **The component layer for spec-driven UI development.**
 
-Hex UI turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 12 MCP tools over a catalog of 59 components.
+Hex UI turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 12 MCP tools over a catalog of 83 components.
 
 ## Why Hex UI?
 
@@ -108,7 +108,7 @@ This copies the skills into `.claude/skills/` so any agent working in your repo 
 
 ## Components
 
-**59 components** across primitives (Button, Input, Checkbox, Switch, Slider, …) and compounds (Combobox, DataTable, Command, Calendar, Date Picker, …). Every component ships with a machine-readable `.schema.ts` containing props, variants, AI hints (`whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes`), and a token budget.
+**83 components** across primitives (Button, Input, Checkbox, Switch, Slider, …), compounds (Combobox, DataTable, Command, Calendar, Date Picker, …), and AI-native (Composer, Message, Reasoning, ToolCall, Terminal, Canvas, Diagram, AudioPlayer, AudioWaveform, SpeechRecognition, …). Every component ships with a machine-readable `.schema.ts` containing props, variants, AI hints (`whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes`), and a token budget.
 
 Full catalog + live demos: **[hex-core.dev/docs](https://hex-core.dev/docs)**
 

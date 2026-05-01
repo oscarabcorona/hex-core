@@ -1,6 +1,12 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { internalDepToSlug, SLUG_REGEX } from "@hex-core/registry";
+import {
+	formatManualInstallCommand,
+	promptHeavyPeers,
+	type PendingHeavyPeer,
+} from "../lib/heavy-peer-prompt.js";
+import { detectPackageManager } from "../lib/package-manager.js";
 import { type AliasConfig, DEFAULT_ALIASES, rewriteRegistryImports } from "../lib/rewrite-imports.js";
 import { findRegistryDir } from "../lib/registry-dir.js";
 import { runInstall } from "../lib/run-install.js";
@@ -25,6 +31,8 @@ interface Context {
 	pendingNpmDeps: Set<string>;
 	/** Post-install reminder strings (e.g. "mount <Toaster /> in layout"). Deduped + printed once at the end. */
 	postInstallHints: Set<string>;
+	/** Heavy peer deps (xterm, mermaid, etc.) keyed by package name. `requiredBy` accumulates the slugs that asked for each. */
+	pendingHeavyPeers: Map<string, PendingHeavyPeer>;
 }
 
 /**
@@ -152,6 +160,33 @@ function installOne(name: string, ctx: Context): string[] | null {
 		for (const npm of deps.npm) ctx.pendingNpmDeps.add(npm);
 	}
 
+	if (Array.isArray(deps.heavyPeer) && deps.heavyPeer.length > 0) {
+		for (const hp of deps.heavyPeer) {
+			const existing = ctx.pendingHeavyPeers.get(hp.name);
+			if (existing) {
+				if (!existing.requiredBy.includes(name)) existing.requiredBy.push(name);
+				// Two components requesting the same peer at different
+				// version ranges — first-wins, but warn so the user knows
+				// they may need to bump one component to align the range.
+				if (existing.version !== hp.version) {
+					console.warn(
+						`  Warning: heavy peer ${hp.name} requested as both ` +
+							`${existing.version} (by ${existing.requiredBy.filter((r) => r !== name).join(", ")}) ` +
+							`and ${hp.version} (by ${name}). Using ${existing.version}.`,
+					);
+				}
+			} else {
+				ctx.pendingHeavyPeers.set(hp.name, {
+					name: hp.name,
+					version: hp.version,
+					bundleKbGzip: hp.bundleKbGzip,
+					reason: hp.reason,
+					requiredBy: [name],
+				});
+			}
+		}
+	}
+
 	const hint = POST_INSTALL_HINTS[name];
 	if (hint) ctx.postInstallHints.add(hint);
 
@@ -198,6 +233,7 @@ export async function addComponents(components: string[], options: AddOptions): 
 		visited: new Set(),
 		pendingNpmDeps: new Set(),
 		postInstallHints: new Set(),
+		pendingHeavyPeers: new Map(),
 	};
 
 	const queue: string[] = [...components];
@@ -247,6 +283,33 @@ export async function addComponents(components: string[], options: AddOptions): 
 			if (result.installed.length > 0 && result.exitCode !== 0) {
 				console.log(`\nPeer-dep install via ${result.manager} exited with code ${result.exitCode}.`);
 				console.log(`Run yourself: ${result.manager} ${result.manager === "npm" ? "install" : "add"} ${result.installed.join(" ")}`);
+			}
+		}
+	}
+
+	if (ctx.pendingHeavyPeers.size > 0) {
+		const peers = Array.from(ctx.pendingHeavyPeers.values());
+		if (!options.install) {
+			const manager = detectPackageManager(cwd);
+			console.log(`\nThe following heavy peer dependencies were skipped (--no-install):`);
+			for (const peer of peers) {
+				console.log(`  → ${peer.name}@${peer.version}${peer.bundleKbGzip ? `  (~${peer.bundleKbGzip} KB gzip)` : ""}`);
+			}
+			console.log(`\n  Run yourself: ${formatManualInstallCommand(manager, peers)}`);
+		} else {
+			const accepted = await promptHeavyPeers(peers, { assumeYes: options.yes });
+			if (accepted) {
+				const specs = peers.map((p) => `${p.name}@${p.version}`);
+				const result = await runInstall(specs, { cwd });
+				if (result.installed.length > 0 && result.exitCode !== 0) {
+					console.log(`\nHeavy-peer install via ${result.manager} exited with code ${result.exitCode}.`);
+					console.log(`  Run yourself: ${formatManualInstallCommand(result.manager, peers)}`);
+				}
+			} else {
+				const manager = detectPackageManager(cwd);
+				console.log(`\nSkipped. Install when you're ready:`);
+				console.log(`  ${formatManualInstallCommand(manager, peers)}`);
+				console.log(`  (the component source was still copied — it just won't import successfully until the peer is installed)`);
 			}
 		}
 	}

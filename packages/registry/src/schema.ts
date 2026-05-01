@@ -77,10 +77,38 @@ export type RegistryFile = z.infer<typeof fileSchema>;
 
 // ─── Dependency Schema ───
 
+/**
+ * A peer dependency that is NOT assumed to already exist in the consumer's
+ * project (unlike `peer: ["react"]`) and that adds significant bundle weight.
+ * Listing one here triggers an opt-in prompt in the CLI before install:
+ * the user sees the package name, version range, and approximate gzipped
+ * bundle cost, and confirms before the CLI runs `<pm> add <name>@<version>`.
+ *
+ * Use for engines like `xterm`, `reactflow`, `mermaid`, `wavesurfer.js`,
+ * `tiptap`, `@codemirror/*` — anything where bundling-by-default would be
+ * an overreach for a consumer who only wanted the wrapper component.
+ */
+export const heavyPeerSchema = z.object({
+	/** npm package name. */
+	name: z.string(),
+	/** Version range, e.g. `"^5.3.0"`. Passed verbatim to `<pm> add`. */
+	version: z.string(),
+	/** Approximate gzipped bundle cost in KB. Surfaced in the install prompt. */
+	bundleKbGzip: z.number().optional(),
+	/** One-line note explaining why this peer is required (shown in the prompt). */
+	reason: z.string().optional(),
+});
+
+export type HeavyPeer = z.infer<typeof heavyPeerSchema>;
+
 export const dependencySchema = z.object({
 	npm: z.array(z.string()).default([]),
 	internal: z.array(z.string()).default([]),
 	peer: z.array(z.string()).default([]),
+	// Optional (not `.default([])`) so existing schema files that don't
+	// declare heavyPeer don't break under TS strict inference. The CLI
+	// reads via `Array.isArray(deps.heavyPeer)` and treats missing as none.
+	heavyPeer: z.array(heavyPeerSchema).optional(),
 });
 
 export type Dependencies = z.infer<typeof dependencySchema>;
