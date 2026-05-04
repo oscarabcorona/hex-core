@@ -1,0 +1,158 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "chord",
+  "displayName": "Chord",
+  "description": "Chord diagram. Nodes sit on a ring; ribbons inside encode weighted bidirectional relationships. Use for trade flows, migration, citation networks — \"A relates to B with weight w\" at scale.",
+  "category": "artifact",
+  "subcategory": "relational",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "nodes",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, label }. Order matches matrix rows/columns."
+    },
+    {
+      "name": "matrix",
+      "type": "object",
+      "required": true,
+      "description": "Square N×N matrix of weights. matrix[i][j] = flow from node i to node j."
+    },
+    {
+      "name": "size",
+      "type": "number",
+      "required": false,
+      "default": 480,
+      "description": "Pixel size of the rendered SVG (it's square)."
+    },
+    {
+      "name": "padAngle",
+      "type": "number",
+      "required": false,
+      "default": 0.04,
+      "description": "Padding (in radians) between adjacent ring segments."
+    },
+    {
+      "name": "onChordHover",
+      "type": "function",
+      "required": false,
+      "description": "Called with the hovered ribbon's { source, target, value } (or null when hover ends)."
+    },
+    {
+      "name": "onNodeClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked ChordNode."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/chord.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Chord diagram. Nodes sit on a ring; ribbons inside the ring encode\n * weighted bidirectional relationships between them. Common for\n * trade flows, migration, hyperlink graphs, citation networks —\n * anywhere \"A relates to B with weight w\" matters at scale.\n *\n * Heavy peers: requires `d3-chord` (~3 KB gzip) and `d3-shape` (~6 KB\n * gzip, already in the artifacts/ family). The hex-core CLI's `add`\n * flow prompts before installing.\n *\n * @example\n * <Chord\n *   nodes={[\"A\", \"B\", \"C\", \"D\"].map((id) => ({ id, label: id }))}\n *   matrix={[\n *     [0, 5, 8, 1],\n *     [3, 0, 2, 4],\n *     [6, 0, 0, 7],\n *     [2, 1, 9, 0],\n *   ]}\n * />\n */\nexport type ChordNode = {\n\tid: string;\n\tlabel: string;\n};\n\n/**\n * Payload fired to `onChordHover`. `sourceValue` is the i→j flow;\n * `targetValue` is the j→i flow. They differ for asymmetric matrices and\n * are equal for symmetric ones.\n */\nexport type ChordHoverPayload = {\n\tsource: ChordNode;\n\ttarget: ChordNode;\n\tsourceValue: number;\n\ttargetValue: number;\n};\n\nexport interface ChordProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Nodes (as ring segments). Order matches matrix rows/columns. */\n\tnodes: ChordNode[];\n\t/** Square N×N matrix of weights. matrix[i][j] = flow from node i to node j. */\n\tmatrix: number[][];\n\t/** Pixel size of the rendered SVG (it's square). Default 480. */\n\tsize?: number;\n\t/** Pixel padding between adjacent ring segments. Default 0.04 (radians, d3 convention). */\n\tpadAngle?: number;\n\t/** Fired when a ribbon is hovered (or hover ends, with `null`). */\n\tonChordHover?: (chord: ChordHoverPayload | null) => void;\n\t/** Fired when a node arc is clicked. */\n\tonNodeClick?: (node: ChordNode) => void;\n}\n\ninterface LaidOutArc {\n\tnode: ChordNode;\n\tdepth: number;\n\td: string;\n\tlabelX: number;\n\tlabelY: number;\n\tlabelAngle: number;\n}\n\ninterface LaidOutChord {\n\tsource: ChordNode;\n\ttarget: ChordNode;\n\tsourceValue: number;\n\ttargetValue: number;\n\td: string;\n}\n\ntype D3ChordMod = typeof import(\"d3-chord\");\ntype D3ShapeMod = typeof import(\"d3-shape\");\n\nconst NODE_PALETTE = [\n\t\"hsl(var(--primary))\",\n\t\"hsl(var(--accent))\",\n\t\"hsl(var(--secondary))\",\n\t\"hsl(var(--muted))\",\n];\n\nfunction Chord({\n\tnodes,\n\tmatrix,\n\tsize = 480,\n\tpadAngle = 0.04,\n\tonChordHover,\n\tonNodeClick,\n\tclassName,\n\t...rest\n}: ChordProps) {\n\tconst [d3c, setD3c] = React.useState<D3ChordMod | null>(null);\n\tconst [d3s, setD3s] = React.useState<D3ShapeMod | null>(null);\n\tconst [importError, setImportError] = React.useState(false);\n\n\tReact.useEffect(() => {\n\t\tlet cancelled = false;\n\t\tvoid Promise.all([import(\"d3-chord\"), import(\"d3-shape\")]).then(\n\t\t\t([c, s]) => {\n\t\t\t\tif (cancelled) return;\n\t\t\t\tsetD3c(c);\n\t\t\t\tsetD3s(s);\n\t\t\t},\n\t\t\t() => {\n\t\t\t\tif (!cancelled) setImportError(true);\n\t\t\t},\n\t\t);\n\t\treturn () => {\n\t\t\tcancelled = true;\n\t\t};\n\t}, []);\n\n\tconst laidOut = React.useMemo(() => {\n\t\tif (!d3c || !d3s) return null;\n\t\treturn layout(d3c, d3s, nodes, matrix, size, padAngle);\n\t}, [d3c, d3s, nodes, matrix, size, padAngle]);\n\n\tif (importError) {\n\t\treturn (\n\t\t\t<div\n\t\t\t\tdata-hex-chord-error\n\t\t\t\trole=\"alert\"\n\t\t\t\tclassName={cn(\n\t\t\t\t\t\"inline-flex items-center justify-center rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive\",\n\t\t\t\t\tclassName,\n\t\t\t\t)}\n\t\t\t\tstyle={{ width: size, height: size }}\n\t\t\t>\n\t\t\t\tInstall <code className=\"mx-1\">d3-chord</code> to view this chord diagram.\n\t\t\t</div>\n\t\t);\n\t}\n\n\tif (!laidOut) {\n\t\treturn (\n\t\t\t<div\n\t\t\t\tdata-hex-chord-loading\n\t\t\t\taria-busy=\"true\"\n\t\t\t\taria-label=\"Loading chord diagram\"\n\t\t\t\tclassName={cn(\"inline-block bg-muted/20\", className)}\n\t\t\t\tstyle={{ width: size, height: size }}\n\t\t\t/>\n\t\t);\n\t}\n\n\tconst { arcs, chords } = laidOut;\n\tconst desc = `Chord diagram with ${nodes.length} node${nodes.length === 1 ? \"\" : \"s\"} and ${chords.length} ribbon${chords.length === 1 ? \"\" : \"s\"}`;\n\tconst radius = size / 2;\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-chord\n\t\t\trole=\"img\"\n\t\t\twidth={size}\n\t\t\theight={size}\n\t\t\tviewBox={`${-radius} ${-radius} ${size} ${size}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Chord diagram</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<g data-hex-chord-ribbons>\n\t\t\t\t{chords.map((c, i) => {\n\t\t\t\t\tconst interactive = Boolean(onChordHover);\n\t\t\t\t\tconst payload: ChordHoverPayload = {\n\t\t\t\t\t\tsource: c.source,\n\t\t\t\t\t\ttarget: c.target,\n\t\t\t\t\t\tsourceValue: c.sourceValue,\n\t\t\t\t\t\ttargetValue: c.targetValue,\n\t\t\t\t\t};\n\t\t\t\t\tconst fireHover = (chord: ChordHoverPayload | null) => onChordHover?.(chord);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<path\n\t\t\t\t\t\t\tkey={`${c.source.id}-${c.target.id}-${i}`}\n\t\t\t\t\t\t\tdata-hex-chord-ribbon\n\t\t\t\t\t\t\td={c.d}\n\t\t\t\t\t\t\tfill=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\tfillOpacity={0.4}\n\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\tstrokeWidth={0.5}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={\n\t\t\t\t\t\t\t\tinteractive\n\t\t\t\t\t\t\t\t\t? `Flow from ${c.source.label} to ${c.target.label}, value ${c.sourceValue}; reverse value ${c.targetValue}`\n\t\t\t\t\t\t\t\t\t: undefined\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tstyle={{\n\t\t\t\t\t\t\t\tcursor: interactive ? \"pointer\" : undefined,\n\t\t\t\t\t\t\t\ttransition: \"fill-opacity 120ms ease\",\n\t\t\t\t\t\t\t}}\n\t\t\t\t\t\t\tonMouseEnter={interactive ? () => fireHover(payload) : undefined}\n\t\t\t\t\t\t\tonMouseLeave={interactive ? () => fireHover(null) : undefined}\n\t\t\t\t\t\t\tonFocus={interactive ? () => fireHover(payload) : undefined}\n\t\t\t\t\t\t\tonBlur={interactive ? () => fireHover(null) : undefined}\n\t\t\t\t\t\t/>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t\t<g data-hex-chord-arcs>\n\t\t\t\t{arcs.map((a) => {\n\t\t\t\t\tconst interactive = Boolean(onNodeClick);\n\t\t\t\t\tconst handleActivate = () => onNodeClick?.(a.node);\n\t\t\t\t\tconst flip = a.labelAngle > Math.PI / 2 && a.labelAngle < (3 * Math.PI) / 2;\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<g\n\t\t\t\t\t\t\tkey={a.node.id}\n\t\t\t\t\t\t\tdata-hex-chord-arc\n\t\t\t\t\t\t\tdata-depth={a.depth}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={interactive ? a.node.label : undefined}\n\t\t\t\t\t\t\tstyle={interactive ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\t\tonClick={interactive ? handleActivate : undefined}\n\t\t\t\t\t\t\tonKeyDown={interactive ? (e) => activateOnKey(e, handleActivate) : undefined}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<path\n\t\t\t\t\t\t\t\td={a.d}\n\t\t\t\t\t\t\t\tfill={NODE_PALETTE[a.depth % NODE_PALETTE.length]}\n\t\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\tx={a.labelX}\n\t\t\t\t\t\t\t\ty={a.labelY}\n\t\t\t\t\t\t\t\ttextAnchor={flip ? \"end\" : \"start\"}\n\t\t\t\t\t\t\t\tdy=\"0.35em\"\n\t\t\t\t\t\t\t\ttransform={\n\t\t\t\t\t\t\t\t\tflip\n\t\t\t\t\t\t\t\t\t\t? `rotate(${(a.labelAngle * 180) / Math.PI - 270} ${a.labelX} ${a.labelY})`\n\t\t\t\t\t\t\t\t\t\t: `rotate(${(a.labelAngle * 180) / Math.PI - 90} ${a.labelX} ${a.labelY})`\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tfontSize={11}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t\t\t\tstyle={{ pointerEvents: \"none\" }}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{a.node.label}\n\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t</g>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(\n\td3c: D3ChordMod,\n\td3s: D3ShapeMod,\n\tnodes: ChordNode[],\n\tmatrix: number[][],\n\tsize: number,\n\tpadAngle: number,\n): { arcs: LaidOutArc[]; chords: LaidOutChord[] } {\n\tconst radius = size / 2 - 24; // leave room for labels\n\tconst innerRadius = radius - 12;\n\tconst outerRadius = radius;\n\n\t// d3.descending lives in d3-array — inline the comparator to avoid pulling\n\t// another peer dep just for one helper.\n\tconst chordGen = d3c\n\t\t.chord()\n\t\t.padAngle(padAngle)\n\t\t.sortSubgroups((a, b) => (a < b ? 1 : a > b ? -1 : 0));\n\tconst result = chordGen(matrix);\n\n\tconst arc = d3s.arc().innerRadius(innerRadius).outerRadius(outerRadius);\n\t// `ribbon()` is exported from d3-chord, not d3-shape.\n\tconst ribbon = d3c.ribbon().radius(innerRadius);\n\n\tconst arcs: LaidOutArc[] = result.groups.map((g) => {\n\t\tconst node = nodes[g.index] ?? { id: `_${g.index}`, label: `Set ${g.index}` };\n\t\tconst midAngle = (g.startAngle + g.endAngle) / 2;\n\t\tconst labelRadius = outerRadius + 6;\n\t\treturn {\n\t\t\tnode,\n\t\t\tdepth: g.index,\n\t\t\td: arc({ startAngle: g.startAngle, endAngle: g.endAngle, innerRadius, outerRadius }) ?? \"\",\n\t\t\tlabelX: labelRadius * Math.sin(midAngle),\n\t\t\tlabelY: -labelRadius * Math.cos(midAngle),\n\t\t\tlabelAngle: midAngle,\n\t\t};\n\t});\n\n\t// Satisfies @types/d3-chord@3.0.6's `RibbonSubgroup.radius` requirement;\n\t// runtime ignores per-subgroup radius when the generator's `.radius()`\n\t// is set, so this spread is purely a typing accommodation.\n\tconst buildRibbonInput = (c: typeof result[number]) => ({\n\t\tsource: { ...c.source, radius: innerRadius },\n\t\ttarget: { ...c.target, radius: innerRadius },\n\t});\n\n\tconst chords: LaidOutChord[] = result\n\t\t// Drop chord pairs where both directions have zero flow — d3-chord\n\t\t// emits placeholder pairs for them which would otherwise render as\n\t\t// invisible-but-event-firing ribbons.\n\t\t.filter((c) => c.source.value > 0 || c.target.value > 0)\n\t\t.map((c) => ({\n\t\t\tsource: nodes[c.source.index] ?? { id: `_${c.source.index}`, label: `Set ${c.source.index}` },\n\t\t\ttarget: nodes[c.target.index] ?? { id: `_${c.target.index}`, label: `Set ${c.target.index}` },\n\t\t\tsourceValue: c.source.value,\n\t\t\ttargetValue: c.target.value,\n\t\t\td: ribbon(buildRibbonInput(c)) ?? \"\",\n\t\t}));\n\n\treturn { arcs, chords };\n}\n\nfunction activateOnKey(e: React.KeyboardEvent, fn: () => void): void {\n\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\te.preventDefault();\n\t\tfn();\n\t}\n}\n\nexport { Chord };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ],
+    "heavyPeer": [
+      {
+        "name": "d3-chord",
+        "version": "^3.0.1",
+        "bundleKbGzip": 3,
+        "reason": "Computes the chord layout (group ranges + chord pairs from the input matrix)"
+      },
+      {
+        "name": "d3-shape",
+        "version": "^3.2.0",
+        "bundleKbGzip": 6,
+        "reason": "Generates the SVG arc and ribbon paths (already a peer of Sunburst)"
+      }
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "accent",
+    "secondary",
+    "muted",
+    "background",
+    "foreground"
+  ],
+  "examples": [
+    {
+      "title": "Trade flow between four regions",
+      "description": "Bidirectional weighted relationships.",
+      "code": "<Chord\n  nodes={[\n    { id: \"americas\", label: \"Americas\" },\n    { id: \"emea\", label: \"EMEA\" },\n    { id: \"apac\", label: \"APAC\" },\n    { id: \"africa\", label: \"Africa\" },\n  ]}\n  matrix={[\n    [0, 12, 8, 1],\n    [10, 0, 5, 2],\n    [7, 4, 0, 3],\n    [1, 1, 2, 0],\n  ]}\n/>",
+      "composition": [
+        "chord",
+        "trade-flow",
+        "weighted"
+      ]
+    },
+    {
+      "title": "Hover for ribbon details",
+      "description": "Wire `onChordHover` to populate a tooltip.",
+      "code": "<Chord nodes={people} matrix={interactions} onChordHover={(c) => setActive(c)} />",
+      "composition": [
+        "chord",
+        "interactive"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize bidirectional weighted relationships among a small set of entities (typically 4–12). Trade flows, migration corridors, citation/hyperlink networks, character interactions in narratives.",
+    "whenNotToUse": "Don't use for hierarchical relationships (use TreeMap, Sunburst, OrgChart). Don't use for unidirectional flows where direction matters (use Sankey). Don't use for >~15 nodes — ribbons stack and become unreadable. Don't use for sparse matrices — most ribbons collapse to invisible.",
+    "commonMistakes": [
+      "Non-square matrix — d3-chord requires N×N where N matches `nodes.length`. Validate upstream",
+      "Asymmetric weights expected to render symmetrically — the component honors per-direction weights as given (matrix[i][j] vs matrix[j][i])",
+      "Mutating `nodes` / `matrix` between renders — the layout pass is memoized on identity. Memoize the matrix",
+      "NaN entries in the matrix — the inline `descending` comparator treats NaN as equal (vs d3.descending which returns NaN). Sort positions for NaN entries are unstable; sanitize upstream",
+      "Expecting `onChordHover.value` — the callback now exposes `{ sourceValue, targetValue }` so consumers see both directions of an asymmetric flow at once"
+    ],
+    "relatedComponents": [
+      "sankey",
+      "matrix",
+      "arc",
+      "venn"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing node and ribbon counts. Interactive ribbons and node arcs declare role=\"button\", tabIndex, and Enter/Space activation. For agent outputs, also expose a parallel adjacency table so screen-reader users get the matrix without relying on the visual.",
+    "tokenBudget": 360
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "chord",
+    "relational",
+    "weighted",
+    "circular"
+  ]
+}

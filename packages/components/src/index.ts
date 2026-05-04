@@ -373,6 +373,10 @@ export {
 	type FlowchartNode,
 	type FlowchartProps,
 } from "./artifacts/flowchart/flowchart.js";
+export { Venn, type VennProps, type VennSet } from "./artifacts/venn/venn.js";
+export { Chord, type ChordNode, type ChordProps } from "./artifacts/chord/chord.js";
+export { Arc, type ArcEdge, type ArcNode, type ArcProps } from "./artifacts/arc/arc.js";
+export { Matrix, type MatrixNode, type MatrixProps } from "./artifacts/matrix/matrix.js";
 
 // Schemas live in `@hex-core/components/schemas` (1.4.0+) so the runtime
 // barrel doesn't pull in the `@hex-core/registry` type at the consumer's

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "venn",
+  "displayName": "Venn",
+  "description": "Set-overlap diagram for 2 or 3 sets. Pure SVG; no heavy peer dep. Shows categorical overlap (which sets intersect) — NOT exact intersection cardinality (use an Euler-diagram solver for that).",
+  "category": "artifact",
+  "subcategory": "relational",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "sets",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, label, value? }. Must have 2 or 3 entries; other counts render a friendly fallback."
+    },
+    {
+      "name": "size",
+      "type": "number",
+      "required": false,
+      "default": 360,
+      "description": "Pixel size of the rendered SVG (it's square)."
+    },
+    {
+      "name": "onSetClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked VennSet."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/venn.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Set-overlap (Venn) diagram for 2 or 3 sets. Pure SVG; no heavy peer\n * dependency. Set positions and radii are fixed at sensible defaults\n * — Venn is for showing CATEGORICAL overlap (Linux ∩ Mac, paid ∩ active),\n * not for showing the EXACT cardinality of intersections (that's\n * Euler-diagram territory and requires a real layout solver).\n *\n * @example\n * <Venn\n *   sets={[\n *     { id: \"linux\", label: \"Linux\" },\n *     { id: \"mac\", label: \"Mac\" },\n *     { id: \"windows\", label: \"Windows\" },\n *   ]}\n * />\n */\nexport type VennSet = {\n\tid: string;\n\tlabel: string;\n\tvalue?: number;\n};\n\nexport interface VennProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** 2 or 3 sets. More than 3 isn't visually tractable in a strict Venn. */\n\tsets: VennSet[];\n\t/** Pixel size of the rendered SVG (it's square). Default 360. */\n\tsize?: number;\n\t/** Fired when a set is clicked. */\n\tonSetClick?: (set: VennSet) => void;\n}\n\ninterface LaidOutCircle {\n\tset: VennSet;\n\tcx: number;\n\tcy: number;\n\tr: number;\n\tlabelX: number;\n\tlabelY: number;\n\tdepth: number;\n}\n\nconst SET_PALETTE = [\n\t\"hsl(var(--primary))\",\n\t\"hsl(var(--accent))\",\n\t\"hsl(var(--secondary))\",\n];\n\nfunction Venn({\n\tsets,\n\tsize = 360,\n\tonSetClick,\n\tclassName,\n\t...rest\n}: VennProps) {\n\tconst circles = React.useMemo(() => layout(sets, size), [sets, size]);\n\tconst desc = `Venn diagram with ${sets.length} set${sets.length === 1 ? \"\" : \"s\"}: ${sets.map((s) => s.label).join(\", \") || \"(empty)\"}`;\n\n\t// Surface unsupported set counts in dev so an LLM-generated artifact with\n\t// the wrong shape isn't silently degraded to the fallback message. The\n\t// ref guard fires once per mount, not per render. Reads NODE_ENV via\n\t// globalThis to avoid pulling `@types/node` into the components package.\n\tconst warnedRef = React.useRef(false);\n\tconst nodeEnv = (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process?.env?.NODE_ENV;\n\tif (\n\t\tnodeEnv !== \"production\" &&\n\t\t!warnedRef.current &&\n\t\t(sets.length === 0 || sets.length > 3)\n\t) {\n\t\twarnedRef.current = true;\n\t\t// eslint-disable-next-line no-console\n\t\tconsole.warn(\n\t\t\t`[hex-core/Venn] Got ${sets.length} sets — Venn supports 2 or 3. Use TreeMap or Matrix for higher-arity overlaps.`,\n\t\t);\n\t}\n\n\tif (sets.length === 0 || sets.length > 3) {\n\t\treturn (\n\t\t\t<svg\n\t\t\t\t{...rest}\n\t\t\t\tdata-hex-venn\n\t\t\t\tdata-set-count={sets.length}\n\t\t\t\trole=\"img\"\n\t\t\t\twidth={size}\n\t\t\t\theight={size}\n\t\t\t\tviewBox={`0 0 ${size} ${size}`}\n\t\t\t\tclassName={cn(\"block\", className)}\n\t\t\t>\n\t\t\t\t<title>Venn diagram</title>\n\t\t\t\t<desc>{desc}</desc>\n\t\t\t\t<text\n\t\t\t\t\tx={size / 2}\n\t\t\t\t\ty={size / 2}\n\t\t\t\t\ttextAnchor=\"middle\"\n\t\t\t\t\tdy=\"0.35em\"\n\t\t\t\t\tfontSize={12}\n\t\t\t\t\tfill=\"hsl(var(--muted-foreground))\"\n\t\t\t\t>\n\t\t\t\t\t{sets.length === 0 ? \"No sets\" : `Venn supports 2–3 sets (got ${sets.length})`}\n\t\t\t\t</text>\n\t\t\t</svg>\n\t\t);\n\t}\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-venn\n\t\t\tdata-set-count={sets.length}\n\t\t\trole=\"img\"\n\t\t\twidth={size}\n\t\t\theight={size}\n\t\t\tviewBox={`0 0 ${size} ${size}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Venn diagram</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<g data-hex-venn-sets>\n\t\t\t\t{circles.map((c) => {\n\t\t\t\t\tconst interactive = Boolean(onSetClick);\n\t\t\t\t\tconst handleActivate = () => onSetClick?.(c.set);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<g\n\t\t\t\t\t\t\tkey={c.set.id}\n\t\t\t\t\t\t\tdata-hex-venn-set\n\t\t\t\t\t\t\tdata-depth={c.depth}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={interactive ? c.set.label : undefined}\n\t\t\t\t\t\t\tstyle={interactive ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\t\tonClick={interactive ? handleActivate : undefined}\n\t\t\t\t\t\t\tonKeyDown={interactive ? (e) => activateOnKey(e, handleActivate) : undefined}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<circle\n\t\t\t\t\t\t\t\tcx={c.cx}\n\t\t\t\t\t\t\t\tcy={c.cy}\n\t\t\t\t\t\t\t\tr={c.r}\n\t\t\t\t\t\t\t\tfill={SET_PALETTE[c.depth % SET_PALETTE.length]}\n\t\t\t\t\t\t\t\tfillOpacity={0.45}\n\t\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\t\tstrokeWidth={1.5}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</g>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t\t<g data-hex-venn-labels>\n\t\t\t\t{circles.map((c) => (\n\t\t\t\t\t<text\n\t\t\t\t\t\tkey={`label-${c.set.id}`}\n\t\t\t\t\t\tdata-hex-venn-label\n\t\t\t\t\t\tx={c.labelX}\n\t\t\t\t\t\ty={c.labelY}\n\t\t\t\t\t\ttextAnchor=\"middle\"\n\t\t\t\t\t\tdy=\"0.35em\"\n\t\t\t\t\t\tfontSize={12}\n\t\t\t\t\t\tfontWeight={600}\n\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t\tstyle={{ paintOrder: \"stroke\", pointerEvents: \"none\" }}\n\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\tstrokeWidth={3}\n\t\t\t\t\t\tstrokeLinejoin=\"round\"\n\t\t\t\t\t>\n\t\t\t\t\t\t{`${c.set.label}${c.set.value != null ? ` (${c.set.value})` : \"\"}`}\n\t\t\t\t\t</text>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(sets: VennSet[], size: number): LaidOutCircle[] {\n\tif (sets.length === 0 || sets.length > 3) return [];\n\tconst cx = size / 2;\n\tconst cy = size / 2;\n\tconst r = size * 0.22; // circle radius\n\tconst sep = size * 0.12; // half-distance between centers\n\n\tif (sets.length === 1) {\n\t\treturn [{ set: sets[0], cx, cy, r, labelX: cx, labelY: cy - r - 8, depth: 0 }];\n\t}\n\n\tif (sets.length === 2) {\n\t\treturn sets.map((s, i) => {\n\t\t\tconst dx = i === 0 ? -sep : sep;\n\t\t\treturn {\n\t\t\t\tset: s,\n\t\t\t\tcx: cx + dx,\n\t\t\t\tcy,\n\t\t\t\tr,\n\t\t\t\tlabelX: cx + dx + (i === 0 ? -r * 0.6 : r * 0.6),\n\t\t\t\tlabelY: cy - r - 8,\n\t\t\t\tdepth: i,\n\t\t\t};\n\t\t});\n\t}\n\n\t// 3 sets — equilateral triangle of centers (60° apart). Bottom-left,\n\t// bottom-right, top. Label position pushes outward along the radial\n\t// direction from the centroid so labels don't overlap the circles.\n\tconst verticalOffset = sep * 0.866; // sin(60°)\n\tconst triangle: Array<{ dx: number; dy: number }> = [\n\t\t{ dx: -sep, dy: verticalOffset }, // bottom-left\n\t\t{ dx: sep, dy: verticalOffset }, // bottom-right\n\t\t{ dx: 0, dy: -verticalOffset }, // top\n\t];\n\tconst LABEL_PUSH = 1.7;\n\tconst TOP_LABEL_NUDGE = -8; // top label sits above its circle; pull up\n\tconst BOTTOM_LABEL_NUDGE = 16; // bottom labels sit below; push down\n\treturn sets.map((s, i) => {\n\t\tconst { dx, dy } = triangle[i] ?? triangle[0];\n\t\tconst isTop = i === 2;\n\t\treturn {\n\t\t\tset: s,\n\t\t\tcx: cx + dx,\n\t\t\tcy: cy + dy,\n\t\t\tr,\n\t\t\tlabelX: cx + dx * LABEL_PUSH,\n\t\t\tlabelY: cy + dy * LABEL_PUSH + (isTop ? TOP_LABEL_NUDGE : BOTTOM_LABEL_NUDGE),\n\t\t\tdepth: i,\n\t\t};\n\t});\n}\n\nfunction activateOnKey(e: React.KeyboardEvent, fn: () => void): void {\n\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\te.preventDefault();\n\t\tfn();\n\t}\n}\n\nexport { Venn };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "accent",
+    "secondary",
+    "foreground",
+    "muted-foreground",
+    "background"
+  ],
+  "examples": [
+    {
+      "title": "Three-set Venn",
+      "description": "Linux / Mac / Windows overlap.",
+      "code": "<Venn sets={[\n  { id: \"linux\", label: \"Linux\" },\n  { id: \"mac\", label: \"Mac\" },\n  { id: \"windows\", label: \"Windows\" },\n]} />",
+      "composition": [
+        "venn",
+        "set-overlap"
+      ]
+    },
+    {
+      "title": "Two-set Venn with values",
+      "description": "Show set sizes alongside labels.",
+      "code": "<Venn sets={[\n  { id: \"paid\", label: \"Paid\", value: 1200 },\n  { id: \"active\", label: \"Active\", value: 480 },\n]} />",
+      "composition": [
+        "venn",
+        "with-values"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Show that two or three categorical sets overlap — feature support matrices (Linux ∩ Mac), cohort intersections (paid ∩ active), tag overlap. Use when the SHAPE of the overlap is the message.",
+    "whenNotToUse": "Don't use to communicate exact intersection sizes — circles are not area-scaled (use an Euler-diagram tool with a layout solver). Don't use for >3 sets — it stops being a Venn. Don't use for hierarchical / weighted / sequential relationships (use TreeMap, Sankey, Flowchart).",
+    "commonMistakes": [
+      "Implying intersection cardinality from circle area — Venn circles are fixed-size visual references. The component does NOT solve for area-correct overlap regions; the schema documents this clearly",
+      "Passing 4+ sets — strict Venn diagrams with 4+ sets aren't visually tractable. The component renders a friendly fallback in that case",
+      "Mutating the sets array in place between renders — the layout pass is memoized on identity"
+    ],
+    "relatedComponents": [
+      "chord",
+      "matrix",
+      "arc",
+      "tree-map"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> listing the participating set labels. Interactive sets carry role=\"button\", tabIndex, and Enter/Space activation. For agent outputs, also expose a parallel list of sets so screen-reader users get the labels without relying on the visual.",
+    "tokenBudget": 280
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "venn",
+    "set-overlap",
+    "relational"
+  ]
+}

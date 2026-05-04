@@ -94,6 +94,7 @@ export default defineConfig({
 		"reactflow",
 		"wavesurfer.js",
 		"mermaid",
+		"d3-chord",
 		"d3-hierarchy",
 		"d3-sankey",
 		"d3-shape",

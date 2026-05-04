@@ -107,3 +107,9 @@ export { sankeySchema } from "./artifacts/sankey/sankey.schema.js";
 export { funnelSchema } from "./artifacts/funnel/funnel.schema.js";
 export { pyramidSchema } from "./artifacts/pyramid/pyramid.schema.js";
 export { flowchartSchema } from "./artifacts/flowchart/flowchart.schema.js";
+
+// Artifacts — relational-family diagram primitives
+export { vennSchema } from "./artifacts/venn/venn.schema.js";
+export { chordSchema } from "./artifacts/chord/chord.schema.js";
+export { arcSchema } from "./artifacts/arc/arc.schema.js";
+export { matrixSchema } from "./artifacts/matrix/matrix.schema.js";

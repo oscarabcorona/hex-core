@@ -1473,6 +1473,44 @@
       "tokenBudget": 320
     },
     {
+      "name": "arc",
+      "displayName": "Arc",
+      "description": "Arc diagram. Nodes lie on a horizontal baseline; relationships are drawn as semicircle arcs above. Pure SVG; no heavy peer dep. Use when node ORDER matters (sequence, time, story position).",
+      "category": "artifact",
+      "subcategory": "relational",
+      "tags": [
+        "artifact",
+        "diagram",
+        "arc",
+        "relational",
+        "sequence",
+        "ordered"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 320
+    },
+    {
+      "name": "chord",
+      "displayName": "Chord",
+      "description": "Chord diagram. Nodes sit on a ring; ribbons inside encode weighted bidirectional relationships. Use for trade flows, migration, citation networks — \"A relates to B with weight w\" at scale.",
+      "category": "artifact",
+      "subcategory": "relational",
+      "tags": [
+        "artifact",
+        "diagram",
+        "chord",
+        "relational",
+        "weighted",
+        "circular"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 360
+    },
+    {
       "name": "dendrogram",
       "displayName": "Dendrogram",
       "description": "Clustering tree where every leaf sits at the same depth, regardless of branch length — the visual signature of taxonomies, phylogenetic trees, and hierarchical-clustering output.",
@@ -1527,6 +1565,25 @@
         "lib/utils"
       ],
       "tokenBudget": 280
+    },
+    {
+      "name": "matrix",
+      "displayName": "Matrix",
+      "description": "Adjacency-matrix diagram. Square grid where cell color intensity encodes the relationship from row to column. Pure SVG; no heavy peer dep. Best for dense graphs that turn into hairballs in node-link form.",
+      "category": "artifact",
+      "subcategory": "relational",
+      "tags": [
+        "artifact",
+        "diagram",
+        "matrix",
+        "adjacency",
+        "relational",
+        "heatmap"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 360
     },
     {
       "name": "mind-map",
@@ -1640,6 +1697,24 @@
         "lib/utils"
       ],
       "tokenBudget": 320
+    },
+    {
+      "name": "venn",
+      "displayName": "Venn",
+      "description": "Set-overlap diagram for 2 or 3 sets. Pure SVG; no heavy peer dep. Shows categorical overlap (which sets intersect) — NOT exact intersection cardinality (use an Euler-diagram solver for that).",
+      "category": "artifact",
+      "subcategory": "relational",
+      "tags": [
+        "artifact",
+        "diagram",
+        "venn",
+        "set-overlap",
+        "relational"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 280
     }
   ]
 }

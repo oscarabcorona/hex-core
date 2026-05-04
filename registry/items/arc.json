@@ -1,0 +1,147 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "arc",
+  "displayName": "Arc",
+  "description": "Arc diagram. Nodes lie on a horizontal baseline; relationships are drawn as semicircle arcs above. Pure SVG; no heavy peer dep. Use when node ORDER matters (sequence, time, story position).",
+  "category": "artifact",
+  "subcategory": "relational",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "nodes",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, label, value? }. Display order along the baseline matches array order."
+    },
+    {
+      "name": "edges",
+      "type": "object",
+      "required": true,
+      "description": "Array of { source, target, value? }. Edges with missing source/target are skipped."
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 720,
+      "description": "SVG pixel width."
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "required": false,
+      "default": 360,
+      "description": "SVG pixel height."
+    },
+    {
+      "name": "nodeRadius",
+      "type": "number",
+      "required": false,
+      "default": 5,
+      "description": "Pixel radius of each node circle."
+    },
+    {
+      "name": "onEdgeHover",
+      "type": "function",
+      "required": false,
+      "description": "Called with the hovered ArcEdge (or null when hover ends)."
+    },
+    {
+      "name": "onNodeClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked ArcNode."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/arc.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Arc diagram. Nodes lie on a horizontal baseline; relationships are\n * drawn as semicircle arcs above the line. Pure SVG; no heavy peer\n * dependency. Excellent for sequence-aware relational data:\n * co-occurrence in a story, train-stop transfer connections,\n * citation chains where node order is meaningful.\n *\n * Distinct from Chord: Chord wraps nodes around a ring (no inherent\n * order); Arc keeps them on a line (order matters).\n *\n * @example\n * <Arc\n *   nodes={[\n *     { id: \"alice\", label: \"Alice\" },\n *     { id: \"bob\", label: \"Bob\" },\n *     { id: \"carol\", label: \"Carol\" },\n *   ]}\n *   edges={[\n *     { source: \"alice\", target: \"bob\", value: 3 },\n *     { source: \"alice\", target: \"carol\", value: 1 },\n *   ]}\n * />\n */\nexport type ArcNode = {\n\tid: string;\n\tlabel: string;\n\tvalue?: number;\n};\n\nexport type ArcEdge = {\n\tsource: string;\n\ttarget: string;\n\tvalue?: number;\n};\n\nexport interface ArcProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Nodes in display order along the baseline. */\n\tnodes: ArcNode[];\n\t/** Edges between nodes. Edges whose source or target id is missing are skipped. */\n\tedges: ArcEdge[];\n\t/** Pixel width of the rendered SVG. Default 720. */\n\twidth?: number;\n\t/** Pixel height of the rendered SVG. Default 360. */\n\theight?: number;\n\t/** Pixel radius of each node circle. Default 5. */\n\tnodeRadius?: number;\n\t/** Fired when an edge is hovered (or hover ends, with `null`). */\n\tonEdgeHover?: (edge: ArcEdge | null) => void;\n\t/** Fired when a node is clicked. */\n\tonNodeClick?: (node: ArcNode) => void;\n}\n\ninterface LaidOutNode {\n\tnode: ArcNode;\n\tx: number;\n\ty: number;\n\tdepth: number;\n}\n\ninterface LaidOutEdge {\n\tedge: ArcEdge;\n\td: string;\n\twidth: number;\n}\n\nfunction Arc({\n\tnodes,\n\tedges,\n\twidth = 720,\n\theight = 360,\n\tnodeRadius = 5,\n\tonEdgeHover,\n\tonNodeClick,\n\tclassName,\n\t...rest\n}: ArcProps) {\n\tconst laidOut = React.useMemo(() => layout(nodes, edges, width, height), [nodes, edges, width, height]);\n\tconst desc = `Arc diagram with ${nodes.length} node${nodes.length === 1 ? \"\" : \"s\"} and ${edges.length} edge${edges.length === 1 ? \"\" : \"s\"}`;\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-arc\n\t\t\trole=\"img\"\n\t\t\twidth={width}\n\t\t\theight={height}\n\t\t\tviewBox={`0 0 ${width} ${height}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Arc diagram</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<g data-hex-arc-edges fill=\"none\">\n\t\t\t\t{laidOut.edges.map((e, i) => {\n\t\t\t\t\tconst interactive = Boolean(onEdgeHover);\n\t\t\t\t\tconst fireHover = (edge: ArcEdge | null) => onEdgeHover?.(edge);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<path\n\t\t\t\t\t\t\tkey={`${e.edge.source}-${e.edge.target}-${i}`}\n\t\t\t\t\t\t\tdata-hex-arc-edge\n\t\t\t\t\t\t\td={e.d}\n\t\t\t\t\t\t\tstroke=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\tstrokeOpacity={0.5}\n\t\t\t\t\t\t\tstrokeWidth={Math.max(1, e.width)}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={\n\t\t\t\t\t\t\t\tinteractive\n\t\t\t\t\t\t\t\t\t? `Edge between ${e.edge.source} and ${e.edge.target}${e.edge.value != null ? `, value ${e.edge.value}` : \"\"}`\n\t\t\t\t\t\t\t\t\t: undefined\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tstyle={{\n\t\t\t\t\t\t\t\tcursor: interactive ? \"pointer\" : undefined,\n\t\t\t\t\t\t\t\ttransition: \"stroke-opacity 120ms ease\",\n\t\t\t\t\t\t\t}}\n\t\t\t\t\t\t\tonMouseEnter={interactive ? () => fireHover(e.edge) : undefined}\n\t\t\t\t\t\t\tonMouseLeave={interactive ? () => fireHover(null) : undefined}\n\t\t\t\t\t\t\tonFocus={interactive ? () => fireHover(e.edge) : undefined}\n\t\t\t\t\t\t\tonBlur={interactive ? () => fireHover(null) : undefined}\n\t\t\t\t\t\t/>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t\t<g data-hex-arc-nodes>\n\t\t\t\t{laidOut.nodes.map((n) => {\n\t\t\t\t\tconst interactive = Boolean(onNodeClick);\n\t\t\t\t\tconst handleActivate = () => onNodeClick?.(n.node);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<g\n\t\t\t\t\t\t\tkey={n.node.id}\n\t\t\t\t\t\t\tdata-hex-arc-node\n\t\t\t\t\t\t\tdata-depth={n.depth}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={interactive ? n.node.label : undefined}\n\t\t\t\t\t\t\tstyle={interactive ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\t\tonClick={interactive ? handleActivate : undefined}\n\t\t\t\t\t\t\tonKeyDown={interactive ? (e) => activateOnKey(e, handleActivate) : undefined}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<circle\n\t\t\t\t\t\t\t\tcx={n.x}\n\t\t\t\t\t\t\t\tcy={n.y}\n\t\t\t\t\t\t\t\tr={nodeRadius}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\t\tstrokeWidth={2}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\tx={n.x}\n\t\t\t\t\t\t\t\ty={n.y + nodeRadius + 14}\n\t\t\t\t\t\t\t\ttextAnchor=\"middle\"\n\t\t\t\t\t\t\t\tfontSize={10}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t\t\t\tstyle={{ pointerEvents: \"none\" }}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{n.node.label}\n\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t</g>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(\n\tnodes: ArcNode[],\n\tedges: ArcEdge[],\n\twidth: number,\n\theight: number,\n): { nodes: LaidOutNode[]; edges: LaidOutEdge[] } {\n\tif (nodes.length === 0) return { nodes: [], edges: [] };\n\n\tconst margin = 32;\n\tconst baselineY = height - 32;\n\tconst usable = width - margin * 2;\n\tconst step = nodes.length > 1 ? usable / (nodes.length - 1) : 0;\n\n\tconst positions = new Map<string, { x: number; y: number; index: number }>();\n\tconst laidOutNodes: LaidOutNode[] = nodes.map((node, i) => {\n\t\t// Center the lone node when the input has only one — `step * 0` would\n\t\t// otherwise leave it pinned at the left margin.\n\t\tconst x = nodes.length === 1 ? width / 2 : margin + step * i;\n\t\tpositions.set(node.id, { x, y: baselineY, index: i });\n\t\treturn { node, x, y: baselineY, depth: i };\n\t});\n\n\tconst maxValue = edges.reduce((m, e) => Math.max(m, e.value ?? 1), 1);\n\n\tconst laidOutEdges: LaidOutEdge[] = edges\n\t\t.map((edge) => {\n\t\t\tconst sp = positions.get(edge.source);\n\t\t\tconst tp = positions.get(edge.target);\n\t\t\tif (!sp || !tp) return null;\n\t\t\tconst [a, b] = sp.x < tp.x ? [sp, tp] : [tp, sp];\n\t\t\tconst span = (b.x - a.x) / 2;\n\t\t\t// Cubic bezier with two control points to approximate a clean\n\t\t\t// semicircle without trigonometry. Height scales with span.\n\t\t\tconst ctrlY = baselineY - span;\n\t\t\tconst d = `M${a.x},${baselineY} C${a.x},${ctrlY} ${b.x},${ctrlY} ${b.x},${baselineY}`;\n\t\t\treturn {\n\t\t\t\tedge,\n\t\t\t\td,\n\t\t\t\twidth: 1 + ((edge.value ?? 1) / maxValue) * 3,\n\t\t\t};\n\t\t})\n\t\t.filter((e): e is LaidOutEdge => e !== null);\n\n\treturn { nodes: laidOutNodes, edges: laidOutEdges };\n}\n\nfunction activateOnKey(e: React.KeyboardEvent, fn: () => void): void {\n\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\te.preventDefault();\n\t\tfn();\n\t}\n}\n\nexport { Arc };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "background",
+    "foreground"
+  ],
+  "examples": [
+    {
+      "title": "Character co-occurrence",
+      "description": "Nodes in narrative order, arcs connect characters in the same chapter.",
+      "code": "<Arc\n  nodes={characters}\n  edges={cooccurrences}\n  onEdgeHover={(e) => setActive(e)}\n/>",
+      "composition": [
+        "arc",
+        "narrative",
+        "cooccurrence"
+      ]
+    },
+    {
+      "title": "Train route transfer connections",
+      "description": "Stations on a baseline; arcs show transfer connections.",
+      "code": "<Arc\n  nodes={stations}\n  edges={transfers}\n/>",
+      "composition": [
+        "arc",
+        "transit",
+        "sequence"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize relationships among entities WHERE THE ORDER OF ENTITIES IS MEANINGFUL — narrative co-occurrence (chapters), transit transfer points (route order), genome interactions (chromosomal position), citation networks (publication time). Arcs encode pair relationships without breaking the linear node order.",
+    "whenNotToUse": "Don't use when node order is arbitrary (use Chord — it places nodes on a ring with no implied order). Don't use for hierarchical relationships (use TreeMap, Sunburst, OrgChart). Don't use for >50 nodes — arcs overlap heavily; consider Matrix.",
+    "commonMistakes": [
+      "Confusing Arc with Chord — Chord = ring (no order); Arc = baseline (order matters)",
+      "Edge source/target id missing from `nodes` — silently skipped. Validate ids upstream",
+      "Mutating nodes / edges between renders — the layout pass is memoized on identity"
+    ],
+    "relatedComponents": [
+      "chord",
+      "matrix",
+      "venn",
+      "sankey"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing node and edge counts. Interactive nodes/edges declare role=\"button\", tabIndex, and Enter/Space activation. For agent outputs, also expose a parallel ordered list of nodes plus an adjacency table.",
+    "tokenBudget": 320
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "arc",
+    "relational",
+    "sequence",
+    "ordered"
+  ]
+}
