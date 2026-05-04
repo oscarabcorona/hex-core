@@ -1303,6 +1303,46 @@
       "tokenBudget": 280
     },
     {
+      "name": "confirmation",
+      "displayName": "Confirmation",
+      "description": "Destructive-action confirmation gate. Wraps Radix AlertDialog with an AI-aware shape: title, description, severity (info / warning / danger), and a paired confirm / cancel callback. Severity drives the confirm button's variant.",
+      "category": "ai",
+      "subcategory": "agent",
+      "tags": [
+        "ai",
+        "agent",
+        "confirmation",
+        "destructive",
+        "alert-dialog",
+        "modal"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "primitives/button/button"
+      ],
+      "tokenBudget": 280
+    },
+    {
+      "name": "context",
+      "displayName": "Context",
+      "description": "Context-window utilization meter — shows tokens consumed vs the model's max context with a horizontal progress bar. Severity colors gate at 75% (warning) and 90% (danger). Composes the `Progress` primitive.",
+      "category": "ai",
+      "subcategory": "agent",
+      "tags": [
+        "ai",
+        "agent",
+        "context",
+        "telemetry",
+        "progress",
+        "tokens"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "primitives/progress/progress"
+      ],
+      "tokenBudget": 200
+    },
+    {
       "name": "conversation",
       "displayName": "Conversation",
       "description": "High-level chat shell. Composes `<MessageList>` over a messages array, an optional `<Sources>` panel, an optional `<Shimmer>` placeholder during the dead-time before the first stream token, and a `<Composer>` row at the bottom.",
@@ -1442,6 +1482,25 @@
         "lib/utils"
       ],
       "tokenBudget": 180
+    },
+    {
+      "name": "message-diff",
+      "displayName": "MessageDiff",
+      "description": "Side-by-side comparison of two assistant turns — the canonical eval UX. Each side renders a header label and a `<Message>` with the response. Sides scroll independently; collapses to a single column at narrow widths.",
+      "category": "ai",
+      "subcategory": "evals",
+      "tags": [
+        "ai",
+        "evals",
+        "diff",
+        "compare",
+        "messages"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "components/message/message"
+      ],
+      "tokenBudget": 240
     },
     {
       "name": "message-list",
@@ -1632,6 +1691,25 @@
         "ai/types"
       ],
       "tokenBudget": 320
+    },
+    {
+      "name": "trace",
+      "displayName": "Trace",
+      "description": "Vertical agent-decision timeline. Each step is a thought, tool call, observation, or error — with optional duration and timestamp. Distinct from `<Task>` (in-flight progress) and `<ChainOfThought>` (structured ReAct trace) — Trace is a chronological audit log for post-hoc inspection.",
+      "category": "ai",
+      "subcategory": "agent",
+      "tags": [
+        "ai",
+        "agent",
+        "trace",
+        "audit",
+        "timeline",
+        "log"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 240
     }
   ]
 }

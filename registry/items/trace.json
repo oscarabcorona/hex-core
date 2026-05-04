@@ -1,0 +1,139 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "trace",
+  "displayName": "Trace",
+  "description": "Vertical agent-decision timeline. Each step is a thought, tool call, observation, or error — with optional duration and timestamp. Distinct from `<Task>` (in-flight progress) and `<ChainOfThought>` (structured ReAct trace) — Trace is a chronological audit log for post-hoc inspection.",
+  "category": "ai",
+  "subcategory": "agent",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "steps",
+      "type": "object",
+      "required": true,
+      "description": "Array of `TraceStep` objects ({ id: string; kind: TraceStepKind; title: string; detail?: ReactNode; durationMs?: number; timestamp?: ReactNode }). `kind` is one of `\"think\"` / `\"tool-call\"` / `\"observation\"` / `\"error\"`."
+    },
+    {
+      "name": "ariaLabel",
+      "type": "string",
+      "required": true,
+      "description": "Accessible name for the timeline list. e.g. \"Agent decision trace\"."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "required": false,
+      "default": "md",
+      "description": "Indicator size — `\"sm\"` for tight inline traces, `\"md\"` for the default detailed view.",
+      "enumValues": [
+        "sm",
+        "md"
+      ]
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the root `<ol>`."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/trace.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Vertical agent-decision timeline. Each step represents one move the\n * agent made — a thought, a tool call, an observation, or an error. The\n * indicator + color encodes the step kind; an optional `durationMs` /\n * `timestamp` reads as metadata next to the title.\n *\n * Distinct from `<Task>` (in-flight task progress) and `<ChainOfThought>`\n * (structured ReAct trace): `<Trace>` is a chronological audit log,\n * meant for post-hoc inspection and evals.\n *\n * @example\n * <Trace\n *   ariaLabel=\"Agent decision trace\"\n *   steps={[\n *     { id: \"1\", kind: \"think\", title: \"Plan the migration\", durationMs: 450 },\n *     { id: \"2\", kind: \"tool-call\", title: \"read users.sql\", durationMs: 120 },\n *     { id: \"3\", kind: \"observation\", title: \"12 columns, 1.2M rows\" },\n *     { id: \"4\", kind: \"error\", title: \"ALTER failed: column already exists\" },\n *   ]}\n * />\n */\nexport interface TraceProps {\n\t/** Ordered list of agent steps. */\n\tsteps: TraceStep[];\n\t/** Required accessible name for the timeline. */\n\tariaLabel: string;\n\t/** Indicator size — `\"md\"` by default. */\n\tsize?: \"sm\" | \"md\";\n\tclassName?: string;\n}\n\n/** Lifecycle/kind of a trace step. */\nexport type TraceStepKind = \"think\" | \"tool-call\" | \"observation\" | \"error\";\n\n/** A single entry in the agent decision trace. */\nexport interface TraceStep {\n\t/** Stable identifier — used for the React key. */\n\tid: string;\n\t/** Kind of step — drives the indicator icon + color. */\n\tkind: TraceStepKind;\n\t/** Headline for the step. */\n\ttitle: string;\n\t/** Optional secondary detail (e.g. tool args, observation body, error message). */\n\tdetail?: React.ReactNode;\n\t/** Optional duration in milliseconds — renders as \"120ms\" / \"1.2s\". */\n\tdurationMs?: number;\n\t/** Optional absolute timestamp (e.g. \"14:30:01\"). Displayed alongside duration when both are set. */\n\ttimestamp?: React.ReactNode;\n}\n\n/**\n * Render the agent decision trace.\n * @param props - Steps + accessible label.\n * @returns A semantic `<ol>` of trace entries with kind-specific indicators.\n */\nfunction Trace({ steps, ariaLabel, size = \"md\", className }: TraceProps) {\n\treturn (\n\t\t<ol\n\t\t\taria-label={ariaLabel}\n\t\t\tclassName={cn(\"my-0 ml-0 flex list-none flex-col pl-0\", className)}\n\t\t>\n\t\t\t{steps.map((step, index) => {\n\t\t\t\tconst isLast = index === steps.length - 1;\n\t\t\t\treturn (\n\t\t\t\t\t<li\n\t\t\t\t\t\tkey={step.id}\n\t\t\t\t\t\t/*\n\t\t\t\t\t\t * `before:content-none` defeats Tailwind Typography's\n\t\t\t\t\t\t * default `<li>::before` markers when this lands\n\t\t\t\t\t\t * inside a `prose` block.\n\t\t\t\t\t\t */\n\t\t\t\t\t\tclassName=\"relative flex gap-3 pb-4 text-sm before:content-none last:pb-0\"\n\t\t\t\t\t>\n\t\t\t\t\t\t{!isLast ? (\n\t\t\t\t\t\t\t<span\n\t\t\t\t\t\t\t\taria-hidden=\"true\"\n\t\t\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\t\t\"absolute left-3 top-7 -bottom-1 w-px bg-foreground/[0.08]\",\n\t\t\t\t\t\t\t\t\tsize === \"sm\" && \"left-[10px]\",\n\t\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t<StepIndicator kind={step.kind} size={size} />\n\t\t\t\t\t\t<div className=\"flex min-w-0 flex-1 flex-col gap-0.5\">\n\t\t\t\t\t\t\t<div className=\"flex items-baseline gap-2\">\n\t\t\t\t\t\t\t\t<span\n\t\t\t\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\t\t\t\"truncate font-medium leading-snug\",\n\t\t\t\t\t\t\t\t\t\tstep.kind === \"error\"\n\t\t\t\t\t\t\t\t\t\t\t? \"text-destructive\"\n\t\t\t\t\t\t\t\t\t\t\t: \"text-foreground\",\n\t\t\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{step.title}\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t<TraceMeta durationMs={step.durationMs} timestamp={step.timestamp} />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t{step.detail ? (\n\t\t\t\t\t\t\t\t<div className=\"text-xs text-muted-foreground\">{step.detail}</div>\n\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</li>\n\t\t\t\t);\n\t\t\t})}\n\t\t</ol>\n\t);\n}\n\ninterface StepIndicatorProps {\n\tkind: TraceStepKind;\n\tsize: \"sm\" | \"md\";\n}\n\nfunction StepIndicator({ kind, size }: StepIndicatorProps) {\n\tconst baseSize = size === \"sm\" ? \"h-5 w-5\" : \"h-6 w-6\";\n\tconst cls = cn(\n\t\t\"relative z-10 inline-flex shrink-0 items-center justify-center rounded-full border bg-background\",\n\t\tbaseSize,\n\t);\n\tif (kind === \"think\") {\n\t\treturn (\n\t\t\t<span\n\t\t\t\taria-label=\"Thought\"\n\t\t\t\trole=\"img\"\n\t\t\t\tclassName={cn(cls, \"border-foreground/20 text-foreground\")}\n\t\t\t>\n\t\t\t\t<SparkleIcon />\n\t\t\t</span>\n\t\t);\n\t}\n\tif (kind === \"tool-call\") {\n\t\treturn (\n\t\t\t<span\n\t\t\t\taria-label=\"Tool call\"\n\t\t\t\trole=\"img\"\n\t\t\t\tclassName={cn(cls, \"border-primary/40 text-primary\")}\n\t\t\t>\n\t\t\t\t<WrenchIcon />\n\t\t\t</span>\n\t\t);\n\t}\n\tif (kind === \"observation\") {\n\t\treturn (\n\t\t\t<span\n\t\t\t\taria-label=\"Observation\"\n\t\t\t\trole=\"img\"\n\t\t\t\tclassName={cn(cls, \"border-foreground/30 text-muted-foreground\")}\n\t\t\t>\n\t\t\t\t<EyeIcon />\n\t\t\t</span>\n\t\t);\n\t}\n\t// Compile-time exhaustiveness — adding a new kind to TraceStepKind without\n\t// extending this switch surfaces as a TS error here, not a runtime fall-through.\n\tconst _exhaustive: \"error\" = kind;\n\tvoid _exhaustive;\n\treturn (\n\t\t<span\n\t\t\taria-label=\"Error\"\n\t\t\trole=\"img\"\n\t\t\tclassName={cn(cls, \"border-destructive/60 bg-destructive/10 text-destructive\")}\n\t\t>\n\t\t\t<XIcon />\n\t\t</span>\n\t);\n}\n\ninterface TraceMetaProps {\n\tdurationMs?: number;\n\ttimestamp?: React.ReactNode;\n}\n\nfunction TraceMeta({ durationMs, timestamp }: TraceMetaProps) {\n\tif (typeof durationMs !== \"number\" && !timestamp) return null;\n\treturn (\n\t\t<span className=\"ml-auto shrink-0 font-mono text-[0.7rem] tabular-nums text-muted-foreground\">\n\t\t\t{timestamp ? <span>{timestamp}</span> : null}\n\t\t\t{timestamp && typeof durationMs === \"number\" ? <span> · </span> : null}\n\t\t\t{typeof durationMs === \"number\" ? <span>{formatDuration(durationMs)}</span> : null}\n\t\t</span>\n\t);\n}\n\nfunction formatDuration(ms: number): string {\n\tif (ms < 1000) return `${ms}ms`;\n\tconst seconds = ms / 1000;\n\tconst formatted = seconds >= 10 ? Math.round(seconds).toString() : seconds.toFixed(1);\n\treturn `${formatted}s`;\n}\n\nfunction SparkleIcon() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"11\"\n\t\t\theight=\"11\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.5\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t>\n\t\t\t<path d=\"M8 1.5l1.5 4 4 1.5-4 1.5L8 12.5 6.5 8.5l-4-1.5 4-1.5L8 1.5z\" />\n\t\t</svg>\n\t);\n}\n\nfunction WrenchIcon() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"11\"\n\t\t\theight=\"11\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.6\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t>\n\t\t\t<path d=\"M11.5 2.5a3 3 0 0 0-3.86 3.65L2 11.79V14h2.21l5.65-5.65A3 3 0 0 0 13.5 4.5l-1.5 1.5-1.5-1.5L12 3a3 3 0 0 0-.5-.5z\" />\n\t\t</svg>\n\t);\n}\n\nfunction EyeIcon() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"11\"\n\t\t\theight=\"11\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.5\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t>\n\t\t\t<path d=\"M1.5 8s2-4.5 6.5-4.5S14.5 8 14.5 8s-2 4.5-6.5 4.5S1.5 8 1.5 8z\" />\n\t\t\t<circle cx=\"8\" cy=\"8\" r=\"2\" />\n\t\t</svg>\n\t);\n}\n\nfunction XIcon() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"10\"\n\t\t\theight=\"10\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"2\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t>\n\t\t\t<path d=\"M4 4l8 8M12 4l-8 8\" />\n\t\t</svg>\n\t);\n}\n\nexport { Trace };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "foreground",
+    "background",
+    "muted-foreground",
+    "primary",
+    "destructive"
+  ],
+  "examples": [
+    {
+      "title": "Migration agent trace",
+      "description": "Mixed kinds — think, tool-call, observation, error.",
+      "code": "<Trace\n  ariaLabel=\"Migration agent trace\"\n  steps={[\n    { id: \"1\", kind: \"think\", title: \"Plan the migration\", durationMs: 450 },\n    { id: \"2\", kind: \"tool-call\", title: \"read users.sql\", durationMs: 120 },\n    { id: \"3\", kind: \"observation\", title: \"12 columns, 1.2M rows\" },\n    { id: \"4\", kind: \"error\", title: \"ALTER failed: column already exists\" },\n  ]}\n/>",
+      "composition": [
+        "agent",
+        "trace",
+        "audit"
+      ]
+    },
+    {
+      "title": "Compact inline trace",
+      "description": "Use `size=\"sm\"` for a tight trace embedded inside a card.",
+      "code": "<Trace\n  ariaLabel=\"Recent steps\"\n  size=\"sm\"\n  steps={recentSteps}\n/>",
+      "composition": [
+        "agent",
+        "trace",
+        "compact"
+      ]
+    },
+    {
+      "title": "Per-step detail with timestamp",
+      "description": "Pass `timestamp` for absolute clock time and `detail` for a body line beneath the title.",
+      "code": "<Trace\n  ariaLabel=\"Today's agent activity\"\n  steps={[\n    {\n      id: \"fetch\",\n      kind: \"tool-call\",\n      title: \"GET /api/users\",\n      detail: \"200 OK · 1.2KB\",\n      timestamp: \"14:30:02\",\n      durationMs: 240,\n    },\n  ]}\n/>",
+      "composition": [
+        "agent",
+        "trace",
+        "audit"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "To show a chronological audit log of an agent's decisions — every think / tool-call / observation / error in order, with timing. Pair with `<ToolCall>` for richer per-step tool invocation rendering and `<Reasoning>` when a step's detail expands a thinking trace.",
+    "whenNotToUse": "Don't use for in-flight task progress (use `<Task>`). Don't use for structured ReAct reasoning (use `<ChainOfThought>` — it enforces the thought/action/observation triple per step). Don't use as a generic activity feed for non-agent content (use `<Timeline>` from the components category).",
+    "commonMistakes": [
+      "Using a `kind` value outside `\"think\"` / `\"tool-call\"` / `\"observation\"` / `\"error\"` — unknown kinds fall back to the error indicator visually but TS will reject the value at the type level",
+      "Putting agent reasoning prose in `step.title` — keep titles short imperative phrases; put the body in `step.detail` or compose `<Reasoning>` separately",
+      "Mixing user/assistant message turns into a Trace (Trace is the agent's internal log; conversational turns belong in `<MessageList>`)",
+      "Setting `durationMs` < 1 — render formats as `0ms` which is rarely useful; omit the prop instead when timing isn't measured"
+    ],
+    "relatedComponents": [
+      "timeline",
+      "task",
+      "chain-of-thought",
+      "tool-call",
+      "reasoning"
+    ],
+    "accessibilityNotes": "Renders a real `<ol>` with the consumer-supplied `ariaLabel` so screen readers announce it as an ordered list. Each step indicator has a kind-specific aria-label (\"Thought\", \"Tool call\", \"Observation\", \"Error\") so AT can voice the step kind without color cues. Step titles use semantic text — error-kind steps inherit `text-destructive` for visual emphasis but the kind label is the announced semantic.",
+    "tokenBudget": 240
+  },
+  "tags": [
+    "ai",
+    "agent",
+    "trace",
+    "audit",
+    "timeline",
+    "log"
+  ]
+}

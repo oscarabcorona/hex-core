@@ -365,6 +365,23 @@ export {
 	type ChainOfThoughtProps,
 	type ChainOfThoughtStep,
 } from "./ai/chain-of-thought/chain-of-thought.js";
+export {
+	Trace,
+	type TraceProps,
+	type TraceStep,
+	type TraceStepKind,
+} from "./ai/trace/trace.js";
+export { Context, type ContextProps } from "./ai/context/context.js";
+export {
+	MessageDiff,
+	type MessageDiffProps,
+	type MessageDiffSide,
+} from "./ai/message-diff/message-diff.js";
+export {
+	Confirmation,
+	type ConfirmationProps,
+	type ConfirmationSeverity,
+} from "./ai/confirmation/confirmation.js";
 
 // Schemas live in `@hex-core/components/schemas` (1.4.0+) so the runtime
 // barrel doesn't pull in the `@hex-core/registry` type at the consumer's

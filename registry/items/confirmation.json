@@ -1,0 +1,195 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "confirmation",
+  "displayName": "Confirmation",
+  "description": "Destructive-action confirmation gate. Wraps Radix AlertDialog with an AI-aware shape: title, description, severity (info / warning / danger), and a paired confirm / cancel callback. Severity drives the confirm button's variant.",
+  "category": "ai",
+  "subcategory": "agent",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "trigger",
+      "type": "ReactNode",
+      "required": false,
+      "description": "The element that opens the dialog when clicked. Required when uncontrolled — omit when driving via the `open` prop."
+    },
+    {
+      "name": "title",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Headline question or statement."
+    },
+    {
+      "name": "description",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional secondary description."
+    },
+    {
+      "name": "severity",
+      "type": "enum",
+      "required": false,
+      "default": "warning",
+      "description": "Severity of the action — drives the confirm-button variant. `\"danger\"` flips it to destructive.",
+      "enumValues": [
+        "info",
+        "warning",
+        "danger"
+      ]
+    },
+    {
+      "name": "confirmLabel",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Override the confirm button label. Defaults to severity-appropriate text (\"OK\" / \"Continue\" / \"Delete\")."
+    },
+    {
+      "name": "cancelLabel",
+      "type": "ReactNode",
+      "required": false,
+      "default": "Cancel",
+      "description": "Override the cancel button label."
+    },
+    {
+      "name": "onConfirm",
+      "type": "function",
+      "required": true,
+      "description": "Called when the user confirms. May return a Promise — the button shows the busy state until it resolves."
+    },
+    {
+      "name": "onCancel",
+      "type": "function",
+      "required": false,
+      "description": "Called when the user cancels (or dismisses)."
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "required": false,
+      "description": "Controlled visibility."
+    },
+    {
+      "name": "onOpenChange",
+      "type": "function",
+      "required": false,
+      "description": "Visibility change handler — required when `open` is set."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the dialog content panel."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "trigger",
+      "description": "The element that opens the dialog. Typically a `<Button>`.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/confirmation.tsx",
+      "content": "\"use client\";\n\nimport * as AlertDialogPrimitive from \"@radix-ui/react-alert-dialog\";\nimport * as React from \"react\";\nimport { Button } from \"../../primitives/button/button.js\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Destructive-action confirmation gate. Wraps Radix AlertDialog with an\n * AI-aware shape: title, description, severity (info / warning /\n * danger), and a paired confirm / cancel callback. Severity gates the\n * confirm button's variant — `\"danger\"` flips it to the destructive\n * style so the user sees the weight of the action.\n *\n * Headless on data flow: `open` + `onOpenChange` make the consumer\n * own the visibility, otherwise an internal state machine kicks in\n * triggered by clicking the `trigger` slot.\n *\n * @example\n * <Confirmation\n *   trigger={<Button variant=\"destructive\">Delete account</Button>}\n *   title=\"Delete your account?\"\n *   description=\"This action cannot be undone. All conversations and tool history will be lost.\"\n *   severity=\"danger\"\n *   confirmLabel=\"Delete\"\n *   onConfirm={async () => deleteAccount()}\n * />\n */\nexport interface ConfirmationProps {\n\t/** The element that opens the dialog when clicked. Required when uncontrolled. */\n\ttrigger?: React.ReactNode;\n\t/** Headline question / statement. */\n\ttitle: React.ReactNode;\n\t/** Optional secondary description. */\n\tdescription?: React.ReactNode;\n\t/** Severity of the action — drives the confirm-button variant. Defaults to `\"warning\"`. */\n\tseverity?: ConfirmationSeverity;\n\t/** Override the confirm button label. Defaults to severity-appropriate text (\"OK\" / \"Continue\" / \"Delete\"). */\n\tconfirmLabel?: React.ReactNode;\n\t/** Override the cancel button label. Defaults to \"Cancel\". */\n\tcancelLabel?: React.ReactNode;\n\t/** Called when the user confirms. May return a Promise — the button shows the busy state until it resolves. */\n\tonConfirm: () => void | Promise<void>;\n\t/** Called when the user cancels (or dismisses). */\n\tonCancel?: () => void;\n\t/** Controlled visibility. */\n\topen?: boolean;\n\t/** Visibility change handler — required when `open` is set. */\n\tonOpenChange?: (open: boolean) => void;\n\t/** Additional CSS classes on the dialog content panel. */\n\tclassName?: string;\n}\n\n/** Severity level — drives icon + confirm-button variant. */\nexport type ConfirmationSeverity = \"info\" | \"warning\" | \"danger\";\n\nconst SEVERITY_DEFAULTS: Record<\n\tConfirmationSeverity,\n\t{ confirmLabel: string; buttonVariant: \"default\" | \"destructive\" }\n> = {\n\tinfo: { confirmLabel: \"OK\", buttonVariant: \"default\" },\n\twarning: { confirmLabel: \"Continue\", buttonVariant: \"default\" },\n\tdanger: { confirmLabel: \"Delete\", buttonVariant: \"destructive\" },\n};\n\n/**\n * Render a confirmation dialog with severity-driven styling.\n * @param props - The trigger, title, description, severity, callbacks.\n * @returns A controlled Radix AlertDialog wrapping the confirmation surface.\n */\nfunction Confirmation({\n\ttrigger,\n\ttitle,\n\tdescription,\n\tseverity = \"warning\",\n\tconfirmLabel,\n\tcancelLabel = \"Cancel\",\n\tonConfirm,\n\tonCancel,\n\topen: openProp,\n\tonOpenChange: onOpenChangeProp,\n\tclassName,\n}: ConfirmationProps) {\n\tconst defaults = SEVERITY_DEFAULTS[severity];\n\tconst [isBusy, setIsBusy] = React.useState(false);\n\t// Standard controlled-with-fallback pattern: if `open` isn't supplied,\n\t// own the state internally so async-confirm + uncontrolled mode can\n\t// still close the dialog programmatically (M4).\n\tconst [internalOpen, setInternalOpen] = React.useState(false);\n\tconst isOpenControlled = openProp !== undefined;\n\tconst open = isOpenControlled ? openProp : internalOpen;\n\t// Tracks \"we just confirmed\" so `handleOpenChange` doesn't misfire\n\t// `onCancel` when Radix auto-closes the dialog after a sync action.\n\tconst wasConfirmedRef = React.useRef(false);\n\n\tfunction setOpen(next: boolean) {\n\t\tif (!isOpenControlled) setInternalOpen(next);\n\t\tonOpenChangeProp?.(next);\n\t}\n\n\tfunction handleOpenChange(next: boolean) {\n\t\t// Radix fires this on Escape, overlay click, AND button-driven close.\n\t\t// Cancel-style dismissals (anything that closes without going through\n\t\t// the confirm path) should fire `onCancel` so consumers can\n\t\t// distinguish from a confirmed action. Skip the cancel callback when\n\t\t// the close was preceded by a confirm (sync) or while async confirm\n\t\t// is in flight (busy spinner is the contract).\n\t\tif (!next) {\n\t\t\tif (!wasConfirmedRef.current && !isBusy) {\n\t\t\t\tonCancel?.();\n\t\t\t}\n\t\t\twasConfirmedRef.current = false;\n\t\t}\n\t\tsetOpen(next);\n\t}\n\n\tasync function handleAction(event: React.MouseEvent<HTMLButtonElement>) {\n\t\tconst result = onConfirm();\n\t\tif (result instanceof Promise) {\n\t\t\t// Async path: Radix would auto-close immediately. preventDefault\n\t\t\t// keeps the dialog open through the busy state; we close\n\t\t\t// programmatically on resolution.\n\t\t\t//\n\t\t\t// On rejection: skip past setOpen(false) so the dialog stays\n\t\t\t// open for the consumer to render a follow-up error UI / let\n\t\t\t// the user retry. The rejection is swallowed at this seam —\n\t\t\t// React's async event handlers don't surface to error\n\t\t\t// boundaries anyway, and bubbling an unhandled rejection adds\n\t\t\t// console noise without giving consumers anywhere to catch it.\n\t\t\t// Consumers who want toast / error UI should `try/catch`\n\t\t\t// inside `onConfirm` and handle the failure themselves.\n\t\t\tevent.preventDefault();\n\t\t\tsetIsBusy(true);\n\t\t\ttry {\n\t\t\t\tawait result;\n\t\t\t\twasConfirmedRef.current = true;\n\t\t\t\tsetOpen(false);\n\t\t\t} catch {\n\t\t\t\t// Intentionally swallowed — see comment above.\n\t\t\t} finally {\n\t\t\t\tsetIsBusy(false);\n\t\t\t}\n\t\t} else {\n\t\t\t// Sync path: Radix auto-closes next, which fires handleOpenChange.\n\t\t\t// Mark confirmed so the cancel callback doesn't misfire on the\n\t\t\t// auto-close.\n\t\t\twasConfirmedRef.current = true;\n\t\t}\n\t}\n\n\treturn (\n\t\t<AlertDialogPrimitive.Root open={open} onOpenChange={handleOpenChange}>\n\t\t\t{trigger ? (\n\t\t\t\t<AlertDialogPrimitive.Trigger asChild>{trigger}</AlertDialogPrimitive.Trigger>\n\t\t\t) : null}\n\t\t\t<AlertDialogPrimitive.Portal>\n\t\t\t\t<AlertDialogPrimitive.Overlay\n\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\"fixed inset-0 z-50 bg-background/80 backdrop-blur-sm\",\n\t\t\t\t\t\t\"data-[state=open]:animate-in data-[state=closed]:animate-out\",\n\t\t\t\t\t\t\"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0\",\n\t\t\t\t\t)}\n\t\t\t\t/>\n\t\t\t\t<AlertDialogPrimitive.Content\n\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\"fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4\",\n\t\t\t\t\t\t\"border border-foreground/[0.08] bg-background p-6 shadow-lg rounded-lg\",\n\t\t\t\t\t\t\"duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out\",\n\t\t\t\t\t\t\"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0\",\n\t\t\t\t\t\t\"data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95\",\n\t\t\t\t\t\tclassName,\n\t\t\t\t\t)}\n\t\t\t\t>\n\t\t\t\t\t<div className=\"flex flex-col gap-2 text-center sm:text-left\">\n\t\t\t\t\t\t<div className=\"flex items-start gap-3\">\n\t\t\t\t\t\t\t<SeverityIcon severity={severity} />\n\t\t\t\t\t\t\t<AlertDialogPrimitive.Title className=\"text-base font-semibold leading-tight text-foreground\">\n\t\t\t\t\t\t\t\t{title}\n\t\t\t\t\t\t\t</AlertDialogPrimitive.Title>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t{description ? (\n\t\t\t\t\t\t\t<AlertDialogPrimitive.Description className=\"text-sm text-muted-foreground\">\n\t\t\t\t\t\t\t\t{description}\n\t\t\t\t\t\t\t</AlertDialogPrimitive.Description>\n\t\t\t\t\t\t) : null}\n\t\t\t\t\t</div>\n\t\t\t\t\t<div className=\"flex flex-col-reverse gap-2 sm:flex-row sm:justify-end\">\n\t\t\t\t\t\t{/*\n\t\t\t\t\t\t * The Cancel button only needs Radix's auto-close — onCancel is\n\t\t\t\t\t\t * fired centrally in `handleOpenChange` so Escape / overlay\n\t\t\t\t\t\t * dismissal also surface to the consumer. No onClick here.\n\t\t\t\t\t\t */}\n\t\t\t\t\t\t<AlertDialogPrimitive.Cancel asChild>\n\t\t\t\t\t\t\t<Button variant=\"outline\" disabled={isBusy}>\n\t\t\t\t\t\t\t\t{cancelLabel}\n\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t</AlertDialogPrimitive.Cancel>\n\t\t\t\t\t\t<AlertDialogPrimitive.Action asChild>\n\t\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\t\tvariant={defaults.buttonVariant}\n\t\t\t\t\t\t\t\tonClick={handleAction}\n\t\t\t\t\t\t\t\tloading={isBusy}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{confirmLabel ?? defaults.confirmLabel}\n\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t</AlertDialogPrimitive.Action>\n\t\t\t\t\t</div>\n\t\t\t\t</AlertDialogPrimitive.Content>\n\t\t\t</AlertDialogPrimitive.Portal>\n\t\t</AlertDialogPrimitive.Root>\n\t);\n}\n\ninterface SeverityIconProps {\n\tseverity: ConfirmationSeverity;\n}\n\nfunction SeverityIcon({ severity }: SeverityIconProps) {\n\tconst cls =\n\t\t\"mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full\";\n\tif (severity === \"danger\") {\n\t\treturn (\n\t\t\t<span aria-label=\"Danger\" role=\"img\" className={cn(cls, \"bg-destructive/10 text-destructive\")}>\n\t\t\t\t<TriangleIcon />\n\t\t\t</span>\n\t\t);\n\t}\n\tif (severity === \"warning\") {\n\t\treturn (\n\t\t\t<span\n\t\t\t\taria-label=\"Warning\"\n\t\t\t\trole=\"img\"\n\t\t\t\tclassName={cn(\n\t\t\t\t\tcls,\n\t\t\t\t\t\"bg-[var(--color-warning,oklch(0.78_0.16_82))]/10 text-[var(--color-warning,oklch(0.78_0.16_82))]\",\n\t\t\t\t)}\n\t\t\t>\n\t\t\t\t<TriangleIcon />\n\t\t\t</span>\n\t\t);\n\t}\n\treturn (\n\t\t<span aria-label=\"Info\" role=\"img\" className={cn(cls, \"bg-primary/10 text-primary\")}>\n\t\t\t<InfoIcon />\n\t\t</span>\n\t);\n}\n\nfunction TriangleIcon() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"14\"\n\t\t\theight=\"14\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.75\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t>\n\t\t\t<path d=\"M8 1.5L14.5 13.5H1.5L8 1.5z\" />\n\t\t\t<path d=\"M8 6v3\" />\n\t\t\t<circle cx=\"8\" cy=\"11.5\" r=\"0.5\" fill=\"currentColor\" />\n\t\t</svg>\n\t);\n}\n\nfunction InfoIcon() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"14\"\n\t\t\theight=\"14\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.75\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t>\n\t\t\t<circle cx=\"8\" cy=\"8\" r=\"6.5\" />\n\t\t\t<path d=\"M8 7v4\" />\n\t\t\t<circle cx=\"8\" cy=\"5\" r=\"0.5\" fill=\"currentColor\" />\n\t\t</svg>\n\t);\n}\n\nexport { Confirmation };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-alert-dialog",
+      "@radix-ui/react-slot",
+      "clsx",
+      "tailwind-merge",
+      "class-variance-authority"
+    ],
+    "internal": [
+      "lib/utils",
+      "primitives/button/button"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "background",
+    "foreground",
+    "muted-foreground",
+    "primary",
+    "destructive",
+    "border"
+  ],
+  "examples": [
+    {
+      "title": "Delete-account danger confirmation",
+      "description": "Severity `\"danger\"` flips the confirm button to destructive styling.",
+      "code": "<Confirmation\n  trigger={<Button variant=\"destructive\">Delete account</Button>}\n  title=\"Delete your account?\"\n  description=\"This action cannot be undone. All conversations and tool history will be lost.\"\n  severity=\"danger\"\n  confirmLabel=\"Delete\"\n  onConfirm={() => deleteAccount()}\n/>",
+      "composition": [
+        "agent",
+        "destructive",
+        "alert-dialog"
+      ]
+    },
+    {
+      "title": "Async confirm with busy state",
+      "description": "Return a Promise from `onConfirm` and the dialog stays open with a loading spinner until it resolves.",
+      "code": "<Confirmation\n  trigger={<Button>Run the migration</Button>}\n  title=\"Run the migration?\"\n  description=\"This will dual-write for 6 hours.\"\n  severity=\"warning\"\n  onConfirm={async () => {\n    await api.runMigration();\n    toast.success(\"Migration started\");\n  }}\n/>",
+      "composition": [
+        "agent",
+        "async",
+        "alert-dialog"
+      ]
+    },
+    {
+      "title": "Controlled visibility",
+      "description": "Drive `open` from external state when the dialog is triggered programmatically (e.g. by an agent emitting a confirmation request).",
+      "code": "const [pending, setPending] = useState<{ id: string } | null>(null);\n<Confirmation\n  open={pending !== null}\n  onOpenChange={(o) => !o && setPending(null)}\n  title=\"Approve agent action?\"\n  description={pending?.id ? `Run tool ${pending.id}` : \"\"}\n  severity=\"warning\"\n  onConfirm={() => approve(pending!.id)}\n  onCancel={() => deny(pending!.id)}\n/>",
+      "composition": [
+        "agent",
+        "controlled"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Wherever an agent or user kicks off a destructive / hard-to-reverse action: deleting data, running a migration, sending a message that fans out, executing an unsafe tool. Severity `\"danger\"` is the canonical fit for the destructive cluster; `\"warning\"` for risky-but-reversible.",
+    "whenNotToUse": "Don't use for routine confirmations like \"Save\" (use a regular dialog or no dialog). Don't use for non-modal flows (use `<Plan>` for pre-execution review with no modal interruption). Don't use as a dialog primitive for arbitrary content (use `<Dialog>` — `<Confirmation>` is shaped specifically for the title/description/confirm/cancel pattern).",
+    "commonMistakes": [
+      "Setting severity to `\"danger\"` for any non-trivial confirmation — reserve danger for irreversible / data-loss actions; using it everywhere desensitizes users to the destructive button color",
+      "Forgetting to await async work in `onConfirm` — return the Promise so the dialog stays open with the busy state, otherwise the dialog closes mid-request and the user thinks the action completed",
+      "Passing `open` without `onOpenChange` — controlled mode requires both; without the handler the dialog can't close after confirm/cancel",
+      "Putting essential context in `confirmLabel` instead of `description` — the description is where users absorb consequences; the confirm label should be a short verb (\"Delete\", \"Continue\")"
+    ],
+    "relatedComponents": [
+      "alert-dialog",
+      "dialog",
+      "plan",
+      "button"
+    ],
+    "accessibilityNotes": "Wraps Radix AlertDialog — content is portalled into the body, focus is trapped inside, Escape cancels, Enter on the confirm button activates. The severity icon carries an aria-label (\"Danger\" / \"Warning\" / \"Info\") so AT users hear the severity even without color cues. The confirm button shows a busy spinner via `aria-busy` while an async `onConfirm` is in flight.",
+    "tokenBudget": 280
+  },
+  "tags": [
+    "ai",
+    "agent",
+    "confirmation",
+    "destructive",
+    "alert-dialog",
+    "modal"
+  ]
+}

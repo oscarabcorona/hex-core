@@ -90,6 +90,10 @@ import { BranchDemo } from "../app/demos/branch-demo";
 import { PlanDemo } from "../app/demos/plan-demo";
 import { ConversationDemo } from "../app/demos/conversation-demo";
 import { ChainOfThoughtDemo } from "../app/demos/chain-of-thought-demo";
+import { TraceDemo } from "../app/demos/trace-demo";
+import { ContextDemo } from "../app/demos/context-demo";
+import { MessageDiffDemo } from "../app/demos/message-diff-demo";
+import { ConfirmationDemo } from "../app/demos/confirmation-demo";
 
 /**
  * Map of component slug → rendered demo component.
@@ -192,6 +196,10 @@ export const demos: Record<string, ComponentType> = {
 	plan: PlanDemo,
 	conversation: ConversationDemo,
 	"chain-of-thought": ChainOfThoughtDemo,
+	trace: TraceDemo,
+	context: ContextDemo,
+	"message-diff": MessageDiffDemo,
+	confirmation: ConfirmationDemo,
 };
 
 /**

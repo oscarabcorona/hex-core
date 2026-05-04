@@ -1,0 +1,147 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "context",
+  "displayName": "Context",
+  "description": "Context-window utilization meter — shows tokens consumed vs the model's max context with a horizontal progress bar. Severity colors gate at 75% (warning) and 90% (danger). Composes the `Progress` primitive.",
+  "category": "ai",
+  "subcategory": "agent",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "used",
+      "type": "number",
+      "required": true,
+      "description": "Tokens consumed so far. Clamped to [0, max] for display."
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "required": true,
+      "description": "Total context window in tokens."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "required": false,
+      "default": "Context window",
+      "description": "Override the leading label shown beside the token counts."
+    },
+    {
+      "name": "warningAt",
+      "type": "number",
+      "required": false,
+      "default": 0.75,
+      "description": "Threshold (0–1) to flip the bar to the warning color."
+    },
+    {
+      "name": "dangerAt",
+      "type": "number",
+      "required": false,
+      "default": 0.9,
+      "description": "Threshold (0–1) to flip the bar to the danger color."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the root."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/context.tsx",
+      "content": "\"use client\";\n\nimport { Progress } from \"../../primitives/progress/progress.js\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Context-window utilization meter. Renders \"47k of 200k tokens (24%)\"\n * with a horizontal progress bar — the at-a-glance signal for how\n * much of the model's context has been consumed.\n *\n * Severity colors gate at 75% (warning) and 90% (danger) so users get\n * pre-overflow notice. Composes the `Progress` primitive for the bar\n * itself; the surface around it is presentation-only.\n *\n * @example\n * <Context used={47_000} max={200_000} />\n *\n * @example\n * <Context\n *   used={consumedTokens}\n *   max={modelContextWindow}\n *   label=\"Context used\"\n *   warningAt={0.7}\n *   dangerAt={0.9}\n * />\n */\nexport interface ContextProps {\n\t/** Tokens consumed so far. Clamped to [0, max] for display. */\n\tused: number;\n\t/** Total context window in tokens. */\n\tmax: number;\n\t/** Override the leading label. Defaults to \"Context window\". */\n\tlabel?: string;\n\t/** Threshold (0–1) to flip the bar to the warning color. Defaults to 0.75. */\n\twarningAt?: number;\n\t/** Threshold (0–1) to flip the bar to the danger color. Defaults to 0.9. */\n\tdangerAt?: number;\n\tclassName?: string;\n}\n\n/**\n * Render a context-window meter with token counts and a progress bar.\n * @param props - used + max plus optional label and severity thresholds.\n * @returns A flex column with header text and a `<Progress>` bar.\n */\nfunction Context({\n\tused,\n\tmax,\n\tlabel = \"Context window\",\n\twarningAt = 0.75,\n\tdangerAt = 0.9,\n\tclassName,\n}: ContextProps) {\n\tconst safeMax = Math.max(1, max);\n\tconst safeUsed = Math.max(0, Math.min(used, safeMax));\n\tconst ratio = safeUsed / safeMax;\n\tconst pct = Math.round(ratio * 100);\n\tconst severity: Severity =\n\t\tratio >= dangerAt ? \"danger\" : ratio >= warningAt ? \"warning\" : \"ok\";\n\n\treturn (\n\t\t<div className={cn(\"flex flex-col gap-1.5\", className)}>\n\t\t\t<div className=\"flex items-baseline justify-between gap-2 text-xs\">\n\t\t\t\t<span className=\"font-medium text-foreground\">{label}</span>\n\t\t\t\t<span className=\"font-mono tabular-nums text-muted-foreground\">\n\t\t\t\t\t<span className={severityTextClass(severity)}>{formatTokens(safeUsed)}</span>\n\t\t\t\t\t{\" of \"}\n\t\t\t\t\t{formatTokens(safeMax)} tokens · {pct}%\n\t\t\t\t</span>\n\t\t\t</div>\n\t\t\t<Progress\n\t\t\t\tvalue={safeUsed}\n\t\t\t\tmax={safeMax}\n\t\t\t\taria-label={`${label}: ${pct}% used`}\n\t\t\t\tclassName={cn(severityIndicatorClass(severity))}\n\t\t\t/>\n\t\t</div>\n\t);\n}\n\ntype Severity = \"ok\" | \"warning\" | \"danger\";\n\nfunction severityTextClass(severity: Severity): string {\n\tif (severity === \"danger\") return \"text-destructive\";\n\tif (severity === \"warning\") return \"text-[var(--color-warning,oklch(0.78_0.16_82))]\";\n\treturn \"text-foreground\";\n}\n\nfunction severityIndicatorClass(severity: Severity): string {\n\t// `Progress`'s indicator is `bg-primary` by default. Override the indicator's\n\t// background via the descendant selector so the bar reflects severity without\n\t// needing Progress to expose a variant prop.\n\tif (severity === \"danger\") {\n\t\treturn \"[&>*]:bg-destructive\";\n\t}\n\tif (severity === \"warning\") {\n\t\treturn \"[&>*]:bg-[var(--color-warning,oklch(0.78_0.16_82))]\";\n\t}\n\treturn \"\";\n}\n\nfunction formatTokens(value: number): string {\n\tif (value < 1000) return `${value}`;\n\tif (value < 1_000_000) {\n\t\tconst k = value / 1000;\n\t\treturn `${k >= 100 ? Math.round(k) : k.toFixed(k >= 10 ? 0 : 1)}k`;\n\t}\n\tconst m = value / 1_000_000;\n\treturn `${m >= 10 ? Math.round(m) : m.toFixed(1)}M`;\n}\n\nexport { Context };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-progress",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils",
+      "primitives/progress/progress"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "foreground",
+    "muted-foreground",
+    "primary",
+    "destructive",
+    "secondary"
+  ],
+  "examples": [
+    {
+      "title": "Basic context meter",
+      "description": "Show 47k of 200k tokens used.",
+      "code": "<Context used={47_000} max={200_000} />",
+      "composition": [
+        "agent",
+        "context",
+        "telemetry"
+      ]
+    },
+    {
+      "title": "Custom severity thresholds",
+      "description": "Tighten thresholds for a tighter context budget (e.g. when the agent's safety buffer is larger).",
+      "code": "<Context used={tokens} max={ctxWindow} warningAt={0.6} dangerAt={0.8} />",
+      "composition": [
+        "agent",
+        "context"
+      ]
+    },
+    {
+      "title": "Renamed label for non-token surfaces",
+      "description": "Pass a custom label for surfaces that count something other than \"context window\" (e.g. \"Document budget\" for RAG cards).",
+      "code": "<Context used={chunks} max={maxChunks} label=\"Retrieved chunks\" />",
+      "composition": [
+        "agent",
+        "rag"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "In an agent dashboard, chat header, or telemetry panel — anywhere the user benefits from seeing how much of the model's context window has been consumed. Pair with `<Trace>` so the user can correlate context spend with the agent's decisions.",
+    "whenNotToUse": "Don't use for arbitrary progress bars (use `<Progress>` directly). Don't use for in-flight task progress (use `<Task>`). Don't use without a max — meaningless without an upper bound to compute the ratio against.",
+    "commonMistakes": [
+      "Passing `max=0` — produces a divide-by-zero silently floored to `1` for safety; pass the model's actual context window even when the conversation is empty",
+      "Setting `warningAt > dangerAt` — the danger threshold takes precedence, but the visual is confusing; keep `0 < warningAt < dangerAt < 1`",
+      "Counting `used` against the model's TOTAL context rather than the AVAILABLE context (subtract system prompt + reserved output tokens) — the user sees a spuriously low utilization until the buffer fills",
+      "Rendering the meter with a 1px-thin design — the severity color is the load-bearing signal; keep the default Progress height (h-2) so the threshold flip is visible at a glance"
+    ],
+    "relatedComponents": [
+      "progress",
+      "trace",
+      "task"
+    ],
+    "accessibilityNotes": "The `<Progress>` indicator carries `aria-label` set to \"Context window: NN% used\" so screen readers announce both the surface name and the percentage. The token counts in the header read as plain text — AT users hear the percentage from the bar's aria-label rather than parsing the visual \"47k of 200k\" formatting. Severity is conveyed by both color (visual) and `aria-valuenow` (programmatic), so the warning state isn't color-only. Note: the warning color uses `var(--color-warning,oklch(0.78_0.16_82))` with a hardcoded OKLCH fallback; the `--color-warning` token is not yet shipped by `@hex-core/tokens`, so the fallback is what every theme renders today (matches `<Timeline>`'s `warning` status). A future tokens-package change will plumb a real `warning` token through the design system; until then dark/branded themes can override by setting `--color-warning` on `:root` or `.dark`.",
+    "tokenBudget": 200
+  },
+  "tags": [
+    "ai",
+    "agent",
+    "context",
+    "telemetry",
+    "progress",
+    "tokens"
+  ]
+}

@@ -102,3 +102,7 @@ export { branchSchema } from "./ai/branch/branch.schema.js";
 export { planSchema } from "./ai/plan/plan.schema.js";
 export { conversationSchema } from "./ai/conversation/conversation.schema.js";
 export { chainOfThoughtSchema } from "./ai/chain-of-thought/chain-of-thought.schema.js";
+export { traceSchema } from "./ai/trace/trace.schema.js";
+export { contextSchema } from "./ai/context/context.schema.js";
+export { messageDiffSchema } from "./ai/message-diff/message-diff.schema.js";
+export { confirmationSchema } from "./ai/confirmation/confirmation.schema.js";

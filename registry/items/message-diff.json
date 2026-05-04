@@ -1,0 +1,158 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "message-diff",
+  "displayName": "MessageDiff",
+  "description": "Side-by-side comparison of two assistant turns — the canonical eval UX. Each side renders a header label and a `<Message>` with the response. Sides scroll independently; collapses to a single column at narrow widths.",
+  "category": "ai",
+  "subcategory": "evals",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "left",
+      "type": "object",
+      "required": true,
+      "description": "Left-hand side: `{ label: ReactNode; role: Role; content: ReactNode; meta?: ReactNode }`."
+    },
+    {
+      "name": "right",
+      "type": "object",
+      "required": true,
+      "description": "Right-hand side: same shape as `left`."
+    },
+    {
+      "name": "collapseBelow",
+      "type": "enum",
+      "required": false,
+      "default": "md",
+      "description": "Tailwind breakpoint below which the diff wraps to a single column.",
+      "enumValues": [
+        "sm",
+        "md",
+        "lg"
+      ]
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the root grid."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "left.content",
+      "description": "Content node for the left side — typically a `<Markdown>` block.",
+      "required": true,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    },
+    {
+      "name": "right.content",
+      "description": "Content node for the right side — typically a `<Markdown>` block.",
+      "required": true,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/message-diff.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Message } from \"../message/message.js\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Speaker of a message. Mirrors the canonical `Role` union from\n * `@hex-core/components` exactly — kept inline (rather than imported\n * from `../types.js`) so the registry CLI distribution path (`npx hex\n * add message-diff`) ships a self-contained file. Same precedent as\n * `task.tsx` and `conversation.tsx`.\n *\n * KEEP IN SYNC with `packages/components/src/ai/types.ts` — if a new\n * role is added there, mirror it here (and in the other AI components\n * that inline this union).\n */\ntype Role = \"user\" | \"assistant\" | \"system\" | \"tool\";\n\n/**\n * Side-by-side comparison of two assistant turns. The canonical eval\n * UX: render two candidate responses next to each other so a human (or\n * an automated grader) can pick the better one or capture a preference.\n *\n * Each side renders a header label + a `<Message>` with the response.\n * Sides scroll independently — no synchronized scroll. For inline diff\n * highlighting (changed tokens) compose `<Markdown>` content with your\n * own diff transform, since meaningful diff requires tokenization the\n * presentational primitive doesn't own.\n *\n * @example\n * <MessageDiff\n *   left={{ label: \"GPT-5\", role: \"assistant\", content: <Markdown>{a}</Markdown> }}\n *   right={{ label: \"Claude Sonnet 4.6\", role: \"assistant\", content: <Markdown>{b}</Markdown> }}\n * />\n */\nexport interface MessageDiffProps {\n\t/** Left-hand candidate. */\n\tleft: MessageDiffSide;\n\t/** Right-hand candidate. */\n\tright: MessageDiffSide;\n\t/** Wraps to a single column below this Tailwind breakpoint. Default: `md`. */\n\tcollapseBelow?: \"sm\" | \"md\" | \"lg\";\n\tclassName?: string;\n}\n\n/** One side of a message diff. */\nexport interface MessageDiffSide {\n\t/** Header label (e.g. \"GPT-5\", \"Run #3\", \"Before\"). */\n\tlabel: React.ReactNode;\n\t/** Speaker. Drives the `<Message>` styling. */\n\trole: Role;\n\t/** Message body — string or any node (typically `<Markdown>`). */\n\tcontent: React.ReactNode;\n\t/** Optional metadata shown alongside the label (e.g. timing, score). */\n\tmeta?: React.ReactNode;\n}\n\n/**\n * Render a side-by-side message comparison.\n * @param props - left/right sides + responsive breakpoint.\n * @returns A grid that wraps to a single column at narrow widths.\n */\nfunction MessageDiff({\n\tleft,\n\tright,\n\tcollapseBelow = \"md\",\n\tclassName,\n}: MessageDiffProps) {\n\treturn (\n\t\t<div\n\t\t\trole=\"group\"\n\t\t\taria-label=\"Message comparison\"\n\t\t\tclassName={cn(\n\t\t\t\t\"grid grid-cols-1 gap-3\",\n\t\t\t\tcollapseBelow === \"sm\" && \"sm:grid-cols-2\",\n\t\t\t\tcollapseBelow === \"md\" && \"md:grid-cols-2\",\n\t\t\t\tcollapseBelow === \"lg\" && \"lg:grid-cols-2\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t>\n\t\t\t<DiffSide side={left} testId=\"left\" />\n\t\t\t<DiffSide side={right} testId=\"right\" />\n\t\t</div>\n\t);\n}\n\ninterface DiffSideProps {\n\tside: MessageDiffSide;\n\ttestId: \"left\" | \"right\";\n}\n\nfunction DiffSide({ side, testId }: DiffSideProps) {\n\treturn (\n\t\t<div\n\t\t\tdata-side={testId}\n\t\t\tclassName=\"flex min-w-0 flex-col overflow-hidden rounded-md border border-border\"\n\t\t>\n\t\t\t<div className=\"flex items-baseline justify-between gap-2 border-b border-foreground/[0.06] bg-muted/30 px-3 py-1.5 text-xs\">\n\t\t\t\t<span className=\"font-medium text-foreground\">{side.label}</span>\n\t\t\t\t{side.meta ? (\n\t\t\t\t\t<span className=\"font-mono tabular-nums text-muted-foreground\">{side.meta}</span>\n\t\t\t\t) : null}\n\t\t\t</div>\n\t\t\t<Message role={side.role} className=\"min-w-0\">\n\t\t\t\t{side.content}\n\t\t\t</Message>\n\t\t</div>\n\t);\n}\n\nexport { MessageDiff };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge",
+      "class-variance-authority"
+    ],
+    "internal": [
+      "lib/utils",
+      "components/message/message"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "card-foreground",
+    "border",
+    "muted",
+    "muted-foreground",
+    "foreground",
+    "secondary",
+    "accent"
+  ],
+  "examples": [
+    {
+      "title": "A/B comparison of two model responses",
+      "description": "Render GPT-5 vs Claude Sonnet 4.6 side-by-side; meta shows latency.",
+      "code": "<MessageDiff\n  left={{ label: \"GPT-5\", role: \"assistant\", content: <Markdown>{a}</Markdown>, meta: \"1.2s\" }}\n  right={{ label: \"Claude Sonnet 4.6\", role: \"assistant\", content: <Markdown>{b}</Markdown>, meta: \"0.9s\" }}\n/>",
+      "composition": [
+        "evals",
+        "compare",
+        "diff"
+      ]
+    },
+    {
+      "title": "Before / after edit comparison",
+      "description": "Compare an assistant turn before and after a prompt-engineering tweak.",
+      "code": "<MessageDiff\n  left={{ label: \"Before\", role: \"assistant\", content: oldText }}\n  right={{ label: \"After\", role: \"assistant\", content: newText }}\n  collapseBelow=\"lg\"\n/>",
+      "composition": [
+        "evals",
+        "diff"
+      ]
+    },
+    {
+      "title": "Score-annotated comparison",
+      "description": "Pass a score in `meta` for grader-style displays.",
+      "code": "<MessageDiff\n  left={{ label: \"Run #1\", role: \"assistant\", content: a, meta: \"Score: 0.82\" }}\n  right={{ label: \"Run #2\", role: \"assistant\", content: b, meta: \"Score: 0.91\" }}\n/>",
+      "composition": [
+        "evals",
+        "scoring"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "In an evals UI, prompt-tuning playground, or A/B preference-collection surface — anywhere the user picks between two candidate assistant responses or compares before/after edits. Pair with `<Markdown>` for the response bodies and an external preference-capture mechanism (radio group, vote buttons) outside the component.",
+    "whenNotToUse": "Don't use for sequential turns in a conversation (use `<MessageList>` — diff is sibling comparison, not chronological). Don't use for diff-style code review (file-level diff lives in a different primitive). Don't use to show inline word-level changes — `<MessageDiff>` is presentational; tokenized diff highlighting belongs in the content itself (compose with a custom Markdown transform).",
+    "commonMistakes": [
+      "Passing markdown source as a string when the consumer expects rendered output — wrap with `<Markdown>{text}</Markdown>` so streaming-safe formatting kicks in",
+      "Mixing roles between sides without a reason (e.g. `left.role=\"user\"`, `right.role=\"assistant\"`) — almost always both sides are `\"assistant\"`",
+      "Putting score / latency text inside `content` — keep that in the `meta` slot so the header reads as one row instead of bleeding into the message body",
+      "Setting `collapseBelow=\"lg\"` on a wide-content surface — the side-by-side rhythm collapses too aggressively at desktop breakpoints; default `md` covers most cases"
+    ],
+    "relatedComponents": [
+      "message",
+      "message-list",
+      "markdown",
+      "branch"
+    ],
+    "accessibilityNotes": "Wraps the two sides in a `role=\"group\"` with `aria-label=\"Message comparison\"` so screen readers announce them as a related pair. Each side carries a stable `data-side=\"left\"` / `data-side=\"right\"` attribute — target it (`[data-side='left']`) for keyboard navigation hooks, focus management, or per-side test queries. The grid collapses to a single column at narrow widths so the comparison stays usable when there's not enough horizontal real estate to host both columns side-by-side.",
+    "tokenBudget": 240
+  },
+  "tags": [
+    "ai",
+    "evals",
+    "diff",
+    "compare",
+    "messages"
+  ]
+}
