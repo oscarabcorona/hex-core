@@ -55,9 +55,15 @@ export function closeUnterminated(input: string): string {
 	}
 
 	// 3 + 4. Link parens / brackets at tail.
-	if (/\[[^\]]*\]\([^)]*$/.test(working)) {
+	//
+	// `[^[\]]` instead of `[^\]]` for the bracket-content character class:
+	// excluding `[` AND `]` makes the engine reject mid-class on a nested
+	// `[`, so input like `[[[[[…` runs in O(n) instead of O(n²) (CodeQL
+	// flags the looser `[^\]]*` form as polynomial). Same idea on the
+	// paren clause: `[^()]` rejects nested `(` immediately.
+	if (/\[[^[\]]*\]\([^()]*$/.test(working)) {
 		suffixes.push(")");
-	} else if (/\[[^\]]*$/.test(working)) {
+	} else if (/\[[^[\]]*$/.test(working)) {
 		suffixes.push("]");
 	}
 
