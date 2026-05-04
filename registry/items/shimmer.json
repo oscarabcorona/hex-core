@@ -1,64 +1,54 @@
 {
   "$schema": "https://hex-core.dev/schema/registry-item.json",
-  "name": "audio-waveform",
-  "displayName": "Audio Waveform",
-  "description": "Standalone audio waveform display backed by wavesurfer.js — for voice-message previews, audio thumbnails, recording indicators. No playback controls (use `<AudioPlayer>` for that).",
+  "name": "shimmer",
+  "displayName": "Shimmer",
+  "description": "Single-line streaming placeholder. Used during the dead-time between user submission and first stream token. Renders a motion-safe pulsing bar (Tailwind animate-pulse) that gates on `prefers-reduced-motion`.",
   "category": "ai",
-  "subcategory": "voice",
+  "subcategory": "feedback",
   "version": "0.1.0",
   "framework": "react",
   "props": [
     {
-      "name": "src",
+      "name": "width",
       "type": "string",
-      "required": true,
-      "description": "Audio source — URL string or Blob (both accepted)."
+      "required": false,
+      "default": "100%",
+      "description": "CSS width — accepts any width value."
     },
     {
       "name": "height",
+      "type": "string",
+      "required": false,
+      "default": "1.5rem",
+      "description": "CSS height — defaults to a single line."
+    },
+    {
+      "name": "durationMs",
       "type": "number",
       "required": false,
-      "default": 48,
-      "description": "Pixel height of the waveform."
+      "default": 1500,
+      "description": "Sweep cycle duration in milliseconds."
     },
     {
-      "name": "waveColor",
+      "name": "label",
       "type": "string",
       "required": false,
-      "default": "#a3a3a3",
-      "description": "CSS color for the waveform bars."
-    },
-    {
-      "name": "progressColor",
-      "type": "string",
-      "required": false,
-      "description": "CSS color for played regions. Defaults to waveColor."
-    },
-    {
-      "name": "onReady",
-      "type": "function",
-      "required": false,
-      "description": "Called once decoded with the duration in seconds."
-    },
-    {
-      "name": "onError",
-      "type": "function",
-      "required": false,
-      "description": "Called on engine error (network, decode, codec unsupported)."
+      "default": "Loading…",
+      "description": "Accessible label announced to screen readers."
     },
     {
       "name": "className",
       "type": "string",
       "required": false,
-      "description": "Additional CSS classes on the container."
+      "description": "Additional CSS classes on the root."
     }
   ],
   "variants": [],
   "slots": [],
   "files": [
     {
-      "path": "components/ui/audio-waveform.tsx",
-      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Standalone audio waveform display backed by wavesurfer.js. Renders the\n * waveform of a source (URL or Blob) without playback controls — for\n * voice-message previews, audio thumbnails, recording indicators, anywhere\n * the visual is the point.\n *\n * Heavy peer: requires `wavesurfer.js` (~50 KB gzip, shared with\n * AudioPlayer). The hex-core CLI's `add` flow prompts before installing.\n *\n * For interactive playback + waveform together, use `<AudioPlayer>`.\n *\n * @example\n * <AudioWaveform src=\"/voice-message.mp3\" height={48} />\n */\nexport interface AudioWaveformProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\" | \"onError\"> {\n\t/** Audio source — URL string or Blob. */\n\tsrc: string | Blob;\n\t/** Pixel height of the waveform. Default 48. */\n\theight?: number;\n\t/** Bar color for unplayed regions. CSS color string. */\n\twaveColor?: string;\n\t/** Bar color for played regions. Default same as `waveColor`. */\n\tprogressColor?: string;\n\t/** Called when wavesurfer finishes decoding the source. */\n\tonReady?: (durationSeconds: number) => void;\n\t/** Called on engine error (network, decode). */\n\tonError?: (message: string) => void;\n}\n\n/**\n * Renders an audio waveform without playback controls.\n * @param props - Audio source + visual options + lifecycle callbacks\n * @returns A div containing the wavesurfer-rendered waveform\n */\nfunction AudioWaveform({\n\tsrc,\n\theight = 48,\n\twaveColor = \"#a3a3a3\",\n\tprogressColor,\n\tonReady,\n\tonError,\n\tclassName,\n\t...rest\n}: AudioWaveformProps) {\n\tconst containerRef = React.useRef<HTMLDivElement | null>(null);\n\tconst onReadyRef = React.useRef(onReady);\n\tconst onErrorRef = React.useRef(onError);\n\tonReadyRef.current = onReady;\n\tonErrorRef.current = onError;\n\n\tReact.useEffect(() => {\n\t\tif (!containerRef.current) return;\n\t\tlet disposed = false;\n\t\tlet ws: import(\"wavesurfer.js\").default | null = null;\n\t\t// Track Blob ObjectURLs so we can revoke on teardown.\n\t\tconst objectUrl = src instanceof Blob ? URL.createObjectURL(src) : null;\n\n\t\tvoid (async () => {\n\t\t\tconst { default: WaveSurfer } = await import(\"wavesurfer.js\");\n\t\t\tif (disposed || !containerRef.current) return;\n\n\t\t\tws = WaveSurfer.create({\n\t\t\t\tcontainer: containerRef.current,\n\t\t\t\twaveColor,\n\t\t\t\tprogressColor: progressColor ?? waveColor,\n\t\t\t\tcursorColor: \"transparent\",\n\t\t\t\theight,\n\t\t\t\tbarWidth: 2,\n\t\t\t\tbarGap: 1,\n\t\t\t\tbarRadius: 1,\n\t\t\t\tnormalize: true,\n\t\t\t\tinteract: false,\n\t\t\t});\n\n\t\t\tws.on(\"ready\", () => {\n\t\t\t\tif (ws) onReadyRef.current?.(ws.getDuration());\n\t\t\t});\n\t\t\tws.on(\"error\", (err: Error) => {\n\t\t\t\tonErrorRef.current?.(err.message);\n\t\t\t});\n\n\t\t\tvoid ws.load(objectUrl ?? (src as string));\n\t\t})();\n\n\t\treturn () => {\n\t\t\tdisposed = true;\n\t\t\tws?.destroy();\n\t\t\tif (objectUrl) URL.revokeObjectURL(objectUrl);\n\t\t};\n\t}, [src, height, waveColor, progressColor]);\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tref={containerRef}\n\t\t\tdata-hex-audio-waveform\n\t\t\tclassName={cn(\"w-full\", className)}\n\t\t/>\n\t);\n}\n\nexport { AudioWaveform };\n",
+      "path": "components/ui/shimmer.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Single-line streaming placeholder. Used during the dead-time between\n * a user submitting a prompt and the first stream token arriving — a\n * gradient sweep across a flat bar that signals \"the model is thinking\n * but hasn't started speaking yet.\"\n *\n * Wider than `<Loading>` (which is a multi-row skeleton) and narrower\n * than `<Skeleton>` (which is a sized placeholder block); use Shimmer\n * for the conversation pane, Loading for whole-screen states, Skeleton\n * for arbitrary placeholder shapes.\n *\n * @example\n * {isStreaming && <Shimmer width=\"80%\" />}\n */\nexport interface ShimmerProps {\n\t/** CSS width — accepts any width value (e.g. `\"60%\"`, `\"24rem\"`). Defaults to full width. */\n\twidth?: string;\n\t/** Override the default 1.5rem height for taller streaming bars. */\n\theight?: string;\n\t/** Sweep duration in ms. Defaults to 1500. */\n\tdurationMs?: number;\n\t/** Accessible label announced to screen readers. */\n\tlabel?: string;\n\tclassName?: string;\n}\n\n/**\n * Render a streaming placeholder bar.\n *\n * Uses Tailwind's `animate-pulse` for the loading effect — same\n * approach as `<Skeleton>` so consumers don't need extra global CSS or\n * keyframes. The `durationMs` prop scales the pulse cycle via a CSS\n * variable so the animation stays in pulse's vertical-opacity family\n * rather than introducing a custom sweep keyframe (which would\n * conflict with React 19's stricter style-tag handling).\n *\n * @param props - Optional sizing + duration + label overrides.\n * @returns A pulsing placeholder bar.\n */\nfunction Shimmer({\n\twidth = \"100%\",\n\theight = \"1.5rem\",\n\tdurationMs = 1500,\n\tlabel = \"Loading…\",\n\tclassName,\n}: ShimmerProps) {\n\treturn (\n\t\t<div\n\t\t\trole=\"status\"\n\t\t\taria-label={label}\n\t\t\taria-live=\"polite\"\n\t\t\tclassName={cn(\n\t\t\t\t// `motion-safe:` gates the pulse on `prefers-reduced-motion: no-preference` —\n\t\t\t\t// users with reduce-motion get a static bar.\n\t\t\t\t\"motion-safe:animate-pulse rounded-md border border-foreground/[0.06] bg-muted\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t\tstyle={{\n\t\t\t\twidth,\n\t\t\t\theight,\n\t\t\t\tanimationDuration: `${durationMs}ms`,\n\t\t\t}}\n\t\t/>\n\t);\n}\n\nexport { Shimmer };\n",
       "type": "component"
     },
     {
@@ -83,59 +73,56 @@
     "peer": [
       "react",
       "react-dom"
-    ],
-    "heavyPeer": [
-      {
-        "name": "wavesurfer.js",
-        "version": "^7.8.0",
-        "bundleKbGzip": 50,
-        "reason": "Audio decode + waveform rendering engine"
-      }
     ]
   },
-  "tokensUsed": [],
+  "tokensUsed": [
+    "muted",
+    "foreground"
+  ],
   "examples": [
     {
-      "title": "Voice-message preview",
-      "description": "Waveform thumbnail in a chat bubble.",
-      "code": "<AudioWaveform src={voiceMessageUrl} height={32} />",
+      "title": "Streaming placeholder before first token",
+      "description": "Shows up between user submit and first model token; replaces with the streaming Markdown once tokens arrive.",
+      "code": "{isStreaming && firstTokenAt === null ? <Shimmer width=\"80%\" /> : null}",
       "composition": [
-        "audio",
-        "thumbnail",
-        "chat"
+        "chat",
+        "streaming",
+        "loading"
       ]
     },
     {
-      "title": "Recording indicator with duration callback",
-      "description": "Notify the parent when the waveform is decoded.",
-      "code": "<AudioWaveform\n  src={recordedBlob}\n  onReady={(seconds) => setMessageDuration(seconds)}\n/>",
+      "title": "Compose with MessageList for the assistant placeholder row",
+      "description": "Render a Shimmer inside a Message while waiting for the first chunk.",
+      "code": "<MessageList>\n  {messages.map((m) => <Message key={m.id} role={m.role}>{m.content}</Message>)}\n  {isStreaming ? (\n    <Message role=\"assistant\"><Shimmer width=\"60%\" /></Message>\n  ) : null}\n</MessageList>",
       "composition": [
-        "audio",
-        "recording"
+        "chat",
+        "streaming"
       ]
     }
   ],
   "ai": {
-    "whenToUse": "Voice-message bubbles, recording previews, audio attachment thumbnails — any visual representation of audio content where you DON'T want playback controls. Pair with `<AudioPlayer>` if interaction is needed.",
-    "whenNotToUse": "Don't use when the user needs to play/pause/scrub — use `<AudioPlayer>`. Don't use as a real-time audio analyzer (this renders the static decoded waveform; live mic visualization needs the Web Audio API directly).",
+    "whenToUse": "In the conversation pane during the dead-time between a user prompt submission and the first streaming token. Pair with Message so the placeholder occupies the same visual slot the streamed content will land in.",
+    "whenNotToUse": "Don't use for whole-screen loading (use Loading). Don't use for arbitrary skeleton shapes (use Skeleton). Don't use after the first token has arrived — once the model is streaming, render the partial content directly.",
     "commonMistakes": [
-      "Re-creating a Blob src on every render — the effect re-loads, which is expensive. Memoize",
-      "Setting height too small (<16px) — bars don't render distinctly",
-      "Forgetting that decoding takes time on large files — show a Skeleton until onReady fires"
+      "Showing Shimmer through the entire response — once the first token arrives, swap to a Markdown render of the partial buffer",
+      "Sizing the bar too short (width < 30%) — the sweep cycle becomes visually jittery; keep at ~60–80% of message-row width",
+      "Using Shimmer for a whole-card placeholder (use Skeleton or Loading)",
+      "Setting `durationMs` < 800 — feels nervous; the 1500ms default matches a calm waiting cadence"
     ],
     "relatedComponents": [
-      "audio-player",
-      "speech-recognition"
+      "loading",
+      "loading-indicator",
+      "skeleton",
+      "message"
     ],
-    "accessibilityNotes": "The waveform is decorative — supply an aria-label on the wrapper that describes the audio (e.g. 'Voice message from Alice, 1:24'). The interact={false} setting prevents accidental keyboard focus on a non-interactive element.",
-    "tokenBudget": 320
+    "accessibilityNotes": "Renders with `role=\"status\"` and `aria-live=\"polite\"`, so screen readers announce the loading label without preempting other content. The pulse animation is gated on `motion-safe:` — users with `prefers-reduced-motion: reduce` see a static bar rather than the pulsing one.",
+    "tokenBudget": 160
   },
   "tags": [
     "ai",
-    "audio",
-    "waveform",
-    "voice",
-    "wavesurfer",
-    "thumbnail"
+    "loading",
+    "streaming",
+    "placeholder",
+    "feedback"
   ]
 }

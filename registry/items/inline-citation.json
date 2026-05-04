@@ -1,0 +1,149 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "inline-citation",
+  "displayName": "InlineCitation",
+  "description": "Inline footnote-style reference with a hover-preview popover. Pairs with Sources for the bottom-of-card list; fills the inline-text gap that the block Citation chip can't.",
+  "category": "ai",
+  "subcategory": "rag",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "index",
+      "type": "number",
+      "required": true,
+      "description": "Footnote number (1-based). Renders inside the visible <sup>."
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "required": true,
+      "description": "Source title shown in the hover preview."
+    },
+    {
+      "name": "url",
+      "type": "string",
+      "required": false,
+      "description": "Optional URL — when set, the trigger becomes a focusable anchor."
+    },
+    {
+      "name": "excerpt",
+      "type": "string",
+      "required": false,
+      "description": "Optional excerpt or context shown under the title in the preview."
+    },
+    {
+      "name": "openDelay",
+      "type": "number",
+      "required": false,
+      "default": 200,
+      "description": "Hover open delay in ms."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the trigger."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/inline-citation.tsx",
+      "content": "\"use client\";\n\nimport * as HoverCardPrimitive from \"@radix-ui/react-hover-card\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Inline footnote-style reference with a hover-preview popover.\n *\n * Pairs with `<Sources>` for the bottom-of-card list. Block-level\n * `<Citation>` chips are too large to embed mid-sentence; this primitive\n * fills the inline-text gap with a `<sup>[N]</sup>` and an\n * Anthropic-style hover preview showing the source title + URL.\n *\n * The Markdown component routes `[N](url)` shapes through this slot —\n * authors don't write the JSX directly in the streaming path.\n *\n * @example\n * The frontier models all publish reasoning evals\n * <InlineCitation index={1} title=\"Anthropic — Claude Sonnet 4.5\"\n *   url=\"https://anthropic.com/claude\" />.\n */\nexport interface InlineCitationProps {\n\t/** Footnote number (1-based). Renders inside the visible `<sup>`. */\n\tindex: number;\n\t/** Source title shown in the hover preview. */\n\ttitle: string;\n\t/** Optional URL — when set, the trigger becomes a focusable anchor. */\n\turl?: string;\n\t/** Optional excerpt or context shown under the title in the preview. */\n\texcerpt?: string;\n\t/** Open delay in ms (matches Radix default ~700). */\n\topenDelay?: number;\n\tclassName?: string;\n}\n\n/**\n * Render an inline citation reference with hover preview.\n * @param props - Index, title, optional url + excerpt.\n * @returns A `<sup>` with a Radix HoverCard popover.\n */\nfunction InlineCitation({\n\tindex,\n\ttitle,\n\turl,\n\texcerpt,\n\topenDelay = 200,\n\tclassName,\n}: InlineCitationProps) {\n\tconst triggerClasses = cn(\n\t\t\"inline-flex select-none items-center justify-center rounded-sm bg-primary/10 px-1 py-0.5 text-[0.7em] font-mono font-semibold text-primary leading-none\",\n\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\"hover:bg-primary/15\",\n\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1\",\n\t\tclassName,\n\t);\n\n\tconst trigger = url ? (\n\t\t<a\n\t\t\thref={url}\n\t\t\ttarget=\"_blank\"\n\t\t\trel=\"noreferrer noopener external\"\n\t\t\tclassName={triggerClasses}\n\t\t\taria-label={`Source ${index}: ${title}`}\n\t\t>\n\t\t\t[{index}]\n\t\t</a>\n\t) : (\n\t\t// No URL → still focusable so keyboard users can open the popover.\n\t\t// Real <button type=\"button\"> over a styled span so the trigger\n\t\t// honors space/enter activation natively.\n\t\t<button\n\t\t\ttype=\"button\"\n\t\t\tclassName={triggerClasses}\n\t\t\taria-label={`Source ${index}: ${title}`}\n\t\t>\n\t\t\t[{index}]\n\t\t</button>\n\t);\n\n\treturn (\n\t\t<HoverCardPrimitive.Root openDelay={openDelay}>\n\t\t\t<HoverCardPrimitive.Trigger asChild>\n\t\t\t\t<sup className=\"inline-block leading-none\">{trigger}</sup>\n\t\t\t</HoverCardPrimitive.Trigger>\n\t\t\t<HoverCardPrimitive.Portal>\n\t\t\t\t<HoverCardPrimitive.Content\n\t\t\t\t\tside=\"top\"\n\t\t\t\t\talign=\"center\"\n\t\t\t\t\tsideOffset={4}\n\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\"z-50 max-w-xs rounded-md border border-border bg-popover p-3 text-popover-foreground shadow-md\",\n\t\t\t\t\t\t\"data-[state=open]:animate-in data-[state=closed]:animate-out\",\n\t\t\t\t\t\t\"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0\",\n\t\t\t\t\t\t\"data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95\",\n\t\t\t\t\t)}\n\t\t\t\t>\n\t\t\t\t\t<div className=\"flex flex-col gap-1\">\n\t\t\t\t\t\t<span className=\"font-mono text-[10px] text-muted-foreground\">[{index}]</span>\n\t\t\t\t\t\t<span className=\"text-sm font-medium leading-snug text-foreground\">{title}</span>\n\t\t\t\t\t\t{excerpt ? (\n\t\t\t\t\t\t\t<span className=\"text-xs leading-relaxed text-muted-foreground\">{excerpt}</span>\n\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t{url ? (\n\t\t\t\t\t\t\t<span className=\"truncate text-xs text-primary underline-offset-2 hover:underline\">\n\t\t\t\t\t\t\t\t{inferDisplayUrl(url)}\n\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t) : null}\n\t\t\t\t\t</div>\n\t\t\t\t</HoverCardPrimitive.Content>\n\t\t\t</HoverCardPrimitive.Portal>\n\t\t</HoverCardPrimitive.Root>\n\t);\n}\n\nfunction inferDisplayUrl(href: string): string {\n\ttry {\n\t\tconst url = new URL(href);\n\t\treturn url.hostname.replace(/^www\\./, \"\") + url.pathname;\n\t} catch {\n\t\treturn href;\n\t}\n}\n\nexport { InlineCitation };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-hover-card",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "popover",
+    "popover-foreground",
+    "border",
+    "muted-foreground",
+    "foreground",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Inline reference in a sentence",
+      "description": "Drop a citation in the middle of an assistant turn.",
+      "code": "<p>\n  The frontier models all publish reasoning evals\n  <InlineCitation\n    index={1}\n    title=\"Anthropic — Claude Sonnet 4.5\"\n    url=\"https://anthropic.com/claude\"\n  />.\n</p>",
+      "composition": [
+        "chat",
+        "rag",
+        "inline"
+      ]
+    },
+    {
+      "title": "Pair with Sources for the bottom-of-card list",
+      "description": "Same source surfaces inline AND in the sources panel — same index in both places.",
+      "code": "const refs = [\n  { title: \"Auth research\", url: \"https://example.com/auth\", page: 3 },\n];\n<>\n  <p>Studies on this <InlineCitation index={1} title={refs[0].title} url={refs[0].url} /> agree.</p>\n  <Sources sources={refs} />\n</>",
+      "composition": [
+        "rag",
+        "citations",
+        "sources"
+      ]
+    },
+    {
+      "title": "Streamed via Markdown [N](url) shape",
+      "description": "Markdown's footnote-style link slot routes [1](url) to InlineCitation automatically.",
+      "code": "const md = \"Reasoning quality scales [1](https://anthropic.com/research) with compute.\";\n<Markdown>{md}</Markdown>",
+      "composition": [
+        "chat",
+        "streaming",
+        "markdown"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "In the body of an assistant message when you want to reference a source mid-sentence without breaking flow. Pair with Sources at the end of the message to give the user a scannable list.",
+    "whenNotToUse": "Don't use as a primary navigation element (it's a reference, not a link). Don't use for a single source attribution at the end of a message — just use Citation instead.",
+    "commonMistakes": [
+      "Using `<Citation index={...}>` for inline references — that's the block-level chip; use InlineCitation for inline-text refs",
+      "Mismatched `index` between the inline ref and the corresponding row in the Sources panel — keep them aligned",
+      "Setting `openDelay={0}` — the hover popover triggers on accidental mouseover and feels noisy; the 200ms default keeps a calm hover cadence",
+      "Missing `url` AND missing `excerpt` — leaves the popover with just a title; provide one of the two for context"
+    ],
+    "relatedComponents": [
+      "citation",
+      "sources",
+      "markdown",
+      "message"
+    ],
+    "accessibilityNotes": "Wraps Radix HoverCard. The trigger is a real anchor (with `url`) or button; both carry an `aria-label` exposing the index + title to screen readers and are in the keyboard tab order. HoverCard content opens on focus AND hover so keyboard users get the same preview.",
+    "tokenBudget": 200
+  },
+  "tags": [
+    "ai",
+    "rag",
+    "citations",
+    "inline",
+    "popover",
+    "footnote"
+  ]
+}

@@ -85,15 +85,27 @@ describe("dist bundle shape", () => {
 		expect(schemasDts).toMatch(/dialogSchema/);
 	});
 
-	it("per-component bundles stay under 20KB raw", () => {
-		// 20KB is generous — current largest is ~12KB (combobox/command).
-		// Catches accidental imports of large transitive libs.
+	it("per-component bundles stay under 20KB raw (with markdown exception)", () => {
+		// 20KB default cap — current largest non-markdown is ~12KB
+		// (combobox/command). Catches accidental imports of large
+		// transitive libs.
+		//
+		// 32KB markdown exception — markdown.js inlines closeUnterminated +
+		// remarkAdmonitions + 5 slot renderers (InlineCitation/Sources/
+		// ToolCall/Reasoning routing + the inline-code path) into a single
+		// self-contained file so the registry CLI distribution path ships
+		// one file. If a 6th slot lands, prefer extracting the slots into a
+		// `slots/` subdir + restoring the 20KB default rather than bumping
+		// this further.
+		const PER_COMPONENT_LIMIT = 20 * 1024;
+		const MARKDOWN_LIMIT = 32 * 1024;
 		const all = fs
 			.readdirSync(distDir)
 			.filter((f) => f.endsWith(".js") && f !== "index.js" && f !== "schemas.js");
 		for (const file of all) {
 			const size = fs.statSync(path.join(distDir, file)).size;
-			expect(size, `${file} grew past 20KB raw (${size} bytes)`).toBeLessThan(20 * 1024);
+			const limit = file === "markdown.js" ? MARKDOWN_LIMIT : PER_COMPONENT_LIMIT;
+			expect(size, `${file} grew past ${limit / 1024}KB raw (${size} bytes)`).toBeLessThan(limit);
 		}
 	});
 

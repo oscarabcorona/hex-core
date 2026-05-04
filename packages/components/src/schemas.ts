@@ -94,3 +94,7 @@ export { messageActionsSchema } from "./ai/message-actions/message-actions.schem
 export { citationSchema } from "./ai/citation/citation.schema.js";
 export { markdownSchema } from "./ai/markdown/markdown.schema.js";
 export { codeBlockSchema } from "./ai/code-block/code-block.schema.js";
+export { sourcesSchema } from "./ai/sources/sources.schema.js";
+export { inlineCitationSchema } from "./ai/inline-citation/inline-citation.schema.js";
+export { taskSchema } from "./ai/task/task.schema.js";
+export { shimmerSchema } from "./ai/shimmer/shimmer.schema.js";

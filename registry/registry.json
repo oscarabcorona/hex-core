@@ -1284,6 +1284,25 @@
       "tokenBudget": 380
     },
     {
+      "name": "inline-citation",
+      "displayName": "InlineCitation",
+      "description": "Inline footnote-style reference with a hover-preview popover. Pairs with Sources for the bottom-of-card list; fills the inline-text gap that the block Citation chip can't.",
+      "category": "ai",
+      "subcategory": "rag",
+      "tags": [
+        "ai",
+        "rag",
+        "citations",
+        "inline",
+        "popover",
+        "footnote"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 200
+    },
+    {
       "name": "loading-indicator",
       "displayName": "LoadingIndicator",
       "description": "Streaming/typing feedback with three motion variants — dots, pulse, bar.",
@@ -1318,9 +1337,10 @@
       ],
       "internalDeps": [
         "lib/utils",
-        "ai/citation",
-        "ai/tool-call",
-        "ai/reasoning"
+        "components/inline-citation/inline-citation",
+        "components/sources/sources",
+        "components/tool-call/tool-call",
+        "components/reasoning/reasoning"
       ],
       "tokenBudget": 320
     },
@@ -1399,6 +1419,43 @@
       "tokenBudget": 280
     },
     {
+      "name": "shimmer",
+      "displayName": "Shimmer",
+      "description": "Single-line streaming placeholder. Used during the dead-time between user submission and first stream token. Renders a motion-safe pulsing bar (Tailwind animate-pulse) that gates on `prefers-reduced-motion`.",
+      "category": "ai",
+      "subcategory": "feedback",
+      "tags": [
+        "ai",
+        "loading",
+        "streaming",
+        "placeholder",
+        "feedback"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 160
+    },
+    {
+      "name": "sources",
+      "displayName": "Sources",
+      "description": "Bordered card listing 1–N citation chips for a RAG response. Re-uses Citation per row inside a Radix Collapsible so consumers can collapse the list when the response references many sources.",
+      "category": "ai",
+      "subcategory": "rag",
+      "tags": [
+        "ai",
+        "rag",
+        "citations",
+        "sources",
+        "collapsible"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "components/citation/citation"
+      ],
+      "tokenBudget": 240
+    },
+    {
       "name": "speech-recognition",
       "displayName": "Speech Recognition",
       "description": "Browser Web Speech API toggle button. Emits transcript chunks via callback; consumer keeps the text. Renders a disabled state when the browser doesn't support SpeechRecognition.",
@@ -1435,6 +1492,25 @@
         "lib/utils"
       ],
       "tokenBudget": 220
+    },
+    {
+      "name": "task",
+      "displayName": "Task",
+      "description": "Multi-step task progress card. Each step's state re-uses the canonical ToolCallState vocabulary; the header tracks aggregate progress.",
+      "category": "ai",
+      "subcategory": "agent",
+      "tags": [
+        "ai",
+        "agent",
+        "task",
+        "progress",
+        "collapsible",
+        "tool-use"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 280
     },
     {
       "name": "terminal",

@@ -82,6 +82,10 @@ import { TagDemo } from "../app/demos/tag-demo";
 import { ToolCallDemo } from "../app/demos/tool-call-demo";
 import { ToolbarDemo } from "../app/demos/toolbar-demo";
 import { TreeDemo } from "../app/demos/tree-demo";
+import { SourcesDemo } from "../app/demos/sources-demo";
+import { InlineCitationDemo } from "../app/demos/inline-citation-demo";
+import { TaskDemo } from "../app/demos/task-demo";
+import { ShimmerDemo } from "../app/demos/shimmer-demo";
 
 /**
  * Map of component slug → rendered demo component.
@@ -176,6 +180,10 @@ export const demos: Record<string, ComponentType> = {
 	"tool-call": ToolCallDemo,
 	toolbar: ToolbarDemo,
 	tree: TreeDemo,
+	sources: SourcesDemo,
+	"inline-citation": InlineCitationDemo,
+	task: TaskDemo,
+	shimmer: ShimmerDemo,
 };
 
 /**

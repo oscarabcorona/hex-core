@@ -349,6 +349,10 @@ export {
 	type AttachmentFile,
 	type AttachmentProps,
 } from "./ai/attachment/attachment.js";
+export { Sources, type SourcesProps, type SourceRef } from "./ai/sources/sources.js";
+export { InlineCitation, type InlineCitationProps } from "./ai/inline-citation/inline-citation.js";
+export { Task, type TaskProps, type TaskStep } from "./ai/task/task.js";
+export { Shimmer, type ShimmerProps } from "./ai/shimmer/shimmer.js";
 
 // Schemas live in `@hex-core/components/schemas` (1.4.0+) so the runtime
 // barrel doesn't pull in the `@hex-core/registry` type at the consumer's
