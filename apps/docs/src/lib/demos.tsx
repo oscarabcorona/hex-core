@@ -86,6 +86,10 @@ import { SourcesDemo } from "../app/demos/sources-demo";
 import { InlineCitationDemo } from "../app/demos/inline-citation-demo";
 import { TaskDemo } from "../app/demos/task-demo";
 import { ShimmerDemo } from "../app/demos/shimmer-demo";
+import { BranchDemo } from "../app/demos/branch-demo";
+import { PlanDemo } from "../app/demos/plan-demo";
+import { ConversationDemo } from "../app/demos/conversation-demo";
+import { ChainOfThoughtDemo } from "../app/demos/chain-of-thought-demo";
 
 /**
  * Map of component slug → rendered demo component.
@@ -184,6 +188,10 @@ export const demos: Record<string, ComponentType> = {
 	"inline-citation": InlineCitationDemo,
 	task: TaskDemo,
 	shimmer: ShimmerDemo,
+	branch: BranchDemo,
+	plan: PlanDemo,
+	conversation: ConversationDemo,
+	"chain-of-thought": ChainOfThoughtDemo,
 };
 
 /**

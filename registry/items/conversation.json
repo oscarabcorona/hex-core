@@ -1,0 +1,194 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "conversation",
+  "displayName": "Conversation",
+  "description": "High-level chat shell. Composes `<MessageList>` over a messages array, an optional `<Sources>` panel, an optional `<Shimmer>` placeholder during the dead-time before the first stream token, and a `<Composer>` row at the bottom.",
+  "category": "ai",
+  "subcategory": "chat",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "messages",
+      "type": "object",
+      "required": true,
+      "description": "Array of `ConversationMessage` objects ({ id: string; role: Role; content: ReactNode }). Each renders as one `<Message>`."
+    },
+    {
+      "name": "onSubmit",
+      "type": "function",
+      "required": true,
+      "description": "Called with the trimmed text when the user submits the composer."
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "required": false,
+      "default": "Ask anything…",
+      "description": "Composer placeholder."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "required": false,
+      "description": "Controlled composer text. Pass with `onValueChange` to take control of the input — useful for suggested prompts, voice transcripts, or form-library integration."
+    },
+    {
+      "name": "onValueChange",
+      "type": "function",
+      "required": false,
+      "description": "Called whenever the composer text changes. Required when `value` is set."
+    },
+    {
+      "name": "isStreaming",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "When true, renders a `<Shimmer>` placeholder above the composer (use during the dead time before the first stream token arrives)."
+    },
+    {
+      "name": "sources",
+      "type": "object",
+      "required": false,
+      "description": "Optional `SourceRef[]` rendered as a `<Sources>` panel beneath the message stream."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Disable the composer (e.g. while waiting on a tool call)."
+    },
+    {
+      "name": "composerActions",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Trailing slot inside the composer — typically a Send button."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the root."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "composerActions",
+      "description": "Trailing children passed into the underlying `<Composer>` — render Send button, attachment buttons, etc.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/conversation.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Composer } from \"../composer/composer.js\";\nimport { Message } from \"../message/message.js\";\nimport { MessageList } from \"../message-list/message-list.js\";\nimport { Shimmer } from \"../shimmer/shimmer.js\";\nimport { Sources, type SourceRef } from \"../sources/sources.js\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Speaker of a message. Mirrors the canonical `Role` union from\n * `@hex-core/components` exactly — kept inline (rather than imported\n * from `../types.js`) so the registry CLI distribution path (`npx hex\n * add conversation`) ships a self-contained file. Same precedent as\n * `task.tsx`'s inlined `ToolCallState`. The build-registry script\n * doesn't bundle `types.ts`, so importing from it would leave consumer\n * TS strict-mode unable to resolve the type at the install location.\n */\ntype Role = \"user\" | \"assistant\" | \"system\" | \"tool\";\n\n/**\n * High-level chat shell. Composes `<MessageList>` over `messages`, an\n * optional `<Sources>` panel beneath the latest assistant turn, an\n * optional `<Shimmer>` placeholder for the in-flight assistant response,\n * and a `<Composer>` row at the bottom.\n *\n * Presentational: the consumer owns the `messages` array and the\n * `onSubmit` handler. The composer's text state is internal by default\n * so simple consumers don't thread input plumbing; pass `value` +\n * `onValueChange` together to take full control (suggested-prompt\n * injection, voice transcription, form-library integration).\n *\n * @example\n * <Conversation\n *   messages={messages}\n *   onSubmit={(text) => sendMessage(text)}\n *   isStreaming={isWaitingForFirstToken}\n *   sources={lastResponse.sources}\n *   placeholder=\"Ask anything…\"\n * />\n */\nexport interface ConversationProps {\n\t/** Ordered chat history. Each item renders as one `<Message>`. */\n\tmessages: ConversationMessage[];\n\t/** Called with the trimmed text when the user submits the composer. */\n\tonSubmit: (text: string) => void;\n\t/** Composer placeholder. */\n\tplaceholder?: string;\n\t/** Controlled composer text. Pass with `onValueChange` to take control of the input — useful for suggested prompts, voice transcripts, or form-library integration. */\n\tvalue?: string;\n\t/** Called whenever the composer text changes. Required when `value` is set. */\n\tonValueChange?: (value: string) => void;\n\t/** When true, render a `<Shimmer>` placeholder above the composer (use during the dead time before the first stream token). */\n\tisStreaming?: boolean;\n\t/** Optional citations rendered as a `<Sources>` panel beneath the message stream. */\n\tsources?: SourceRef[];\n\t/** Disable the composer (e.g. while waiting on a tool call). */\n\tdisabled?: boolean;\n\t/** Trailing slot inside the composer — typically a Send button. */\n\tcomposerActions?: React.ReactNode;\n\tclassName?: string;\n}\n\n/** A single message in a `<Conversation>`. */\nexport interface ConversationMessage {\n\t/** Stable identifier — used for the React key. */\n\tid: string;\n\t/** Speaker. */\n\trole: Role;\n\t/** Message content. Pass a string for plain text or a node (e.g. `<Markdown>`) for formatted output. */\n\tcontent: React.ReactNode;\n}\n\n/**\n * Render a chat conversation shell.\n * @param props - messages + submit handler + optional streaming/sources state\n * @returns A flex column with a scrolling message list, optional sources/shimmer, and a composer row\n */\nfunction Conversation({\n\tmessages,\n\tonSubmit,\n\tplaceholder = \"Ask anything…\",\n\tvalue: valueProp,\n\tonValueChange: onValueChangeProp,\n\tisStreaming = false,\n\tsources,\n\tdisabled = false,\n\tcomposerActions,\n\tclassName,\n}: ConversationProps) {\n\tconst [internalValue, setInternalValue] = React.useState(\"\");\n\tconst isControlled = valueProp !== undefined;\n\tconst value = isControlled ? valueProp : internalValue;\n\tconst setValue = isControlled\n\t\t? (next: string) => onValueChangeProp?.(next)\n\t\t: setInternalValue;\n\n\tif (\n\t\tprocess.env.NODE_ENV !== \"production\" &&\n\t\tisControlled &&\n\t\ttypeof onValueChangeProp !== \"function\"\n\t) {\n\t\t// Surface the controlled-mode contract at runtime — `value` without\n\t\t// `onValueChange` makes the textarea silently read-only, which is a\n\t\t// frustrating debug. Schema commonMistakes flags it too, but a console\n\t\t// nudge catches it in the dev loop.\n\t\tconsole.error(\n\t\t\t\"<Conversation>: `value` was passed without `onValueChange`. The composer will be read-only — pass both props together for controlled mode, or omit both to let the component manage state internally.\",\n\t\t);\n\t}\n\n\tfunction handleSubmit(text: string) {\n\t\tonSubmit(text);\n\t\tsetValue(\"\");\n\t}\n\n\treturn (\n\t\t<div className={cn(\"flex h-full min-h-0 flex-col gap-3\", className)}>\n\t\t\t<MessageList className=\"min-h-0 flex-1\">\n\t\t\t\t{messages.map((m) => (\n\t\t\t\t\t<Message key={m.id} role={m.role}>\n\t\t\t\t\t\t{m.content}\n\t\t\t\t\t</Message>\n\t\t\t\t))}\n\t\t\t\t{isStreaming ? (\n\t\t\t\t\t<Message role=\"assistant\">\n\t\t\t\t\t\t<Shimmer width=\"60%\" />\n\t\t\t\t\t</Message>\n\t\t\t\t) : null}\n\t\t\t</MessageList>\n\t\t\t{sources && sources.length > 0 ? <Sources sources={sources} /> : null}\n\t\t\t<Composer\n\t\t\t\tvalue={value}\n\t\t\t\tonValueChange={setValue}\n\t\t\t\tonSubmit={handleSubmit}\n\t\t\t\tdisabled={disabled}\n\t\t\t\tplaceholder={placeholder}\n\t\t\t>\n\t\t\t\t{composerActions}\n\t\t\t</Composer>\n\t\t</div>\n\t);\n}\n\nexport { Conversation };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge",
+      "@radix-ui/react-collapsible",
+      "class-variance-authority"
+    ],
+    "internal": [
+      "lib/utils",
+      "components/composer/composer",
+      "components/message/message",
+      "components/message-list/message-list",
+      "components/shimmer/shimmer",
+      "components/sources/sources"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "card-foreground",
+    "border",
+    "muted",
+    "muted-foreground",
+    "background",
+    "secondary",
+    "accent",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Off-the-shelf chat surface",
+      "description": "Pass a messages array + onSubmit handler. Internal composer state is managed for you.",
+      "code": "const [messages, setMessages] = useState<ConversationMessage[]>([]);\nfunction handle(text: string) {\n  setMessages((m) => [...m, { id: nanoid(), role: \"user\", content: text }]);\n  // …kick off the model call\n}\n<Conversation messages={messages} onSubmit={handle} />",
+      "composition": [
+        "chat",
+        "shell",
+        "conversation"
+      ]
+    },
+    {
+      "title": "Streaming + RAG sources",
+      "description": "Show a Shimmer placeholder for the in-flight assistant turn and a Sources panel when the response cites sources.",
+      "code": "<Conversation\n  messages={messages}\n  onSubmit={handle}\n  isStreaming={waitingForFirstToken}\n  sources={lastResponse?.sources}\n  placeholder=\"Ask the docs…\"\n/>",
+      "composition": [
+        "chat",
+        "rag",
+        "streaming"
+      ]
+    },
+    {
+      "title": "Markdown-formatted assistant turns",
+      "description": "Pass `<Markdown>` (or any node) as the message content for streaming-safe formatting.",
+      "code": "const messages = chunks.map((c) => ({\n  id: c.id,\n  role: c.role,\n  content: c.role === \"assistant\" ? <Markdown>{c.text}</Markdown> : c.text,\n}));\n<Conversation messages={messages} onSubmit={handle} />",
+      "composition": [
+        "chat",
+        "markdown",
+        "streaming"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "As the off-the-shelf entry point for any chat surface — saves consumers from wiring `<MessageList>` + `<Composer>` + `<Sources>` + `<Shimmer>` manually. Use when the standard layout (history above, composer below) fits.",
+    "whenNotToUse": "Don't use when you need a non-standard layout (composer-on-top, side-by-side branches, threaded sub-conversations) — drop down to the underlying primitives. Don't use for a single-shot prompt UI (just a Composer + a result panel).",
+    "commonMistakes": [
+      "Passing message strings as `content` when you wanted markdown rendering — wrap with `<Markdown>{text}</Markdown>` so streaming-safe formatting kicks in",
+      "Forgetting the `id` field on each ConversationMessage — without a stable id React re-mounts every row on each update, killing input focus and animation continuity",
+      "Passing `value` without `onValueChange` (or vice-versa) — controlled mode requires both props together; without the handler, the input goes read-only because internal state can't update",
+      "Setting `isStreaming` for the entire response — only set it during the dead time BEFORE the first token; once tokens arrive, render the partial in the messages array and clear isStreaming"
+    ],
+    "relatedComponents": [
+      "message-list",
+      "composer",
+      "message",
+      "sources",
+      "shimmer",
+      "markdown"
+    ],
+    "accessibilityNotes": "Inherits accessibility from each composed primitive: MessageList is a `role=\"log\"` with `aria-live=\"polite\"` so new turns announce, Composer's textarea is a labelled form input that submits on Enter, Sources is a labelled Collapsible, and Shimmer is `role=\"status\"`. The composer disables cleanly via the `disabled` prop, propagating to its `<textarea>`.",
+    "tokenBudget": 280
+  },
+  "tags": [
+    "ai",
+    "chat",
+    "shell",
+    "conversation",
+    "messages",
+    "composer"
+  ]
+}

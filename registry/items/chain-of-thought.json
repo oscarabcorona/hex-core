@@ -1,0 +1,140 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "chain-of-thought",
+  "displayName": "ChainOfThought",
+  "description": "Structured ReAct-shape reasoning trace — each step has a thought, optional action, and optional observation. Final answer renders below the trace. Distinct from `<Reasoning>` (unstructured prose).",
+  "category": "ai",
+  "subcategory": "reasoning",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "steps",
+      "type": "object",
+      "required": true,
+      "description": "Array of `ChainOfThoughtStep` objects ({ thought: ReactNode; action?: ReactNode; observation?: ReactNode }). Every step has a thought; action and observation are optional."
+    },
+    {
+      "name": "finalAnswer",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional final answer rendered beneath the collapsible trace — typically a `<Markdown>` block."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "required": false,
+      "default": "Chain of thought",
+      "description": "Header label on the collapsible."
+    },
+    {
+      "name": "defaultOpen",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Whether the trace is expanded by default."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the root."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "finalAnswer",
+      "description": "Final answer rendered beneath the trace. Typically a `<Markdown>` block.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/chain-of-thought.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Reasoning } from \"../reasoning/reasoning.js\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Structured reasoning trace following the canonical ReAct shape — each\n * step has a `thought`, an optional `action`, and an optional\n * `observation`. The final answer renders below the trace.\n *\n * Distinct from `<Reasoning>`: Reasoning is unstructured prose;\n * `<ChainOfThought>` enforces the per-step structure agents emit when\n * doing tool-augmented reasoning. Internally composes `<Reasoning>` for\n * the collapsible shell so the visual rhythm matches.\n *\n * @example\n * <ChainOfThought\n *   steps={[\n *     {\n *       thought: \"Need to look up the auth module\",\n *       action: \"read auth.ts\",\n *       observation: \"200 lines, uses bcrypt + jwt\",\n *     },\n *     { thought: \"The bug is on line 42 — missing salt rounds.\" },\n *   ]}\n *   finalAnswer={<Markdown>{summary}</Markdown>}\n * />\n */\nexport interface ChainOfThoughtProps {\n\t/** Ordered ReAct steps. */\n\tsteps: ChainOfThoughtStep[];\n\t/** Optional final answer rendered beneath the trace. */\n\tfinalAnswer?: React.ReactNode;\n\t/** Header label for the collapsible. Defaults to \"Chain of thought\". */\n\tlabel?: string;\n\t/** Whether the trace is expanded by default. */\n\tdefaultOpen?: boolean;\n\tclassName?: string;\n}\n\n/** A single ReAct step. */\nexport interface ChainOfThoughtStep {\n\t/** What the model is thinking right now. Required — every step has a thought. */\n\tthought: React.ReactNode;\n\t/** Optional action the model is about to take (e.g. \"read auth.ts\"). */\n\taction?: React.ReactNode;\n\t/** Optional observation returned by the action. */\n\tobservation?: React.ReactNode;\n}\n\n/**\n * Render a structured reasoning trace + optional final answer.\n * @param props - The ordered steps and optional final answer.\n * @returns A Reasoning collapsible wrapping per-step rows, then the final answer.\n */\nfunction ChainOfThought({\n\tsteps,\n\tfinalAnswer,\n\tlabel = \"Chain of thought\",\n\tdefaultOpen = false,\n\tclassName,\n}: ChainOfThoughtProps) {\n\treturn (\n\t\t<div className={cn(\"flex flex-col gap-2\", className)}>\n\t\t\t<Reasoning label={label} defaultOpen={defaultOpen}>\n\t\t\t\t<ol className=\"my-0 ml-0 flex list-none flex-col gap-3 pl-0\">\n\t\t\t\t\t{steps.map((step, index) => (\n\t\t\t\t\t\t<li\n\t\t\t\t\t\t\t/*\n\t\t\t\t\t\t\t * Index keys are correct here: ReAct steps are\n\t\t\t\t\t\t\t * append-only during a turn, never reordered or\n\t\t\t\t\t\t\t * spliced out, so the index uniquely identifies\n\t\t\t\t\t\t\t * each step for the lifetime of the render.\n\t\t\t\t\t\t\t *\n\t\t\t\t\t\t\t * `before:content-none` defeats Tailwind\n\t\t\t\t\t\t\t * Typography's default `<li>::before` markers\n\t\t\t\t\t\t\t * when this card lands inside a `prose` block.\n\t\t\t\t\t\t\t */\n\t\t\t\t\t\t\tkey={index}\n\t\t\t\t\t\t\tclassName=\"flex flex-col gap-1 text-sm before:content-none\"\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<Row term=\"Thought\" value={step.thought} />\n\t\t\t\t\t\t\t{step.action ? <Row term=\"Action\" value={step.action} /> : null}\n\t\t\t\t\t\t\t{step.observation ? (\n\t\t\t\t\t\t\t\t<Row term=\"Observation\" value={step.observation} />\n\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t</li>\n\t\t\t\t\t))}\n\t\t\t\t</ol>\n\t\t\t</Reasoning>\n\t\t\t{finalAnswer ? <div>{finalAnswer}</div> : null}\n\t\t</div>\n\t);\n}\n\ninterface RowProps {\n\tterm: string;\n\tvalue: React.ReactNode;\n}\n\nfunction Row({ term, value }: RowProps) {\n\treturn (\n\t\t<div className=\"flex gap-2\">\n\t\t\t<span className=\"shrink-0 text-xs font-medium uppercase tracking-wide text-muted-foreground/80\">\n\t\t\t\t{term}\n\t\t\t</span>\n\t\t\t<span className=\"min-w-0 flex-1 text-foreground\">{value}</span>\n\t\t</div>\n\t);\n}\n\nexport { ChainOfThought };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-collapsible",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils",
+      "components/reasoning/reasoning"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "foreground",
+    "muted-foreground",
+    "muted",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "ReAct trace with a final answer",
+      "description": "Two steps + a final summary rendered as Markdown.",
+      "code": "<ChainOfThought\n  steps={[\n    {\n      thought: \"Need to look up the auth module\",\n      action: \"read auth.ts\",\n      observation: \"200 lines, uses bcrypt + jwt\",\n    },\n    { thought: \"The bug is on line 42 — missing salt rounds.\" },\n  ]}\n  finalAnswer={<Markdown>{\"Set `bcrypt.hash(pw, 12)` instead of `bcrypt.hash(pw)`.\"}</Markdown>}\n/>",
+      "composition": [
+        "agent",
+        "react",
+        "reasoning"
+      ]
+    },
+    {
+      "title": "Pure thought trace (no actions)",
+      "description": "When the model is reasoning without tool calls, omit action/observation.",
+      "code": "<ChainOfThought\n  steps={[\n    { thought: \"The user wants a 3-step migration.\" },\n    { thought: \"Step 1 is read-only, so it can run during business hours.\" },\n    { thought: \"Steps 2-3 need maintenance window — recommend Saturday 2am.\" },\n  ]}\n/>",
+      "composition": [
+        "agent",
+        "reasoning"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "To expose the model's structured thinking when it's doing ReAct-style tool-augmented reasoning. Each step's thought / action / observation triple matches the canonical ReAct prompting format. Pair with `<ToolCall>` for the actual tool invocations and `<Markdown>` for the final answer.",
+    "whenNotToUse": "Don't use for unstructured reasoning prose (use `<Reasoning>`). Don't use for the user-facing answer itself (the `finalAnswer` slot is for the answer; the trace is the scratchpad). Don't use to render ALL agent thinking — most models also produce free-form prose that doesn't fit the ReAct shape. Don't pass a Server Component subtree as `finalAnswer` — `<ChainOfThought>` is client-only (it composes Radix Collapsible via `<Reasoning>`), so the answer must be client-renderable too.",
+    "commonMistakes": [
+      "Putting the final answer inside a step's thought — it belongs in `finalAnswer` so it stays visible when the trace is collapsed",
+      "Omitting `thought` on a step (it's required) — every step represents a reasoning move, even if the action is what carries the work",
+      "Using `<ChainOfThought>` for arbitrary structured data (use a real list or table) — this primitive's labels are specifically `Thought` / `Action` / `Observation`",
+      "Setting `defaultOpen={true}` for every assistant turn — the trace can be long; default-collapsed matches user expectations and lets them peek when they want more depth"
+    ],
+    "relatedComponents": [
+      "reasoning",
+      "tool-call",
+      "markdown",
+      "task"
+    ],
+    "accessibilityNotes": "Wraps `<Reasoning>` (Radix Collapsible) — header is a real `<button>` with aria-expanded; content gets aria-hidden when closed. The step list renders as an `<ol>`; per-step term labels (Thought / Action / Observation) read as inline text rather than `<dt>`/`<dd>` because the visual structure is a vertical row, not a definition list. Final answer renders outside the collapsible so it stays visible regardless of trace state.",
+    "tokenBudget": 260
+  },
+  "tags": [
+    "ai",
+    "agent",
+    "reasoning",
+    "react",
+    "chain-of-thought",
+    "trace"
+  ]
+}

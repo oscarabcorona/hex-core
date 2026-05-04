@@ -1187,6 +1187,24 @@
       "tokenBudget": 320
     },
     {
+      "name": "branch",
+      "displayName": "Branch",
+      "description": "Headless alternate-response navigator. Renders one active branch with a prev/next control chip beneath it. Stateless — consumer owns `current` and `total`.",
+      "category": "ai",
+      "subcategory": "agent",
+      "tags": [
+        "ai",
+        "agent",
+        "branch",
+        "navigation",
+        "alternates"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 220
+    },
+    {
       "name": "canvas",
       "displayName": "Canvas",
       "description": "Headless node-graph canvas backed by reactflow. Renders interactive agent workflows, RAG graphs, document relationships. Default Background + Controls; slot for MiniMap or custom overlays.",
@@ -1205,6 +1223,26 @@
         "lib/utils"
       ],
       "tokenBudget": 380
+    },
+    {
+      "name": "chain-of-thought",
+      "displayName": "ChainOfThought",
+      "description": "Structured ReAct-shape reasoning trace — each step has a thought, optional action, and optional observation. Final answer renders below the trace. Distinct from `<Reasoning>` (unstructured prose).",
+      "category": "ai",
+      "subcategory": "reasoning",
+      "tags": [
+        "ai",
+        "agent",
+        "reasoning",
+        "react",
+        "chain-of-thought",
+        "trace"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "components/reasoning/reasoning"
+      ],
+      "tokenBudget": 260
     },
     {
       "name": "citation",
@@ -1261,6 +1299,30 @@
       ],
       "internalDeps": [
         "lib/utils"
+      ],
+      "tokenBudget": 280
+    },
+    {
+      "name": "conversation",
+      "displayName": "Conversation",
+      "description": "High-level chat shell. Composes `<MessageList>` over a messages array, an optional `<Sources>` panel, an optional `<Shimmer>` placeholder during the dead-time before the first stream token, and a `<Composer>` row at the bottom.",
+      "category": "ai",
+      "subcategory": "chat",
+      "tags": [
+        "ai",
+        "chat",
+        "shell",
+        "conversation",
+        "messages",
+        "composer"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "components/composer/composer",
+        "components/message/message",
+        "components/message-list/message-list",
+        "components/shimmer/shimmer",
+        "components/sources/sources"
       ],
       "tokenBudget": 280
     },
@@ -1396,6 +1458,25 @@
       ],
       "internalDeps": [
         "lib/utils"
+      ],
+      "tokenBudget": 240
+    },
+    {
+      "name": "plan",
+      "displayName": "Plan",
+      "description": "Pre-execution multi-step plan card with an optional approval gate. Distinct from `<Task>` — Task is during/post-execution status; Plan is pre-execution intent.",
+      "category": "ai",
+      "subcategory": "agent",
+      "tags": [
+        "ai",
+        "agent",
+        "plan",
+        "approval",
+        "pre-execution"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "primitives/button/button"
       ],
       "tokenBudget": 240
     },

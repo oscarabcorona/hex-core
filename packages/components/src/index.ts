@@ -353,6 +353,18 @@ export { Sources, type SourcesProps, type SourceRef } from "./ai/sources/sources
 export { InlineCitation, type InlineCitationProps } from "./ai/inline-citation/inline-citation.js";
 export { Task, type TaskProps, type TaskStep } from "./ai/task/task.js";
 export { Shimmer, type ShimmerProps } from "./ai/shimmer/shimmer.js";
+export { Branch, type BranchProps } from "./ai/branch/branch.js";
+export { Plan, type PlanProps, type PlanStep } from "./ai/plan/plan.js";
+export {
+	Conversation,
+	type ConversationProps,
+	type ConversationMessage,
+} from "./ai/conversation/conversation.js";
+export {
+	ChainOfThought,
+	type ChainOfThoughtProps,
+	type ChainOfThoughtStep,
+} from "./ai/chain-of-thought/chain-of-thought.js";
 
 // Schemas live in `@hex-core/components/schemas` (1.4.0+) so the runtime
 // barrel doesn't pull in the `@hex-core/registry` type at the consumer's
