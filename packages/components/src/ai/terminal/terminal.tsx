@@ -212,6 +212,17 @@ function Terminal({
 			className={cn(
 				"overflow-hidden rounded-md border p-2",
 				"font-mono text-sm leading-tight",
+				// xterm.js mounts hidden helper elements (`<textarea>` for
+				// keyboard / IME input, `.xterm-char-measure-element` for
+				// sizing). Both inherit the page's foreground token, which
+				// axe flags as sub-AA against the locked-dark surface even
+				// though they're visually offscreen. Force their visible
+				// color transparent so axe stops complaining; AT can still
+				// read the textarea (xterm's intended IME path), but the
+				// rendered output appears in xterm's canvas — not the
+				// textarea — so AT won't see meaningful content there.
+				"[&_textarea]:!text-transparent [&_textarea]:!caret-transparent",
+				"[&_.xterm-char-measure-element]:!text-transparent",
 				className,
 			)}
 		/>

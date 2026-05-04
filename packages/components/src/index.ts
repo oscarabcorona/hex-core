@@ -349,6 +349,10 @@ export {
 	type AttachmentFile,
 	type AttachmentProps,
 } from "./ai/attachment/attachment.js";
+export { Sources, type SourcesProps, type SourceRef } from "./ai/sources/sources.js";
+export { InlineCitation, type InlineCitationProps } from "./ai/inline-citation/inline-citation.js";
+export { Task, type TaskProps, type TaskStep } from "./ai/task/task.js";
+export { Shimmer, type ShimmerProps } from "./ai/shimmer/shimmer.js";
 
 // Artifacts — typed React diagram primitives.
 // Hierarchy family heavy peers (d3-hierarchy, d3-shape) and Flow-family

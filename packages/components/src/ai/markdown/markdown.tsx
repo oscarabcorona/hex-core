@@ -5,8 +5,9 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
-import { Citation } from "../citation/citation.js";
+import { InlineCitation } from "../inline-citation/inline-citation.js";
 import { Reasoning } from "../reasoning/reasoning.js";
+import { Sources, type SourceRef } from "../sources/sources.js";
 import { ToolCall } from "../tool-call/tool-call.js";
 import type { ToolCallState } from "../types.js";
 import { cn } from "../../lib/utils.js";
@@ -24,7 +25,8 @@ import { remarkAdmonitions } from "./remark-admonitions.js";
  *
  * Slot wiring:
  * - **Fenced code** (` ```lang `) → `<pre><code class="language-*">` (client-safe; consumers post-highlight).
- * - **Footnote-style links** (`[1](url)`) → `<Citation>`.
+ * - **Footnote-style links** (`[1](url)`) → `<InlineCitation>` (inline `<sup>` with hover preview).
+ * - **`<sources data='[…]' />`** → `<Sources>` (collapsible RAG-source list).
  * - **`<tool-call name=… state=… args=… result=…/>`** → `<ToolCall>`.
  * - **`> [!think]\n> body`** blockquotes → `<Reasoning>`.
  *
@@ -44,19 +46,20 @@ export interface MarkdownProps {
 	className?: string;
 }
 
-// Allowlist for the four AI-aware slot tags + attrs. `hast-util-sanitize`
+// Allowlist for the AI-aware slot tags + attrs. `hast-util-sanitize`
 // normalizes element tag names to lowercase before lookup, so the
-// `tool-call` key is the literal kebab-case HTML tag name. The
-// `dataAdmonition` attribute key is the camelCase hast-property name —
-// it serializes to the kebab `data-admonition` attribute on the rendered
-// `<blockquote>`, which the `ReasoningOrQuoteSlot` reads as
-// `rest["data-admonition"]`.
+// `tool-call` and `sources` keys are the literal kebab-case HTML tag
+// names. The `dataAdmonition` attribute key is the camelCase
+// hast-property name — it serializes to the kebab `data-admonition`
+// attribute on the rendered `<blockquote>`, which the
+// `ReasoningOrQuoteSlot` reads as `rest["data-admonition"]`.
 const SANITIZE_SCHEMA = {
 	...defaultSchema,
-	tagNames: [...(defaultSchema.tagNames ?? []), "tool-call"],
+	tagNames: [...(defaultSchema.tagNames ?? []), "tool-call", "sources"],
 	attributes: {
 		...(defaultSchema.attributes ?? {}),
 		"tool-call": ["name", "state", "args", "result"],
+		sources: ["data"],
 		blockquote: [
 			...((defaultSchema.attributes ?? {}).blockquote ?? []),
 			"dataAdmonition",
@@ -69,6 +72,7 @@ const COMPONENTS = {
 	a: CitationOrLinkSlot,
 	blockquote: ReasoningOrQuoteSlot,
 	"tool-call": ToolCallSlot,
+	sources: SourcesSlot,
 } as const;
 
 /**
@@ -89,6 +93,14 @@ function Markdown({ children, className }: MarkdownProps) {
 				className,
 			)}
 		>
+			{/*
+			 * SECURITY INVARIANT: rehype-sanitize MUST follow rehype-raw.
+			 * Reordering re-opens raw <script>/<iframe>/event-handler
+			 * injection from any markdown source — including streamed model
+			 * output, where an attacker could prompt-inject arbitrary HTML.
+			 * The sanitize schema's `tagNames` allowlist is the only line
+			 * of defense once raw HTML is parsed.
+			 */}
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm, remarkAdmonitions]}
 				rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA]]}
@@ -123,10 +135,15 @@ interface CitationLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement
 
 /**
  * `react-markdown` `a` renderer. Footnote-style numeric links become
- * `<Citation>`; everything else renders as a default link.
+ * `<InlineCitation>` (inline `<sup>` + hover preview); everything else
+ * renders as a default link with prose styling.
+ *
+ * The block-level `<Citation>` chip is still importable separately —
+ * use it inside a `<Sources>` panel where the chip-shaped UI fits, and
+ * use this slot for inline mid-sentence references.
  *
  * @param props - Anchor attributes + react-markdown's hast `node` (dropped).
- * @returns Either a `<Citation>` chip or an `<a>`.
+ * @returns Either an `<InlineCitation>` or an `<a>`.
  */
 function CitationOrLinkSlot({
 	href,
@@ -139,7 +156,7 @@ function CitationOrLinkSlot({
 	const footnote = FOOTNOTE_RE.exec(text);
 	if (footnote && href) {
 		const index = Number(footnote[1]);
-		return <Citation index={index} url={href} title={inferCitationTitle(href)} />;
+		return <InlineCitation index={index} url={href} title={inferCitationTitle(href)} />;
 	}
 	return (
 		<a href={href} className={className} {...rest}>
@@ -326,4 +343,57 @@ function parseJson(raw: string | undefined): unknown {
 	} catch {
 		return raw;
 	}
+}
+
+interface SourcesSlotAttrs {
+	/** JSON-stringified `SourceRef[]`. Parsed lazily. */
+	data?: string;
+	children?: React.ReactNode;
+	/** Hast node from react-markdown@10 — destructured to keep it off the DOM. */
+	node?: unknown;
+}
+
+/**
+ * Renderer for the custom `<sources>` HTML tag (preserved by
+ * `rehype-raw`, allowed in the sanitize schema).
+ *
+ * Reads a JSON-stringified `data` attribute holding a `SourceRef[]`
+ * and renders `<Sources>`. Bad JSON, missing data, or a non-array
+ * payload all fall through to a Fragment passthrough — keeps malformed
+ * mid-stream fragments from crashing the render.
+ *
+ * @param props - The serialized `data` attribute + hast `node` (dropped).
+ * @returns A `<Sources>` panel or a Fragment passthrough.
+ */
+function SourcesSlot({ data, children, node: _node }: SourcesSlotAttrs) {
+	// Memoize the parse pass — every Markdown re-render (each streaming
+	// token!) would otherwise re-parse the (potentially large) JSON
+	// payload from scratch. Same pattern as `closeUnterminated` upstream.
+	const sources = React.useMemo(() => parseSources(data), [data]);
+	if (!sources) return <>{children}</>;
+	return <Sources sources={sources} />;
+}
+
+function parseSources(raw: string | undefined): SourceRef[] | null {
+	if (raw === undefined || raw === "") return null;
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(raw);
+	} catch {
+		return null;
+	}
+	if (!Array.isArray(parsed)) return null;
+	const result: SourceRef[] = [];
+	for (const item of parsed) {
+		if (!item || typeof item !== "object") continue;
+		// `in`-narrowing keeps each property access typed as `unknown`,
+		// so the typeof guards below narrow without an `as` cast.
+		if (!("title" in item) || typeof item.title !== "string") continue;
+		const ref: SourceRef = { title: item.title };
+		if ("url" in item && typeof item.url === "string") ref.url = item.url;
+		if ("page" in item && typeof item.page === "number") ref.page = item.page;
+		if ("index" in item && typeof item.index === "number") ref.index = item.index;
+		result.push(ref);
+	}
+	return result;
 }

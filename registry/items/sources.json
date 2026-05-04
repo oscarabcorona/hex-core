@@ -1,0 +1,125 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "sources",
+  "displayName": "Sources",
+  "description": "Bordered card listing 1–N citation chips for a RAG response. Re-uses Citation per row inside a Radix Collapsible so consumers can collapse the list when the response references many sources.",
+  "category": "ai",
+  "subcategory": "rag",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "sources",
+      "type": "object",
+      "required": true,
+      "description": "Array of `SourceRef` objects ({ title: string; url?: string; page?: number }). Each becomes a Citation chip."
+    },
+    {
+      "name": "defaultOpen",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Whether the list is expanded by default."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the root."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/sources.tsx",
+      "content": "\"use client\";\n\nimport * as CollapsiblePrimitive from \"@radix-ui/react-collapsible\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\nimport { Citation } from \"../citation/citation.js\";\n\n/**\n * Bordered card listing 1–N citation chips for a RAG response.\n *\n * Header reads \"N sources\" and is a clickable Radix Collapsible trigger;\n * body renders one `<Citation>` per source (re-using the in-house chip).\n * Defaults to open so consumers don't have to expand to see what was\n * cited.\n *\n * @example\n * <Sources\n *   sources={[\n *     { title: \"Auth research\", url: \"https://example.com/auth\", page: 3 },\n *     { title: \"OAuth 2.1 spec\", url: \"https://oauth.net/2.1\" },\n *   ]}\n * />\n */\nexport interface SourcesProps {\n\t/** Citation rows. Each becomes a `<Citation>` chip. */\n\tsources: SourceRef[];\n\t/** Whether the list is expanded by default. */\n\tdefaultOpen?: boolean;\n\tclassName?: string;\n}\n\n/** Per-source data passed to a Citation chip. */\nexport interface SourceRef {\n\ttitle: string;\n\turl?: string;\n\tpage?: number;\n\t/** Optional 1-based index. Falls back to array position. Use to keep\n\t * the inline `<InlineCitation>` index aligned with the panel row when\n\t * the model emits non-1-based numbering. */\n\tindex?: number;\n}\n\n/**\n * Render a sources panel for an LLM response. Returns null when the\n * sources array is empty — consumers don't get a \"0 sources\" empty\n * card; they just don't render the panel at all.\n *\n * @param props - The list of sources + open-state default.\n * @returns A Collapsible wrapping a Citation cluster, or null if empty.\n */\nfunction Sources({ sources, defaultOpen = true, className }: SourcesProps) {\n\tif (sources.length === 0) return null;\n\tconst count = sources.length;\n\tconst headerLabel = count === 1 ? \"1 source\" : `${count} sources`;\n\n\treturn (\n\t\t<CollapsiblePrimitive.Root\n\t\t\tdefaultOpen={defaultOpen}\n\t\t\tclassName={cn(\n\t\t\t\t\"overflow-hidden rounded-md border border-border bg-card text-card-foreground\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t>\n\t\t\t<CollapsiblePrimitive.Trigger\n\t\t\t\tclassName={cn(\n\t\t\t\t\t\"group flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-muted-foreground\",\n\t\t\t\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\t\"hover:text-foreground\",\n\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t)}\n\t\t\t>\n\t\t\t\t<DocStackGlyph />\n\t\t\t\t<span className=\"font-medium\">{headerLabel}</span>\n\t\t\t\t<Chevron />\n\t\t\t</CollapsiblePrimitive.Trigger>\n\t\t\t<CollapsiblePrimitive.Content className=\"overflow-hidden border-t border-foreground/[0.06]\">\n\t\t\t\t<div className=\"flex flex-wrap items-center gap-1.5 p-2\">\n\t\t\t\t\t{sources.map((s, i) => (\n\t\t\t\t\t\t<Citation\n\t\t\t\t\t\t\tkey={`${s.url ?? s.title}-${i}`}\n\t\t\t\t\t\t\ttitle={s.title}\n\t\t\t\t\t\t\turl={s.url}\n\t\t\t\t\t\t\tpage={s.page}\n\t\t\t\t\t\t\tindex={s.index ?? i + 1}\n\t\t\t\t\t\t/>\n\t\t\t\t\t))}\n\t\t\t\t</div>\n\t\t\t</CollapsiblePrimitive.Content>\n\t\t</CollapsiblePrimitive.Root>\n\t);\n}\n\nfunction DocStackGlyph() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"12\"\n\t\t\theight=\"12\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.5\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\tclassName=\"shrink-0\"\n\t\t>\n\t\t\t<path d=\"M5 3h7l1.5 1.5V13H5V3z\" />\n\t\t\t<path d=\"M3 5v8.5L4.5 15H11\" />\n\t\t</svg>\n\t);\n}\n\nfunction Chevron() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"12\"\n\t\t\theight=\"12\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.5\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\tclassName=\"ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180\"\n\t\t>\n\t\t\t<path d=\"M4 6l4 4 4-4\" />\n\t\t</svg>\n\t);\n}\n\nexport { Sources };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-collapsible",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils",
+      "components/citation/citation"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "card-foreground",
+    "border",
+    "muted-foreground",
+    "foreground",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "RAG response sources",
+      "description": "Three retrieved sources for a question about auth.",
+      "code": "const refs = [\n  { title: \"Auth research\", url: \"https://example.com/auth\", page: 3 },\n  { title: \"OAuth 2.1 spec\", url: \"https://oauth.net/2.1\" },\n  { title: \"Internal RFC #42\", url: \"https://example.com/rfc-42\" },\n];\n<Sources sources={refs} />",
+      "composition": [
+        "rag",
+        "citations",
+        "sources"
+      ]
+    },
+    {
+      "title": "Streamed via <sources> markdown element",
+      "description": "Render an LLM response that emits <sources data='[…]' /> via the Markdown slot wiring.",
+      "code": "const md = `<sources data='[{\"title\":\"Auth research\",\"url\":\"https://example.com/auth\",\"page\":3}]' />`;\n<Markdown>{md}</Markdown>",
+      "composition": [
+        "chat",
+        "rag",
+        "streaming"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "At the bottom of a RAG-style assistant response, listing every source the model cited. Pair with InlineCitation in the body text so the inline refs and the bottom-of-card list reference the same sources by index.",
+    "whenNotToUse": "Don't use for a single-source attribution (drop in a plain Citation). Don't use as navigation — Sources is reference-only; for query history use a sidebar or breadcrumb.",
+    "commonMistakes": [
+      "Passing strings instead of `{ title, url? }` objects in the `sources` array",
+      "Composing inline citations with `Citation` (block-level) when `InlineCitation` (inline + hover popover) is the right choice",
+      "Setting `defaultOpen={false}` on a chat surface — users miss provenance information by default",
+      "Embedding raw URLs as titles (use the source's display name; URL hostname is a fallback Citation already provides)"
+    ],
+    "relatedComponents": [
+      "citation",
+      "inline-citation",
+      "markdown",
+      "message"
+    ],
+    "accessibilityNotes": "Wraps Radix Collapsible — the trigger is a real <button> with aria-expanded; content gets aria-hidden when closed. Each Citation chip is keyboard-focusable when its url is set.",
+    "tokenBudget": 240
+  },
+  "tags": [
+    "ai",
+    "rag",
+    "citations",
+    "sources",
+    "collapsible"
+  ]
+}

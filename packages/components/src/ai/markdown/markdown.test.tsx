@@ -52,16 +52,19 @@ describe("Markdown — fenced code preserves the language class", () => {
 	});
 });
 
-describe("Markdown — footnote-style links route to Citation", () => {
-	it("renders [N](url) as a Citation anchor with the index span", () => {
+describe("Markdown — footnote-style links route to InlineCitation", () => {
+	it("renders [N](url) as an InlineCitation <sup> anchor with the index visible", () => {
 		const { container } = render(
 			<Markdown>{"see [1](https://anthropic.com/research)"}</Markdown>,
 		);
 		const link = container.querySelector("a[href='https://anthropic.com/research']");
 		expect(link).not.toBeNull();
-		// Citation prepends the [N] label inside a font-mono span.
-		expect(link?.textContent ?? "").toContain("[1]");
-		expect(link?.textContent ?? "").toContain("anthropic.com");
+		// Trigger renders as <sup><a>[1]</a></sup>; hostname/title live in the
+		// hover popover which is in a Portal and not mounted until hover.
+		expect(link?.closest("sup")).not.toBeNull();
+		expect(link?.textContent).toBe("[1]");
+		expect(link?.getAttribute("aria-label")).toContain("Source 1");
+		expect(link?.getAttribute("aria-label")).toContain("anthropic.com");
 	});
 
 	it("renders a regular link as <a> when the text isn't a footnote", () => {
@@ -72,6 +75,91 @@ describe("Markdown — footnote-style links route to Citation", () => {
 		expect(a).not.toBeNull();
 		expect(a?.getAttribute("href")).toBe("https://hex-core.dev");
 		expect(a?.textContent).toBe("the docs");
+		// Default link is NOT inside a <sup>.
+		expect(a?.closest("sup")).toBeNull();
+	});
+});
+
+describe("Markdown — <sources> element routes to Sources", () => {
+	it("renders the Sources panel with N citation chips when <sources data='[…]' /> appears", () => {
+		const sources = [
+			{ title: "Auth research", url: "https://example.com/auth", page: 3 },
+			{ title: "OAuth 2.1 spec", url: "https://oauth.net/2.1" },
+		];
+		const md = `<sources data='${JSON.stringify(sources).replace(/'/g, "&apos;")}' />`;
+		render(<Markdown>{md}</Markdown>);
+		expect(screen.getByRole("button", { name: /2 sources/i })).toBeInTheDocument();
+		expect(screen.getByText(/auth research/i)).toBeInTheDocument();
+		expect(screen.getByText(/oauth 2\.1 spec/i)).toBeInTheDocument();
+	});
+
+	it("falls back to passthrough when <sources data> is malformed JSON", () => {
+		const { container } = render(<Markdown>{"<sources data='not json' />"}</Markdown>);
+		// No Sources panel rendered.
+		expect(screen.queryByRole("button", { name: /sources/i })).toBeNull();
+		// Markdown root still renders.
+		expect(container.querySelector(".prose")).not.toBeNull();
+	});
+
+	it("renders an XSS payload in source title as plain text (React JSX-escapes)", () => {
+		// Defense-in-depth: even if a future Citation refactor moves
+		// `title` into `dangerouslySetInnerHTML`, this regression test
+		// fails — a real <img onerror> would never execute through the
+		// current render path because React escapes JSX text children.
+		const xss = [
+			{ title: '<img src=x onerror="alert(1)">', url: "https://example.com" },
+		];
+		const md = `<sources data='${JSON.stringify(xss).replace(/'/g, "&apos;")}' />`;
+		const { container } = render(<Markdown>{md}</Markdown>);
+		// No <img> from the title — React rendered it as escaped text.
+		expect(container.querySelector("img")).toBeNull();
+		// The literal title string is in the DOM as text content.
+		expect(container.textContent ?? "").toContain('<img src=x onerror="alert(1)">');
+	});
+});
+
+describe("Markdown — sanitize-schema XSS regressions", () => {
+	// These tests pin the rehype-sanitize allowlist as the second line of
+	// defense after rehype-raw parses inline HTML. If the SECURITY
+	// INVARIANT in markdown.tsx is ever inverted (rehype-sanitize before
+	// rehype-raw), these all fail loudly.
+
+	it("strips raw <script> tags", () => {
+		const { container } = render(
+			<Markdown>{"<script>alert(1)</script>safe"}</Markdown>,
+		);
+		expect(container.querySelector("script")).toBeNull();
+		// Body text after the stripped tag still renders.
+		expect(container.textContent ?? "").toContain("safe");
+	});
+
+	it("strips inline event-handler attributes from img tags", () => {
+		const { container } = render(
+			<Markdown>{'<img src="x" onerror="alert(1)" alt="x">'}</Markdown>,
+		);
+		const img = container.querySelector("img");
+		// The element may stay (img is allowed) but the onerror handler MUST be stripped.
+		if (img) {
+			expect(img.getAttribute("onerror")).toBeNull();
+		}
+	});
+
+	it("strips javascript: hrefs from markdown links", () => {
+		const { container } = render(
+			<Markdown>{"[click](javascript:alert(1))"}</Markdown>,
+		);
+		const link = container.querySelector("a");
+		// rehype-sanitize either drops the href entirely or leaves the link without one.
+		const href = link?.getAttribute("href") ?? "";
+		expect(href.startsWith("javascript:")).toBe(false);
+	});
+
+	it("strips raw <iframe> tags", () => {
+		const { container } = render(
+			<Markdown>{'<iframe src="https://evil.com"></iframe>after'}</Markdown>,
+		);
+		expect(container.querySelector("iframe")).toBeNull();
+		expect(container.textContent ?? "").toContain("after");
 	});
 });
 
