@@ -98,6 +98,10 @@ export { sourcesSchema } from "./ai/sources/sources.schema.js";
 export { inlineCitationSchema } from "./ai/inline-citation/inline-citation.schema.js";
 export { taskSchema } from "./ai/task/task.schema.js";
 export { shimmerSchema } from "./ai/shimmer/shimmer.schema.js";
+export { branchSchema } from "./ai/branch/branch.schema.js";
+export { planSchema } from "./ai/plan/plan.schema.js";
+export { conversationSchema } from "./ai/conversation/conversation.schema.js";
+export { chainOfThoughtSchema } from "./ai/chain-of-thought/chain-of-thought.schema.js";
 
 // Artifacts — hierarchy-family diagram primitives (1.8.0+)
 export { mindMapSchema } from "./artifacts/mind-map/mind-map.schema.js";
