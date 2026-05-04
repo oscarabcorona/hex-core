@@ -1,0 +1,151 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "pyramid",
+  "displayName": "Pyramid",
+  "description": "Ranked-tier pyramid. Tiers stack top-to-bottom; widths can grow toward the base (widening) or shrink (narrowing). Pure SVG; no heavy peer dep. Distinct from Funnel — Pyramid encodes RANK, Funnel encodes FLOW.",
+  "category": "artifact",
+  "subcategory": "flow",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "tiers",
+      "type": "object",
+      "required": true,
+      "description": "Ordered top-to-bottom array of { id, label, value? }. The first entry is the apex."
+    },
+    {
+      "name": "shape",
+      "type": "enum",
+      "required": false,
+      "default": "widening",
+      "description": "Tier-width direction — \"widening\" grows toward the base; \"narrowing\" shrinks toward it.",
+      "enumValues": [
+        "widening",
+        "narrowing"
+      ]
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 480,
+      "description": "SVG pixel width."
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "required": false,
+      "default": 360,
+      "description": "SVG pixel height."
+    },
+    {
+      "name": "gap",
+      "type": "number",
+      "required": false,
+      "default": 4,
+      "description": "Pixel gap between tiers."
+    },
+    {
+      "name": "showValues",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Show each tier's `value` next to its label when present."
+    },
+    {
+      "name": "onTierClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked PyramidTier."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/pyramid.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Ranked-tier pyramid. Tiers stack top-to-bottom; each tier's width can\n * either grow toward the base (\"widening\" — Maslow's hierarchy, fewer\n * elites at the top) or shrink (\"narrowing\" — population pyramid by age).\n * Pure SVG; no heavy peer dependency.\n *\n * Distinct from Funnel: Pyramid encodes RANK (each tier is a distinct\n * categorical level), Funnel encodes FLOW (each stage is a subset of the\n * previous, with a conversion ratio).\n *\n * @example\n * <Pyramid\n *   tiers={[\n *     { id: \"self-actualization\", label: \"Self-actualization\" },\n *     { id: \"esteem\", label: \"Esteem\" },\n *     { id: \"love\", label: \"Love & belonging\" },\n *     { id: \"safety\", label: \"Safety\" },\n *     { id: \"physiological\", label: \"Physiological\" },\n *   ]}\n *   shape=\"widening\"\n * />\n */\nexport type PyramidTier = {\n\tid: string;\n\tlabel: string;\n\tvalue?: number;\n};\n\nexport interface PyramidProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Ordered top-to-bottom tiers. The first entry is the apex. */\n\ttiers: PyramidTier[];\n\t/** Tier-width direction. \"widening\" grows toward the base; \"narrowing\" shrinks toward it. Default \"widening\". */\n\tshape?: \"widening\" | \"narrowing\";\n\t/** Pixel width of the rendered SVG. Default 480. */\n\twidth?: number;\n\t/** Pixel height of the rendered SVG. Default 360. */\n\theight?: number;\n\t/** Pixel gap between tiers. Default 4. */\n\tgap?: number;\n\t/** Show each tier's `value` next to its label when present. Default true. */\n\tshowValues?: boolean;\n\t/** Fired when a tier is clicked. */\n\tonTierClick?: (tier: PyramidTier) => void;\n}\n\ninterface LaidOutTier {\n\ttier: PyramidTier;\n\tdepth: number;\n\ttopLeft: number;\n\ttopRight: number;\n\tbottomLeft: number;\n\tbottomRight: number;\n\tyTop: number;\n\tyBottom: number;\n}\n\nfunction Pyramid({\n\ttiers,\n\tshape = \"widening\",\n\twidth = 480,\n\theight = 360,\n\tgap = 4,\n\tshowValues = true,\n\tonTierClick,\n\tclassName,\n\t...rest\n}: PyramidProps) {\n\tconst laidOut = layout(tiers, shape, width, height, gap);\n\tconst desc = `Pyramid with ${tiers.length} tier${tiers.length === 1 ? \"\" : \"s\"} (${shape})`;\n\n\t// Pyramid's `whenNotToUse` warns about >7 tiers — surface a dev-only\n\t// console warning so consumers feel the friction in development without\n\t// punishing prod runtime. Uses a ref so the warning fires once per mount,\n\t// not on every render. Read NODE_ENV via globalThis to avoid pulling\n\t// `@types/node` into the components package — bundlers inline the value\n\t// in browser builds; in tests vitest/Node provides `process` at runtime.\n\tconst warnedRef = React.useRef(false);\n\tconst nodeEnv = (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process?.env?.NODE_ENV;\n\tif (nodeEnv !== \"production\" && !warnedRef.current && tiers.length > 7) {\n\t\twarnedRef.current = true;\n\t\t// eslint-disable-next-line no-console\n\t\tconsole.warn(\n\t\t\t`[hex-core/Pyramid] ${tiers.length} tiers — labels become unreadable past ~7. Group adjacent tiers or switch to TreeMap / OrgChart.`,\n\t\t);\n\t}\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-pyramid\n\t\t\tdata-shape={shape}\n\t\t\trole=\"img\"\n\t\t\twidth={width}\n\t\t\theight={height}\n\t\t\tviewBox={`0 0 ${width} ${height}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Pyramid chart</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<g data-hex-pyramid-tiers>\n\t\t\t\t{laidOut.map((t) => {\n\t\t\t\t\tconst valueText =\n\t\t\t\t\t\tshowValues && t.tier.value != null ? ` · ${t.tier.value.toLocaleString()}` : \"\";\n\t\t\t\t\tconst interactive = Boolean(onTierClick);\n\t\t\t\t\tconst handleActivate = () => onTierClick?.(t.tier);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<g\n\t\t\t\t\t\t\tkey={t.tier.id}\n\t\t\t\t\t\t\tdata-hex-pyramid-tier\n\t\t\t\t\t\t\tdata-depth={t.depth}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={interactive ? `${t.tier.label}${valueText}` : undefined}\n\t\t\t\t\t\t\tstyle={interactive ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\t\tonClick={interactive ? handleActivate : undefined}\n\t\t\t\t\t\t\tonKeyDown={interactive ? (e) => activateOnKey(e, handleActivate) : undefined}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<polygon\n\t\t\t\t\t\t\t\tpoints={`${t.topLeft},${t.yTop} ${t.topRight},${t.yTop} ${t.bottomRight},${t.yBottom} ${t.bottomLeft},${t.yBottom}`}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\t\t// Floor at 0.6 keeps `primary-foreground` text on the tier\n\t\t\t\t\t\t\t\t// at ≥4.5:1 contrast even at the widest pyramids.\n\t\t\t\t\t\t\t\tfillOpacity={Math.max(0.6, 1 - t.depth * 0.07)}\n\t\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\tx={width / 2}\n\t\t\t\t\t\t\t\ty={(t.yTop + t.yBottom) / 2}\n\t\t\t\t\t\t\t\tdy=\"0.35em\"\n\t\t\t\t\t\t\t\ttextAnchor=\"middle\"\n\t\t\t\t\t\t\t\tfontSize={12}\n\t\t\t\t\t\t\t\tfontWeight={600}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--primary-foreground))\"\n\t\t\t\t\t\t\t\tstyle={{ pointerEvents: \"none\" }}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{`${t.tier.label}${valueText}`}\n\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t</g>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(\n\ttiers: PyramidTier[],\n\tshape: \"widening\" | \"narrowing\",\n\twidth: number,\n\theight: number,\n\tgap: number,\n): LaidOutTier[] {\n\tif (tiers.length === 0) return [];\n\tconst usableHeight = height - gap * Math.max(0, tiers.length - 1);\n\tconst tierHeight = usableHeight / tiers.length;\n\tconst cx = width / 2;\n\tconst total = tiers.length;\n\n\t// Linear ramp: top tier ratio 0.2, bottom tier ratio 1.0 (or reverse).\n\tconst ratioAt = (i: number): number => {\n\t\tconst t = total === 1 ? 0 : i / (total - 1);\n\t\treturn shape === \"widening\" ? 0.2 + 0.8 * t : 1.0 - 0.8 * t;\n\t};\n\n\treturn tiers.map((tier, i) => {\n\t\tconst yTop = i * (tierHeight + gap);\n\t\tconst yBottom = yTop + tierHeight;\n\t\tconst topRatio = ratioAt(i);\n\t\tconst bottomRatio = i + 1 < total ? ratioAt(i + 1) : topRatio;\n\t\t// For widening, the visual base of each tier should match the top of\n\t\t// the next tier — using the next tier's ratio at the bottom edge.\n\t\t// For narrowing, same logic. The penultimate-to-last bottom matches\n\t\t// `topRatio` of the last tier we don't have, so we hold steady.\n\t\tconst topHalfWidth = (width / 2) * topRatio;\n\t\tconst bottomHalfWidth = (width / 2) * bottomRatio;\n\t\treturn {\n\t\t\ttier,\n\t\t\tdepth: i,\n\t\t\ttopLeft: cx - topHalfWidth,\n\t\t\ttopRight: cx + topHalfWidth,\n\t\t\tbottomLeft: cx - bottomHalfWidth,\n\t\t\tbottomRight: cx + bottomHalfWidth,\n\t\t\tyTop,\n\t\t\tyBottom,\n\t\t};\n\t});\n}\n\nfunction activateOnKey(e: React.KeyboardEvent, fn: () => void): void {\n\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\te.preventDefault();\n\t\tfn();\n\t}\n}\n\nexport { Pyramid };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "primary-foreground",
+    "background"
+  ],
+  "examples": [
+    {
+      "title": "Maslow's hierarchy",
+      "description": "Classic widening pyramid with 5 tiers.",
+      "code": "<Pyramid tiers={[\n  { id: \"a\", label: \"Self-actualization\" },\n  { id: \"e\", label: \"Esteem\" },\n  { id: \"l\", label: \"Love & belonging\" },\n  { id: \"s\", label: \"Safety\" },\n  { id: \"p\", label: \"Physiological\" },\n]} />",
+      "composition": [
+        "pyramid",
+        "rank",
+        "hierarchy"
+      ]
+    },
+    {
+      "title": "Inverted pyramid (narrowing) for ranked output",
+      "description": "Use \"narrowing\" when the most important tier sits at the top.",
+      "code": "<Pyramid shape=\"narrowing\" tiers={[\n  { id: \"north-star\", label: \"North star\" },\n  { id: \"okrs\", label: \"OKRs\" },\n  { id: \"projects\", label: \"Projects\" },\n  { id: \"tasks\", label: \"Tasks\" },\n]} />",
+      "composition": [
+        "pyramid",
+        "narrowing"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize a ranked categorical hierarchy where tier order is meaningful but each tier is a distinct level (not a subset of the previous). Maslow-style needs hierarchy, organizational tiers, content hierarchy (north star → tasks).",
+    "whenNotToUse": "Don't use for conversion drop-off where each stage is a strict subset of the previous (use Funnel — it shows the conversion ratio between stages). Don't use for value-scaled hierarchies (use TreeMap or Sunburst). Don't use for >7 tiers — labels become unreadable.",
+    "commonMistakes": [
+      "Confusing Pyramid with Funnel — Funnel encodes FLOW (value moves between stages); Pyramid encodes RANK (each tier is a distinct level)",
+      "Tier order matters — the first array element is the apex. Reversing the array flips the meaning",
+      "Passing values that don't actually rank — Pyramid doesn't sort; it trusts your order"
+    ],
+    "relatedComponents": [
+      "funnel",
+      "sankey",
+      "tree-map",
+      "sunburst"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing tier count and shape. For agent outputs, also expose a parallel ordered list (<ol>) of labels so screen-reader users get the rank order without relying on visual position.",
+    "tokenBudget": 260
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "pyramid",
+    "rank",
+    "hierarchy"
+  ]
+}

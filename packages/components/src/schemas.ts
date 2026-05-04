@@ -101,3 +101,9 @@ export { treeMapSchema } from "./artifacts/tree-map/tree-map.schema.js";
 export { orgChartSchema } from "./artifacts/org-chart/org-chart.schema.js";
 export { sunburstSchema } from "./artifacts/sunburst/sunburst.schema.js";
 export { dendrogramSchema } from "./artifacts/dendrogram/dendrogram.schema.js";
+
+// Artifacts — flow-family diagram primitives
+export { sankeySchema } from "./artifacts/sankey/sankey.schema.js";
+export { funnelSchema } from "./artifacts/funnel/funnel.schema.js";
+export { pyramidSchema } from "./artifacts/pyramid/pyramid.schema.js";
+export { flowchartSchema } from "./artifacts/flowchart/flowchart.schema.js";

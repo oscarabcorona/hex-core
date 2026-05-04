@@ -350,13 +350,29 @@ export {
 	type AttachmentProps,
 } from "./ai/attachment/attachment.js";
 
-// Artifacts — typed React diagram primitives backed by d3-hierarchy.
-// Heavy peers (d3-hierarchy, d3-shape) are optional and lazy-loaded.
+// Artifacts — typed React diagram primitives.
+// Hierarchy family heavy peers (d3-hierarchy, d3-shape) and Flow-family
+// d3-sankey are optional and lazy-loaded; Funnel, Pyramid, Flowchart are
+// pure SVG with no peer.
 export { MindMap, type MindMapNode, type MindMapProps } from "./artifacts/mind-map/mind-map.js";
 export { TreeMap, type TreeMapNode, type TreeMapProps } from "./artifacts/tree-map/tree-map.js";
 export { OrgChart, type OrgNode, type OrgChartProps } from "./artifacts/org-chart/org-chart.js";
 export { Sunburst, type SunburstNode, type SunburstProps } from "./artifacts/sunburst/sunburst.js";
 export { Dendrogram, type DendrogramNode, type DendrogramProps } from "./artifacts/dendrogram/dendrogram.js";
+export {
+	Sankey,
+	type SankeyLink,
+	type SankeyNode,
+	type SankeyProps,
+} from "./artifacts/sankey/sankey.js";
+export { Funnel, type FunnelProps, type FunnelStage } from "./artifacts/funnel/funnel.js";
+export { Pyramid, type PyramidProps, type PyramidTier } from "./artifacts/pyramid/pyramid.js";
+export {
+	Flowchart,
+	type FlowchartEdge,
+	type FlowchartNode,
+	type FlowchartProps,
+} from "./artifacts/flowchart/flowchart.js";
 
 // Schemas live in `@hex-core/components/schemas` (1.4.0+) so the runtime
 // barrel doesn't pull in the `@hex-core/registry` type at the consumer's

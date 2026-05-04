@@ -1492,6 +1492,43 @@
       "tokenBudget": 320
     },
     {
+      "name": "flowchart",
+      "displayName": "Flowchart",
+      "description": "Typed React flowchart. Pass nodes (with optional shape) and directional edges; the component runs a topological-rank auto-layout and renders top-to-bottom or left-to-right. Pure SVG; no heavy peer dep.",
+      "category": "artifact",
+      "subcategory": "flow",
+      "tags": [
+        "artifact",
+        "diagram",
+        "flowchart",
+        "flow",
+        "dag",
+        "process"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 380
+    },
+    {
+      "name": "funnel",
+      "displayName": "Funnel",
+      "description": "Conversion funnel — vertical stack of trapezoidal stages whose width is proportional to each stage's value. Pure SVG; no heavy peer dep.",
+      "category": "artifact",
+      "subcategory": "flow",
+      "tags": [
+        "artifact",
+        "diagram",
+        "funnel",
+        "conversion",
+        "flow"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 280
+    },
+    {
       "name": "mind-map",
       "displayName": "MindMap",
       "description": "Typed React mind map. Pass a hierarchical root node and the component lays children out radially (or horizontally) using d3-hierarchy's tree layout — no Mermaid string DSL required.",
@@ -1523,6 +1560,43 @@
         "hierarchy",
         "tree",
         "people"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 360
+    },
+    {
+      "name": "pyramid",
+      "displayName": "Pyramid",
+      "description": "Ranked-tier pyramid. Tiers stack top-to-bottom; widths can grow toward the base (widening) or shrink (narrowing). Pure SVG; no heavy peer dep. Distinct from Funnel — Pyramid encodes RANK, Funnel encodes FLOW.",
+      "category": "artifact",
+      "subcategory": "flow",
+      "tags": [
+        "artifact",
+        "diagram",
+        "pyramid",
+        "rank",
+        "hierarchy"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 260
+    },
+    {
+      "name": "sankey",
+      "displayName": "Sankey",
+      "description": "Weighted-flow diagram. Nodes arranged in horizontal columns by topological depth; link thickness encodes flow value. Use for funnels, energy/material/money flows, and any \"value moving from A to B\" picture.",
+      "category": "artifact",
+      "subcategory": "flow",
+      "tags": [
+        "artifact",
+        "diagram",
+        "sankey",
+        "flow",
+        "weighted",
+        "funnel"
       ],
       "internalDeps": [
         "lib/utils"

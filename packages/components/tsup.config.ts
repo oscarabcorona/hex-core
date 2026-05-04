@@ -95,6 +95,7 @@ export default defineConfig({
 		"wavesurfer.js",
 		"mermaid",
 		"d3-hierarchy",
+		"d3-sankey",
 		"d3-shape",
 		/^@radix-ui\//,
 		"class-variance-authority",
