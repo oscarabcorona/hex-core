@@ -1,0 +1,153 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "sunburst",
+  "displayName": "Sunburst",
+  "description": "Radial hierarchy by value. Each ring is a deeper level of the tree; segment angles are proportional to summed values. Click a segment to drill in; click the center to zoom out.",
+  "category": "artifact",
+  "subcategory": "hierarchy",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "root",
+      "type": "object",
+      "required": true,
+      "description": "Hierarchy root: { id, label, value?, children? }. Leaves require a positive `value`; internal nodes are summed."
+    },
+    {
+      "name": "drillable",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "When true, clicking a segment with children focuses it as the new center. Click the center to zoom back out."
+    },
+    {
+      "name": "centerLabel",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional content rendered at the SVG center (e.g. a total). Falls back to the focused node's label."
+    },
+    {
+      "name": "size",
+      "type": "number",
+      "required": false,
+      "default": 400,
+      "description": "Pixel size of the rendered SVG (it's square)."
+    },
+    {
+      "name": "onSegmentClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked SunburstNode. Fires before any internal drill."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/sunburst.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Radial hierarchy by value. Each ring out from the center is a deeper level\n * of the tree; each segment's angular extent is proportional to its summed\n * value. Click any segment to drill into it (the clicked segment becomes the\n * new center); click the center to zoom back out.\n *\n * Heavy peers: requires `d3-hierarchy` and `d3-shape` (~3 KB + ~6 KB gzip).\n *\n * @example\n * <Sunburst\n *   root={{\n *     id: \"root\", label: \"Total\",\n *     children: [\n *       { id: \"a\", label: \"A\", value: 60, children: [\n *         { id: \"a1\", label: \"A1\", value: 40 },\n *         { id: \"a2\", label: \"A2\", value: 20 },\n *       ]},\n *       { id: \"b\", label: \"B\", value: 30 },\n *     ],\n *   }}\n * />\n */\nexport type SunburstNode = {\n\tid: string;\n\tlabel: string;\n\tvalue?: number;\n\tchildren?: SunburstNode[];\n};\n\nexport interface SunburstProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Root of the hierarchy. Leaves require a positive `value`; internal nodes are summed. */\n\troot: SunburstNode;\n\t/** Allow a click on a segment to zoom into it as the new center. Default true. */\n\tdrillable?: boolean;\n\t/** Optional content rendered at the SVG center (e.g. total). */\n\tcenterLabel?: React.ReactNode;\n\t/** Pixel size of the rendered SVG (it's square). Default 400. */\n\tsize?: number;\n\t/** Fired when a segment is clicked. Fires before any internal drill. */\n\tonSegmentClick?: (node: SunburstNode) => void;\n}\n\ninterface LaidOutSegment {\n\tnode: SunburstNode;\n\tdepth: number;\n\tx0: number;\n\tx1: number;\n\ty0: number;\n\ty1: number;\n}\n\ntype D3HierarchyMod = typeof import(\"d3-hierarchy\");\ntype D3ShapeMod = typeof import(\"d3-shape\");\n\nconst DEPTH_PALETTE = [\n\t\"hsl(var(--primary))\",\n\t\"hsl(var(--accent))\",\n\t\"hsl(var(--secondary))\",\n\t\"hsl(var(--muted))\",\n];\n\nfunction Sunburst({\n\troot,\n\tdrillable = true,\n\tcenterLabel,\n\tsize = 400,\n\tonSegmentClick,\n\tclassName,\n\t...rest\n}: SunburstProps) {\n\tconst [d3h, setD3h] = React.useState<D3HierarchyMod | null>(null);\n\tconst [d3s, setD3s] = React.useState<D3ShapeMod | null>(null);\n\tconst [focusId, setFocusId] = React.useState<string>(root.id);\n\n\tReact.useEffect(() => {\n\t\tlet cancelled = false;\n\t\tvoid Promise.all([import(\"d3-hierarchy\"), import(\"d3-shape\")]).then(([h, s]) => {\n\t\t\tif (cancelled) return;\n\t\t\tsetD3h(h);\n\t\t\tsetD3s(s);\n\t\t});\n\t\treturn () => {\n\t\t\tcancelled = true;\n\t\t};\n\t}, []);\n\n\t// Reset focus when root changes\n\tReact.useEffect(() => {\n\t\tsetFocusId(root.id);\n\t}, [root]);\n\n\tif (!d3h || !d3s) {\n\t\treturn (\n\t\t\t<div\n\t\t\t\tdata-hex-sunburst-loading\n\t\t\t\taria-busy=\"true\"\n\t\t\t\tclassName={cn(\"inline-block bg-muted/20\", className)}\n\t\t\t\tstyle={{ width: size, height: size }}\n\t\t\t/>\n\t\t);\n\t}\n\n\tconst focused = findNode(root, focusId) ?? root;\n\tconst radius = size / 2;\n\tconst segments = layout(d3h, focused, radius);\n\tconst arc = d3s\n\t\t.arc<LaidOutSegment>()\n\t\t.startAngle((s) => s.x0)\n\t\t.endAngle((s) => s.x1)\n\t\t.innerRadius((s) => s.y0)\n\t\t.outerRadius((s) => s.y1)\n\t\t.padAngle(0.005)\n\t\t.padRadius(radius);\n\n\tconst handleSegmentClick = (segment: LaidOutSegment) => {\n\t\tonSegmentClick?.(segment.node);\n\t\tif (!drillable) return;\n\t\tconst hasChildren = segment.node.children && segment.node.children.length > 0;\n\t\tif (!hasChildren) return;\n\t\tsetFocusId(segment.node.id);\n\t};\n\n\tconst handleCenterClick = () => {\n\t\tif (!drillable || focusId === root.id) return;\n\t\tsetFocusId(root.id);\n\t};\n\n\tconst desc = `Sunburst with ${segments.length} segments, focused on \"${focused.label}\"`;\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-sunburst\n\t\t\tdata-focus-id={focusId}\n\t\t\trole=\"img\"\n\t\t\twidth={size}\n\t\t\theight={size}\n\t\t\tviewBox={`${-radius} ${-radius} ${size} ${size}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Sunburst</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<g data-hex-sunburst-segments>\n\t\t\t\t{segments\n\t\t\t\t\t.filter((s) => s.depth > 0)\n\t\t\t\t\t.map((s) => (\n\t\t\t\t\t\t<path\n\t\t\t\t\t\t\tkey={s.node.id}\n\t\t\t\t\t\t\tdata-hex-sunburst-segment\n\t\t\t\t\t\t\tdata-depth={s.depth}\n\t\t\t\t\t\t\td={arc(s) ?? \"\"}\n\t\t\t\t\t\t\tfill={DEPTH_PALETTE[(s.depth - 1) % DEPTH_PALETTE.length] ?? \"hsl(var(--primary))\"}\n\t\t\t\t\t\t\tfillOpacity={0.85}\n\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t\tstyle={drillable || onSegmentClick ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\t\tonClick={drillable || onSegmentClick ? () => handleSegmentClick(s) : undefined}\n\t\t\t\t\t\t/>\n\t\t\t\t\t))}\n\t\t\t</g>\n\t\t\t<g\n\t\t\t\tdata-hex-sunburst-center\n\t\t\t\tstyle={drillable && focusId !== root.id ? { cursor: \"pointer\" } : undefined}\n\t\t\t\tonClick={drillable ? handleCenterClick : undefined}\n\t\t\t>\n\t\t\t\t<circle r={radius / 4} fill=\"hsl(var(--card))\" stroke=\"hsl(var(--border))\" strokeWidth={1} />\n\t\t\t\t{centerLabel ? (\n\t\t\t\t\t<foreignObject x={-radius / 4} y={-radius / 4} width={radius / 2} height={radius / 2}>\n\t\t\t\t\t\t<div\n\t\t\t\t\t\t\tstyle={{\n\t\t\t\t\t\t\t\twidth: \"100%\",\n\t\t\t\t\t\t\t\theight: \"100%\",\n\t\t\t\t\t\t\t\tdisplay: \"flex\",\n\t\t\t\t\t\t\t\talignItems: \"center\",\n\t\t\t\t\t\t\t\tjustifyContent: \"center\",\n\t\t\t\t\t\t\t\ttextAlign: \"center\",\n\t\t\t\t\t\t\t\tfontSize: 12,\n\t\t\t\t\t\t\t\tpadding: 4,\n\t\t\t\t\t\t\t}}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{centerLabel}\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</foreignObject>\n\t\t\t\t) : (\n\t\t\t\t\t<text\n\t\t\t\t\t\ttextAnchor=\"middle\"\n\t\t\t\t\t\tdy=\"0.35em\"\n\t\t\t\t\t\tfontSize={12}\n\t\t\t\t\t\tfontWeight={600}\n\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t>\n\t\t\t\t\t\t{focused.label}\n\t\t\t\t\t</text>\n\t\t\t\t)}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(d3h: D3HierarchyMod, focused: SunburstNode, radius: number): LaidOutSegment[] {\n\tconst hierarchy = d3h\n\t\t.hierarchy<SunburstNode>(focused)\n\t\t.sum((d) => (d.children && d.children.length > 0 ? 0 : d.value ?? 0))\n\t\t.sort((a, b) => (b.value ?? 0) - (a.value ?? 0));\n\t// partition(hierarchy) returns HierarchyRectangularNode<T> with typed\n\t// x0/x1/y0/y1 (angle range × radius range for sunburst).\n\tconst layoutRoot = d3h.partition<SunburstNode>().size([2 * Math.PI, radius])(hierarchy);\n\tconst segments: LaidOutSegment[] = [];\n\tlayoutRoot.each((d) => {\n\t\tsegments.push({\n\t\t\tnode: d.data,\n\t\t\tdepth: d.depth,\n\t\t\tx0: d.x0,\n\t\t\tx1: d.x1,\n\t\t\ty0: d.y0,\n\t\t\ty1: d.y1,\n\t\t});\n\t});\n\treturn segments;\n}\n\nfunction findNode(root: SunburstNode, id: string): SunburstNode | null {\n\tif (root.id === id) return root;\n\tif (!root.children) return null;\n\tfor (const c of root.children) {\n\t\tconst f = findNode(c, id);\n\t\tif (f) return f;\n\t}\n\treturn null;\n}\n\nexport { Sunburst };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ],
+    "heavyPeer": [
+      {
+        "name": "d3-hierarchy",
+        "version": "^3.1.2",
+        "bundleKbGzip": 3,
+        "reason": "Computes the partition layout that positions each ring segment"
+      },
+      {
+        "name": "d3-shape",
+        "version": "^3.2.0",
+        "bundleKbGzip": 6,
+        "reason": "Generates the SVG arc path for each segment"
+      }
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "accent",
+    "secondary",
+    "muted",
+    "card",
+    "border",
+    "foreground",
+    "background"
+  ],
+  "examples": [
+    {
+      "title": "Two-level sunburst",
+      "description": "Visualize a portfolio split with sub-allocations.",
+      "code": "<Sunburst root={{\n  id: \"root\", label: \"Portfolio\",\n  children: [\n    { id: \"eq\", label: \"Equity\", children: [\n      { id: \"us\", label: \"US\", value: 60 },\n      { id: \"intl\", label: \"Intl\", value: 20 },\n    ]},\n    { id: \"fx\", label: \"Fixed Income\", value: 20 },\n  ],\n}} />",
+      "composition": [
+        "sunburst",
+        "hierarchy",
+        "value-scaled"
+      ]
+    },
+    {
+      "title": "Custom center label with totals",
+      "description": "Use centerLabel to show the sum or other context.",
+      "code": "<Sunburst centerLabel={<strong>$1.2M</strong>} root={portfolio} />",
+      "composition": [
+        "sunburst",
+        "center-label"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize a value-scaled hierarchy where the user wants to see both the parent share and child sub-shares at once — portfolio allocations, time spent by category × subcategory, file system disk usage. Drill-down lets users focus a branch. `onSegmentClick` fires for ALL segments BEFORE the internal drill so consumers can observe pre-drill focus.",
+    "whenNotToUse": "Don't use for hierarchies without meaningful values per leaf (use MindMap or OrgChart). Don't use for >4 levels — outer rings become unreadable. Don't use for arbitrary node-edge graphs (use Canvas).",
+    "commonMistakes": [
+      "Leaf values that don't sum at internal nodes — d3-hierarchy aggregates leaves; internal-node `value` props are ignored when children exist",
+      "Negative or zero leaf values — produce zero-width arcs or NaN angles. Filter or clamp upstream",
+      "Forgetting the resetting effect — when the parent updates `root` to a different tree, the focused id may no longer exist; the component re-syncs to the new root automatically"
+    ],
+    "relatedComponents": [
+      "tree-map",
+      "mind-map",
+      "org-chart",
+      "dendrogram",
+      "diagram"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing segment count and focused node. Drill-down is mouse-only by default; expose a parallel <table> or breadcrumb for keyboard / screen-reader users.",
+    "tokenBudget": 360
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "sunburst",
+    "hierarchy",
+    "radial",
+    "value-scaled"
+  ]
+}

@@ -94,3 +94,10 @@ export { messageActionsSchema } from "./ai/message-actions/message-actions.schem
 export { citationSchema } from "./ai/citation/citation.schema.js";
 export { markdownSchema } from "./ai/markdown/markdown.schema.js";
 export { codeBlockSchema } from "./ai/code-block/code-block.schema.js";
+
+// Artifacts — hierarchy-family diagram primitives (1.8.0+)
+export { mindMapSchema } from "./artifacts/mind-map/mind-map.schema.js";
+export { treeMapSchema } from "./artifacts/tree-map/tree-map.schema.js";
+export { orgChartSchema } from "./artifacts/org-chart/org-chart.schema.js";
+export { sunburstSchema } from "./artifacts/sunburst/sunburst.schema.js";
+export { dendrogramSchema } from "./artifacts/dendrogram/dendrogram.schema.js";

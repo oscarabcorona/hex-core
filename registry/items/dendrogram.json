@@ -1,0 +1,160 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "dendrogram",
+  "displayName": "Dendrogram",
+  "description": "Clustering tree where every leaf sits at the same depth, regardless of branch length — the visual signature of taxonomies, phylogenetic trees, and hierarchical-clustering output.",
+  "category": "artifact",
+  "subcategory": "hierarchy",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "root",
+      "type": "object",
+      "required": true,
+      "description": "Hierarchy root: { id, label, children? }."
+    },
+    {
+      "name": "orientation",
+      "type": "enum",
+      "required": false,
+      "default": "horizontal",
+      "description": "\"horizontal\" runs root-to-leaves left→right; \"vertical\" runs top→bottom.",
+      "enumValues": [
+        "horizontal",
+        "vertical"
+      ]
+    },
+    {
+      "name": "linkShape",
+      "type": "enum",
+      "required": false,
+      "default": "step",
+      "description": "\"step\" draws right-angle elbow links (taxonomy aesthetic); \"diagonal\" uses smooth Bezier curves.",
+      "enumValues": [
+        "step",
+        "diagonal"
+      ]
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 600,
+      "description": "SVG pixel width."
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "required": false,
+      "default": 400,
+      "description": "SVG pixel height."
+    },
+    {
+      "name": "onLeafClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked DendrogramNode when a user clicks any leaf."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/dendrogram.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Clustering tree where every leaf sits at the same depth, regardless of\n * branch length — the visual signature of taxonomies, phylogenetic trees,\n * and hierarchical-clustering output. Backed by d3-hierarchy's `cluster`\n * layout (distinct from `tree`, which packs leaves variably).\n *\n * Heavy peer: requires `d3-hierarchy` (~3 KB gzip).\n *\n * @example\n * <Dendrogram\n *   root={{\n *     id: \"root\", label: \"Animals\",\n *     children: [\n *       { id: \"mammals\", label: \"Mammals\", children: [\n *         { id: \"cat\", label: \"Cat\" },\n *         { id: \"dog\", label: \"Dog\" },\n *       ]},\n *       { id: \"birds\", label: \"Birds\", children: [{ id: \"robin\", label: \"Robin\" }] },\n *     ],\n *   }}\n * />\n */\nexport type DendrogramNode = {\n\tid: string;\n\tlabel: string;\n\tchildren?: DendrogramNode[];\n};\n\nexport interface DendrogramProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Root of the hierarchy. */\n\troot: DendrogramNode;\n\t/** \"horizontal\" runs root-to-leaves left→right; \"vertical\" runs top→bottom. Default \"horizontal\". */\n\torientation?: \"horizontal\" | \"vertical\";\n\t/** \"step\" draws right-angle elbow links (taxonomy aesthetic); \"diagonal\" uses smooth Bezier. Default \"step\". */\n\tlinkShape?: \"step\" | \"diagonal\";\n\t/** Pixel width of the rendered SVG. Default 600. */\n\twidth?: number;\n\t/** Pixel height of the rendered SVG. Default 400. */\n\theight?: number;\n\t/** Fired when a leaf is clicked. */\n\tonLeafClick?: (node: DendrogramNode) => void;\n}\n\ninterface LaidOutNode {\n\tnode: DendrogramNode;\n\tx: number;\n\ty: number;\n\tdepth: number;\n\tisLeaf: boolean;\n}\n\ninterface LaidOutLink {\n\tsource: { x: number; y: number };\n\ttarget: { x: number; y: number };\n\tid: string;\n}\n\ntype D3HierarchyMod = typeof import(\"d3-hierarchy\");\n\nfunction Dendrogram({\n\troot,\n\torientation = \"horizontal\",\n\tlinkShape = \"step\",\n\twidth = 600,\n\theight = 400,\n\tonLeafClick,\n\tclassName,\n\t...rest\n}: DendrogramProps) {\n\tconst [d3h, setD3h] = React.useState<D3HierarchyMod | null>(null);\n\n\tReact.useEffect(() => {\n\t\tlet cancelled = false;\n\t\tvoid import(\"d3-hierarchy\").then((mod) => {\n\t\t\tif (!cancelled) setD3h(mod);\n\t\t});\n\t\treturn () => {\n\t\t\tcancelled = true;\n\t\t};\n\t}, []);\n\n\tif (!d3h) {\n\t\treturn (\n\t\t\t<div\n\t\t\t\tdata-hex-dendrogram-loading\n\t\t\t\taria-busy=\"true\"\n\t\t\t\tclassName={cn(\"inline-block bg-muted/20\", className)}\n\t\t\t\tstyle={{ width, height }}\n\t\t\t/>\n\t\t);\n\t}\n\n\tconst { nodes, links } = layout(d3h, root, orientation, width, height);\n\tconst leafCount = nodes.filter((n) => n.isLeaf).length;\n\tconst desc = `Dendrogram with ${leafCount} leaves, rooted at \"${root.label}\"`;\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-dendrogram\n\t\t\tdata-orientation={orientation}\n\t\t\tdata-link-shape={linkShape}\n\t\t\trole=\"img\"\n\t\t\twidth={width}\n\t\t\theight={height}\n\t\t\tviewBox={`0 0 ${width} ${height}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Dendrogram</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<g data-hex-dendrogram-links>\n\t\t\t\t{links.map((l) => (\n\t\t\t\t\t<path\n\t\t\t\t\t\tkey={l.id}\n\t\t\t\t\t\td={linkPath(l, orientation, linkShape)}\n\t\t\t\t\t\tfill=\"none\"\n\t\t\t\t\t\tstroke=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\t\tstrokeOpacity={0.6}\n\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t/>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t\t<g data-hex-dendrogram-nodes>\n\t\t\t\t{nodes.map((n) => (\n\t\t\t\t\t<g\n\t\t\t\t\t\tkey={n.node.id}\n\t\t\t\t\t\tdata-hex-dendrogram-node\n\t\t\t\t\t\tdata-leaf={n.isLeaf ? \"true\" : \"false\"}\n\t\t\t\t\t\tdata-depth={n.depth}\n\t\t\t\t\t\ttransform={`translate(${n.x},${n.y})`}\n\t\t\t\t\t\tstyle={n.isLeaf && onLeafClick ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\tonClick={n.isLeaf && onLeafClick ? () => onLeafClick(n.node) : undefined}\n\t\t\t\t\t>\n\t\t\t\t\t\t<circle\n\t\t\t\t\t\t\tr={n.isLeaf ? 3 : 2}\n\t\t\t\t\t\t\tfill={n.isLeaf ? \"hsl(var(--primary))\" : \"hsl(var(--muted-foreground))\"}\n\t\t\t\t\t\t/>\n\t\t\t\t\t\t{n.isLeaf ? (\n\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\tx={orientation === \"horizontal\" ? 6 : 0}\n\t\t\t\t\t\t\t\ty={orientation === \"horizontal\" ? 4 : 14}\n\t\t\t\t\t\t\t\ttextAnchor={orientation === \"horizontal\" ? \"start\" : \"middle\"}\n\t\t\t\t\t\t\t\tfontSize={11}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t\t\t\tstyle={{ paintOrder: \"stroke\" }}\n\t\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\t\tstrokeWidth={3}\n\t\t\t\t\t\t\t\tstrokeLinejoin=\"round\"\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{n.node.label}\n\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t) : null}\n\t\t\t\t\t</g>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(\n\td3h: D3HierarchyMod,\n\troot: DendrogramNode,\n\torientation: \"horizontal\" | \"vertical\",\n\twidth: number,\n\theight: number,\n): { nodes: LaidOutNode[]; links: LaidOutLink[] } {\n\tconst hierarchy = d3h.hierarchy<DendrogramNode>(root);\n\tconst clusterFn = d3h.cluster<DendrogramNode>();\n\tif (orientation === \"horizontal\") {\n\t\tclusterFn.size([height - 32, width - 120]);\n\t} else {\n\t\tclusterFn.size([width - 32, height - 64]);\n\t}\n\t// cluster(hierarchy) returns HierarchyPointNode<T> with typed x/y.\n\tconst layoutRoot = clusterFn(hierarchy);\n\n\tconst nodes: LaidOutNode[] = [];\n\tlayoutRoot.each((d) => {\n\t\tconst isLeaf = !d.children || d.children.length === 0;\n\t\tif (orientation === \"horizontal\") {\n\t\t\tnodes.push({ node: d.data, x: d.y + 16, y: d.x + 16, depth: d.depth, isLeaf });\n\t\t} else {\n\t\t\tnodes.push({ node: d.data, x: d.x + 16, y: d.y + 16, depth: d.depth, isLeaf });\n\t\t}\n\t});\n\n\tconst links: LaidOutLink[] = layoutRoot.links().map((link, i) => {\n\t\tif (orientation === \"horizontal\") {\n\t\t\treturn {\n\t\t\t\tsource: { x: link.source.y + 16, y: link.source.x + 16 },\n\t\t\t\ttarget: { x: link.target.y + 16, y: link.target.x + 16 },\n\t\t\t\tid: `l-${i}`,\n\t\t\t};\n\t\t}\n\t\treturn {\n\t\t\tsource: { x: link.source.x + 16, y: link.source.y + 16 },\n\t\t\ttarget: { x: link.target.x + 16, y: link.target.y + 16 },\n\t\t\tid: `l-${i}`,\n\t\t};\n\t});\n\n\treturn { nodes, links };\n}\n\nfunction linkPath(\n\tlink: LaidOutLink,\n\torientation: \"horizontal\" | \"vertical\",\n\tlinkShape: \"step\" | \"diagonal\",\n): string {\n\tconst { source: s, target: t } = link;\n\tif (linkShape === \"step\") {\n\t\tif (orientation === \"horizontal\") {\n\t\t\treturn `M${s.x},${s.y} H${t.x} V${t.y}`;\n\t\t}\n\t\treturn `M${s.x},${s.y} V${t.y} H${t.x}`;\n\t}\n\tif (orientation === \"horizontal\") {\n\t\tconst mx = (s.x + t.x) / 2;\n\t\treturn `M${s.x},${s.y} C${mx},${s.y} ${mx},${t.y} ${t.x},${t.y}`;\n\t}\n\tconst my = (s.y + t.y) / 2;\n\treturn `M${s.x},${s.y} C${s.x},${my} ${t.x},${my} ${t.x},${t.y}`;\n}\n\nexport { Dendrogram };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ],
+    "heavyPeer": [
+      {
+        "name": "d3-hierarchy",
+        "version": "^3.1.2",
+        "bundleKbGzip": 3,
+        "reason": "Computes the cluster layout (equal-depth leaves) used to position nodes"
+      }
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "muted-foreground",
+    "foreground",
+    "background"
+  ],
+  "examples": [
+    {
+      "title": "Taxonomy dendrogram",
+      "description": "Equal-depth leaves arranged horizontally with step links.",
+      "code": "<Dendrogram root={{\n  id: \"root\", label: \"Animals\",\n  children: [\n    { id: \"mammals\", label: \"Mammals\", children: [\n      { id: \"cat\", label: \"Cat\" },\n      { id: \"dog\", label: \"Dog\" },\n    ]},\n    { id: \"birds\", label: \"Birds\", children: [{ id: \"robin\", label: \"Robin\" }] },\n  ],\n}} />",
+      "composition": [
+        "dendrogram",
+        "hierarchy",
+        "taxonomy"
+      ]
+    },
+    {
+      "title": "Vertical dendrogram with diagonal links",
+      "description": "Top-down orientation with smooth Bezier links.",
+      "code": "<Dendrogram orientation=\"vertical\" linkShape=\"diagonal\" root={tree} />",
+      "composition": [
+        "dendrogram",
+        "vertical",
+        "diagonal"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize taxonomic / phylogenetic / clustering hierarchies where the user expects every leaf to sit at the same depth. Ideal when the tree shape itself is the message (groupings, sibling relationships). `onLeafClick` fires for LEAVES ONLY — internal-node clicks are no-ops (use OrgChart if you need callbacks on every node).",
+    "whenNotToUse": "Don't use for value-scaled hierarchies (use TreeMap or Sunburst). Don't use for tree shapes where depth has meaning (use OrgChart, which uses d3.tree). Don't use for arbitrary node graphs (use Canvas).",
+    "commonMistakes": [
+      "Confusing dendrogram with org chart — dendrogram aligns ALL leaves at a single edge regardless of branch depth, which is wrong for org structures where reporting depth is meaningful",
+      "Hundreds of leaves on a fixed-size SVG — leaves overlap. Either grow the SVG or paginate the tree",
+      "Mutating the root object in place — the layout pass treats input as immutable; always provide a new root reference on data change"
+    ],
+    "relatedComponents": [
+      "mind-map",
+      "tree-map",
+      "org-chart",
+      "sunburst",
+      "diagram"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing the leaf count and root label. For agent outputs, expose a parallel <ul> grouping leaves by their parent so screen-reader users get the clustering structure.",
+    "tokenBudget": 320
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "dendrogram",
+    "hierarchy",
+    "cluster",
+    "taxonomy"
+  ]
+}

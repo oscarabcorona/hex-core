@@ -1,0 +1,150 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "mind-map",
+  "displayName": "MindMap",
+  "description": "Typed React mind map. Pass a hierarchical root node and the component lays children out radially (or horizontally) using d3-hierarchy's tree layout — no Mermaid string DSL required.",
+  "category": "artifact",
+  "subcategory": "hierarchy",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "root",
+      "type": "object",
+      "required": true,
+      "description": "Hierarchy root: { id, label, children?, data? }. Children are laid out radially around the root."
+    },
+    {
+      "name": "orientation",
+      "type": "enum",
+      "required": false,
+      "default": "radial",
+      "description": "Layout direction — \"radial\" (children orbit the root) or \"horizontal\" (left-to-right tree).",
+      "enumValues": [
+        "radial",
+        "horizontal"
+      ]
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 600,
+      "description": "SVG pixel width."
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "required": false,
+      "default": 400,
+      "description": "SVG pixel height."
+    },
+    {
+      "name": "onNodeClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked MindMapNode when a user clicks any node."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/mind-map.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Typed React MindMap. Pass a hierarchical `root` node and the component lays\n * the children out radially (or horizontally) using d3-hierarchy's tree\n * layout. No Mermaid string parsing — the data shape IS the API, so consumers\n * can build mind maps from typed application state instead of templating a\n * DSL.\n *\n * Heavy peer: requires `d3-hierarchy` (~3 KB gzip). The hex-core CLI's `add`\n * flow prompts before installing.\n *\n * @example\n * <MindMap\n *   root={{\n *     id: \"root\",\n *     label: \"Project\",\n *     children: [\n *       { id: \"ui\", label: \"UI\", children: [{ id: \"btn\", label: \"Button\" }] },\n *       { id: \"api\", label: \"API\" },\n *     ],\n *   }}\n * />\n */\nexport type MindMapNode = {\n\tid: string;\n\tlabel: string;\n\tchildren?: MindMapNode[];\n\tdata?: unknown;\n};\n\nexport interface MindMapProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Root of the hierarchy. */\n\troot: MindMapNode;\n\t/** \"radial\" lays children around the root; \"horizontal\" runs left→right. Default \"radial\". */\n\torientation?: \"radial\" | \"horizontal\";\n\t/** Pixel width of the rendered SVG. Default 600. */\n\twidth?: number;\n\t/** Pixel height of the rendered SVG. Default 400. */\n\theight?: number;\n\t/** Fired when a node is clicked. */\n\tonNodeClick?: (node: MindMapNode) => void;\n}\n\ninterface LaidOutNode {\n\tnode: MindMapNode;\n\tx: number;\n\ty: number;\n\tdepth: number;\n}\n\ninterface LaidOutLink {\n\tsource: { x: number; y: number };\n\ttarget: { x: number; y: number };\n\tid: string;\n}\n\ntype D3HierarchyMod = typeof import(\"d3-hierarchy\");\n\nfunction MindMap({\n\troot,\n\torientation = \"radial\",\n\twidth = 600,\n\theight = 400,\n\tonNodeClick,\n\tclassName,\n\t...rest\n}: MindMapProps) {\n\tconst [d3h, setD3h] = React.useState<D3HierarchyMod | null>(null);\n\n\tReact.useEffect(() => {\n\t\tlet cancelled = false;\n\t\tvoid import(\"d3-hierarchy\").then((mod) => {\n\t\t\tif (!cancelled) setD3h(mod);\n\t\t});\n\t\treturn () => {\n\t\t\tcancelled = true;\n\t\t};\n\t}, []);\n\n\tif (!d3h) {\n\t\treturn (\n\t\t\t<div\n\t\t\t\tdata-hex-mind-map-loading\n\t\t\t\taria-busy=\"true\"\n\t\t\t\tclassName={cn(\"inline-block bg-muted/20\", className)}\n\t\t\t\tstyle={{ width, height }}\n\t\t\t/>\n\t\t);\n\t}\n\n\tconst { nodes, links, viewBox } = layout(d3h, root, orientation, width, height);\n\tconst nodeCount = nodes.length;\n\tconst desc = `Mind map with ${nodeCount} node${nodeCount === 1 ? \"\" : \"s\"}, rooted at \"${root.label}\"`;\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-mind-map\n\t\t\tdata-orientation={orientation}\n\t\t\trole=\"img\"\n\t\t\tviewBox={viewBox}\n\t\t\twidth={width}\n\t\t\theight={height}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Mind map</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<g data-hex-mind-map-links>\n\t\t\t\t{links.map((l) => (\n\t\t\t\t\t<path\n\t\t\t\t\t\tkey={l.id}\n\t\t\t\t\t\td={linkPath(l, orientation)}\n\t\t\t\t\t\tfill=\"none\"\n\t\t\t\t\t\tstroke=\"hsl(var(--primary))\"\n\t\t\t\t\t\tstrokeOpacity={0.5}\n\t\t\t\t\t\tstrokeWidth={1.5}\n\t\t\t\t\t/>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t\t<g data-hex-mind-map-nodes>\n\t\t\t\t{nodes.map((n) => (\n\t\t\t\t\t<g\n\t\t\t\t\t\tkey={n.node.id}\n\t\t\t\t\t\tdata-hex-mind-map-node\n\t\t\t\t\t\tdata-depth={n.depth}\n\t\t\t\t\t\ttransform={`translate(${n.x},${n.y})`}\n\t\t\t\t\t\tstyle={onNodeClick ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\tonClick={onNodeClick ? () => onNodeClick(n.node) : undefined}\n\t\t\t\t\t>\n\t\t\t\t\t\t<circle\n\t\t\t\t\t\t\tr={4}\n\t\t\t\t\t\t\tfill=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\tstrokeWidth={2}\n\t\t\t\t\t\t/>\n\t\t\t\t\t\t<text\n\t\t\t\t\t\t\tx={8}\n\t\t\t\t\t\t\ty={4}\n\t\t\t\t\t\t\tfontSize={12}\n\t\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t\t\tstyle={{ paintOrder: \"stroke\" }}\n\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\tstrokeWidth={3}\n\t\t\t\t\t\t\tstrokeLinejoin=\"round\"\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{n.node.label}\n\t\t\t\t\t\t</text>\n\t\t\t\t\t</g>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(\n\td3h: D3HierarchyMod,\n\troot: MindMapNode,\n\torientation: \"radial\" | \"horizontal\",\n\twidth: number,\n\theight: number,\n): { nodes: LaidOutNode[]; links: LaidOutLink[]; viewBox: string } {\n\tconst hierarchy = d3h.hierarchy<MindMapNode>(root);\n\n\tif (orientation === \"radial\") {\n\t\tconst radius = Math.min(width, height) / 2 - 16;\n\t\t// d3.tree(hierarchy) returns the layout-mutated root typed as\n\t\t// HierarchyPointNode<T> — its `x`/`y` are populated by the call.\n\t\tconst layoutRoot = d3h.tree<MindMapNode>().size([2 * Math.PI, radius])(hierarchy);\n\t\tconst nodes: LaidOutNode[] = [];\n\t\tconst links: LaidOutLink[] = [];\n\t\tlayoutRoot.each((d) => {\n\t\t\tconst point = polarToCartesian(d.x, d.y);\n\t\t\tnodes.push({ node: d.data, x: point.x, y: point.y, depth: d.depth });\n\t\t});\n\t\tlayoutRoot.links().forEach((link, i) => {\n\t\t\tconst sPt = polarToCartesian(link.source.x, link.source.y);\n\t\t\tconst tPt = polarToCartesian(link.target.x, link.target.y);\n\t\t\tlinks.push({ source: sPt, target: tPt, id: `l-${i}` });\n\t\t});\n\t\tconst half = Math.min(width, height) / 2;\n\t\treturn {\n\t\t\tnodes,\n\t\t\tlinks,\n\t\t\tviewBox: `${-half} ${-half} ${2 * half} ${2 * half}`,\n\t\t};\n\t}\n\n\tconst layoutRoot = d3h.tree<MindMapNode>().size([height - 32, width - 200])(hierarchy);\n\tconst nodes: LaidOutNode[] = [];\n\tconst links: LaidOutLink[] = [];\n\tlayoutRoot.each((d) => {\n\t\t// Horizontal: swap d3's (x, y) so depth runs along the SVG x-axis.\n\t\tnodes.push({ node: d.data, x: d.y, y: d.x, depth: d.depth });\n\t});\n\tlayoutRoot.links().forEach((link, i) => {\n\t\tlinks.push({\n\t\t\tsource: { x: link.source.y, y: link.source.x },\n\t\t\ttarget: { x: link.target.y, y: link.target.x },\n\t\t\tid: `l-${i}`,\n\t\t});\n\t});\n\treturn {\n\t\tnodes,\n\t\tlinks,\n\t\tviewBox: `0 0 ${width} ${height}`,\n\t};\n}\n\nfunction polarToCartesian(angle: number, radius: number): { x: number; y: number } {\n\treturn {\n\t\tx: radius * Math.cos(angle - Math.PI / 2),\n\t\ty: radius * Math.sin(angle - Math.PI / 2),\n\t};\n}\n\nfunction linkPath(link: LaidOutLink, orientation: \"radial\" | \"horizontal\"): string {\n\tconst { source: s, target: t } = link;\n\tif (orientation === \"horizontal\") {\n\t\tconst mx = (s.x + t.x) / 2;\n\t\treturn `M${s.x},${s.y} C${mx},${s.y} ${mx},${t.y} ${t.x},${t.y}`;\n\t}\n\treturn `M${s.x},${s.y} C${s.x},${(s.y + t.y) / 2} ${t.x},${(s.y + t.y) / 2} ${t.x},${t.y}`;\n}\n\nexport { MindMap };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ],
+    "heavyPeer": [
+      {
+        "name": "d3-hierarchy",
+        "version": "^3.1.2",
+        "bundleKbGzip": 3,
+        "reason": "Computes the radial / horizontal tree layout; the component renders SVG with the result"
+      }
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "background",
+    "foreground",
+    "muted"
+  ],
+  "examples": [
+    {
+      "title": "Radial mind map",
+      "description": "Default radial layout with three branches.",
+      "code": "<MindMap root={{\n  id: \"root\",\n  label: \"Project\",\n  children: [\n    { id: \"ui\", label: \"UI\", children: [{ id: \"btn\", label: \"Button\" }] },\n    { id: \"api\", label: \"API\" },\n    { id: \"db\", label: \"DB\" },\n  ],\n}} />",
+      "composition": [
+        "mind-map",
+        "hierarchy",
+        "radial"
+      ]
+    },
+    {
+      "title": "Horizontal mind map with click handler",
+      "description": "Left-to-right tree useful for sidebars and detail panes.",
+      "code": "<MindMap orientation=\"horizontal\" onNodeClick={(n) => select(n.id)} root={data} />",
+      "composition": [
+        "mind-map",
+        "horizontal",
+        "interactive"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize a typed hierarchy when you have structured data (not a Mermaid string) — concept maps, knowledge graphs, project decompositions, agent plan trees. Use radial when the root is conceptually central; horizontal when the hierarchy is left-to-right (file trees, decision trees).",
+    "whenNotToUse": "Don't use for free-form node graphs with arbitrary edges (use Canvas with reactflow). Don't use to render Mermaid markdown from agents (use Diagram). Don't use for hierarchies sized by value (use TreeMap or Sunburst).",
+    "commonMistakes": [
+      "Passing an unmemoized `root` object on every render — the layout pass re-runs and node positions thrash. Memoize",
+      "Sizing the SVG to 0 (no explicit width/height and no parent layout) — the layout returns degenerate coordinates",
+      "Mutating the root hierarchy in place between renders — d3-hierarchy mutates its own internal tree, but the input object should be treated as immutable"
+    ],
+    "relatedComponents": [
+      "tree-map",
+      "org-chart",
+      "sunburst",
+      "dendrogram",
+      "canvas",
+      "diagram"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing the node count and root label. For agent outputs, also expose a parallel text representation (a nested <ul> of node labels in a <details>) so screen-reader users get the structure.",
+    "tokenBudget": 320
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "mind-map",
+    "hierarchy",
+    "tree",
+    "radial"
+  ]
+}

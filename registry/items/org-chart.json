@@ -1,0 +1,168 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "org-chart",
+  "displayName": "OrgChart",
+  "description": "Top-down organizational chart with collapsible subtrees. Each node renders as a rounded card showing label + subtitle; click any node with children to fold its subtree behind a +N badge.",
+  "category": "artifact",
+  "subcategory": "hierarchy",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "root",
+      "type": "object",
+      "required": true,
+      "description": "Hierarchy root: { id, label, subtitle?, avatarUrl?, children? }."
+    },
+    {
+      "name": "collapsible",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "When true, clicking a node with children toggles its collapsed state."
+    },
+    {
+      "name": "defaultExpandedDepth",
+      "type": "number",
+      "required": false,
+      "description": "Nodes deeper than this depth render collapsed initially. Defaults to Infinity (all expanded)."
+    },
+    {
+      "name": "nodeWidth",
+      "type": "number",
+      "required": false,
+      "default": 180,
+      "description": "Pixel width of each node card."
+    },
+    {
+      "name": "nodeHeight",
+      "type": "number",
+      "required": false,
+      "default": 64,
+      "description": "Pixel height of each node card."
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 800,
+      "description": "SVG pixel width."
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "required": false,
+      "default": 480,
+      "description": "SVG pixel height."
+    },
+    {
+      "name": "onNodeClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked OrgNode. Fires before any internal collapse toggle."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/org-chart.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Top-down organizational chart. Pass a hierarchy of people / teams / units\n * and the component lays them out vertically using d3-hierarchy's tree\n * layout. Nodes can be collapsed by clicking; collapsed branches contribute\n * a \"+N\" badge but no further layout.\n *\n * Heavy peer: requires `d3-hierarchy` (~3 KB gzip).\n *\n * @example\n * <OrgChart\n *   root={{\n *     id: \"ceo\",\n *     label: \"Jane Doe\",\n *     subtitle: \"CEO\",\n *     children: [\n *       { id: \"cto\", label: \"Bob Smith\", subtitle: \"CTO\" },\n *     ],\n *   }}\n * />\n */\nexport type OrgNode = {\n\tid: string;\n\tlabel: string;\n\tsubtitle?: string;\n\tavatarUrl?: string;\n\tchildren?: OrgNode[];\n};\n\nexport interface OrgChartProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Root of the org hierarchy. */\n\troot: OrgNode;\n\t/** Allow nodes to be clicked to collapse their subtree. Default true. */\n\tcollapsible?: boolean;\n\t/** All nodes deeper than this depth render collapsed by default. Default Infinity (all expanded). */\n\tdefaultExpandedDepth?: number;\n\t/** Pixel width of each node card. Default 180. */\n\tnodeWidth?: number;\n\t/** Pixel height of each node card. Default 64. */\n\tnodeHeight?: number;\n\t/** Pixel width of the rendered SVG. Default 800. */\n\twidth?: number;\n\t/** Pixel height of the rendered SVG. Default 480. */\n\theight?: number;\n\t/** Fired when a node is clicked. Fires before any internal collapse toggle. */\n\tonNodeClick?: (node: OrgNode) => void;\n}\n\ninterface LaidOut {\n\tnode: OrgNode;\n\tx: number;\n\ty: number;\n\tdepth: number;\n\tcollapsedCount: number;\n}\n\ninterface LaidOutLink {\n\tsource: { x: number; y: number };\n\ttarget: { x: number; y: number };\n\tid: string;\n}\n\ntype D3HierarchyMod = typeof import(\"d3-hierarchy\");\n\nfunction OrgChart({\n\troot,\n\tcollapsible = true,\n\tdefaultExpandedDepth = Number.POSITIVE_INFINITY,\n\tnodeWidth = 180,\n\tnodeHeight = 64,\n\twidth = 800,\n\theight = 480,\n\tonNodeClick,\n\tclassName,\n\t...rest\n}: OrgChartProps) {\n\tconst [d3h, setD3h] = React.useState<D3HierarchyMod | null>(null);\n\tconst [collapsed, setCollapsed] = React.useState<Set<string>>(() => seedCollapsed(root, defaultExpandedDepth));\n\n\tReact.useEffect(() => {\n\t\tlet cancelled = false;\n\t\tvoid import(\"d3-hierarchy\").then((mod) => {\n\t\t\tif (!cancelled) setD3h(mod);\n\t\t});\n\t\treturn () => {\n\t\t\tcancelled = true;\n\t\t};\n\t}, []);\n\n\t// Reset collapsed state when the root reference changes — otherwise stale\n\t// ids accumulate across data swaps (memory leak + phantom collapses if ids\n\t// happen to be reused). Mirrors Sunburst's focusId reset.\n\tReact.useEffect(() => {\n\t\tsetCollapsed(seedCollapsed(root, defaultExpandedDepth));\n\t}, [root, defaultExpandedDepth]);\n\n\tif (!d3h) {\n\t\treturn (\n\t\t\t<div\n\t\t\t\tdata-hex-org-chart-loading\n\t\t\t\taria-busy=\"true\"\n\t\t\t\tclassName={cn(\"inline-block bg-muted/20\", className)}\n\t\t\t\tstyle={{ width, height }}\n\t\t\t/>\n\t\t);\n\t}\n\n\tconst { nodes, links } = layout(d3h, root, collapsed, width, height, nodeHeight);\n\tconst desc = `Organizational chart with ${nodes.length} visible node${nodes.length === 1 ? \"\" : \"s\"}, rooted at \"${root.label}\"`;\n\n\tconst handleClick = (node: OrgNode) => {\n\t\tonNodeClick?.(node);\n\t\tif (!collapsible) return;\n\t\tconst hasChildren = node.children && node.children.length > 0;\n\t\tif (!hasChildren) return;\n\t\tsetCollapsed((prev) => {\n\t\t\tconst next = new Set(prev);\n\t\t\tif (next.has(node.id)) next.delete(node.id);\n\t\t\telse next.add(node.id);\n\t\t\treturn next;\n\t\t});\n\t};\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-org-chart\n\t\t\trole=\"img\"\n\t\t\twidth={width}\n\t\t\theight={height}\n\t\t\tviewBox={`0 0 ${width} ${height}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Org chart</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<g data-hex-org-chart-links>\n\t\t\t\t{links.map((l) => (\n\t\t\t\t\t<path\n\t\t\t\t\t\tkey={l.id}\n\t\t\t\t\t\td={`M${l.source.x},${l.source.y} C${l.source.x},${(l.source.y + l.target.y) / 2} ${l.target.x},${(l.source.y + l.target.y) / 2} ${l.target.x},${l.target.y}`}\n\t\t\t\t\t\tfill=\"none\"\n\t\t\t\t\t\tstroke=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\t\tstrokeOpacity={0.5}\n\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t/>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t\t<g data-hex-org-chart-nodes>\n\t\t\t\t{nodes.map((n) => (\n\t\t\t\t\t<g\n\t\t\t\t\t\tkey={n.node.id}\n\t\t\t\t\t\tdata-hex-org-chart-node\n\t\t\t\t\t\tdata-depth={n.depth}\n\t\t\t\t\t\ttransform={`translate(${n.x - nodeWidth / 2},${n.y - nodeHeight / 2})`}\n\t\t\t\t\t\tstyle={collapsible || onNodeClick ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\tonClick={collapsible || onNodeClick ? () => handleClick(n.node) : undefined}\n\t\t\t\t\t>\n\t\t\t\t\t\t<rect\n\t\t\t\t\t\t\twidth={nodeWidth}\n\t\t\t\t\t\t\theight={nodeHeight}\n\t\t\t\t\t\t\trx={8}\n\t\t\t\t\t\t\try={8}\n\t\t\t\t\t\t\tfill=\"hsl(var(--card))\"\n\t\t\t\t\t\t\tstroke=\"hsl(var(--border))\"\n\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t/>\n\t\t\t\t\t\t<text\n\t\t\t\t\t\t\tx={12}\n\t\t\t\t\t\t\ty={24}\n\t\t\t\t\t\t\tfontSize={13}\n\t\t\t\t\t\t\tfontWeight={600}\n\t\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{truncate(n.node.label, Math.floor((nodeWidth - 24) / 7))}\n\t\t\t\t\t\t</text>\n\t\t\t\t\t\t{n.node.subtitle ? (\n\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\tx={12}\n\t\t\t\t\t\t\t\ty={42}\n\t\t\t\t\t\t\t\tfontSize={11}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{truncate(n.node.subtitle, Math.floor((nodeWidth - 24) / 6))}\n\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t{n.collapsedCount > 0 ? (\n\t\t\t\t\t\t\t<g transform={`translate(${nodeWidth - 28},${nodeHeight - 18})`}>\n\t\t\t\t\t\t\t\t<rect\n\t\t\t\t\t\t\t\t\twidth={20}\n\t\t\t\t\t\t\t\t\theight={14}\n\t\t\t\t\t\t\t\t\trx={7}\n\t\t\t\t\t\t\t\t\try={7}\n\t\t\t\t\t\t\t\t\tfill=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\t\t\topacity={0.85}\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\t\tx={10}\n\t\t\t\t\t\t\t\t\ty={10}\n\t\t\t\t\t\t\t\t\tfontSize={9}\n\t\t\t\t\t\t\t\t\tfontWeight={600}\n\t\t\t\t\t\t\t\t\tfill=\"hsl(var(--primary-foreground))\"\n\t\t\t\t\t\t\t\t\ttextAnchor=\"middle\"\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{`+${n.collapsedCount}`}\n\t\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t\t</g>\n\t\t\t\t\t\t) : null}\n\t\t\t\t\t</g>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction seedCollapsed(root: OrgNode, maxDepth: number): Set<string> {\n\tif (!Number.isFinite(maxDepth)) return new Set();\n\tconst collapsed = new Set<string>();\n\tconst walk = (n: OrgNode, depth: number) => {\n\t\tif (depth >= maxDepth && n.children && n.children.length > 0) {\n\t\t\tcollapsed.add(n.id);\n\t\t\treturn;\n\t\t}\n\t\tn.children?.forEach((c) => walk(c, depth + 1));\n\t};\n\twalk(root, 0);\n\treturn collapsed;\n}\n\nfunction layout(\n\td3h: D3HierarchyMod,\n\troot: OrgNode,\n\tcollapsed: Set<string>,\n\twidth: number,\n\theight: number,\n\tnodeHeight: number,\n): { nodes: LaidOut[]; links: LaidOutLink[] } {\n\t// Pre-build an id → original-node map so collapsed-count lookup is O(1) per\n\t// node (vs O(N) DFS), keeping the whole layout pass O(N) for trees up to a\n\t// few thousand nodes.\n\tconst indexById = new Map<string, OrgNode>();\n\tindexNodes(root, indexById);\n\n\tconst visible = pruneCollapsed(root, collapsed);\n\tconst hierarchy = d3h.hierarchy<OrgNode>(visible);\n\tconst layoutRoot = d3h.tree<OrgNode>().size([width - 32, height - nodeHeight])(hierarchy);\n\tconst nodes: LaidOut[] = [];\n\tlayoutRoot.each((d) => {\n\t\tconst original = indexById.get(d.data.id);\n\t\tconst collapsedCount = collapsed.has(d.data.id) && original ? countDescendants(original) : 0;\n\t\tnodes.push({ node: d.data, x: d.x + 16, y: d.y + nodeHeight / 2, depth: d.depth, collapsedCount });\n\t});\n\tconst links: LaidOutLink[] = layoutRoot.links().map((link, i) => ({\n\t\tsource: { x: link.source.x + 16, y: link.source.y + nodeHeight / 2 },\n\t\ttarget: { x: link.target.x + 16, y: link.target.y + nodeHeight / 2 },\n\t\tid: `l-${i}`,\n\t}));\n\treturn { nodes, links };\n}\n\nfunction pruneCollapsed(node: OrgNode, collapsed: Set<string>): OrgNode {\n\tif (collapsed.has(node.id)) {\n\t\treturn { ...node, children: undefined };\n\t}\n\tif (!node.children || node.children.length === 0) return node;\n\treturn { ...node, children: node.children.map((c) => pruneCollapsed(c, collapsed)) };\n}\n\nfunction indexNodes(node: OrgNode, out: Map<string, OrgNode>): void {\n\tout.set(node.id, node);\n\tif (!node.children) return;\n\tfor (const c of node.children) indexNodes(c, out);\n}\n\nfunction countDescendants(node: OrgNode): number {\n\tif (!node.children || node.children.length === 0) return 0;\n\treturn node.children.reduce((sum, c) => sum + 1 + countDescendants(c), 0);\n}\n\nfunction truncate(s: string, max: number): string {\n\tif (s.length <= max) return s;\n\treturn `${s.slice(0, Math.max(1, max - 1))}…`;\n}\n\nexport { OrgChart };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ],
+    "heavyPeer": [
+      {
+        "name": "d3-hierarchy",
+        "version": "^3.1.2",
+        "bundleKbGzip": 3,
+        "reason": "Computes the top-down tree layout; the component renders SVG node cards with the result"
+      }
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "border",
+    "foreground",
+    "muted-foreground",
+    "primary",
+    "primary-foreground",
+    "background"
+  ],
+  "examples": [
+    {
+      "title": "Three-level org chart",
+      "description": "CEO with two reports, one of whom has further reports.",
+      "code": "<OrgChart root={{\n  id: \"ceo\", label: \"Jane Doe\", subtitle: \"CEO\",\n  children: [\n    { id: \"cto\", label: \"Bob Smith\", subtitle: \"CTO\",\n      children: [{ id: \"eng\", label: \"Eng Team\", subtitle: \"12 people\" }] },\n    { id: \"cfo\", label: \"Sara Lin\", subtitle: \"CFO\" },\n  ],\n}} />",
+      "composition": [
+        "org-chart",
+        "hierarchy",
+        "people"
+      ]
+    },
+    {
+      "title": "Initially collapsed past depth 1",
+      "description": "Render only the top two layers expanded; click +N badges to drill down.",
+      "code": "<OrgChart defaultExpandedDepth={1} root={orgTree} />",
+      "composition": [
+        "org-chart",
+        "collapsible"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize people / team / department hierarchies, or any tree where each node is a labeled entity (not a value-sized bucket). Use when relationships are strictly parent-child and the user wants to drill into branches. `onNodeClick` fires for ALL nodes (root, internal, leaves) BEFORE the internal collapse toggle so consumers can observe pre-toggle state.",
+    "whenNotToUse": "Don't use for value-scaled hierarchies (use TreeMap or Sunburst). Don't use for arbitrary node graphs with cross-edges (use Canvas). Don't use for purely conceptual maps (use MindMap).",
+    "commonMistakes": [
+      "Hierarchies thousands of nodes deep — d3.tree's horizontal spread becomes unreadable. Combine with `defaultExpandedDepth` and let users drill",
+      "Mutating `root` in place when toggling expansion externally — internal collapse state keys off ids, so the controlled escape hatch should provide a stable id and a NEW root object",
+      "Placing the SVG in a 0×0 container — the layout computes from `width`/`height`, but the rendered SVG inherits its container's dimensions"
+    ],
+    "relatedComponents": [
+      "mind-map",
+      "tree-map",
+      "sunburst",
+      "dendrogram",
+      "canvas",
+      "diagram"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing the visible node count and root label. Collapsed-count badges are visual; for screen readers, also expose a parallel <ul> listing label/subtitle/depth.",
+    "tokenBudget": 360
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "org-chart",
+    "hierarchy",
+    "tree",
+    "people"
+  ]
+}

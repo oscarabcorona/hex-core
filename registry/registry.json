@@ -1471,6 +1471,101 @@
         "ai/types"
       ],
       "tokenBudget": 320
+    },
+    {
+      "name": "dendrogram",
+      "displayName": "Dendrogram",
+      "description": "Clustering tree where every leaf sits at the same depth, regardless of branch length — the visual signature of taxonomies, phylogenetic trees, and hierarchical-clustering output.",
+      "category": "artifact",
+      "subcategory": "hierarchy",
+      "tags": [
+        "artifact",
+        "diagram",
+        "dendrogram",
+        "hierarchy",
+        "cluster",
+        "taxonomy"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 320
+    },
+    {
+      "name": "mind-map",
+      "displayName": "MindMap",
+      "description": "Typed React mind map. Pass a hierarchical root node and the component lays children out radially (or horizontally) using d3-hierarchy's tree layout — no Mermaid string DSL required.",
+      "category": "artifact",
+      "subcategory": "hierarchy",
+      "tags": [
+        "artifact",
+        "diagram",
+        "mind-map",
+        "hierarchy",
+        "tree",
+        "radial"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 320
+    },
+    {
+      "name": "org-chart",
+      "displayName": "OrgChart",
+      "description": "Top-down organizational chart with collapsible subtrees. Each node renders as a rounded card showing label + subtitle; click any node with children to fold its subtree behind a +N badge.",
+      "category": "artifact",
+      "subcategory": "hierarchy",
+      "tags": [
+        "artifact",
+        "diagram",
+        "org-chart",
+        "hierarchy",
+        "tree",
+        "people"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 360
+    },
+    {
+      "name": "sunburst",
+      "displayName": "Sunburst",
+      "description": "Radial hierarchy by value. Each ring is a deeper level of the tree; segment angles are proportional to summed values. Click a segment to drill in; click the center to zoom out.",
+      "category": "artifact",
+      "subcategory": "hierarchy",
+      "tags": [
+        "artifact",
+        "diagram",
+        "sunburst",
+        "hierarchy",
+        "radial",
+        "value-scaled"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 360
+    },
+    {
+      "name": "tree-map",
+      "displayName": "TreeMap",
+      "description": "Nested rectangles sized by value — each leaf's area is proportional to its `value`. Squarified by default for legibility.",
+      "category": "artifact",
+      "subcategory": "hierarchy",
+      "tags": [
+        "artifact",
+        "diagram",
+        "tree-map",
+        "hierarchy",
+        "area",
+        "squarify"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 320
     }
   ]
 }

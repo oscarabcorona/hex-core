@@ -96,10 +96,14 @@
 		"@hex-core/registry": "workspace:^",
 		"@microsoft/api-extractor": "^7.58.7",
 		"@tanstack/react-table": "^8.21.3",
+		"@types/d3-hierarchy": "^3.1.7",
+		"@types/d3-shape": "^3.1.6",
 		"@types/react": "^19.0.0",
 		"@types/react-dom": "^19.0.0",
 		"@xterm/xterm": "^5.5.0",
 		"cmdk": "^1.1.1",
+		"d3-hierarchy": "^3.1.2",
+		"d3-shape": "^3.2.0",
 		"date-fns": "^4.1.0",
 		"fast-glob": "^3.3.3",
 		"input-otp": "^1.4.2",
@@ -119,6 +123,8 @@
 		"@tanstack/react-table": "^8.0.0 || ^9.0.0",
 		"@xterm/xterm": "^5.5.0",
 		"cmdk": "^1.0.0",
+		"d3-hierarchy": "^3.1.2",
+		"d3-shape": "^3.2.0",
 		"date-fns": "^3.0.0 || ^4.0.0",
 		"input-otp": "^1.0.0",
 		"mermaid": "^11.0.0",
@@ -143,6 +149,12 @@
 			"optional": true
 		},
 		"cmdk": {
+			"optional": true
+		},
+		"d3-hierarchy": {
+			"optional": true
+		},
+		"d3-shape": {
 			"optional": true
 		},
 		"date-fns": {
