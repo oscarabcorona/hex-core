@@ -1,5 +1,73 @@
 # @hex-core/registry
 
+## 0.3.4
+
+### Patch Changes
+
+- d67fa60: feat(ai): 5 new AI Elements components + CLI heavy-peer prompt
+
+  Closes the AI Elements parity gap from 13/40 → 18/40 by adding the Code, Voice, and Workflow categories. Each component is a thin headless wrapper around an opt-in engine declared as a heavy peer dep.
+
+  **New components (`@hex-core/components`):**
+  - **`Terminal`** — xterm.js wrapper. Headless data flow: pass `output` (diffed against prior render), receive typed bytes via `onInput`. Peer: `@xterm/xterm@^5.5.0` (~150 KB gzip).
+  - **`Canvas`** — reactflow node-graph canvas for agent workflows / RAG document graphs. Default Background + Controls; slot for MiniMap and Panels. Peer: `reactflow@^11.11.0` (~80 KB gzip).
+  - **`AudioPlayer`** — wavesurfer.js playback control with play/pause + waveform progress + duration. Peer: `wavesurfer.js@^7.8.0` (~50 KB gzip, shared with AudioWaveform).
+  - **`AudioWaveform`** — standalone non-interactive waveform display for voice-message previews and recording indicators. Peer: `wavesurfer.js@^7.8.0`.
+  - **`Diagram`** — Mermaid renderer for AI-emitted flowcharts / sequence / class diagrams. Engine sanitizes SVG via `securityLevel: "strict"`. Peer: `mermaid@^11.0.0` (~700 KB gzip).
+
+  **CLI heavy-peer flow (`@hex-core/cli`):**
+
+  `hex add <component>` now detects heavy peer deps declared in the registry and prompts before installing. Single batched UX for multi-component installs:
+
+  ```
+  This sprint installs 2 components with heavy peer dependencies:
+
+    → @xterm/xterm@^5.5.0  (~150 KB gzip)  for terminal
+       Renders the terminal grid + handles input/output
+    → mermaid@^11.0.0      (~700 KB gzip)  for diagram
+
+    Total: ~850 KB gzip added to your bundle.
+
+  Install now? [Y/n]:
+  ```
+
+  `--yes` skips the prompt. `--no-install` prints the manual install command. Decline keeps the component source on disk so you can install the peer later.
+
+  **Schema (`@hex-core/registry`):**
+
+  New `dependencies.heavyPeer` array on `dependencySchema`: `{ name, version, bundleKbGzip?, reason? }[]`. Optional — existing schema files don't need changes.
+
+  All 5 components ship as optional peers in `@hex-core/components/package.json` (peerDependenciesMeta.optional: true), mirroring the existing pattern for vaul/sonner/cmdk.
+
+- b1b9099: feat(artifacts): hierarchy-family diagram primitives — MindMap, TreeMap, OrgChart, Sunburst, Dendrogram
+
+  Introduces a new `artifacts/` top-level category for typed React diagram primitives. This batch ships the **hierarchy core** — five primitives that all share a single small optional peer (`d3-hierarchy`, ~3 KB gzip), with Sunburst additionally using `d3-shape` for arc paths.
+
+  **New components (`@hex-core/components`):**
+  - **`MindMap`** — typed React mind map with radial or horizontal layout. Pass a hierarchical `root` node; the component lays out children using d3-hierarchy's tree layout. No Mermaid string DSL required.
+  - **`TreeMap`** — squarified treemap where each leaf's area is proportional to its `value`. Supports `tile: "squarify" | "binary" | "slice-dice"` and depth- or value-based coloring.
+  - **`OrgChart`** — top-down organizational chart with collapsible subtrees. Each node renders as a rounded card; click any node with children to fold its subtree behind a `+N` badge. Supports `defaultExpandedDepth` for initial state.
+  - **`Sunburst`** — radial hierarchy by value with click-to-zoom drill-down. Each ring is a deeper level of the tree; segment angles are proportional to summed values. Click the center to zoom back out.
+  - **`Dendrogram`** — clustering tree where every leaf sits at the same depth (the visual signature of taxonomies, phylogenetic trees, hierarchical-clustering output). Supports horizontal/vertical orientation and step/diagonal links.
+
+  All five follow the established heavy-peer pattern from `Canvas` / `Diagram`:
+  - Lazy `import("d3-hierarchy")` on mount; placeholder `<div data-hex-<name>-loading />` until resolution
+  - Optional peer dependency with `peerDependenciesMeta.optional: true`
+  - CLI's `hex add <name>` flow prompts before installing the d3 modules
+  - Typed React-prop API (no string DSL) so consumers can drive the diagram from application state
+  - SVG output with `role="img"` + `<title>` + `<desc>` for screen readers
+
+  **Schema (`@hex-core/registry`):**
+  - `categoryEnum` gains a new `"artifact"` value alongside the existing `"primitive" | "component" | "block" | "ai" | …` set.
+  - `internalDepToSlug` now accepts `"artifacts/…"` paths in addition to `components/`, `primitives/`, and `blocks/`.
+
+  **MCP server (`@hex-core/mcp`):**
+  - The `search_components` tool's `category` filter enum now matches the registry enum (adds `"artifact"`). Without this, `search_components({ category: "artifact" })` would reject at the Zod boundary even though the items exist in the registry.
+
+  **Where to place them:**
+
+  `packages/components/src/artifacts/` — a new top-level category sibling to `primitives/`, `components/`, and `ai/`. Keeps general-purpose visualizations out of the `ai/` folder (whose schemas are tuned for agent-output semantics) and gives the next batches (Flow, Relational, Time) a natural home.
+
 ## 0.3.3
 
 ### Patch Changes
