@@ -31,8 +31,8 @@ interface RawTsconfig {
 const tsconfigCache = new Map<string, RawTsconfig | null>();
 const aliasRootCache = new Map<string, string>();
 
-/** Strip `//` line comments, `/* *​/` block comments, and trailing commas
- * from a JSONC string. tsconfig.json officially permits all three. */
+/** Strip line comments, block comments, and trailing commas from a JSONC
+ * string. tsconfig.json officially permits all three. */
 function stripJsonc(input: string): string {
 	let out = "";
 	let i = 0;
@@ -76,7 +76,7 @@ function stripJsonc(input: string): string {
 
 function readTsconfig(file: string): RawTsconfig | null {
 	if (tsconfigCache.has(file)) return tsconfigCache.get(file) ?? null;
-	let parsed: RawTsconfig | null = null;
+	let parsed: RawTsconfig | null;
 	try {
 		const raw = fs.readFileSync(file, "utf-8");
 		parsed = JSON.parse(stripJsonc(raw)) as RawTsconfig;

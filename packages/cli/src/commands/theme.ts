@@ -126,16 +126,22 @@ export async function themeAdd(options: AddOptions) {
 		? path.resolve(cwd, options.out)
 		: path.join(cwd, detectSrcLayout(cwd) ? "src/themes" : "themes", `${options.slug}.ts`);
 
-	if (fs.existsSync(outPath) && !options.overwrite) {
-		console.error(`${path.relative(cwd, outPath)} already exists. Pass --overwrite to replace.`);
-		process.exit(1);
-	}
-
 	const { renderTheme } = await import("./theme-interactive.js");
 	const content = renderTheme(customTheme, "ts");
 
 	fs.mkdirSync(path.dirname(outPath), { recursive: true });
-	fs.writeFileSync(outPath, content, "utf8");
+	// Atomic write: `wx` fails if outPath exists, closing the TOCTOU race
+	// between an existsSync check and writeFileSync that CodeQL flagged.
+	const writeFlag = options.overwrite ? "w" : "wx";
+	try {
+		fs.writeFileSync(outPath, content, { encoding: "utf8", flag: writeFlag });
+	} catch (err) {
+		if ((err as NodeJS.ErrnoException).code === "EEXIST") {
+			console.error(`${path.relative(cwd, outPath)} already exists. Pass --overwrite to replace.`);
+			process.exit(1);
+		}
+		throw err;
+	}
 
 	const displayed = path.relative(cwd, outPath);
 	console.log(`Created ${pc.green(displayed)} from "${baseTheme.displayName}" preset.`);

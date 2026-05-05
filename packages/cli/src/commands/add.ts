@@ -174,19 +174,6 @@ function installOne(name: string, ctx: Context): string[] | null {
 		const targetDir = path.dirname(targetPath);
 		const display = displayPath(ctx.cwd, targetPath);
 
-		if (fs.existsSync(targetPath) && !ctx.options.overwrite) {
-			// Shared lib files (lib/utils.ts, lib/color.ts) are idempotent
-			// utilities every component depends on. Once any component is added,
-			// they're already on disk, and every subsequent `hex add` would print
-			// a misleading "use --overwrite" line for them — but you almost never
-			// want to clobber a customized lib/utils.ts just to add another
-			// component. Silently no-op for these. Component files keep the loud
-			// hint since "I want to refresh my Button source" is the common case.
-			if (isSharedLibFile(file)) continue;
-			console.log(`  ${pc.dim("Skip:")} ${display} ${pc.dim("(already exists, use --overwrite)")}`);
-			continue;
-		}
-
 		// Registry items ship with monorepo-source-style imports
 		// (e.g. `../command/command.js`). Rewrite to the consumer's alias
 		// paths and drop `.js` suffixes before writing to disk.
@@ -194,13 +181,48 @@ function installOne(name: string, ctx: Context): string[] | null {
 			file.type === "registry:component" || file.type === "registry:lib" || /\.(?:tsx?|jsx?)$/.test(file.path)
 				? rewriteRegistryImports(file.content, ctx.aliases)
 				: file.content;
-		if (!ctx.options.dryRun) {
-			fs.mkdirSync(targetDir, { recursive: true });
-			fs.writeFileSync(targetPath, rewritten);
+
+		if (ctx.options.dryRun) {
+			// Dry-run still needs the existence check to decide whether to
+			// announce a write or a skip. Disk state can change between this
+			// check and any real future invocation, but that's outside dry-run's
+			// contract — we're just reporting on intent.
+			if (fs.existsSync(targetPath) && !ctx.options.overwrite) {
+				if (isSharedLibFile(file)) continue;
+				console.log(`  ${pc.dim("Skip:")} ${display} ${pc.dim("(already exists, use --overwrite)")}`);
+				continue;
+			}
+			ctx.plannedWrites.push(display);
+			console.log(`  ${pc.cyan("Would write:")} ${display}`);
+			continue;
+		}
+
+		// Atomic write path: use the `wx` flag (exclusive create) when not
+		// overwriting so the existence check and the write happen as a single
+		// fs operation. Closes the TOCTOU race CodeQL flagged on the prior
+		// existsSync-then-writeFileSync pattern.
+		fs.mkdirSync(targetDir, { recursive: true });
+		const writeFlag = ctx.options.overwrite ? "w" : "wx";
+		try {
+			fs.writeFileSync(targetPath, rewritten, { flag: writeFlag });
+		} catch (err) {
+			if ((err as NodeJS.ErrnoException).code === "EEXIST") {
+				// Shared lib files (lib/utils.ts, lib/color.ts) are idempotent
+				// utilities every component depends on. Once any component is
+				// added, they're already on disk, and every subsequent `hex add`
+				// would print a misleading "use --overwrite" line for them — but
+				// users almost never want to clobber a customized lib/utils.ts
+				// just to add another component. Silently no-op for these.
+				// Component files keep the loud hint since "I want to refresh my
+				// Button source" is the common case.
+				if (isSharedLibFile(file)) continue;
+				console.log(`  ${pc.dim("Skip:")} ${display} ${pc.dim("(already exists, use --overwrite)")}`);
+				continue;
+			}
+			throw err;
 		}
 		ctx.plannedWrites.push(display);
-		const verb = ctx.options.dryRun ? pc.cyan("Would write:") : pc.green("Write:");
-		console.log(`  ${verb} ${display}`);
+		console.log(`  ${pc.green("Write:")} ${display}`);
 	}
 
 	const deps = item.dependencies ?? {};

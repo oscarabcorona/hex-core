@@ -1,5 +1,12 @@
 import { defineConfig } from "vitest/config";
 
+// picocolors enables ANSI codes when `CI` is in the environment (GitHub
+// Actions sets this unconditionally). Tests assert against literal strings
+// like `Write: lib/utils.ts`, so force colors off via NO_COLOR before any
+// test module imports picocolors. Local runs without `CI` are already
+// color-free thanks to the TTY check.
+process.env.NO_COLOR = "1";
+
 export default defineConfig({
 	test: {
 		environment: "node",
