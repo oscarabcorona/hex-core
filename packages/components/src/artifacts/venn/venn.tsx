@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { pickChartHue } from "../../lib/chart-palette.js";
 import { cn } from "../../lib/utils.js";
 
 /**
@@ -44,11 +45,9 @@ interface LaidOutCircle {
 	depth: number;
 }
 
-const SET_PALETTE = [
-	"hsl(var(--primary))",
-	"hsl(var(--accent))",
-	"hsl(var(--secondary))",
-];
+// Venn supports 2 or 3 sets only — picks the first 2-3 categorical hues
+// from the shared chart palette via `pickChartHue` (which falls back to
+// `--primary` if a consumer's theme is missing the chart family).
 
 function Venn({
 	sets,
@@ -139,7 +138,7 @@ function Venn({
 								cx={c.cx}
 								cy={c.cy}
 								r={c.r}
-								fill={SET_PALETTE[c.depth % SET_PALETTE.length]}
+								fill={pickChartHue(c.depth)}
 								fillOpacity={0.45}
 								stroke="hsl(var(--background))"
 								strokeWidth={1.5}

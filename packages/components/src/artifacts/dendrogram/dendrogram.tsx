@@ -120,7 +120,7 @@ function Dendrogram({
 						d={linkPath(l, orientation, linkShape)}
 						fill="none"
 						stroke="hsl(var(--muted-foreground))"
-						strokeOpacity={0.6}
+						strokeOpacity={0.8}
 						strokeWidth={1}
 					/>
 				))}

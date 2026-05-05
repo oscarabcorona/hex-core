@@ -106,10 +106,15 @@ describe("ImageOcclusion", () => {
 		).toContain("custom-io");
 	});
 
-	it("marks the decorative overlay container as aria-hidden", () => {
+	it("does not mark the overlay container as aria-hidden — it houses focusable region buttons", () => {
+		// Regression: previously the overlay was `aria-hidden="true"` AND held
+		// focusable <button> children, which trips axe's `aria-hidden-focus`
+		// rule and silently strips the buttons' labels from assistive tech.
+		// The buttons carry their own aria-label + aria-pressed; the overlay
+		// must NOT be aria-hidden.
 		const { container } = render(<ImageOcclusion src="/x.png" alt="x" regions={sample} />);
 		expect(
 			container.querySelector("[data-hex-image-occlusion-overlay]")?.getAttribute("aria-hidden"),
-		).toBe("true");
+		).toBeNull();
 	});
 });

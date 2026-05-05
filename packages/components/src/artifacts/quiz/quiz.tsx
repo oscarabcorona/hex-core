@@ -123,12 +123,12 @@ function Quiz({
 			<div data-hex-quiz-question className="mb-3 text-base font-medium">
 				{question}
 			</div>
-			<ul data-hex-quiz-options className="space-y-2" role={selectionMode === "single" ? "radiogroup" : "group"}>
+			<div data-hex-quiz-options className="space-y-2" role={selectionMode === "single" ? "radiogroup" : "group"}>
 				{options.map((option) => {
 					const state = stateFor(option);
 					const isPicked = selected.has(option.id);
 					return (
-						<li key={option.id}>
+						<div key={option.id}>
 							<label
 								data-hex-quiz-option
 								data-state={state}
@@ -158,10 +158,10 @@ function Quiz({
 									) : null}
 								</div>
 							</label>
-						</li>
+						</div>
 					);
 				})}
-			</ul>
+			</div>
 			<div className="mt-3 flex items-center gap-3">
 				<button
 					type="button"

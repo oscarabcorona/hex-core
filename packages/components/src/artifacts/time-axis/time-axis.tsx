@@ -154,8 +154,8 @@ function TimeAxis({
 								x2={e.x}
 								y1={e.y}
 								y2={laidOut.axisY}
-								stroke="hsl(var(--primary))"
-								strokeOpacity={0.4}
+								stroke="hsl(var(--muted-foreground))"
+								strokeOpacity={0.65}
 								strokeWidth={1}
 							/>
 							<circle
@@ -272,11 +272,19 @@ function layout(
 			return { event, x, y: 24 + rowIndex * ROW_HEIGHT_PX, rowIndex };
 		});
 
-	const ticks: AxisTick[] = [];
+	// Generate ticks then dedupe consecutive identical labels — at year-scale
+	// or month-scale spans the formatter often emits the same string twice
+	// (e.g. five ticks all in 2025 render as "2025" / "2025" / ...). Blanking
+	// the duplicate keeps the gridline tick but drops the noisy repeat.
+	const rawTicks: AxisTick[] = [];
 	for (let i = 0; i < tickCount; i++) {
 		const t = minTs + (i / Math.max(1, tickCount - 1)) * span;
-		ticks.push({ x: tToX(t), label: formatTick(new Date(t), span) });
+		rawTicks.push({ x: tToX(t), label: formatTick(new Date(t), span) });
 	}
+	const ticks: AxisTick[] = rawTicks.map((t, i) => ({
+		x: t.x,
+		label: i > 0 && rawTicks[i - 1]?.label === t.label ? "" : t.label,
+	}));
 
 	return {
 		events: positioned,
@@ -307,8 +315,12 @@ function formatTick(d: Date, spanMs: number): string {
 		// short range — show day
 		return d.toISOString().slice(0, 10);
 	}
-	if (spanMs <= 365 * ONE_DAY) {
-		// medium range — show year-month
+	if (spanMs <= 90 * ONE_DAY) {
+		// up to ~3 months — show month-day so adjacent ticks stay distinct
+		return d.toISOString().slice(5, 10);
+	}
+	if (spanMs <= 730 * ONE_DAY) {
+		// up to ~2 years — show year-month
 		return d.toISOString().slice(0, 7);
 	}
 	// long range — year only

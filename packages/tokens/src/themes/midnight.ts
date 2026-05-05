@@ -28,6 +28,15 @@ export const midnightTheme: Theme = {
 			input: { value: "220 13% 88%", type: "color" },
 			ring: { value: "226 70% 55%", type: "color" },
 			radius: { value: "0.5rem", type: "radius" },
+			// Chart palette — cool-leaning hues that complement the
+			// midnight blue primary while staying perceptually distinct
+			// for categorical encoding.
+			"chart-1": { value: "226 70% 55%", type: "color" },
+			"chart-2": { value: "165 60% 40%", type: "color" },
+			"chart-3": { value: "20 80% 55%", type: "color" },
+			"chart-4": { value: "280 65% 60%", type: "color" },
+			"chart-5": { value: "45 80% 55%", type: "color" },
+			"chart-6": { value: "330 70% 55%", type: "color" },
 			...sharedTokens,
 		},
 		dark: {
@@ -58,6 +67,13 @@ export const midnightTheme: Theme = {
 			input: { value: "224 20% 14%", type: "color" },
 			ring: { value: "226 70% 55%", type: "color" },
 			radius: { value: "0.5rem", type: "radius" },
+			// Lifted lightness so segments stay legible against deep navy bg.
+			"chart-1": { value: "226 70% 65%", type: "color" },
+			"chart-2": { value: "165 60% 55%", type: "color" },
+			"chart-3": { value: "20 80% 65%", type: "color" },
+			"chart-4": { value: "280 65% 70%", type: "color" },
+			"chart-5": { value: "45 80% 65%", type: "color" },
+			"chart-6": { value: "330 70% 65%", type: "color" },
 			...sharedTokens,
 		},
 	},

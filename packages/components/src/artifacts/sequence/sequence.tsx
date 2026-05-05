@@ -136,7 +136,7 @@ function Sequence({
 						y1={headerHeight}
 						y2={laidOut.totalHeight - 8}
 						stroke="hsl(var(--muted-foreground))"
-						strokeOpacity={0.4}
+						strokeOpacity={0.7}
 						strokeDasharray="3 4"
 						strokeWidth={1}
 					/>

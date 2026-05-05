@@ -327,11 +327,19 @@ function layout(
 		});
 	});
 
-	const ticks: AxisTick[] = [];
+	// Generate ticks, then dedupe consecutive identical labels — at year-scale
+	// or month-scale spans the formatter often emits the same string twice
+	// (e.g. two ticks both inside January render as "2025-01"). Blanking the
+	// duplicate keeps the gridline but drops the noisy repeated text.
+	const rawTicks: AxisTick[] = [];
 	for (let i = 0; i < tickCount; i++) {
 		const ts = minTs + (i / Math.max(1, tickCount - 1)) * span;
-		ticks.push({ x: tToX(ts), label: formatTick(new Date(ts), span) });
+		rawTicks.push({ x: tToX(ts), label: formatTick(new Date(ts), span) });
 	}
+	const ticks: AxisTick[] = rawTicks.map((t, i) => ({
+		x: t.x,
+		label: i > 0 && rawTicks[i - 1]?.label === t.label ? "" : t.label,
+	}));
 
 	return {
 		tasks: laidOutTasks,
@@ -360,8 +368,11 @@ function formatDate(d: Date): string {
 function formatTick(d: Date, spanMs: number): string {
 	if (Number.isNaN(d.getTime())) return "—";
 	const ONE_DAY = 24 * 60 * 60 * 1000;
-	if (spanMs <= 30 * ONE_DAY) return d.toISOString().slice(5, 10); // MM-DD
-	if (spanMs <= 365 * ONE_DAY) return d.toISOString().slice(0, 7); // YYYY-MM
+	// Switch to MM-DD up to ~3 months — at 30 days the original threshold
+	// produced "2025-01" / "2025-01" duplicates for ticks landing in the
+	// same month. MM-DD scales to ~90 days before adjacent ticks merge.
+	if (spanMs <= 90 * ONE_DAY) return d.toISOString().slice(5, 10); // MM-DD
+	if (spanMs <= 730 * ONE_DAY) return d.toISOString().slice(0, 7); // YYYY-MM
 	return String(d.getUTCFullYear());
 }
 

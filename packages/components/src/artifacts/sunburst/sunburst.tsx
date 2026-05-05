@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { pickChartHue } from "../../lib/chart-palette.js";
 import { cn } from "../../lib/utils.js";
 
 /**
@@ -52,17 +53,29 @@ interface LaidOutSegment {
 	x1: number;
 	y0: number;
 	y1: number;
+	/** Index of this segment's depth-1 ancestor among its siblings.
+	 * Used to pick a hue from CHART_PALETTE so all descendants of the
+	 * same top-level branch share a color family. */
+	rootSiblingIdx: number;
 }
 
 type D3HierarchyMod = typeof import("d3-hierarchy");
 type D3ShapeMod = typeof import("d3-shape");
 
-const DEPTH_PALETTE = [
-	"hsl(var(--primary))",
-	"hsl(var(--accent))",
-	"hsl(var(--secondary))",
-	"hsl(var(--muted))",
-];
+/**
+ * Sunburst opacity ramp: deeper rings render at lower opacity so they
+ * read as subdivisions of their parent without obscuring the parent hue.
+ * Hand-tuned: outermost ring lands ~0.45, innermost stays at 0.85.
+ *
+ * @param depth - Ring depth (1-indexed; 1 is the inner ring).
+ * @param maxDepth - The maximum ring depth in the current focused tree.
+ * @returns Opacity in [0.45, 0.85].
+ */
+function depthOpacity(depth: number, maxDepth: number): number {
+	if (maxDepth <= 1) return 0.85;
+	const t = (depth - 1) / Math.max(1, maxDepth - 1);
+	return 0.85 - t * 0.4;
+}
 
 function Sunburst({
 	root,
@@ -108,6 +121,7 @@ function Sunburst({
 	const focused = findNode(root, focusId) ?? root;
 	const radius = size / 2;
 	const segments = layout(d3h, focused, radius);
+	const maxDepth = segments.reduce((m, s) => Math.max(m, s.depth), 1);
 	const arc = d3s
 		.arc<LaidOutSegment>()
 		.startAngle((s) => s.x0)
@@ -154,14 +168,39 @@ function Sunburst({
 							data-hex-sunburst-segment
 							data-depth={s.depth}
 							d={arc(s) ?? ""}
-							fill={DEPTH_PALETTE[(s.depth - 1) % DEPTH_PALETTE.length] ?? "hsl(var(--primary))"}
-							fillOpacity={0.85}
+							fill={pickChartHue(s.rootSiblingIdx)}
+							fillOpacity={depthOpacity(s.depth, maxDepth)}
 							stroke="hsl(var(--background))"
 							strokeWidth={1}
 							style={drillable || onSegmentClick ? { cursor: "pointer" } : undefined}
 							onClick={drillable || onSegmentClick ? () => handleSegmentClick(s) : undefined}
 						/>
 					))}
+			</g>
+			<g data-hex-sunburst-labels aria-hidden="true" pointerEvents="none">
+				{segments
+					.filter((s) => s.depth > 0 && s.x1 - s.x0 > 0.18)
+					.map((s) => {
+						const angle = (s.x0 + s.x1) / 2;
+						const rMid = (s.y0 + s.y1) / 2;
+						const cx = Math.sin(angle) * rMid;
+						const cy = -Math.cos(angle) * rMid;
+						return (
+							<text
+								key={`${s.node.id}-label`}
+								x={cx}
+								y={cy}
+								textAnchor="middle"
+								dy="0.35em"
+								fontSize={11}
+								fontWeight={500}
+								fill="hsl(var(--background))"
+								style={{ paintOrder: "stroke", stroke: "hsl(var(--foreground) / 0.25)", strokeWidth: 2 }}
+							>
+								{s.node.label}
+							</text>
+						);
+					})}
 			</g>
 			<g
 				data-hex-sunburst-center
@@ -212,6 +251,11 @@ function layout(d3h: D3HierarchyMod, focused: SunburstNode, radius: number): Lai
 	const layoutRoot = d3h.partition<SunburstNode>().size([2 * Math.PI, radius])(hierarchy);
 	const segments: LaidOutSegment[] = [];
 	layoutRoot.each((d) => {
+		// Walk up to the depth-1 ancestor so all descendants of "Equity"
+		// share the Equity hue, distinct from "Fixed Income".
+		let cursor: typeof d | null = d;
+		while (cursor && cursor.depth > 1) cursor = cursor.parent;
+		const ancestorIdx = cursor?.parent?.children?.indexOf(cursor) ?? 0;
 		segments.push({
 			node: d.data,
 			depth: d.depth,
@@ -219,6 +263,7 @@ function layout(d3h: D3HierarchyMod, focused: SunburstNode, radius: number): Lai
 			x1: d.x1,
 			y0: d.y0,
 			y1: d.y1,
+			rootSiblingIdx: Math.max(0, ancestorIdx),
 		});
 	});
 	return segments;

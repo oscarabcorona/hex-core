@@ -28,20 +28,34 @@ export const defaultTheme: Theme = {
 			input: { value: "222 8% 90%", type: "color" },
 			ring: { value: "222 25% 18%", type: "color" },
 			radius: { value: "0.375rem", type: "radius" },
+			// Chart palette — perceptually distinct hues for diagram primitives
+			// (sunburst, treemap, sankey, chord, funnel, pyramid, venn). The
+			// monochrome `--primary`/`--accent` family is unfit for categorical
+			// encoding; cycle through these by index instead.
+			"chart-1": { value: "12 76% 61%", type: "color" },
+			"chart-2": { value: "173 58% 39%", type: "color" },
+			"chart-3": { value: "197 37% 50%", type: "color" },
+			"chart-4": { value: "43 74% 49%", type: "color" },
+			"chart-5": { value: "280 65% 60%", type: "color" },
+			"chart-6": { value: "340 75% 55%", type: "color" },
 			...sharedTokens,
 		},
 		dark: {
 			background: { value: "210 15% 2%", type: "color" },
 			foreground: { value: "222 22.5% 89%", type: "color" },
-			card: { value: "210 15% 8%", type: "color" },
-			popover: { value: "210 15% 8%", type: "color" },
+			// Card/popover lifted from L=8% → L=14% so SVG-rendered surfaces
+			// (org-chart cards, flowchart boxes) read as elevated against bg.
+			card: { value: "222 12% 14%", type: "color" },
+			popover: { value: "222 12% 14%", type: "color" },
 			primary: { value: "222 30% 60%", type: "color" },
 			secondary: { value: "222 8% 12%", type: "color" },
 			muted: { value: "222 8% 12%", type: "color" },
 			accent: { value: "222 8% 12%", type: "color" },
 			destructive: { value: "0 48.8% 58%", type: "color" },
-			border: { value: "222 8% 14%", type: "color" },
-			input: { value: "222 8% 14%", type: "color" },
+			// Border lifted from L=14% → L=24% so SVG outlines (chord arcs,
+			// sankey segments, gantt grid) have actual definition.
+			border: { value: "222 12% 24%", type: "color" },
+			input: { value: "222 12% 24%", type: "color" },
 			ring: { value: "222 30% 60%", type: "color" },
 			radius: { value: "0.375rem", type: "radius" },
 			"card-foreground": { value: "222 22.5% 89%", type: "color" },
@@ -51,6 +65,13 @@ export const defaultTheme: Theme = {
 			"muted-foreground": { value: "222 8% 65%", type: "color" },
 			"accent-foreground": { value: "222 22.5% 89%", type: "color" },
 			"destructive-foreground": { value: "0 0% 8%", type: "color" },
+			// Lifted lightness for legibility on near-black background.
+			"chart-1": { value: "12 76% 65%", type: "color" },
+			"chart-2": { value: "173 58% 55%", type: "color" },
+			"chart-3": { value: "197 37% 60%", type: "color" },
+			"chart-4": { value: "43 74% 60%", type: "color" },
+			"chart-5": { value: "280 65% 70%", type: "color" },
+			"chart-6": { value: "340 75% 65%", type: "color" },
 			...sharedTokens,
 		},
 	},

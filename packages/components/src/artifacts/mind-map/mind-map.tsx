@@ -115,8 +115,8 @@ function MindMap({
 						key={l.id}
 						d={linkPath(l, orientation)}
 						fill="none"
-						stroke="hsl(var(--primary))"
-						strokeOpacity={0.5}
+						stroke="hsl(var(--muted-foreground))"
+						strokeOpacity={0.7}
 						strokeWidth={1.5}
 					/>
 				))}

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { pickChartHue } from "../../lib/chart-palette.js";
 import { cn } from "../../lib/utils.js";
 
 /**
@@ -122,22 +123,28 @@ function Pyramid({
 						>
 							<polygon
 								points={`${t.topLeft},${t.yTop} ${t.topRight},${t.yTop} ${t.bottomRight},${t.yBottom} ${t.bottomLeft},${t.yBottom}`}
-								fill="hsl(var(--primary))"
-								// Floor at 0.6 keeps `primary-foreground` text on the tier
-								// at ≥4.5:1 contrast even at the widest pyramids.
-								fillOpacity={Math.max(0.6, 1 - t.depth * 0.07)}
+								fill={pickChartHue(t.depth)}
+								fillOpacity={0.85}
 								stroke="hsl(var(--background))"
 								strokeWidth={1}
 							/>
 							<text
+								// Page-bg fill + foreground-tinted stroke gives
+								// a readable "outline label" on any chart-1..6
+								// fill — same technique as Funnel.
 								x={width / 2}
 								y={(t.yTop + t.yBottom) / 2}
 								dy="0.35em"
 								textAnchor="middle"
 								fontSize={12}
 								fontWeight={600}
-								fill="hsl(var(--primary-foreground))"
-								style={{ pointerEvents: "none" }}
+								fill="hsl(var(--background))"
+								style={{
+									pointerEvents: "none",
+									paintOrder: "stroke",
+									stroke: "hsl(var(--foreground) / 0.45)",
+									strokeWidth: 2,
+								}}
 							>
 								{`${t.tier.label}${valueText}`}
 							</text>
