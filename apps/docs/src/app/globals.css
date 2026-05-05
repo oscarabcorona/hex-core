@@ -8,6 +8,88 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
+ * Raw HSL triplet tokens. Tailwind utilities consume the `--color-*`
+ * namespace (defined in @theme below); inline-style consumers — including
+ * the SVG-rendered artifact / diagram primitives — read the bare `--<key>`
+ * variables via `hsl(var(--<key>))`. Both surfaces must stay in sync; the
+ * triplets duplicate the @theme color values (no `hsl()` wrapper) so SVG
+ * inline styles resolve. Adding a new color here also requires adding the
+ * `--color-<key>` form below for utility class generation.
+ */
+:root {
+	--background: 210 20% 98%;
+	--foreground: 222 30% 11%;
+	--card: 210 20% 98%;
+	--card-foreground: 222 30% 11%;
+	--popover: 210 20% 98%;
+	--popover-foreground: 222 30% 11%;
+	--primary: 222 25% 18%;
+	--primary-foreground: 0 0% 98%;
+	--secondary: 222 5% 95.9%;
+	--secondary-foreground: 240 10% 3.9%;
+	--muted: 222 5% 95.9%;
+	--muted-foreground: 222 8% 38%;
+	--accent: 222 5% 95.9%;
+	--accent-foreground: 240 10% 3.9%;
+	--destructive: 0 65% 43%;
+	--destructive-foreground: 0 0% 98%;
+	--border: 222 8% 90%;
+	--input: 222 8% 90%;
+	--ring: 222 25% 18%;
+
+	/* Chart palette — perceptually distinct hues for diagram primitives
+	 * that encode categorical data (sunburst, treemap, sankey, chord,
+	 * funnel, pyramid, venn, etc.). Cycled by index. Tuned for adequate
+	 * contrast on the page background (210 20% 98%) AND on each other so
+	 * adjacent regions read as distinct categories. */
+	--chart-1: 12 76% 61%;
+	--chart-2: 173 58% 39%;
+	--chart-3: 197 37% 50%;
+	--chart-4: 43 74% 49%;
+	--chart-5: 280 65% 60%;
+	--chart-6: 340 75% 55%;
+}
+
+.dark {
+	--background: 210 15% 2%;
+	--foreground: 222 22.5% 89%;
+	/* Card/popover bumped from L=8% → L=14% in dark mode so SVG-rendered
+	 * cards (org-chart nodes, flowchart boxes, sequence actor headers,
+	 * sunburst center) read as elevated surfaces against the page bg. The
+	 * 6%-lightness gap was inadequate without box-shadow chrome. */
+	--card: 222 12% 14%;
+	--card-foreground: 222 22.5% 89%;
+	--popover: 222 12% 14%;
+	--popover-foreground: 222 22.5% 89%;
+	--primary: 222 30% 60%;
+	--primary-foreground: 210 15% 8%;
+	--secondary: 222 8% 12%;
+	--secondary-foreground: 222 22.5% 89%;
+	--muted: 222 8% 12%;
+	--muted-foreground: 222 8% 65%;
+	--accent: 222 8% 12%;
+	--accent-foreground: 222 22.5% 89%;
+	--destructive: 0 48.8% 58%;
+	--destructive-foreground: 0 0% 8%;
+	/* Border bumped from L=14% → L=24% in dark mode — at L=14% the stroke
+	 * was visually identical to --card on SVG renderings (no chrome to
+	 * separate them). The lift gives chord/sankey/treemap segment outlines
+	 * actual definition. */
+	--border: 222 12% 24%;
+	--input: 222 12% 24%;
+	--ring: 222 30% 60%;
+
+	/* Dark-mode chart palette — lifted lightness so segments stay legible
+	 * against the near-black background while preserving hue distinction. */
+	--chart-1: 12 76% 65%;
+	--chart-2: 173 58% 55%;
+	--chart-3: 197 37% 60%;
+	--chart-4: 43 74% 60%;
+	--chart-5: 280 65% 70%;
+	--chart-6: 340 75% 65%;
+}
+
+/*
  * Color tokens live in @theme (non-inline) so generated utilities emit
  * var(--color-*), allowing .dark { ... } overrides below to flip every
  * bg-background / text-muted-foreground / border-input usage at runtime.
@@ -98,9 +180,9 @@
 .dark {
 	--color-background: hsl(210 15% 2%);
 	--color-foreground: hsl(222 22.5% 89%);
-	--color-card: hsl(210 15% 8%);
+	--color-card: hsl(222 12% 14%);
 	--color-card-foreground: hsl(222 22.5% 89%);
-	--color-popover: hsl(210 15% 8%);
+	--color-popover: hsl(222 12% 14%);
 	--color-popover-foreground: hsl(222 22.5% 89%);
 	--color-primary: hsl(222 30% 60%);
 	--color-primary-foreground: hsl(210 15% 8%);
@@ -112,8 +194,8 @@
 	--color-accent-foreground: hsl(222 22.5% 89%);
 	--color-destructive: hsl(0 48.8% 58%);
 	--color-destructive-foreground: hsl(0 0% 8%);
-	--color-border: hsl(222 8% 14%);
-	--color-input: hsl(222 8% 14%);
+	--color-border: hsl(222 12% 24%);
+	--color-input: hsl(222 12% 24%);
 	--color-ring: hsl(222 30% 60%);
 	--shadow-glow: 0 0 4px rgb(255 255 255 / 0.1);
 }
