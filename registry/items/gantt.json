@@ -1,0 +1,144 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "gantt",
+  "displayName": "Gantt",
+  "description": "Gantt chart — tasks as horizontal bars across a time axis with optional dependency arrows and progress fills. Pure SVG; no heavy peer dep.",
+  "category": "artifact",
+  "subcategory": "time",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "tasks",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, label, start, end, progress?, dependencies? }. `start`/`end` accept Date / ISO string / epoch ms."
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 800,
+      "description": "SVG pixel width."
+    },
+    {
+      "name": "rowHeight",
+      "type": "number",
+      "required": false,
+      "default": 32,
+      "description": "Pixel height of each task row."
+    },
+    {
+      "name": "labelMargin",
+      "type": "number",
+      "required": false,
+      "default": 140,
+      "description": "Pixel reserved on the left for task labels."
+    },
+    {
+      "name": "tickCount",
+      "type": "number",
+      "required": false,
+      "default": 6,
+      "description": "Number of axis ticks to show across the top."
+    },
+    {
+      "name": "onTaskClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked GanttTask."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/gantt.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Gantt chart — tasks as horizontal bars across a time axis, with\n * optional dependency arrows and progress fills. Pure SVG; no heavy\n * peer dependency.\n *\n * Distinct from TimeAxis (point events) and Sequence (actor messages):\n * Gantt encodes DURATION (start → end) per task and supports task-to-\n * task dependency arrows.\n *\n * @example\n * <Gantt\n *   tasks={[\n *     { id: \"design\", label: \"Design\", start: \"2025-01-01\", end: \"2025-01-15\", progress: 1 },\n *     { id: \"build\", label: \"Build\", start: \"2025-01-10\", end: \"2025-02-20\", progress: 0.6, dependencies: [\"design\"] },\n *     { id: \"ship\", label: \"Ship\", start: \"2025-02-15\", end: \"2025-02-28\", dependencies: [\"build\"] },\n *   ]}\n * />\n */\nexport type GanttTask = {\n\tid: string;\n\tlabel: string;\n\tstart: Date | string | number;\n\tend: Date | string | number;\n\t/** Optional progress 0..1; renders as a filled portion of the bar. */\n\tprogress?: number;\n\t/** Optional list of task ids this task depends on; arrow drawn from each. */\n\tdependencies?: string[];\n};\n\nexport interface GanttProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Tasks in display order (rows top-to-bottom). */\n\ttasks: GanttTask[];\n\t/** Pixel width of the rendered SVG. Default 800. */\n\twidth?: number;\n\t/** Pixel height of each task row. Default 32. */\n\trowHeight?: number;\n\t/** Pixel reserved on the left for task labels. Default 140. */\n\tlabelMargin?: number;\n\t/** Number of axis ticks to show. Default 6. */\n\ttickCount?: number;\n\t/** Fired when a task bar is clicked. */\n\tonTaskClick?: (task: GanttTask) => void;\n}\n\ninterface LaidOutTask {\n\ttask: GanttTask;\n\trowIndex: number;\n\tx: number;\n\ty: number;\n\tw: number;\n\th: number;\n\tprogressW: number;\n}\n\ninterface DepArrow {\n\tfrom: { x: number; y: number };\n\tto: { x: number; y: number };\n\tid: string;\n}\n\ninterface AxisTick {\n\tx: number;\n\tlabel: string;\n}\n\nconst HEADER_HEIGHT = 40;\nconst ROW_PADDING = 6;\n\nfunction Gantt({\n\ttasks,\n\twidth = 800,\n\trowHeight = 32,\n\tlabelMargin = 140,\n\ttickCount = 6,\n\tonTaskClick,\n\tclassName,\n\t...rest\n}: GanttProps) {\n\tconst laidOut = React.useMemo(\n\t\t() => layout(tasks, width, rowHeight, labelMargin, tickCount),\n\t\t[tasks, width, rowHeight, labelMargin, tickCount],\n\t);\n\n\tconst totalHeight = HEADER_HEIGHT + tasks.length * rowHeight + ROW_PADDING;\n\tconst desc = `Gantt with ${tasks.length} task${tasks.length === 1 ? \"\" : \"s\"}, range ${laidOut.startLabel} to ${laidOut.endLabel}`;\n\t// Per-instance arrowhead marker id keeps two <Gantt> on a page\n\t// from sharing a <defs> id.\n\tconst arrowId = React.useId().replace(/:/g, \"-\");\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-gantt\n\t\t\trole=\"img\"\n\t\t\twidth={width}\n\t\t\theight={totalHeight}\n\t\t\tviewBox={`0 0 ${width} ${totalHeight}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Gantt chart</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<defs>\n\t\t\t\t<marker\n\t\t\t\t\tid={`hex-gantt-arrow-${arrowId}`}\n\t\t\t\t\tviewBox=\"0 0 10 10\"\n\t\t\t\t\trefX=\"10\"\n\t\t\t\t\trefY=\"5\"\n\t\t\t\t\tmarkerWidth=\"5\"\n\t\t\t\t\tmarkerHeight=\"5\"\n\t\t\t\t\torient=\"auto-start-reverse\"\n\t\t\t\t>\n\t\t\t\t\t<path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"hsl(var(--muted-foreground))\" />\n\t\t\t\t</marker>\n\t\t\t</defs>\n\t\t\t{/* Axis header */}\n\t\t\t<g data-hex-gantt-axis>\n\t\t\t\t<line\n\t\t\t\t\tx1={labelMargin}\n\t\t\t\t\tx2={width - 16}\n\t\t\t\t\ty1={HEADER_HEIGHT - 8}\n\t\t\t\t\ty2={HEADER_HEIGHT - 8}\n\t\t\t\t\tstroke=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t/>\n\t\t\t\t{laidOut.ticks.map((t, i) => (\n\t\t\t\t\t<g key={`tick-${i}`} data-hex-gantt-tick>\n\t\t\t\t\t\t<line\n\t\t\t\t\t\t\tx1={t.x}\n\t\t\t\t\t\t\tx2={t.x}\n\t\t\t\t\t\t\ty1={HEADER_HEIGHT - 8}\n\t\t\t\t\t\t\ty2={totalHeight - 4}\n\t\t\t\t\t\t\tstroke=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\t\t\tstrokeOpacity={0.15}\n\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t/>\n\t\t\t\t\t\t<text\n\t\t\t\t\t\t\tx={t.x}\n\t\t\t\t\t\t\ty={HEADER_HEIGHT - 14}\n\t\t\t\t\t\t\ttextAnchor=\"middle\"\n\t\t\t\t\t\t\tfontSize={10}\n\t\t\t\t\t\t\tfill=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{t.label}\n\t\t\t\t\t\t</text>\n\t\t\t\t\t</g>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t\t{/* Row labels */}\n\t\t\t<g data-hex-gantt-labels>\n\t\t\t\t{laidOut.tasks.map((t) => (\n\t\t\t\t\t<text\n\t\t\t\t\t\tkey={`label-${t.task.id}`}\n\t\t\t\t\t\tx={labelMargin - 8}\n\t\t\t\t\t\ty={t.y + t.h / 2}\n\t\t\t\t\t\tdy=\"0.35em\"\n\t\t\t\t\t\ttextAnchor=\"end\"\n\t\t\t\t\t\tfontSize={11}\n\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t>\n\t\t\t\t\t\t{t.task.label}\n\t\t\t\t\t</text>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t\t{/* Dependency arrows: elbow-and-jog routing — when the target\n\t\t\t    task starts before (or near) the source's right edge, route\n\t\t\t    out past the source first to avoid drawing through its bar. */}\n\t\t\t<g data-hex-gantt-deps fill=\"none\">\n\t\t\t\t{laidOut.deps.map((d) => {\n\t\t\t\t\tconst ELBOW = 8;\n\t\t\t\t\tconst needsJog = d.to.x < d.from.x + ELBOW;\n\t\t\t\t\tconst path = needsJog\n\t\t\t\t\t\t? `M${d.from.x},${d.from.y} L${d.from.x + ELBOW},${d.from.y} L${d.from.x + ELBOW},${d.to.y} L${d.to.x},${d.to.y}`\n\t\t\t\t\t\t: `M${d.from.x},${d.from.y} L${(d.from.x + d.to.x) / 2},${d.from.y} L${(d.from.x + d.to.x) / 2},${d.to.y} L${d.to.x},${d.to.y}`;\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<path\n\t\t\t\t\t\t\tkey={d.id}\n\t\t\t\t\t\t\tdata-hex-gantt-dep\n\t\t\t\t\t\t\td={path}\n\t\t\t\t\t\t\tstroke=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\t\t\tstrokeOpacity={0.55}\n\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t\tmarkerEnd={`url(#hex-gantt-arrow-${arrowId})`}\n\t\t\t\t\t\t/>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t\t{/* Task bars */}\n\t\t\t<g data-hex-gantt-tasks>\n\t\t\t\t{laidOut.tasks.map((t) => {\n\t\t\t\t\tconst interactive = Boolean(onTaskClick);\n\t\t\t\t\tconst handleActivate = () => onTaskClick?.(t.task);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<g\n\t\t\t\t\t\t\tkey={t.task.id}\n\t\t\t\t\t\t\tdata-hex-gantt-task\n\t\t\t\t\t\t\tdata-row={t.rowIndex}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={\n\t\t\t\t\t\t\t\tinteractive\n\t\t\t\t\t\t\t\t\t? `${t.task.label}, ${formatDate(toDate(t.task.start))} to ${formatDate(toDate(t.task.end))}${t.task.progress != null ? `, ${Math.round((t.task.progress ?? 0) * 100)}% complete` : \"\"}`\n\t\t\t\t\t\t\t\t\t: undefined\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tstyle={interactive ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\t\tonClick={interactive ? handleActivate : undefined}\n\t\t\t\t\t\t\tonKeyDown={interactive ? (e) => activateOnKey(e, handleActivate) : undefined}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<rect\n\t\t\t\t\t\t\t\tx={t.x}\n\t\t\t\t\t\t\t\ty={t.y}\n\t\t\t\t\t\t\t\twidth={Math.max(2, t.w)}\n\t\t\t\t\t\t\t\theight={t.h}\n\t\t\t\t\t\t\t\trx={4}\n\t\t\t\t\t\t\t\try={4}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\t\tfillOpacity={0.25}\n\t\t\t\t\t\t\t\tstroke=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t{t.progressW > 0 ? (\n\t\t\t\t\t\t\t\t<>\n\t\t\t\t\t\t\t\t\t<rect\n\t\t\t\t\t\t\t\t\t\tx={t.x}\n\t\t\t\t\t\t\t\t\t\ty={t.y}\n\t\t\t\t\t\t\t\t\t\twidth={t.progressW}\n\t\t\t\t\t\t\t\t\t\theight={t.h}\n\t\t\t\t\t\t\t\t\t\trx={4}\n\t\t\t\t\t\t\t\t\t\try={4}\n\t\t\t\t\t\t\t\t\t\tfill=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\t\t\t\tfillOpacity={0.7}\n\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t{/* Hard right-edge line keeps the progress boundary visible for\n\t\t\t\t\t\t\t\t\t    color-blind viewers and on low-contrast themes. Skipped at\n\t\t\t\t\t\t\t\t\t    100% progress where it overlaps the bar's own border. */}\n\t\t\t\t\t\t\t\t\t{t.progressW < t.w - 0.5 ? (\n\t\t\t\t\t\t\t\t\t\t<line\n\t\t\t\t\t\t\t\t\t\t\tx1={t.x + t.progressW}\n\t\t\t\t\t\t\t\t\t\t\tx2={t.x + t.progressW}\n\t\t\t\t\t\t\t\t\t\t\ty1={t.y}\n\t\t\t\t\t\t\t\t\t\t\ty2={t.y + t.h}\n\t\t\t\t\t\t\t\t\t\t\tstroke=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t\t\t</>\n\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t</g>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(\n\ttasks: GanttTask[],\n\twidth: number,\n\trowHeight: number,\n\tlabelMargin: number,\n\ttickCount: number,\n): {\n\ttasks: LaidOutTask[];\n\tdeps: DepArrow[];\n\tticks: AxisTick[];\n\tstartLabel: string;\n\tendLabel: string;\n} {\n\tif (tasks.length === 0) {\n\t\treturn { tasks: [], deps: [], ticks: [], startLabel: \"—\", endLabel: \"—\" };\n\t}\n\n\tconst axisLeft = labelMargin;\n\tconst axisRight = width - 16;\n\tconst usable = axisRight - axisLeft;\n\n\t// Drop NaN-bearing endpoints so the axis range stays finite. Tasks with\n\t// either bound un-parseable get rendered with their own zero-width\n\t// fallback below; we still want them in the row layout, just clipped to\n\t// the axis edges.\n\tconst allTimes = tasks\n\t\t.flatMap((t) => [toDate(t.start).getTime(), toDate(t.end).getTime()])\n\t\t.filter((t) => Number.isFinite(t));\n\tif (allTimes.length === 0) {\n\t\treturn { tasks: [], deps: [], ticks: [], startLabel: \"—\", endLabel: \"—\" };\n\t}\n\tconst minTs = Math.min(...allTimes);\n\tconst maxTs = Math.max(...allTimes);\n\tconst span = Math.max(1, maxTs - minTs);\n\n\tconst tToX = (t: number) => axisLeft + ((t - minTs) / span) * usable;\n\n\tconst laidOutTasks: LaidOutTask[] = tasks.map((task, i) => {\n\t\tconst startTs = toDate(task.start).getTime();\n\t\tconst endTs = toDate(task.end).getTime();\n\t\tconst x = tToX(startTs);\n\t\tconst w = Math.max(0, tToX(endTs) - x);\n\t\tconst y = HEADER_HEIGHT + i * rowHeight + ROW_PADDING / 2;\n\t\tconst h = rowHeight - ROW_PADDING;\n\t\tconst progress = clamp01(task.progress ?? 0);\n\t\treturn {\n\t\t\ttask,\n\t\t\trowIndex: i,\n\t\t\tx,\n\t\t\ty,\n\t\t\tw,\n\t\t\th,\n\t\t\tprogressW: w * progress,\n\t\t};\n\t});\n\n\tconst byId = new Map(laidOutTasks.map((t) => [t.task.id, t]));\n\tconst deps: DepArrow[] = [];\n\tlaidOutTasks.forEach((t) => {\n\t\t(t.task.dependencies ?? []).forEach((depId, k) => {\n\t\t\tconst from = byId.get(depId);\n\t\t\tif (!from) return;\n\t\t\tdeps.push({\n\t\t\t\tfrom: { x: from.x + from.w, y: from.y + from.h / 2 },\n\t\t\t\tto: { x: t.x, y: t.y + t.h / 2 },\n\t\t\t\tid: `${depId}-${t.task.id}-${k}`,\n\t\t\t});\n\t\t});\n\t});\n\n\tconst ticks: AxisTick[] = [];\n\tfor (let i = 0; i < tickCount; i++) {\n\t\tconst ts = minTs + (i / Math.max(1, tickCount - 1)) * span;\n\t\tticks.push({ x: tToX(ts), label: formatTick(new Date(ts), span) });\n\t}\n\n\treturn {\n\t\ttasks: laidOutTasks,\n\t\tdeps,\n\t\tticks,\n\t\tstartLabel: formatDate(new Date(minTs)),\n\t\tendLabel: formatDate(new Date(maxTs)),\n\t};\n}\n\nfunction toDate(v: Date | string | number): Date {\n\tif (v instanceof Date) return v;\n\tif (typeof v === \"number\") return new Date(v);\n\treturn new Date(v);\n}\n\nfunction clamp01(v: number): number {\n\treturn v < 0 ? 0 : v > 1 ? 1 : v;\n}\n\nfunction formatDate(d: Date): string {\n\tif (Number.isNaN(d.getTime())) return \"—\";\n\treturn d.toISOString().slice(0, 10);\n}\n\nfunction formatTick(d: Date, spanMs: number): string {\n\tif (Number.isNaN(d.getTime())) return \"—\";\n\tconst ONE_DAY = 24 * 60 * 60 * 1000;\n\tif (spanMs <= 30 * ONE_DAY) return d.toISOString().slice(5, 10); // MM-DD\n\tif (spanMs <= 365 * ONE_DAY) return d.toISOString().slice(0, 7); // YYYY-MM\n\treturn String(d.getUTCFullYear());\n}\n\nfunction activateOnKey(e: React.KeyboardEvent, fn: () => void): void {\n\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\te.preventDefault();\n\t\tfn();\n\t}\n}\n\nexport { Gantt };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "foreground",
+    "muted-foreground",
+    "background"
+  ],
+  "examples": [
+    {
+      "title": "Project schedule with dependencies",
+      "description": "Sequential tasks with dependency arrows and a progress fill.",
+      "code": "<Gantt tasks={[\n  { id: \"design\", label: \"Design\", start: \"2025-01-01\", end: \"2025-01-15\", progress: 1 },\n  { id: \"build\", label: \"Build\", start: \"2025-01-10\", end: \"2025-02-20\", progress: 0.6, dependencies: [\"design\"] },\n  { id: \"ship\", label: \"Ship\", start: \"2025-02-15\", end: \"2025-02-28\", dependencies: [\"build\"] },\n]} />",
+      "composition": [
+        "gantt",
+        "schedule",
+        "dependencies"
+      ]
+    },
+    {
+      "title": "Sprint board across two weeks",
+      "description": "Click a bar to open the task detail.",
+      "code": "<Gantt\n  tasks={sprint}\n  onTaskClick={(t) => router.push(`/tasks/${t.id}`)}\n/>",
+      "composition": [
+        "gantt",
+        "sprint"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize project schedules where each task has a START and END date, plus optional dependencies and progress. Sprint boards, release plans, ETL job schedules, content publishing calendars.",
+    "whenNotToUse": "Don't use for point events without duration (use TimeAxis). Don't use for cyclic / recurring tasks (Gantt assumes a DAG of dependencies). Don't use for actor-message interactions (use Sequence). Don't use when the task list isn't ordered top-to-bottom by intended display order — Gantt trusts the array order.",
+    "commonMistakes": [
+      "`end` before `start` — produces zero-or-negative width bars. Validate ranges upstream",
+      "Dependency cycles — `dependencies: ['x']` where `x` transitively depends on the current task. The component still renders bars, but the arrow paths cross awkwardly. Validate the dependency DAG upstream",
+      "Missing dependency target — `dependencies: ['ghost']` where `ghost` isn't in `tasks`. The arrow is silently skipped",
+      "Passing dates as locale-dependent strings (`\"01/02/2025\"`) — pass ISO (`\"2025-01-02\"`), Date, or epoch ms",
+      "Mutating tasks between renders — the layout pass is memoized on identity"
+    ],
+    "relatedComponents": [
+      "time-axis",
+      "sequence",
+      "timeline",
+      "flowchart"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing task count and date range. Interactive task bars declare role=\"button\", tabIndex, and Enter/Space activation. The aria-label includes label, date range, and progress percent. For agent outputs, also expose a parallel ordered list of tasks with their dates.",
+    "tokenBudget": 360
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "gantt",
+    "time",
+    "schedule",
+    "tasks"
+  ]
+}

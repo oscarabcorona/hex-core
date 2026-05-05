@@ -113,3 +113,8 @@ export { vennSchema } from "./artifacts/venn/venn.schema.js";
 export { chordSchema } from "./artifacts/chord/chord.schema.js";
 export { arcSchema } from "./artifacts/arc/arc.schema.js";
 export { matrixSchema } from "./artifacts/matrix/matrix.schema.js";
+
+// Artifacts — time-family diagram primitives
+export { timeAxisSchema } from "./artifacts/time-axis/time-axis.schema.js";
+export { ganttSchema } from "./artifacts/gantt/gantt.schema.js";
+export { sequenceSchema } from "./artifacts/sequence/sequence.schema.js";

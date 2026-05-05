@@ -1567,6 +1567,25 @@
       "tokenBudget": 280
     },
     {
+      "name": "gantt",
+      "displayName": "Gantt",
+      "description": "Gantt chart — tasks as horizontal bars across a time axis with optional dependency arrows and progress fills. Pure SVG; no heavy peer dep.",
+      "category": "artifact",
+      "subcategory": "time",
+      "tags": [
+        "artifact",
+        "diagram",
+        "gantt",
+        "time",
+        "schedule",
+        "tasks"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 360
+    },
+    {
       "name": "matrix",
       "displayName": "Matrix",
       "description": "Adjacency-matrix diagram. Square grid where cell color intensity encodes the relationship from row to column. Pure SVG; no heavy peer dep. Best for dense graphs that turn into hairballs in node-link form.",
@@ -1661,6 +1680,25 @@
       "tokenBudget": 360
     },
     {
+      "name": "sequence",
+      "displayName": "Sequence",
+      "description": "UML-style sequence diagram. Actors as columns with vertical lifelines; messages as horizontal arrows in declaration order. Pure SVG; no heavy peer dep.",
+      "category": "artifact",
+      "subcategory": "time",
+      "tags": [
+        "artifact",
+        "diagram",
+        "sequence",
+        "uml",
+        "time",
+        "messaging"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 360
+    },
+    {
       "name": "sunburst",
       "displayName": "Sunburst",
       "description": "Radial hierarchy by value. Each ring is a deeper level of the tree; segment angles are proportional to summed values. Click a segment to drill in; click the center to zoom out.",
@@ -1678,6 +1716,25 @@
         "lib/utils"
       ],
       "tokenBudget": 360
+    },
+    {
+      "name": "time-axis",
+      "displayName": "TimeAxis",
+      "description": "Events plotted along a horizontal time axis. Pure SVG; no heavy peer dep. Distinct from the existing event-list `<Timeline>` — TimeAxis encodes elapsed time as horizontal distance, so the *gap between events* is the message.",
+      "category": "artifact",
+      "subcategory": "time",
+      "tags": [
+        "artifact",
+        "diagram",
+        "time-axis",
+        "time",
+        "events",
+        "chronological"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 320
     },
     {
       "name": "tree-map",
