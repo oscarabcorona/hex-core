@@ -1,0 +1,146 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "time-axis",
+  "displayName": "TimeAxis",
+  "description": "Events plotted along a horizontal time axis. Pure SVG; no heavy peer dep. Distinct from the existing event-list `<Timeline>` — TimeAxis encodes elapsed time as horizontal distance, so the *gap between events* is the message.",
+  "category": "artifact",
+  "subcategory": "time",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "events",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, label, date, category? }. `date` accepts Date / ISO string / epoch ms."
+    },
+    {
+      "name": "start",
+      "type": "object",
+      "required": false,
+      "description": "Optional explicit axis start. Auto-derived from `events` if omitted."
+    },
+    {
+      "name": "end",
+      "type": "object",
+      "required": false,
+      "description": "Optional explicit axis end. Auto-derived from `events` if omitted."
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 720,
+      "description": "SVG pixel width."
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "required": false,
+      "default": 200,
+      "description": "SVG pixel height."
+    },
+    {
+      "name": "tickCount",
+      "type": "number",
+      "required": false,
+      "default": 6,
+      "description": "Number of axis ticks to show."
+    },
+    {
+      "name": "onEventClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked TimeAxisEvent."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/time-axis.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Events plotted along a horizontal time axis. Pure SVG; no heavy peer\n * dependency. Distinct from the existing `<Timeline>` component in\n * `components/timeline` — that one is an event-list with vertical\n * status markers; this one is a CHART with a real time axis where\n * spacing reflects elapsed time.\n *\n * Use TimeAxis when the *gap between events* is the message (release\n * cadence, incident frequency, sparse-then-dense patterns). Use\n * Timeline when the order of events is the message but the absolute\n * dates are secondary.\n *\n * @example\n * <TimeAxis\n *   events={[\n *     { id: \"v1\", label: \"v1.0\", date: \"2025-01-15\" },\n *     { id: \"v2\", label: \"v2.0\", date: \"2025-04-20\" },\n *     { id: \"v3\", label: \"v3.0\", date: \"2025-09-10\" },\n *   ]}\n * />\n */\nexport type TimeAxisEvent = {\n\tid: string;\n\tlabel: string;\n\t/** Accepts Date, ISO string, or epoch ms. */\n\tdate: Date | string | number;\n\t/** Optional category — events with the same `category` share a row band. */\n\tcategory?: string;\n};\n\n// `start` and `end` collide with SVG's `<animate start=...>` / `<set end=...>`\n// animation attributes (their value type is string|number, not Date). Omit\n// both from the inherited SVG attributes so consumers can pass Date values\n// freely without a type collision.\nexport interface TimeAxisProps\n\textends Omit<React.SVGAttributes<SVGSVGElement>, \"children\" | \"start\" | \"end\"> {\n\t/** Events to plot. Order doesn't matter — positions come from `date`. */\n\tevents: TimeAxisEvent[];\n\t/** Optional explicit axis start. Auto-derived from `events` if omitted. */\n\tstart?: Date | string | number;\n\t/** Optional explicit axis end. Auto-derived from `events` if omitted. */\n\tend?: Date | string | number;\n\t/** Pixel width of the rendered SVG. Default 720. */\n\twidth?: number;\n\t/** Pixel height of the rendered SVG. Default 200. */\n\theight?: number;\n\t/** Number of axis ticks to show. Default 6. */\n\ttickCount?: number;\n\t/** Fired when an event is clicked. */\n\tonEventClick?: (event: TimeAxisEvent) => void;\n}\n\ninterface LaidOutEvent {\n\tevent: TimeAxisEvent;\n\tx: number;\n\ty: number;\n\trowIndex: number;\n}\n\ninterface AxisTick {\n\tx: number;\n\tlabel: string;\n}\n\nfunction TimeAxis({\n\tevents,\n\tstart,\n\tend,\n\twidth = 720,\n\theight = 200,\n\ttickCount = 6,\n\tonEventClick,\n\tclassName,\n\t...rest\n}: TimeAxisProps) {\n\tconst laidOut = React.useMemo(\n\t\t() => layout(events, start, end, width, height, tickCount),\n\t\t[events, start, end, width, height, tickCount],\n\t);\n\n\tconst desc =\n\t\tevents.length === 0\n\t\t\t? \"Empty time axis\"\n\t\t\t: `Time axis with ${events.length} event${events.length === 1 ? \"\" : \"s\"}, range ${laidOut.startLabel} to ${laidOut.endLabel}`;\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-time-axis\n\t\t\trole=\"img\"\n\t\t\twidth={width}\n\t\t\theight={height}\n\t\t\tviewBox={`0 0 ${width} ${height}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Time axis</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t{/* Baseline + ticks */}\n\t\t\t<g data-hex-time-axis-axis>\n\t\t\t\t<line\n\t\t\t\t\tx1={laidOut.axisLeft}\n\t\t\t\t\tx2={laidOut.axisRight}\n\t\t\t\t\ty1={laidOut.axisY}\n\t\t\t\t\ty2={laidOut.axisY}\n\t\t\t\t\tstroke=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t/>\n\t\t\t\t{laidOut.ticks.map((tick, i) => (\n\t\t\t\t\t<g key={`tick-${i}`} data-hex-time-axis-tick>\n\t\t\t\t\t\t<line\n\t\t\t\t\t\t\tx1={tick.x}\n\t\t\t\t\t\t\tx2={tick.x}\n\t\t\t\t\t\t\ty1={laidOut.axisY - 4}\n\t\t\t\t\t\t\ty2={laidOut.axisY + 4}\n\t\t\t\t\t\t\tstroke=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t/>\n\t\t\t\t\t\t<text\n\t\t\t\t\t\t\tx={tick.x}\n\t\t\t\t\t\t\ty={laidOut.axisY + 18}\n\t\t\t\t\t\t\ttextAnchor=\"middle\"\n\t\t\t\t\t\t\tfontSize={10}\n\t\t\t\t\t\t\tfill=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{tick.label}\n\t\t\t\t\t\t</text>\n\t\t\t\t\t</g>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t\t<g data-hex-time-axis-events>\n\t\t\t\t{laidOut.events.map((e) => {\n\t\t\t\t\tconst interactive = Boolean(onEventClick);\n\t\t\t\t\tconst handleActivate = () => onEventClick?.(e.event);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<g\n\t\t\t\t\t\t\tkey={e.event.id}\n\t\t\t\t\t\t\tdata-hex-time-axis-event\n\t\t\t\t\t\t\tdata-row={e.rowIndex}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={interactive ? `${e.event.label} on ${formatDate(toDate(e.event.date))}` : undefined}\n\t\t\t\t\t\t\tstyle={interactive ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\t\tonClick={interactive ? handleActivate : undefined}\n\t\t\t\t\t\t\tonKeyDown={interactive ? (k) => activateOnKey(k, handleActivate) : undefined}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{/* Connector from event marker to baseline */}\n\t\t\t\t\t\t\t<line\n\t\t\t\t\t\t\t\tx1={e.x}\n\t\t\t\t\t\t\t\tx2={e.x}\n\t\t\t\t\t\t\t\ty1={e.y}\n\t\t\t\t\t\t\t\ty2={laidOut.axisY}\n\t\t\t\t\t\t\t\tstroke=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\t\tstrokeOpacity={0.4}\n\t\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<circle\n\t\t\t\t\t\t\t\tcx={e.x}\n\t\t\t\t\t\t\t\tcy={e.y}\n\t\t\t\t\t\t\t\tr={5}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\t\tstrokeWidth={2}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\tx={e.x + 8}\n\t\t\t\t\t\t\t\ty={e.y + 4}\n\t\t\t\t\t\t\t\tfontSize={11}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t\t\t\tstyle={{ paintOrder: \"stroke\", pointerEvents: \"none\" }}\n\t\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\t\tstrokeWidth={3}\n\t\t\t\t\t\t\t\tstrokeLinejoin=\"round\"\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{e.event.label}\n\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t</g>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(\n\tevents: TimeAxisEvent[],\n\tstart: Date | string | number | undefined,\n\tend: Date | string | number | undefined,\n\twidth: number,\n\theight: number,\n\ttickCount: number,\n): {\n\tevents: LaidOutEvent[];\n\tticks: AxisTick[];\n\taxisY: number;\n\taxisLeft: number;\n\taxisRight: number;\n\tstartLabel: string;\n\tendLabel: string;\n} {\n\tconst margin = 32;\n\tconst axisLeft = margin;\n\tconst axisRight = width - margin;\n\tconst axisY = height - 40;\n\tconst usableWidth = axisRight - axisLeft;\n\n\t// Drop events whose date doesn't parse — `new Date(\"garbage\")` returns\n\t// NaN, which would propagate through `Math.min/max` and produce NaN\n\t// x-coordinates that crash some SVG renderers and noise up dev\n\t// consoles. Skip silently; downstream components can still inspect\n\t// the unrendered ids if they want to surface validation errors.\n\tconst validEvents = events.filter((e) => Number.isFinite(toDate(e.date).getTime()));\n\n\tif (validEvents.length === 0) {\n\t\treturn {\n\t\t\tevents: [],\n\t\t\tticks: [],\n\t\t\taxisY,\n\t\t\taxisLeft,\n\t\t\taxisRight,\n\t\t\tstartLabel: \"—\",\n\t\t\tendLabel: \"—\",\n\t\t};\n\t}\n\n\tconst dates = validEvents.map((e) => toDate(e.date).getTime());\n\tconst explicitMin = start != null ? toDate(start).getTime() : NaN;\n\tconst explicitMax = end != null ? toDate(end).getTime() : NaN;\n\tconst minTs = Number.isFinite(explicitMin) ? explicitMin : Math.min(...dates);\n\tconst maxTs = Number.isFinite(explicitMax) ? explicitMax : Math.max(...dates);\n\tconst span = Math.max(1, maxTs - minTs);\n\n\tconst tToX = (t: number) => axisLeft + ((t - minTs) / span) * usableWidth;\n\n\t// Distribute events across stacked rows so labels don't overlap when\n\t// events cluster. A new event takes the topmost row whose previously-\n\t// placed event is at least MIN_GAP px to the left.\n\t//\n\t// Tiebreaker on id: Array.prototype.sort isn't stable across all\n\t// engines for events with identical timestamps. Sorting by id second\n\t// produces deterministic rows on every engine, so visual diffing\n\t// across builds stays meaningful.\n\tconst MIN_GAP_PX = 48;\n\tconst ROW_HEIGHT_PX = 22;\n\t// Cap rows so events never spill below the baseline. The first row\n\t// sits at y=24; remaining rows go in 22-px steps; clamp at axisY-10.\n\tconst maxRows = Math.max(1, Math.floor((axisY - 10 - 24) / ROW_HEIGHT_PX) + 1);\n\tconst rowsLastX: number[] = [];\n\tconst positioned = validEvents\n\t\t.map((event) => ({ event, t: toDate(event.date).getTime() }))\n\t\t.sort((a, b) => (a.t - b.t) || a.event.id.localeCompare(b.event.id))\n\t\t.map(({ event, t }) => {\n\t\t\tconst x = tToX(t);\n\t\t\tlet rowIndex = rowsLastX.findIndex((lastX) => x - lastX >= MIN_GAP_PX);\n\t\t\tif (rowIndex === -1) {\n\t\t\t\tif (rowsLastX.length < maxRows) {\n\t\t\t\t\trowIndex = rowsLastX.length;\n\t\t\t\t\trowsLastX.push(x);\n\t\t\t\t} else {\n\t\t\t\t\t// Degraded fallback — recycle the last row instead of\n\t\t\t\t\t// pushing the event below the baseline.\n\t\t\t\t\trowIndex = maxRows - 1;\n\t\t\t\t\trowsLastX[rowIndex] = x;\n\t\t\t\t}\n\t\t\t} else {\n\t\t\t\trowsLastX[rowIndex] = x;\n\t\t\t}\n\t\t\treturn { event, x, y: 24 + rowIndex * ROW_HEIGHT_PX, rowIndex };\n\t\t});\n\n\tconst ticks: AxisTick[] = [];\n\tfor (let i = 0; i < tickCount; i++) {\n\t\tconst t = minTs + (i / Math.max(1, tickCount - 1)) * span;\n\t\tticks.push({ x: tToX(t), label: formatTick(new Date(t), span) });\n\t}\n\n\treturn {\n\t\tevents: positioned,\n\t\tticks,\n\t\taxisY,\n\t\taxisLeft,\n\t\taxisRight,\n\t\tstartLabel: formatDate(new Date(minTs)),\n\t\tendLabel: formatDate(new Date(maxTs)),\n\t};\n}\n\nfunction toDate(v: Date | string | number): Date {\n\tif (v instanceof Date) return v;\n\tif (typeof v === \"number\") return new Date(v);\n\treturn new Date(v);\n}\n\nfunction formatDate(d: Date): string {\n\tif (Number.isNaN(d.getTime())) return \"—\";\n\treturn d.toISOString().slice(0, 10);\n}\n\nfunction formatTick(d: Date, spanMs: number): string {\n\tif (Number.isNaN(d.getTime())) return \"—\";\n\tconst ONE_DAY = 24 * 60 * 60 * 1000;\n\tif (spanMs <= 7 * ONE_DAY) {\n\t\t// short range — show day\n\t\treturn d.toISOString().slice(0, 10);\n\t}\n\tif (spanMs <= 365 * ONE_DAY) {\n\t\t// medium range — show year-month\n\t\treturn d.toISOString().slice(0, 7);\n\t}\n\t// long range — year only\n\treturn String(d.getUTCFullYear());\n}\n\nfunction activateOnKey(e: React.KeyboardEvent, fn: () => void): void {\n\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\te.preventDefault();\n\t\tfn();\n\t}\n}\n\nexport { TimeAxis };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "background",
+    "foreground",
+    "muted-foreground"
+  ],
+  "examples": [
+    {
+      "title": "Release timeline",
+      "description": "Major version releases plotted across a year.",
+      "code": "<TimeAxis events={[\n  { id: \"v1\", label: \"v1.0\", date: \"2025-01-15\" },\n  { id: \"v2\", label: \"v2.0\", date: \"2025-04-20\" },\n  { id: \"v3\", label: \"v3.0\", date: \"2025-09-10\" },\n]} />",
+      "composition": [
+        "time-axis",
+        "release"
+      ]
+    },
+    {
+      "title": "Incident frequency with explicit range",
+      "description": "Pin the axis to the quarter to compare incident clustering.",
+      "code": "<TimeAxis\n  start=\"2025-07-01\"\n  end=\"2025-09-30\"\n  events={incidents}\n  onEventClick={(e) => router.push(`/incidents/${e.id}`)}\n/>",
+      "composition": [
+        "time-axis",
+        "incidents"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Plot events along a horizontal time axis where the *gap between events* matters — release cadence, incident frequency, sparse-then-dense activity, project milestones across a year. Auto-stacks overlapping events into rows.",
+    "whenNotToUse": "Don't use when only event ORDER matters and absolute dates are secondary (use the existing event-list `<Timeline>` in `components/`). Don't use for tasks with duration (use Gantt). Don't use for actor-message interactions (use Sequence).",
+    "commonMistakes": [
+      "Passing dates as strings in non-ISO formats — `new Date(\"01/02/2025\")` is locale-dependent. Pass ISO strings (`\"2025-01-02\"`), Date objects, or epoch ms",
+      "Forgetting to set `start`/`end` when comparing two TimeAxis renders side-by-side — auto-range scales each axis to its own events, which makes magnitudes incomparable. Pin the range explicitly",
+      "Mutating `events` between renders — the layout pass is memoized on identity",
+      "Confusing TimeAxis with the existing `<Timeline>` in `components/` — they coexist intentionally; pick by whether elapsed-time spacing matters"
+    ],
+    "relatedComponents": [
+      "gantt",
+      "sequence",
+      "timeline"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing event count and axis range. Interactive event markers declare role=\"button\", tabIndex, and Enter/Space activation. For agent outputs, also expose a parallel chronologically-ordered list of label/date pairs.",
+    "tokenBudget": 320
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "time-axis",
+    "time",
+    "events",
+    "chronological"
+  ]
+}

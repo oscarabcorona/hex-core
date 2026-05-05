@@ -29,6 +29,7 @@ const entryFiles = fg.sync(
 		"src/primitives/*/*.tsx",
 		"src/components/*/*.tsx",
 		"src/ai/*/*.tsx",
+		"src/artifacts/*/*.tsx",
 	],
 	{
 		ignore: ["**/*.test.tsx", "**/*.schema.ts", "**/_shared/**"],
@@ -93,6 +94,10 @@ export default defineConfig({
 		"reactflow",
 		"wavesurfer.js",
 		"mermaid",
+		"d3-chord",
+		"d3-hierarchy",
+		"d3-sankey",
+		"d3-shape",
 		/^@radix-ui\//,
 		"class-variance-authority",
 		"clsx",

@@ -1,0 +1,147 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "quiz",
+  "displayName": "Quiz",
+  "description": "Single-question multiple-choice quiz with submit + reveal. After submit, each option is tagged data-state=\"correct|incorrect|missed\" so consumers can theme right / wrong / unselected-but-correct independently. Pure HTML; no heavy peer.",
+  "category": "artifact",
+  "subcategory": "study",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "question",
+      "type": "ReactNode",
+      "required": true,
+      "description": "The question prompt — accepts any rich content."
+    },
+    {
+      "name": "options",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, label, correct?, explanation? }. `correct: true` flags the right answer(s); `explanation` renders below the option after submit."
+    },
+    {
+      "name": "selectionMode",
+      "type": "enum",
+      "required": false,
+      "default": "single",
+      "description": "\"single\" — radio inputs (one pick); \"multi\" — checkboxes (zero or more picks).",
+      "enumValues": [
+        "single",
+        "multi"
+      ]
+    },
+    {
+      "name": "submitLabel",
+      "type": "string",
+      "required": false,
+      "default": "Submit",
+      "description": "Custom Submit button text."
+    },
+    {
+      "name": "onAnswer",
+      "type": "function",
+      "required": false,
+      "description": "Called with (selectedIds, allCorrect) on submit. `allCorrect` is true only when the picked set equals the correct set exactly (multi-select must include all correct AND nothing extra)."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the outer container."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/quiz.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Single-question multiple-choice quiz. Renders the question + options\n * as native radio (single-select) or checkbox (multi-select) inputs;\n * after Submit, each option flips to data-state=\"correct|incorrect|missed\"\n * so consumers can theme right / wrong / unselected-but-correct\n * differently. Pure HTML; no heavy peer.\n *\n * Headless on grading: the schema honors what the consumer passes for\n * `correct`. Reset between runs by clearing the `selectedIds` you\n * forwarded as `value` (controlled) or unmounting (uncontrolled).\n *\n * @example\n * <Quiz\n *   question=\"Which planets are gas giants?\"\n *   selectionMode=\"multi\"\n *   options={[\n *     { id: \"j\", label: \"Jupiter\", correct: true },\n *     { id: \"v\", label: \"Venus\" },\n *     { id: \"s\", label: \"Saturn\", correct: true, explanation: \"Saturn's atmosphere is mostly hydrogen and helium.\" },\n *     { id: \"m\", label: \"Mercury\" },\n *   ]}\n *   onAnswer={(ids, allCorrect) => track(ids, allCorrect)}\n * />\n */\nexport type QuizOption = {\n\tid: string;\n\tlabel: React.ReactNode;\n\tcorrect?: boolean;\n\texplanation?: React.ReactNode;\n};\n\nexport interface QuizProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\"> {\n\t/** Question prompt (any ReactNode — supports rich content). */\n\tquestion: React.ReactNode;\n\t/** Options the learner picks from. */\n\toptions: QuizOption[];\n\t/** \"single\" — radio inputs (one selection). \"multi\" — checkboxes. Default \"single\". */\n\tselectionMode?: \"single\" | \"multi\";\n\t/** Custom Submit button label. Default \"Submit\". */\n\tsubmitLabel?: string;\n\t/** Fired with the selected option ids and a boolean indicating whether the entire selection matches the correct set. */\n\tonAnswer?: (selectedIds: string[], allCorrect: boolean) => void;\n}\n\ntype CellState = \"correct\" | \"incorrect\" | \"missed\" | \"unanswered\";\n\nfunction Quiz({\n\tquestion,\n\toptions,\n\tselectionMode = \"single\",\n\tsubmitLabel = \"Submit\",\n\tonAnswer,\n\tclassName,\n\t...rest\n}: QuizProps) {\n\tconst [selected, setSelected] = React.useState<Set<string>>(() => new Set());\n\tconst [submitted, setSubmitted] = React.useState(false);\n\tconst onAnswerRef = React.useRef(onAnswer);\n\tonAnswerRef.current = onAnswer;\n\tconst groupName = React.useId();\n\n\tconst correctIds = React.useMemo(\n\t\t() => new Set(options.filter((o) => o.correct).map((o) => o.id)),\n\t\t[options],\n\t);\n\n\tconst allCorrect = React.useMemo(() => {\n\t\tif (selected.size !== correctIds.size) return false;\n\t\tfor (const id of correctIds) if (!selected.has(id)) return false;\n\t\treturn true;\n\t}, [selected, correctIds]);\n\n\tconst stateFor = (option: QuizOption): CellState => {\n\t\tif (!submitted) return \"unanswered\";\n\t\tconst picked = selected.has(option.id);\n\t\tconst isCorrect = correctIds.has(option.id);\n\t\tif (picked && isCorrect) return \"correct\";\n\t\tif (picked && !isCorrect) return \"incorrect\";\n\t\tif (!picked && isCorrect) return \"missed\";\n\t\treturn \"unanswered\";\n\t};\n\n\tconst toggle = (id: string) => {\n\t\t// Submit is sticky: data-state always reflects the CURRENT selection\n\t\t// against the correct set, so re-picking after submit auto-updates\n\t\t// the correct/incorrect/missed indicators without clearing the\n\t\t// \"I've tried this\" affordance. Next Submit re-grades and re-fires\n\t\t// onAnswer with the updated selection.\n\t\tsetSelected((prev) => {\n\t\t\tif (selectionMode === \"single\") return new Set([id]);\n\t\t\tconst next = new Set(prev);\n\t\t\tif (next.has(id)) next.delete(id);\n\t\t\telse next.add(id);\n\t\t\treturn next;\n\t\t});\n\t};\n\n\tconst handleSubmit = () => {\n\t\tsetSubmitted(true);\n\t\tonAnswerRef.current?.(Array.from(selected), allCorrect);\n\t};\n\n\tconst canSubmit = selected.size > 0;\n\tconst statusText = submitted\n\t\t? allCorrect\n\t\t\t? \"Correct — well done.\"\n\t\t\t: \"Some selections are incorrect or missed. Review the highlighted options.\"\n\t\t: \"\";\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tdata-hex-quiz\n\t\t\tdata-submitted={submitted}\n\t\t\tdata-all-correct={submitted && allCorrect}\n\t\t\tclassName={cn(\"rounded-lg border bg-card p-4 text-card-foreground\", className)}\n\t\t>\n\t\t\t<div data-hex-quiz-question className=\"mb-3 text-base font-medium\">\n\t\t\t\t{question}\n\t\t\t</div>\n\t\t\t<ul data-hex-quiz-options className=\"space-y-2\" role={selectionMode === \"single\" ? \"radiogroup\" : \"group\"}>\n\t\t\t\t{options.map((option) => {\n\t\t\t\t\tconst state = stateFor(option);\n\t\t\t\t\tconst isPicked = selected.has(option.id);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<li key={option.id}>\n\t\t\t\t\t\t\t<label\n\t\t\t\t\t\t\t\tdata-hex-quiz-option\n\t\t\t\t\t\t\t\tdata-state={state}\n\t\t\t\t\t\t\t\tdata-picked={isPicked}\n\t\t\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\t\t\"flex cursor-pointer items-start gap-2 rounded-md border bg-background p-2 transition-colors\",\n\t\t\t\t\t\t\t\t\t\"hover:bg-muted/50\",\n\t\t\t\t\t\t\t\t\tstate === \"correct\" && \"border-primary bg-primary/10\",\n\t\t\t\t\t\t\t\t\tstate === \"incorrect\" && \"border-destructive bg-destructive/10\",\n\t\t\t\t\t\t\t\t\tstate === \"missed\" && \"border-primary/60 bg-primary/5 ring-1 ring-primary/40\",\n\t\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\t\ttype={selectionMode === \"single\" ? \"radio\" : \"checkbox\"}\n\t\t\t\t\t\t\t\t\tname={selectionMode === \"single\" ? groupName : undefined}\n\t\t\t\t\t\t\t\t\tvalue={option.id}\n\t\t\t\t\t\t\t\t\tchecked={isPicked}\n\t\t\t\t\t\t\t\t\tonChange={() => toggle(option.id)}\n\t\t\t\t\t\t\t\t\tclassName=\"mt-0.5\"\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t<div className=\"flex-1\">\n\t\t\t\t\t\t\t\t\t<div data-hex-quiz-label>{option.label}</div>\n\t\t\t\t\t\t\t\t\t{submitted && option.explanation && (state === \"correct\" || state === \"incorrect\" || state === \"missed\") ? (\n\t\t\t\t\t\t\t\t\t\t<div data-hex-quiz-explanation className=\"mt-1 text-xs text-muted-foreground\">\n\t\t\t\t\t\t\t\t\t\t\t{option.explanation}\n\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</ul>\n\t\t\t<div className=\"mt-3 flex items-center gap-3\">\n\t\t\t\t<button\n\t\t\t\t\ttype=\"button\"\n\t\t\t\t\tdata-hex-quiz-submit\n\t\t\t\t\tdisabled={!canSubmit}\n\t\t\t\t\tonClick={handleSubmit}\n\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\"inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-opacity\",\n\t\t\t\t\t\t\"hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50\",\n\t\t\t\t\t\t\"focus:outline-none focus-visible:ring-2 focus-visible:ring-ring\",\n\t\t\t\t\t)}\n\t\t\t\t>\n\t\t\t\t\t{submitLabel}\n\t\t\t\t</button>\n\t\t\t\t<div data-hex-quiz-status role=\"status\" aria-live=\"polite\" className=\"text-sm text-muted-foreground\">\n\t\t\t\t\t{statusText}\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t);\n}\n\nexport { Quiz };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "card-foreground",
+    "background",
+    "border",
+    "primary",
+    "primary-foreground",
+    "destructive",
+    "muted",
+    "muted-foreground",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Single-answer geography",
+      "description": "Standard one-correct multiple choice.",
+      "code": "<Quiz\n  question=\"Which planet is closest to the sun?\"\n  options={[\n    { id: \"m\", label: \"Mercury\", correct: true },\n    { id: \"v\", label: \"Venus\" },\n    { id: \"e\", label: \"Earth\" },\n    { id: \"ma\", label: \"Mars\" },\n  ]}\n/>",
+      "composition": [
+        "quiz",
+        "single-answer"
+      ]
+    },
+    {
+      "title": "Multi-answer with explanations",
+      "description": "Multiple correct options + per-option explanations after submit.",
+      "code": "<Quiz\n  question=\"Which planets are gas giants?\"\n  selectionMode=\"multi\"\n  options={[\n    { id: \"j\", label: \"Jupiter\", correct: true },\n    { id: \"v\", label: \"Venus\" },\n    { id: \"s\", label: \"Saturn\", correct: true, explanation: \"Saturn's atmosphere is mostly H/He.\" },\n  ]}\n/>",
+      "composition": [
+        "quiz",
+        "multi-answer",
+        "explanation"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Render a single self-test question with N preset answers. Vocabulary multiple choice, fact-based questions, code-output predictions, comprehension checks. Use when answers are constrained to a finite set the consumer can author upfront.",
+    "whenNotToUse": "Don't use for free-form recall (use Flashcard or Cloze). Don't use for image regions (use ImageOcclusion). Don't use for multi-question quizzes — Quiz is a single-question primitive; consumers compose their own state to chain multiple instances. Don't use when the answer is graded server-side after submit — Quiz reveals correctness immediately on submit, no async hook.",
+    "commonMistakes": [
+      "Forgetting `correct: true` on any option in multi-select mode — `allCorrect` will fire as `true` only if picked-set equals correct-set, so a quiz with no correct options reports allCorrect on an empty selection",
+      "Putting the explanation on the wrong option — explanations are intentionally only shown for `correct` / `incorrect` / `missed` cells (not `unanswered`), so a learner sees the explanation for what they missed, what they got wrong, and what they got right",
+      "Re-mounting the Quiz to reset state — that works, but it's cheaper to clear the parent's options key (or pass a controlled `selectedIds` prop in a future iteration)",
+      "Long questions or labels exceeding ~60 characters — line-wrapping inside the option list shrinks the click target. Trim or break at a natural punctuation point"
+    ],
+    "relatedComponents": [
+      "flashcard",
+      "cloze",
+      "image-occlusion",
+      "deck",
+      "spaced-repetition",
+      "radio-group",
+      "checkbox"
+    ],
+    "accessibilityNotes": "The options list declares role=\"radiogroup\" (single mode) or role=\"group\" (multi mode). Native <input type=\"radio|checkbox\"> handles keyboard navigation (arrow keys for radios, tab+space for checkboxes). The status line uses role=\"status\" + aria-live=\"polite\" so screen readers announce correctness after submit. Each option's data-state encodes correctness for theming AND offers a hook for screen-reader-only labels if a future iteration adds them.",
+    "tokenBudget": 360
+  },
+  "tags": [
+    "artifact",
+    "study",
+    "quiz",
+    "multiple-choice",
+    "active-recall"
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "funnel",
+  "displayName": "Funnel",
+  "description": "Conversion funnel — vertical stack of trapezoidal stages whose width is proportional to each stage's value. Pure SVG; no heavy peer dep.",
+  "category": "artifact",
+  "subcategory": "flow",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "stages",
+      "type": "object",
+      "required": true,
+      "description": "Ordered top-to-bottom array of { id, label, value }. Values must be non-negative."
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 480,
+      "description": "SVG pixel width."
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "required": false,
+      "default": 360,
+      "description": "SVG pixel height."
+    },
+    {
+      "name": "gap",
+      "type": "number",
+      "required": false,
+      "default": 4,
+      "description": "Pixel gap between stages."
+    },
+    {
+      "name": "showConversion",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Show stage-to-stage conversion percentages alongside the funnel."
+    },
+    {
+      "name": "onStageClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked FunnelStage."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/funnel.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Conversion funnel — a vertical stack of trapezoidal stages whose width\n * is proportional to each stage's value. Pure SVG; no heavy peer\n * dependency. Pair with `<Sankey>` when stage-to-stage flow detail\n * matters; use Funnel when the conversion drop-off itself is the\n * message.\n *\n * @example\n * <Funnel\n *   stages={[\n *     { id: \"visit\", label: \"Visited\", value: 10000 },\n *     { id: \"signup\", label: \"Signed up\", value: 1200 },\n *     { id: \"active\", label: \"Active\", value: 480 },\n *     { id: \"paid\", label: \"Paid\", value: 95 },\n *   ]}\n * />\n */\nexport type FunnelStage = {\n\tid: string;\n\tlabel: string;\n\tvalue: number;\n};\n\nexport interface FunnelProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Ordered top-to-bottom stages. Values must be non-negative. */\n\tstages: FunnelStage[];\n\t/** Pixel width of the rendered SVG. Default 480. */\n\twidth?: number;\n\t/** Pixel height of the rendered SVG. Default 360. */\n\theight?: number;\n\t/** Pixel gap between stages. Default 4. */\n\tgap?: number;\n\t/** Show conversion-rate annotations between stages. Default true. */\n\tshowConversion?: boolean;\n\t/** Fired when a stage is clicked. */\n\tonStageClick?: (stage: FunnelStage) => void;\n}\n\ninterface LaidOutStage {\n\tstage: FunnelStage;\n\tdepth: number;\n\ttopLeft: number;\n\ttopRight: number;\n\tbottomLeft: number;\n\tbottomRight: number;\n\tyTop: number;\n\tyBottom: number;\n\tconversionFromPrev: number | null;\n}\n\nfunction Funnel({\n\tstages,\n\twidth = 480,\n\theight = 360,\n\tgap = 4,\n\tshowConversion = true,\n\tonStageClick,\n\tclassName,\n\t...rest\n}: FunnelProps) {\n\tconst laidOut = layout(stages, width, height, gap);\n\tconst desc = `Funnel with ${stages.length} stage${stages.length === 1 ? \"\" : \"s\"}, peak value ${stages[0]?.value ?? 0}`;\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-funnel\n\t\t\trole=\"img\"\n\t\t\twidth={width}\n\t\t\theight={height}\n\t\t\tviewBox={`0 0 ${width} ${height}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Funnel chart</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<g data-hex-funnel-stages>\n\t\t\t\t{laidOut.map((s) => {\n\t\t\t\t\tconst interactive = Boolean(onStageClick);\n\t\t\t\t\tconst handleActivate = () => onStageClick?.(s.stage);\n\t\t\t\t\treturn (\n\t\t\t\t\t<g\n\t\t\t\t\t\tkey={s.stage.id}\n\t\t\t\t\t\tdata-hex-funnel-stage\n\t\t\t\t\t\tdata-depth={s.depth}\n\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\taria-label={interactive ? `${s.stage.label}: ${s.stage.value}` : undefined}\n\t\t\t\t\t\tstyle={interactive ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\tonClick={interactive ? handleActivate : undefined}\n\t\t\t\t\t\tonKeyDown={interactive ? (e) => activateOnKey(e, handleActivate) : undefined}\n\t\t\t\t\t>\n\t\t\t\t\t\t<polygon\n\t\t\t\t\t\t\tpoints={`${s.topLeft},${s.yTop} ${s.topRight},${s.yTop} ${s.bottomRight},${s.yBottom} ${s.bottomLeft},${s.yBottom}`}\n\t\t\t\t\t\t\tfill=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\t// Floor at 0.6 keeps `primary-foreground` text on the\n\t\t\t\t\t\t\t// stage at ≥4.5:1 contrast at any depth.\n\t\t\t\t\t\t\tfillOpacity={Math.max(0.6, 1 - s.depth * 0.08)}\n\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t/>\n\t\t\t\t\t\t<text\n\t\t\t\t\t\t\tx={width / 2}\n\t\t\t\t\t\t\ty={(s.yTop + s.yBottom) / 2}\n\t\t\t\t\t\t\tdy=\"0.35em\"\n\t\t\t\t\t\t\ttextAnchor=\"middle\"\n\t\t\t\t\t\t\tfontSize={12}\n\t\t\t\t\t\t\tfontWeight={600}\n\t\t\t\t\t\t\tfill=\"hsl(var(--primary-foreground))\"\n\t\t\t\t\t\t\tstyle={{ pointerEvents: \"none\" }}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{`${s.stage.label} · ${s.stage.value.toLocaleString()}`}\n\t\t\t\t\t\t</text>\n\t\t\t\t\t</g>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t\t{showConversion ? (\n\t\t\t\t<g data-hex-funnel-conversions>\n\t\t\t\t\t{laidOut.map((s) =>\n\t\t\t\t\t\ts.conversionFromPrev != null ? (\n\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\tkey={`conv-${s.stage.id}`}\n\t\t\t\t\t\t\t\tdata-hex-funnel-conversion\n\t\t\t\t\t\t\t\tx={width - 4}\n\t\t\t\t\t\t\t\ty={s.yTop - 2}\n\t\t\t\t\t\t\t\ttextAnchor=\"end\"\n\t\t\t\t\t\t\t\tfontSize={10}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{formatPct(s.conversionFromPrev)}\n\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t) : null,\n\t\t\t\t\t)}\n\t\t\t\t</g>\n\t\t\t) : null}\n\t\t</svg>\n\t);\n}\n\nfunction layout(stages: FunnelStage[], width: number, height: number, gap: number): LaidOutStage[] {\n\tif (stages.length === 0) return [];\n\tconst peak = Math.max(...stages.map((s) => s.value), 0) || 1;\n\tconst usableHeight = height - gap * Math.max(0, stages.length - 1);\n\tconst stageHeight = usableHeight / stages.length;\n\tconst cx = width / 2;\n\n\treturn stages.map((stage, i) => {\n\t\tconst yTop = i * (stageHeight + gap);\n\t\tconst yBottom = yTop + stageHeight;\n\t\tconst topRatio = stage.value / peak;\n\t\tconst next = stages[i + 1];\n\t\tconst bottomRatio = next ? next.value / peak : topRatio;\n\t\tconst topHalfWidth = (width / 2) * Math.max(0, Math.min(1, topRatio));\n\t\tconst bottomHalfWidth = (width / 2) * Math.max(0, Math.min(1, bottomRatio));\n\t\tconst prev = stages[i - 1];\n\t\tconst conversionFromPrev = prev && prev.value > 0 ? stage.value / prev.value : null;\n\t\treturn {\n\t\t\tstage,\n\t\t\tdepth: i,\n\t\t\ttopLeft: cx - topHalfWidth,\n\t\t\ttopRight: cx + topHalfWidth,\n\t\t\tbottomLeft: cx - bottomHalfWidth,\n\t\t\tbottomRight: cx + bottomHalfWidth,\n\t\t\tyTop,\n\t\t\tyBottom,\n\t\t\tconversionFromPrev,\n\t\t};\n\t});\n}\n\nfunction formatPct(ratio: number): string {\n\tif (!Number.isFinite(ratio)) return \"—\";\n\treturn `${(ratio * 100).toFixed(ratio < 0.1 ? 1 : 0)}%`;\n}\n\nfunction activateOnKey(e: React.KeyboardEvent, fn: () => void): void {\n\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\te.preventDefault();\n\t\tfn();\n\t}\n}\n\nexport { Funnel };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "primary-foreground",
+    "muted-foreground",
+    "background"
+  ],
+  "examples": [
+    {
+      "title": "Signup funnel",
+      "description": "Standard top-of-funnel → conversion drop-off.",
+      "code": "<Funnel stages={[\n  { id: \"visit\", label: \"Visited\", value: 10000 },\n  { id: \"signup\", label: \"Signed up\", value: 1200 },\n  { id: \"active\", label: \"Active\", value: 480 },\n  { id: \"paid\", label: \"Paid\", value: 95 },\n]} />",
+      "composition": [
+        "funnel",
+        "conversion",
+        "stages"
+      ]
+    },
+    {
+      "title": "Click stages to drill in",
+      "description": "Wire onStageClick to a route or modal for stage detail.",
+      "code": "<Funnel stages={data} onStageClick={(s) => router.push(`/stages/${s.id}`)} />",
+      "composition": [
+        "funnel",
+        "interactive"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize linear conversion drop-off — onboarding step completion, marketing-funnel rates, sales pipeline stages, ETL row counts. Use when each stage is a strict subset of the previous and the magnitude of the drop is the message.",
+    "whenNotToUse": "Don't use for non-monotonic data where a later stage can exceed an earlier one (use a column chart). Don't use for branching funnels where flow splits across paths (use Sankey). Don't use for ranked categorical data without a flow concept (use Pyramid).",
+    "commonMistakes": [
+      "Stage values that aren't monotonically non-increasing — visually misleads users into thinking the funnel \"recovers\". Validate upstream",
+      "Negative values — produce zero-width stages or NaN positions. Filter or clamp upstream",
+      "More than ~8 stages — labels become unreadable. Group adjacent stages or use Sankey"
+    ],
+    "relatedComponents": [
+      "sankey",
+      "pyramid",
+      "flowchart",
+      "diagram"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing stage count and peak value. For agent outputs, also expose a parallel <table> of label/value/conversion-rate triples so screen-reader users get the magnitudes.",
+    "tokenBudget": 280
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "funnel",
+    "conversion",
+    "flow"
+  ]
+}

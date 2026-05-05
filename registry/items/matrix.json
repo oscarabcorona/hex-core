@@ -1,0 +1,149 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "matrix",
+  "displayName": "Matrix",
+  "description": "Adjacency-matrix diagram. Square grid where cell color intensity encodes the relationship from row to column. Pure SVG; no heavy peer dep. Best for dense graphs that turn into hairballs in node-link form.",
+  "category": "artifact",
+  "subcategory": "relational",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "nodes",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, label }. Used as both rows AND columns. Order matches `matrix` rows/columns."
+    },
+    {
+      "name": "matrix",
+      "type": "object",
+      "required": true,
+      "description": "Square N×N matrix. matrix[i][j] = relationship from node i to node j. Renamed from `values` to avoid colliding with the SVG `values` animation attribute."
+    },
+    {
+      "name": "size",
+      "type": "number",
+      "required": false,
+      "default": 480,
+      "description": "Pixel size of the rendered SVG (it's square)."
+    },
+    {
+      "name": "labelMargin",
+      "type": "number",
+      "required": false,
+      "default": 80,
+      "description": "Pixel reserved for row/column labels along the top and left edges."
+    },
+    {
+      "name": "showValues",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Show numeric values inside cells when the cell is large enough (~28px+)."
+    },
+    {
+      "name": "onCellHover",
+      "type": "function",
+      "required": false,
+      "description": "Called with the hovered cell's { row, col, value } (or null when hover ends)."
+    },
+    {
+      "name": "onCellClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked cell's { row, col, value }."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/matrix.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Adjacency-matrix diagram. Square grid where cell (row i, col j)\n * encodes the relationship from node i to node j by color intensity.\n * Pure SVG; no heavy peer dependency. Best for dense graphs where\n * node-link diagrams turn into \"hairballs\" — Matrix scales gracefully\n * to hundreds of nodes if the SVG is sized to match.\n *\n * @example\n * <Matrix\n *   nodes={[\"A\", \"B\", \"C\", \"D\"].map((id) => ({ id, label: id }))}\n *   matrix={[\n *     [0, 5, 8, 1],\n *     [3, 0, 2, 4],\n *     [6, 0, 0, 7],\n *     [2, 1, 9, 0],\n *   ]}\n * />\n */\nexport type MatrixNode = {\n\tid: string;\n\tlabel: string;\n};\n\nexport interface MatrixProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Nodes — rows AND columns. Order matches `matrix` rows/columns. */\n\tnodes: MatrixNode[];\n\t/** Square N×N matrix of values. matrix[i][j] = relationship from node i to node j. */\n\tmatrix: number[][];\n\t/** Pixel size of the rendered SVG (it's square). Default 480. */\n\tsize?: number;\n\t/** Pixel reserved for row/column labels along the edges. Default 80. */\n\tlabelMargin?: number;\n\t/** Show numeric values inside cells when the cell is large enough. Default true. */\n\tshowValues?: boolean;\n\t/** Fired when a cell is hovered (or hover ends, with `null`). */\n\tonCellHover?: (cell: { row: MatrixNode; col: MatrixNode; value: number } | null) => void;\n\t/** Fired when a cell is clicked. */\n\tonCellClick?: (cell: { row: MatrixNode; col: MatrixNode; value: number }) => void;\n}\n\ninterface LaidOutCell {\n\trow: MatrixNode;\n\tcol: MatrixNode;\n\trowIndex: number;\n\tcolIndex: number;\n\tvalue: number;\n\tx: number;\n\ty: number;\n\tintensity: number;\n}\n\n/** Below this px size, in-cell numeric labels become unreadable and are hidden. */\nconst MIN_CELL_SIZE_FOR_VALUE = 28;\n\nfunction Matrix({\n\tnodes,\n\tmatrix,\n\tsize = 480,\n\tlabelMargin = 80,\n\tshowValues = true,\n\tonCellHover,\n\tonCellClick,\n\tclassName,\n\t...rest\n}: MatrixProps) {\n\tconst cells = React.useMemo(() => layout(nodes, matrix, size, labelMargin), [nodes, matrix, size, labelMargin]);\n\tconst desc = `Matrix with ${nodes.length} node${nodes.length === 1 ? \"\" : \"s\"} (${nodes.length}×${nodes.length} cells)`;\n\tconst cellSize = nodes.length > 0 ? (size - labelMargin) / nodes.length : 0;\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-matrix\n\t\t\trole=\"img\"\n\t\t\twidth={size}\n\t\t\theight={size}\n\t\t\tviewBox={`0 0 ${size} ${size}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Adjacency matrix</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<g data-hex-matrix-rows>\n\t\t\t\t{nodes.map((n, i) => (\n\t\t\t\t\t<text\n\t\t\t\t\t\tkey={`row-${n.id}`}\n\t\t\t\t\t\tx={labelMargin - 4}\n\t\t\t\t\t\ty={labelMargin + cellSize * i + cellSize / 2}\n\t\t\t\t\t\tdy=\"0.35em\"\n\t\t\t\t\t\ttextAnchor=\"end\"\n\t\t\t\t\t\tfontSize={10}\n\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t>\n\t\t\t\t\t\t{n.label}\n\t\t\t\t\t</text>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t\t<g data-hex-matrix-cols>\n\t\t\t\t{nodes.map((n, i) => (\n\t\t\t\t\t<text\n\t\t\t\t\t\tkey={`col-${n.id}`}\n\t\t\t\t\t\tx={labelMargin + cellSize * i + cellSize / 2}\n\t\t\t\t\t\ty={labelMargin - 4}\n\t\t\t\t\t\ttextAnchor=\"end\"\n\t\t\t\t\t\tfontSize={10}\n\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t\ttransform={`rotate(-45 ${labelMargin + cellSize * i + cellSize / 2} ${labelMargin - 4})`}\n\t\t\t\t\t>\n\t\t\t\t\t\t{n.label}\n\t\t\t\t\t</text>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t\t<g data-hex-matrix-cells>\n\t\t\t\t{cells.map((c) => {\n\t\t\t\t\tconst interactive = Boolean(onCellHover || onCellClick);\n\t\t\t\t\tconst cellPayload = { row: c.row, col: c.col, value: c.value };\n\t\t\t\t\tconst fireHover = (cell: typeof cellPayload | null) => onCellHover?.(cell);\n\t\t\t\t\tconst handleActivate = () => onCellClick?.(cellPayload);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<g\n\t\t\t\t\t\t\tkey={`${c.rowIndex}-${c.colIndex}`}\n\t\t\t\t\t\t\tdata-hex-matrix-cell\n\t\t\t\t\t\t\tdata-row={c.rowIndex}\n\t\t\t\t\t\t\tdata-col={c.colIndex}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={interactive ? `${c.row.label} → ${c.col.label}: ${c.value}` : undefined}\n\t\t\t\t\t\t\tstyle={interactive ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\t\tonMouseEnter={onCellHover ? () => fireHover(cellPayload) : undefined}\n\t\t\t\t\t\t\tonMouseLeave={onCellHover ? () => fireHover(null) : undefined}\n\t\t\t\t\t\t\tonFocus={onCellHover ? () => fireHover(cellPayload) : undefined}\n\t\t\t\t\t\t\tonBlur={onCellHover ? () => fireHover(null) : undefined}\n\t\t\t\t\t\t\tonClick={onCellClick ? handleActivate : undefined}\n\t\t\t\t\t\t\tonKeyDown={onCellClick ? (e) => activateOnKey(e, handleActivate) : undefined}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<rect\n\t\t\t\t\t\t\t\tx={c.x}\n\t\t\t\t\t\t\t\ty={c.y}\n\t\t\t\t\t\t\t\twidth={cellSize}\n\t\t\t\t\t\t\t\theight={cellSize}\n\t\t\t\t\t\t\t\t// Floor at 0.08 so empty cells are visible as grid lines;\n\t\t\t\t\t\t\t\t// ramp up to 0.95 for max-value cells. `--primary` carries\n\t\t\t\t\t\t\t\t// the hue, opacity carries the magnitude.\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\t\tfillOpacity={0.08 + 0.87 * c.intensity}\n\t\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\t\tstrokeWidth={0.5}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t{showValues && cellSize > MIN_CELL_SIZE_FOR_VALUE && c.value !== 0 ? (\n\t\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\t\tx={c.x + cellSize / 2}\n\t\t\t\t\t\t\t\t\ty={c.y + cellSize / 2}\n\t\t\t\t\t\t\t\t\tdy=\"0.35em\"\n\t\t\t\t\t\t\t\t\ttextAnchor=\"middle\"\n\t\t\t\t\t\t\t\t\tfontSize={9}\n\t\t\t\t\t\t\t\t\t// Above ~0.55 intensity the cell is dark enough that\n\t\t\t\t\t\t\t\t\t// background-tone foreground reads better.\n\t\t\t\t\t\t\t\t\tfill={c.intensity > 0.55 ? \"hsl(var(--background))\" : \"hsl(var(--foreground))\"}\n\t\t\t\t\t\t\t\t\tstyle={{ pointerEvents: \"none\" }}\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{c.value}\n\t\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t</g>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(\n\tnodes: MatrixNode[],\n\tmatrix: number[][],\n\tsize: number,\n\tlabelMargin: number,\n): LaidOutCell[] {\n\tif (nodes.length === 0) return [];\n\tconst cellSize = (size - labelMargin) / nodes.length;\n\tlet maxValue = 0;\n\tfor (const row of matrix) {\n\t\tfor (const v of row) if (v > maxValue) maxValue = v;\n\t}\n\tconst cells: LaidOutCell[] = [];\n\tfor (let i = 0; i < nodes.length; i++) {\n\t\tfor (let j = 0; j < nodes.length; j++) {\n\t\t\tconst value = matrix[i]?.[j] ?? 0;\n\t\t\tcells.push({\n\t\t\t\trow: nodes[i],\n\t\t\t\tcol: nodes[j],\n\t\t\t\trowIndex: i,\n\t\t\t\tcolIndex: j,\n\t\t\t\tvalue,\n\t\t\t\tx: labelMargin + cellSize * j,\n\t\t\t\ty: labelMargin + cellSize * i,\n\t\t\t\tintensity: maxValue > 0 ? value / maxValue : 0,\n\t\t\t});\n\t\t}\n\t}\n\treturn cells;\n}\n\nfunction activateOnKey(e: React.KeyboardEvent, fn: () => void): void {\n\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\te.preventDefault();\n\t\tfn();\n\t}\n}\n\nexport { Matrix };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "background",
+    "foreground"
+  ],
+  "examples": [
+    {
+      "title": "Trade flow matrix",
+      "description": "Cell intensity reflects flow from row region to column region.",
+      "code": "<Matrix\n  nodes={regions}\n  matrix={tradeFlow}\n  onCellHover={(c) => setActive(c)}\n/>",
+      "composition": [
+        "matrix",
+        "trade-flow",
+        "heatmap"
+      ]
+    },
+    {
+      "title": "Confusion matrix for a classifier",
+      "description": "Predicted vs actual labels.",
+      "code": "<Matrix\n  nodes={classes}\n  matrix={confusion}\n  showValues={true}\n/>",
+      "composition": [
+        "matrix",
+        "confusion",
+        "ml"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize a dense relationship between many pairs of entities — adjacency matrices, confusion matrices, correlation matrices, trade-flow matrices, citation-count matrices. Scales gracefully to ~100 nodes where node-link diagrams degenerate. Use when SCALE matters more than seeing individual edges.",
+    "whenNotToUse": "Don't use for sparse relationships (most cells empty — Sankey or Arc surfaces the actual edges better). Don't use when the user needs to follow paths from node to node (use Canvas, Flowchart). Don't use for hierarchical data (use TreeMap, Sunburst).",
+    "commonMistakes": [
+      "Non-square `matrix` — the component reads matrix[i][j], so missing rows or short rows render as zero. Validate dimensions upstream",
+      "Mismatched length: `nodes.length` ≠ `matrix.length` — extra nodes get blank rows; extra rows are ignored. Validate upstream",
+      "Mutating `nodes` / `matrix` between renders — the layout pass is memoized on identity",
+      "Asymmetric values expected to render symmetrically — the component honors per-direction values exactly as given",
+      "`labelMargin` smaller than the longest node label's pixel width — labels overflow the SVG. Set `labelMargin` ≥ ~0.75× longestLabelPx, or shorten labels upstream"
+    ],
+    "relatedComponents": [
+      "chord",
+      "arc",
+      "venn",
+      "sankey"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing dimensions. Interactive cells declare role=\"button\", tabIndex, and Enter/Space activation; hover/focus fire callback symmetrically. For agent outputs, also expose a parallel <table> so screen-reader users get the values without relying on color intensity.",
+    "tokenBudget": 360
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "matrix",
+    "adjacency",
+    "relational",
+    "heatmap"
+  ]
+}

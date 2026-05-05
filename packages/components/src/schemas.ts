@@ -94,3 +94,36 @@ export { messageActionsSchema } from "./ai/message-actions/message-actions.schem
 export { citationSchema } from "./ai/citation/citation.schema.js";
 export { markdownSchema } from "./ai/markdown/markdown.schema.js";
 export { codeBlockSchema } from "./ai/code-block/code-block.schema.js";
+
+// Artifacts — hierarchy-family diagram primitives (1.8.0+)
+export { mindMapSchema } from "./artifacts/mind-map/mind-map.schema.js";
+export { treeMapSchema } from "./artifacts/tree-map/tree-map.schema.js";
+export { orgChartSchema } from "./artifacts/org-chart/org-chart.schema.js";
+export { sunburstSchema } from "./artifacts/sunburst/sunburst.schema.js";
+export { dendrogramSchema } from "./artifacts/dendrogram/dendrogram.schema.js";
+
+// Artifacts — flow-family diagram primitives
+export { sankeySchema } from "./artifacts/sankey/sankey.schema.js";
+export { funnelSchema } from "./artifacts/funnel/funnel.schema.js";
+export { pyramidSchema } from "./artifacts/pyramid/pyramid.schema.js";
+export { flowchartSchema } from "./artifacts/flowchart/flowchart.schema.js";
+
+// Artifacts — relational-family diagram primitives
+export { vennSchema } from "./artifacts/venn/venn.schema.js";
+export { chordSchema } from "./artifacts/chord/chord.schema.js";
+export { arcSchema } from "./artifacts/arc/arc.schema.js";
+export { matrixSchema } from "./artifacts/matrix/matrix.schema.js";
+
+// Artifacts — time-family diagram primitives
+export { timeAxisSchema } from "./artifacts/time-axis/time-axis.schema.js";
+export { ganttSchema } from "./artifacts/gantt/gantt.schema.js";
+export { sequenceSchema } from "./artifacts/sequence/sequence.schema.js";
+
+// Artifacts — study-family primitives
+export { flashcardSchema } from "./artifacts/flashcard/flashcard.schema.js";
+export { clozeSchema } from "./artifacts/cloze/cloze.schema.js";
+export { imageOcclusionSchema } from "./artifacts/image-occlusion/image-occlusion.schema.js";
+export { quizSchema } from "./artifacts/quiz/quiz.schema.js";
+export { compareTableSchema } from "./artifacts/compare-table/compare-table.schema.js";
+export { deckSchema } from "./artifacts/deck/deck.schema.js";
+export { spacedRepetitionSchema } from "./artifacts/spaced-repetition/spaced-repetition.schema.js";

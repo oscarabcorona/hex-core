@@ -20,7 +20,7 @@ export function internalDepToSlug(dep: string): string | null {
 	const segments = dep.split("/");
 	if (segments.length !== 3) return null;
 	const [top] = segments;
-	if (top !== "components" && top !== "primitives" && top !== "blocks") return null;
+	if (top !== "components" && top !== "primitives" && top !== "blocks" && top !== "artifacts") return null;
 	const slug = segments[2];
 	return SLUG_REGEX.test(slug) ? slug : null;
 }

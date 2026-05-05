@@ -43,6 +43,7 @@ const CATEGORY_DIR_TO_KEY = {
 	components: "component",
 	blocks: "block",
 	ai: "ai",
+	artifacts: "artifact",
 } as const;
 
 function findSchemaFiles(): SchemaFile[] {

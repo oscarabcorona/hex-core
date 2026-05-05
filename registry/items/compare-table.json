@@ -1,0 +1,130 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "compare-table",
+  "displayName": "CompareTable",
+  "description": "Side-by-side comparison table. Subjects are columns; attributes are rows; cells render the per-subject value for each attribute. Optional difference highlighting flags cells that diverge from the row's reference. Pure HTML; no heavy peer.",
+  "category": "artifact",
+  "subcategory": "study",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "subjects",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, label }. Renders as columns; display order matches array order."
+    },
+    {
+      "name": "attributes",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, label, values }. Renders as rows; `values` is a subjectId → ReactNode map. Missing keys render as \"—\"."
+    },
+    {
+      "name": "highlightDifferences",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "When true, cells whose value differs from the row's first non-empty cell get a subtle accent."
+    },
+    {
+      "name": "onCellClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with (subjectId, attributeId) when a body cell is clicked."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the outer container."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/compare-table.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Side-by-side comparison table. Subjects are columns; attributes are\n * rows; cells render the per-subject value for that attribute. With\n * `highlightDifferences`, cells whose value differs from the row's\n * first non-empty cell get a subtle accent — handy for vocab pairs\n * (term ↔ translation), feature matrices (Linux vs Mac vs Windows),\n * before/after comparisons. Pure HTML; no heavy peer.\n *\n * @example\n * <CompareTable\n *   subjects={[\n *     { id: \"linux\", label: \"Linux\" },\n *     { id: \"mac\", label: \"Mac\" },\n *     { id: \"win\", label: \"Windows\" },\n *   ]}\n *   attributes={[\n *     { id: \"kernel\", label: \"Kernel\", values: { linux: \"Linux\", mac: \"Darwin\", win: \"NT\" } },\n *     { id: \"fs\", label: \"Default FS\", values: { linux: \"ext4\", mac: \"APFS\", win: \"NTFS\" } },\n *   ]}\n * />\n */\nexport type CompareSubject = {\n\tid: string;\n\tlabel: React.ReactNode;\n};\n\nexport type CompareAttribute = {\n\tid: string;\n\tlabel: React.ReactNode;\n\t/** Map of subjectId → cell content. Missing keys render as \"—\". */\n\tvalues: Record<string, React.ReactNode>;\n};\n\nexport interface CompareTableProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\"> {\n\t/** Columns. */\n\tsubjects: CompareSubject[];\n\t/** Rows. */\n\tattributes: CompareAttribute[];\n\t/** When true, cells whose value differs from the row's first non-empty cell get a subtle accent. */\n\thighlightDifferences?: boolean;\n\t/** Fired when a body cell is clicked. */\n\tonCellClick?: (subjectId: string, attributeId: string) => void;\n}\n\nconst EMPTY_PLACEHOLDER = \"—\";\n\nfunction CompareTable({\n\tsubjects,\n\tattributes,\n\thighlightDifferences = false,\n\tonCellClick,\n\tclassName,\n\t...rest\n}: CompareTableProps) {\n\t// Surface a developer-facing console.warn when an attribute references a\n\t// subjectId that isn't actually in `subjects` — easy mistake when the\n\t// consumer rebuilds rows from a different source than columns.\n\tconst warnedRef = React.useRef(false);\n\tconst nodeEnv = (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process?.env?.NODE_ENV;\n\tif (nodeEnv !== \"production\" && !warnedRef.current) {\n\t\tconst subjectIds = new Set(subjects.map((s) => s.id));\n\t\tfor (const attr of attributes) {\n\t\t\tfor (const valueId of Object.keys(attr.values)) {\n\t\t\t\tif (!subjectIds.has(valueId)) {\n\t\t\t\t\twarnedRef.current = true;\n\t\t\t\t\t// eslint-disable-next-line no-console\n\t\t\t\t\tconsole.warn(\n\t\t\t\t\t\t`[hex-core/CompareTable] Attribute \"${attr.id}\" has a value for subjectId \"${valueId}\" that isn't in the subjects array. The cell will not render.`,\n\t\t\t\t\t);\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t\tif (warnedRef.current) break;\n\t\t}\n\t}\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tdata-hex-compare-table\n\t\t\tclassName={cn(\"overflow-x-auto rounded-lg border\", className)}\n\t\t>\n\t\t\t<table className=\"w-full border-collapse text-sm\">\n\t\t\t\t<thead>\n\t\t\t\t\t<tr data-hex-compare-table-header>\n\t\t\t\t\t\t<th\n\t\t\t\t\t\t\tscope=\"col\"\n\t\t\t\t\t\t\tclassName=\"sticky left-0 z-10 border-b bg-card px-3 py-2 text-left text-xs font-medium text-muted-foreground\"\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{/* Empty corner — attribute labels live here per row */}\n\t\t\t\t\t\t</th>\n\t\t\t\t\t\t{subjects.map((subject) => (\n\t\t\t\t\t\t\t<th\n\t\t\t\t\t\t\t\tkey={subject.id}\n\t\t\t\t\t\t\t\tscope=\"col\"\n\t\t\t\t\t\t\t\tdata-hex-compare-table-subject\n\t\t\t\t\t\t\t\tdata-subject-id={subject.id}\n\t\t\t\t\t\t\t\tclassName=\"border-b bg-card px-3 py-2 text-left font-semibold\"\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{subject.label}\n\t\t\t\t\t\t\t</th>\n\t\t\t\t\t\t))}\n\t\t\t\t\t</tr>\n\t\t\t\t</thead>\n\t\t\t\t<tbody>\n\t\t\t\t\t{attributes.map((attr) => {\n\t\t\t\t\t\t// Find the row's reference value (first non-empty cell among the\n\t\t\t\t\t\t// subjects we're rendering, preserving display order).\n\t\t\t\t\t\tconst reference = highlightDifferences\n\t\t\t\t\t\t\t? subjects.map((s) => attr.values[s.id]).find((v) => v != null && v !== \"\")\n\t\t\t\t\t\t\t: undefined;\n\t\t\t\t\t\treturn (\n\t\t\t\t\t\t\t<tr key={attr.id} data-hex-compare-table-row data-attribute-id={attr.id}>\n\t\t\t\t\t\t\t\t<th\n\t\t\t\t\t\t\t\t\tscope=\"row\"\n\t\t\t\t\t\t\t\t\tclassName=\"sticky left-0 z-10 border-b bg-card px-3 py-2 text-left font-medium\"\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{attr.label}\n\t\t\t\t\t\t\t\t</th>\n\t\t\t\t\t\t\t\t{subjects.map((subject) => {\n\t\t\t\t\t\t\t\t\tconst raw = attr.values[subject.id];\n\t\t\t\t\t\t\t\t\tconst isEmpty = raw == null || raw === \"\";\n\t\t\t\t\t\t\t\t\tconst displayValue = isEmpty ? EMPTY_PLACEHOLDER : raw;\n\t\t\t\t\t\t\t\t\t// Skip diff for non-primitive values: ReactElements stringify\n\t\t\t\t\t\t\t\t\t// to \"[object Object]\" and would all flag as different. Only\n\t\t\t\t\t\t\t\t\t// run the comparison when both raw + reference are scalar.\n\t\t\t\t\t\t\t\t\tconst isComparable =\n\t\t\t\t\t\t\t\t\t\t(typeof raw === \"string\" || typeof raw === \"number\" || typeof raw === \"boolean\") &&\n\t\t\t\t\t\t\t\t\t\t(typeof reference === \"string\" ||\n\t\t\t\t\t\t\t\t\t\t\ttypeof reference === \"number\" ||\n\t\t\t\t\t\t\t\t\t\t\ttypeof reference === \"boolean\");\n\t\t\t\t\t\t\t\t\tconst differs =\n\t\t\t\t\t\t\t\t\t\thighlightDifferences &&\n\t\t\t\t\t\t\t\t\t\t!isEmpty &&\n\t\t\t\t\t\t\t\t\t\treference !== undefined &&\n\t\t\t\t\t\t\t\t\t\tisComparable &&\n\t\t\t\t\t\t\t\t\t\tString(raw) !== String(reference);\n\t\t\t\t\t\t\t\t\tconst interactive = Boolean(onCellClick);\n\t\t\t\t\t\t\t\t\treturn (\n\t\t\t\t\t\t\t\t\t\t<td\n\t\t\t\t\t\t\t\t\t\t\tkey={subject.id}\n\t\t\t\t\t\t\t\t\t\t\tdata-hex-compare-table-cell\n\t\t\t\t\t\t\t\t\t\t\tdata-subject-id={subject.id}\n\t\t\t\t\t\t\t\t\t\t\tdata-attribute-id={attr.id}\n\t\t\t\t\t\t\t\t\t\t\tdata-differs={differs}\n\t\t\t\t\t\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\t\t\t\t\t\"border-b px-3 py-2 align-top\",\n\t\t\t\t\t\t\t\t\t\t\t\tdiffers && \"bg-accent/30 text-accent-foreground\",\n\t\t\t\t\t\t\t\t\t\t\t\tisEmpty && \"text-muted-foreground\",\n\t\t\t\t\t\t\t\t\t\t\t\tinteractive && \"cursor-pointer hover:bg-muted/40\",\n\t\t\t\t\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t\t\t\t\tonClick={interactive ? () => onCellClick?.(subject.id, attr.id) : undefined}\n\t\t\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t\t\t{displayValue}\n\t\t\t\t\t\t\t\t\t\t</td>\n\t\t\t\t\t\t\t\t\t);\n\t\t\t\t\t\t\t\t})}\n\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t);\n\t\t\t\t\t})}\n\t\t\t\t</tbody>\n\t\t\t</table>\n\t\t</div>\n\t);\n}\n\nexport { CompareTable };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "border",
+    "muted",
+    "muted-foreground",
+    "accent",
+    "accent-foreground"
+  ],
+  "examples": [
+    {
+      "title": "Operating system comparison",
+      "description": "Three subjects, two attributes, with difference highlighting.",
+      "code": "<CompareTable\n  highlightDifferences\n  subjects={[\n    { id: \"linux\", label: \"Linux\" },\n    { id: \"mac\", label: \"Mac\" },\n    { id: \"win\", label: \"Windows\" },\n  ]}\n  attributes={[\n    { id: \"kernel\", label: \"Kernel\", values: { linux: \"Linux\", mac: \"Darwin\", win: \"NT\" } },\n    { id: \"fs\", label: \"Default FS\", values: { linux: \"ext4\", mac: \"APFS\", win: \"NTFS\" } },\n  ]}\n/>",
+      "composition": [
+        "compare-table",
+        "comparison",
+        "feature-matrix"
+      ]
+    },
+    {
+      "title": "Vocabulary pairs",
+      "description": "Two-column term ↔ translation table.",
+      "code": "<CompareTable\n  subjects={[\n    { id: \"en\", label: \"English\" },\n    { id: \"es\", label: \"Spanish\" },\n  ]}\n  attributes={[\n    { id: \"1\", label: \"Hello\", values: { en: \"Hello\", es: \"Hola\" } },\n    { id: \"2\", label: \"Thank you\", values: { en: \"Thank you\", es: \"Gracias\" } },\n  ]}\n/>",
+      "composition": [
+        "compare-table",
+        "vocabulary"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Compare 2–6 subjects across 2–20 attributes when the user wants to see same-row differences at a glance. Vocab translations, OS feature matrices, framework comparisons, before/after, drug-vs-drug. Use `highlightDifferences` whenever the row's *divergence* is the message.",
+    "whenNotToUse": "Don't use for 1 subject (use a regular description list). Don't use for >6 subjects — columns shrink past readability; use a card grid instead. Don't use when cells contain rich nested layouts (consider DataTable). Don't use for a single learner-recall task — use Flashcard, Cloze, or Quiz instead.",
+    "commonMistakes": [
+      "Including a value with a subjectId that isn't in the subjects array — the cell silently doesn't render. The component warns in dev when this happens",
+      "Expecting `highlightDifferences` to compare ReactElement cells — diff is skipped automatically when either the raw value or the row's reference is non-primitive (object). Cells render but never flag as `data-differs=\"true\"`. Stringify upstream if you need diffing on rich content",
+      "Mutating subjects / attributes between renders — React re-renders fine, but downstream memoization in consumer code may cache stale references. Rebuild the arrays from immutable sources",
+      "Long labels in subject headers (>20 chars) — they wrap and inflate the row height across the whole table. Use abbreviations + tooltips when needed"
+    ],
+    "relatedComponents": [
+      "flashcard",
+      "quiz",
+      "cloze",
+      "data-table",
+      "table"
+    ],
+    "accessibilityNotes": "Renders a real <table> with semantic <thead>/<tbody>/<th scope=\"col|row\">/<td>. The first column is sticky so attribute labels stay visible during horizontal scroll on narrow viewports. Each cell carries data-subject-id and data-attribute-id for any consumer-driven aria-label or selection behavior. The diff-highlighted cells rely on color alone today — pair with a per-row screen-reader-only summary for AA-strict consumers.",
+    "tokenBudget": 320
+  },
+  "tags": [
+    "artifact",
+    "study",
+    "compare-table",
+    "comparison",
+    "matrix"
+  ]
+}

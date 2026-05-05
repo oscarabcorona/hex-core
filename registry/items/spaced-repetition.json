@@ -1,0 +1,126 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "spaced-repetition",
+  "displayName": "SpacedRepetition",
+  "description": "Anki-style confidence rating row — four buttons (Again / Hard / Good / Easy) that emit a rating signal. Headless on scheduling: consumers wire SM-2, FSRS, or any other algorithm; this primitive just captures the learner's signal.",
+  "category": "artifact",
+  "subcategory": "study",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "cardId",
+      "type": "string",
+      "required": true,
+      "description": "Identifier of the card being rated. Passed back as the second argument to onRate."
+    },
+    {
+      "name": "onRate",
+      "type": "function",
+      "required": true,
+      "description": "Called with (rating, cardId) when the learner picks a button. Rating is one of \"again\" | \"hard\" | \"good\" | \"easy\"."
+    },
+    {
+      "name": "labels",
+      "type": "object",
+      "required": false,
+      "description": "Override the default button labels. Defaults: \"Again\" / \"Hard\" / \"Good\" / \"Easy\". Pass a partial object — unspecified ratings keep the defaults."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the outer container."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/spaced-repetition.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Anki-style confidence rating row. Four buttons (Again / Hard / Good /\n * Easy) emit a rating; the consumer applies SM-2 / FSRS / hand-rolled\n * scheduling to decide when to surface the card again. Headless on\n * scheduling — this primitive doesn't compute intervals, it just\n * captures the user's signal.\n *\n * @example\n * <SpacedRepetition\n *   cardId={card.id}\n *   onRate={(rating, id) => scheduler.update(id, rating)}\n * />\n *\n * <SpacedRepetition\n *   cardId={card.id}\n *   onRate={onRate}\n *   labels={{ again: \"Forgot\", hard: \"Tough\", good: \"Got it\", easy: \"Easy\" }}\n * />\n */\nexport type SrsRating = \"again\" | \"hard\" | \"good\" | \"easy\";\n\nexport interface SpacedRepetitionProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\" | \"onRate\"> {\n\t/** Identifier of the card being rated; passed back to onRate. */\n\tcardId: string;\n\t/** Called with (rating, cardId) when the learner picks a button. */\n\tonRate: (rating: SrsRating, cardId: string) => void;\n\t/** Override the default button labels. Defaults: \"Again\" / \"Hard\" / \"Good\" / \"Easy\". */\n\tlabels?: Partial<Record<SrsRating, string>>;\n}\n\nconst RATINGS: SrsRating[] = [\"again\", \"hard\", \"good\", \"easy\"];\n\nconst DEFAULT_LABELS: Record<SrsRating, string> = {\n\tagain: \"Again\",\n\thard: \"Hard\",\n\tgood: \"Good\",\n\teasy: \"Easy\",\n};\n\nconst RATING_HINT: Record<SrsRating, string> = {\n\tagain: \"Couldn't recall — show this card again soon.\",\n\thard: \"Recalled with effort — review sooner than usual.\",\n\tgood: \"Recalled correctly — keep the standard interval.\",\n\teasy: \"Recalled instantly — push the next review further out.\",\n};\n\n// Visual gradient: again (most concerning) → easy (most confident).\n// `easy` carries a faint accent border so the four buttons read as a\n// progression rather than three styled + one plain.\nconst RATING_CLASSES: Record<SrsRating, string> = {\n\tagain:\n\t\t\"border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15 focus-visible:ring-destructive/40\",\n\thard:\n\t\t\"border-secondary bg-secondary text-secondary-foreground hover:bg-secondary/80\",\n\tgood:\n\t\t\"border-primary/40 bg-primary/10 text-foreground hover:bg-primary/15 focus-visible:ring-primary/40\",\n\teasy:\n\t\t\"border-accent bg-accent/10 text-accent-foreground hover:bg-accent/20 focus-visible:ring-accent/40\",\n};\n\nfunction SpacedRepetition({\n\tcardId,\n\tonRate,\n\tlabels,\n\tclassName,\n\t...rest\n}: SpacedRepetitionProps) {\n\tconst onRateRef = React.useRef(onRate);\n\tonRateRef.current = onRate;\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tdata-hex-spaced-repetition\n\t\t\tdata-card-id={cardId}\n\t\t\trole=\"group\"\n\t\t\taria-label=\"Confidence rating\"\n\t\t\tclassName={cn(\"inline-flex flex-wrap items-center gap-2\", className)}\n\t\t>\n\t\t\t{RATINGS.map((rating) => {\n\t\t\t\tconst label = labels?.[rating] ?? DEFAULT_LABELS[rating];\n\t\t\t\treturn (\n\t\t\t\t\t<button\n\t\t\t\t\t\tkey={rating}\n\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\tdata-hex-spaced-repetition-button\n\t\t\t\t\t\tdata-rating={rating}\n\t\t\t\t\t\taria-label={`${label}: ${RATING_HINT[rating]}`}\n\t\t\t\t\t\tonClick={() => onRateRef.current(rating, cardId)}\n\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\"inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors\",\n\t\t\t\t\t\t\t\"focus:outline-none focus-visible:ring-2 focus-visible:ring-ring\",\n\t\t\t\t\t\t\tRATING_CLASSES[rating],\n\t\t\t\t\t\t)}\n\t\t\t\t\t>\n\t\t\t\t\t\t{label}\n\t\t\t\t\t</button>\n\t\t\t\t);\n\t\t\t})}\n\t\t</div>\n\t);\n}\n\nexport { SpacedRepetition };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "destructive",
+    "secondary",
+    "secondary-foreground",
+    "primary",
+    "accent",
+    "accent-foreground",
+    "foreground",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Anki-default labels with a hand-rolled scheduler",
+      "description": "Forward the rating to a consumer-owned interval calculator.",
+      "code": "<SpacedRepetition\n  cardId={card.id}\n  onRate={(rating, id) => scheduler.update(id, rating)}\n/>",
+      "composition": [
+        "spaced-repetition",
+        "srs"
+      ]
+    },
+    {
+      "title": "Inside a Deck via ratingSlot",
+      "description": "Each card surfaces a rating row beneath it.",
+      "code": "<Deck\n  cards={cards}\n  ratingSlot={(card) => (\n    <SpacedRepetition cardId={card.id} onRate={onRate} />\n  )}\n/>",
+      "composition": [
+        "spaced-repetition",
+        "deck",
+        "srs"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "After a Flashcard / Cloze / ImageOcclusion has been revealed, surface a four-button row so the learner self-reports recall quality. Pair with a scheduler (Anki SM-2, FSRS, custom) on the consumer side. Best place: inside Deck's ratingSlot prop.",
+    "whenNotToUse": "Don't use as a generic rating widget — this is study-specific, with semantic Anki labels (Again / Hard / Good / Easy). Don't use when the rating is a continuous value or a star count (use a slider or a star-rating component). Don't use without a scheduler — the rating is meaningless without something that consumes it to schedule the next review.",
+    "commonMistakes": [
+      "Forgetting to wire `onRate` — the buttons fire but nothing happens. There's no internal scheduler",
+      "Calling SpacedRepetition before the card is revealed — the user hasn't seen the answer yet, so any rating is a guess. Render after Flashcard's flip event, after Cloze's reveal event, or after Quiz's submit",
+      "Reusing the same cardId across multiple cards in a session — the consumer's scheduler will misroute interval updates. Pass each card's unique id",
+      "Overriding labels with non-Anki semantics — \"Again / Hard / Good / Easy\" map to standard SM-2/FSRS difficulty grades 1–4. Custom labels are fine, but the four buckets should still mean roughly forgot / barely / fluent / instant"
+    ],
+    "relatedComponents": [
+      "flashcard",
+      "cloze",
+      "image-occlusion",
+      "quiz",
+      "deck"
+    ],
+    "accessibilityNotes": "Outer container has role=\"group\" with aria-label=\"Confidence rating\". Each button is a real <button> with an aria-label that includes the rating label AND a hint about its effect on the next review (\"Again: Couldn't recall — show this card again soon.\"). Native button focus + Enter/Space activation handle keyboard interaction.",
+    "tokenBudget": 280
+  },
+  "tags": [
+    "artifact",
+    "study",
+    "spaced-repetition",
+    "srs",
+    "anki",
+    "rating"
+  ]
+}

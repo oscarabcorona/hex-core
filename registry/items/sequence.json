@@ -1,0 +1,149 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "sequence",
+  "displayName": "Sequence",
+  "description": "UML-style sequence diagram. Actors as columns with vertical lifelines; messages as horizontal arrows in declaration order. Pure SVG; no heavy peer dep.",
+  "category": "artifact",
+  "subcategory": "time",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "actors",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, label }. Display order matches array order (left-to-right columns)."
+    },
+    {
+      "name": "messages",
+      "type": "object",
+      "required": true,
+      "description": "Array of { from, to, label?, type? }. Chronological order matches array order (top-to-bottom). Messages whose `from` or `to` actor id is missing are silently skipped."
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 720,
+      "description": "SVG pixel width."
+    },
+    {
+      "name": "headerHeight",
+      "type": "number",
+      "required": false,
+      "default": 40,
+      "description": "Pixel height of each actor header."
+    },
+    {
+      "name": "messageGap",
+      "type": "number",
+      "required": false,
+      "default": 36,
+      "description": "Pixel vertical gap between consecutive messages."
+    },
+    {
+      "name": "onActorClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked SequenceActor."
+    },
+    {
+      "name": "onMessageClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked SequenceMessage."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/sequence.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * UML-style sequence diagram. Actors render as columns with vertical\n * lifelines; messages render as horizontal arrows between actors,\n * stacked top-to-bottom in declaration order. Pure SVG; no heavy peer\n * dependency.\n *\n * Distinct from Flowchart (DAG of steps) and TimeAxis (events on a\n * time axis): Sequence encodes WHO talks to WHO and IN WHAT ORDER.\n *\n * @example\n * <Sequence\n *   actors={[\n *     { id: \"user\", label: \"User\" },\n *     { id: \"api\", label: \"API\" },\n *     { id: \"db\", label: \"DB\" },\n *   ]}\n *   messages={[\n *     { from: \"user\", to: \"api\", label: \"POST /signup\" },\n *     { from: \"api\", to: \"db\", label: \"INSERT user\" },\n *     { from: \"db\", to: \"api\", label: \"ok\", type: \"return\" },\n *     { from: \"api\", to: \"user\", label: \"201 Created\", type: \"return\" },\n *   ]}\n * />\n */\nexport type SequenceActor = {\n\tid: string;\n\tlabel: string;\n};\n\nexport type SequenceMessage = {\n\tfrom: string;\n\tto: string;\n\tlabel?: string;\n\t/** \"sync\" (default) draws a solid arrow; \"async\" draws a thinner half-head; \"return\" is dashed. */\n\ttype?: \"sync\" | \"async\" | \"return\";\n};\n\nexport interface SequenceProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Actors in display order (columns left-to-right). */\n\tactors: SequenceActor[];\n\t/** Messages in chronological order (top-to-bottom). */\n\tmessages: SequenceMessage[];\n\t/** Pixel width of the rendered SVG. Default 720. */\n\twidth?: number;\n\t/** Pixel height of each actor header. Default 40. */\n\theaderHeight?: number;\n\t/** Pixel vertical gap between consecutive messages. Default 36. */\n\tmessageGap?: number;\n\t/** Fired when an actor header is clicked. */\n\tonActorClick?: (actor: SequenceActor) => void;\n\t/** Fired when a message arrow is clicked. */\n\tonMessageClick?: (message: SequenceMessage) => void;\n}\n\ninterface ActorPos {\n\tactor: SequenceActor;\n\tx: number;\n\tdepth: number;\n}\n\ninterface LaidOutMessage {\n\tmessage: SequenceMessage;\n\tfrom: ActorPos;\n\tto: ActorPos;\n\ty: number;\n\tdepth: number;\n\tisSelfCall: boolean;\n}\n\nconst HEADER_PADDING = 16;\nconst MESSAGE_TOP_PADDING = 24;\n\nfunction Sequence({\n\tactors,\n\tmessages,\n\twidth = 720,\n\theaderHeight = 40,\n\tmessageGap = 36,\n\tonActorClick,\n\tonMessageClick,\n\tclassName,\n\t...rest\n}: SequenceProps) {\n\tconst laidOut = React.useMemo(\n\t\t() => layout(actors, messages, width, headerHeight, messageGap),\n\t\t[actors, messages, width, headerHeight, messageGap],\n\t);\n\n\tconst desc = `Sequence diagram with ${actors.length} actor${actors.length === 1 ? \"\" : \"s\"} and ${messages.length} message${messages.length === 1 ? \"\" : \"s\"}`;\n\t// Per-instance to avoid <defs> id collision when two <Sequence> mount on\n\t// the same page; React.useId() is unique per component instance.\n\tconst arrowId = React.useId().replace(/:/g, \"-\");\n\t// Loopback height scales with messageGap so the self-call doesn't\n\t// overflow into the next message at small messageGap values.\n\tconst SELF_CALL_DROP = Math.min(14, Math.max(6, messageGap * 0.4));\n\tconst SELF_CALL_OUT = 28;\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-sequence\n\t\t\trole=\"img\"\n\t\t\twidth={width}\n\t\t\theight={laidOut.totalHeight}\n\t\t\tviewBox={`0 0 ${width} ${laidOut.totalHeight}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Sequence diagram</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<defs>\n\t\t\t\t<marker\n\t\t\t\t\tid={`hex-sequence-arrow-${arrowId}`}\n\t\t\t\t\tviewBox=\"0 0 10 10\"\n\t\t\t\t\trefX=\"10\"\n\t\t\t\t\trefY=\"5\"\n\t\t\t\t\tmarkerWidth=\"6\"\n\t\t\t\t\tmarkerHeight=\"6\"\n\t\t\t\t\torient=\"auto-start-reverse\"\n\t\t\t\t>\n\t\t\t\t\t<path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"hsl(var(--foreground))\" />\n\t\t\t\t</marker>\n\t\t\t</defs>\n\t\t\t{/* Lifelines */}\n\t\t\t<g data-hex-sequence-lifelines>\n\t\t\t\t{laidOut.actors.map((a) => (\n\t\t\t\t\t<line\n\t\t\t\t\t\tkey={`lifeline-${a.actor.id}`}\n\t\t\t\t\t\tdata-hex-sequence-lifeline\n\t\t\t\t\t\tx1={a.x}\n\t\t\t\t\t\tx2={a.x}\n\t\t\t\t\t\ty1={headerHeight}\n\t\t\t\t\t\ty2={laidOut.totalHeight - 8}\n\t\t\t\t\t\tstroke=\"hsl(var(--muted-foreground))\"\n\t\t\t\t\t\tstrokeOpacity={0.4}\n\t\t\t\t\t\tstrokeDasharray=\"3 4\"\n\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t/>\n\t\t\t\t))}\n\t\t\t</g>\n\t\t\t{/* Actor headers */}\n\t\t\t<g data-hex-sequence-actors>\n\t\t\t\t{laidOut.actors.map((a) => {\n\t\t\t\t\tconst interactive = Boolean(onActorClick);\n\t\t\t\t\tconst handleActivate = () => onActorClick?.(a.actor);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<g\n\t\t\t\t\t\t\tkey={a.actor.id}\n\t\t\t\t\t\t\tdata-hex-sequence-actor\n\t\t\t\t\t\t\tdata-depth={a.depth}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={interactive ? a.actor.label : undefined}\n\t\t\t\t\t\t\tstyle={interactive ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\t\tonClick={interactive ? handleActivate : undefined}\n\t\t\t\t\t\t\tonKeyDown={interactive ? (e) => activateOnKey(e, handleActivate) : undefined}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<rect\n\t\t\t\t\t\t\t\tx={a.x - 64}\n\t\t\t\t\t\t\t\ty={4}\n\t\t\t\t\t\t\t\twidth={128}\n\t\t\t\t\t\t\t\theight={headerHeight - 8}\n\t\t\t\t\t\t\t\trx={4}\n\t\t\t\t\t\t\t\try={4}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--card))\"\n\t\t\t\t\t\t\t\tstroke=\"hsl(var(--border))\"\n\t\t\t\t\t\t\t\tstrokeWidth={1}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\tx={a.x}\n\t\t\t\t\t\t\t\ty={headerHeight / 2}\n\t\t\t\t\t\t\t\tdy=\"0.35em\"\n\t\t\t\t\t\t\t\ttextAnchor=\"middle\"\n\t\t\t\t\t\t\t\tfontSize={12}\n\t\t\t\t\t\t\t\tfontWeight={600}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t\t\t\tstyle={{ pointerEvents: \"none\" }}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{a.actor.label}\n\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t</g>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t\t{/* Messages */}\n\t\t\t<g data-hex-sequence-messages>\n\t\t\t\t{laidOut.messages.map((m, i) => {\n\t\t\t\t\tconst interactive = Boolean(onMessageClick);\n\t\t\t\t\tconst handleActivate = () => onMessageClick?.(m.message);\n\t\t\t\t\tconst stroke = \"hsl(var(--foreground))\";\n\t\t\t\t\tconst dashed = m.message.type === \"return\" ? \"4 3\" : undefined;\n\t\t\t\t\tconst strokeWidth = m.message.type === \"async\" ? 1 : 1.25;\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<g\n\t\t\t\t\t\t\tkey={`${m.message.from}-${m.message.to}-${i}`}\n\t\t\t\t\t\t\tdata-hex-sequence-message\n\t\t\t\t\t\t\tdata-depth={m.depth}\n\t\t\t\t\t\t\tdata-type={m.message.type ?? \"sync\"}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={\n\t\t\t\t\t\t\t\tinteractive\n\t\t\t\t\t\t\t\t\t? `Message ${i + 1}: from ${m.from.actor.label} to ${m.to.actor.label}${m.message.label ? `, \"${m.message.label}\"` : \"\"}`\n\t\t\t\t\t\t\t\t\t: undefined\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tstyle={interactive ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\t\tonClick={interactive ? handleActivate : undefined}\n\t\t\t\t\t\t\tonKeyDown={interactive ? (e) => activateOnKey(e, handleActivate) : undefined}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{m.isSelfCall ? (\n\t\t\t\t\t\t\t\t// Loopback: out + down + back. Drop scales with messageGap.\n\t\t\t\t\t\t\t\t<path\n\t\t\t\t\t\t\t\t\td={`M${m.from.x},${m.y} L${m.from.x + SELF_CALL_OUT},${m.y} L${m.from.x + SELF_CALL_OUT},${m.y + SELF_CALL_DROP} L${m.from.x + 4},${m.y + SELF_CALL_DROP}`}\n\t\t\t\t\t\t\t\t\tfill=\"none\"\n\t\t\t\t\t\t\t\t\tstroke={stroke}\n\t\t\t\t\t\t\t\t\tstrokeWidth={strokeWidth}\n\t\t\t\t\t\t\t\t\tstrokeDasharray={dashed}\n\t\t\t\t\t\t\t\t\tmarkerEnd={`url(#hex-sequence-arrow-${arrowId})`}\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t) : (\n\t\t\t\t\t\t\t\t<line\n\t\t\t\t\t\t\t\t\tx1={m.from.x}\n\t\t\t\t\t\t\t\t\tx2={m.to.x}\n\t\t\t\t\t\t\t\t\ty1={m.y}\n\t\t\t\t\t\t\t\t\ty2={m.y}\n\t\t\t\t\t\t\t\t\tstroke={stroke}\n\t\t\t\t\t\t\t\t\tstrokeWidth={strokeWidth}\n\t\t\t\t\t\t\t\t\tstrokeDasharray={dashed}\n\t\t\t\t\t\t\t\t\tmarkerEnd={`url(#hex-sequence-arrow-${arrowId})`}\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t{m.message.label ? (\n\t\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\t\t// Self-calls anchor the label right of the loopback's apex\n\t\t\t\t\t\t\t\t\t// (start-anchored, just past the outbound segment) so it\n\t\t\t\t\t\t\t\t\t// doesn't sit above the actor's own lifeline. Non-self\n\t\t\t\t\t\t\t\t\t// messages center the label between the two actors.\n\t\t\t\t\t\t\t\t\tx={m.isSelfCall ? m.from.x + SELF_CALL_OUT + 4 : (m.from.x + m.to.x) / 2}\n\t\t\t\t\t\t\t\t\ty={m.y - 4}\n\t\t\t\t\t\t\t\t\ttextAnchor={m.isSelfCall ? \"start\" : \"middle\"}\n\t\t\t\t\t\t\t\t\tfontSize={11}\n\t\t\t\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t\t\t\t\tstyle={{\n\t\t\t\t\t\t\t\t\t\tpaintOrder: \"stroke\",\n\t\t\t\t\t\t\t\t\t\tpointerEvents: \"none\",\n\t\t\t\t\t\t\t\t\t}}\n\t\t\t\t\t\t\t\t\tstroke=\"hsl(var(--background))\"\n\t\t\t\t\t\t\t\t\tstrokeWidth={3}\n\t\t\t\t\t\t\t\t\tstrokeLinejoin=\"round\"\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{m.message.label}\n\t\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t</g>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(\n\tactors: SequenceActor[],\n\tmessages: SequenceMessage[],\n\twidth: number,\n\theaderHeight: number,\n\tmessageGap: number,\n): {\n\tactors: ActorPos[];\n\tmessages: LaidOutMessage[];\n\ttotalHeight: number;\n} {\n\tif (actors.length === 0) {\n\t\treturn { actors: [], messages: [], totalHeight: headerHeight + 16 };\n\t}\n\n\tconst usableWidth = width - HEADER_PADDING * 2;\n\tconst colStep = actors.length > 1 ? usableWidth / (actors.length - 1) : 0;\n\tconst actorPositions: ActorPos[] = actors.map((a, i) => ({\n\t\tactor: a,\n\t\tx: HEADER_PADDING + colStep * i,\n\t\tdepth: i,\n\t}));\n\tconst byId = new Map(actorPositions.map((a) => [a.actor.id, a]));\n\n\tconst laidOutMessages: LaidOutMessage[] = messages\n\t\t.map((message, i) => {\n\t\t\tconst from = byId.get(message.from);\n\t\t\tconst to = byId.get(message.to);\n\t\t\tif (!from || !to) return null;\n\t\t\treturn {\n\t\t\t\tmessage,\n\t\t\t\tfrom,\n\t\t\t\tto,\n\t\t\t\ty: headerHeight + MESSAGE_TOP_PADDING + i * messageGap,\n\t\t\t\tdepth: i,\n\t\t\t\tisSelfCall: message.from === message.to,\n\t\t\t};\n\t\t})\n\t\t.filter((m): m is LaidOutMessage => m !== null);\n\n\tconst totalHeight =\n\t\theaderHeight +\n\t\tMESSAGE_TOP_PADDING +\n\t\tMath.max(0, laidOutMessages.length - 1) * messageGap +\n\t\t32;\n\n\treturn { actors: actorPositions, messages: laidOutMessages, totalHeight };\n}\n\nfunction activateOnKey(e: React.KeyboardEvent, fn: () => void): void {\n\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\te.preventDefault();\n\t\tfn();\n\t}\n}\n\nexport { Sequence };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "border",
+    "foreground",
+    "muted-foreground",
+    "background"
+  ],
+  "examples": [
+    {
+      "title": "Signup flow",
+      "description": "User → API → DB with return arrows.",
+      "code": "<Sequence\n  actors={[\n    { id: \"user\", label: \"User\" },\n    { id: \"api\", label: \"API\" },\n    { id: \"db\", label: \"DB\" },\n  ]}\n  messages={[\n    { from: \"user\", to: \"api\", label: \"POST /signup\" },\n    { from: \"api\", to: \"db\", label: \"INSERT user\" },\n    { from: \"db\", to: \"api\", label: \"ok\", type: \"return\" },\n    { from: \"api\", to: \"user\", label: \"201 Created\", type: \"return\" },\n  ]}\n/>",
+      "composition": [
+        "sequence",
+        "api-flow"
+      ]
+    },
+    {
+      "title": "Self-call (loopback) message",
+      "description": "An actor calling itself renders as a loopback arrow.",
+      "code": "<Sequence\n  actors={[{ id: \"worker\", label: \"Worker\" }]}\n  messages={[{ from: \"worker\", to: \"worker\", label: \"retry\" }]}\n/>",
+      "composition": [
+        "sequence",
+        "self-call"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize WHO talks to WHO and IN WHAT ORDER — API request flows, distributed-system protocols, agent tool-call sequences, OAuth dance, message-queue choreography. Use when the order and direction of messages between actors is the message.",
+    "whenNotToUse": "Don't use for branching process diagrams (use Flowchart). Don't use for events along a real time axis (use TimeAxis). Don't use for tasks with duration (use Gantt). Don't use for >~8 actors — columns become too narrow to read messages on.",
+    "commonMistakes": [
+      "`from` or `to` referencing an id missing from `actors` — the message is silently skipped. Validate ids upstream",
+      "Mutating actors / messages between renders — the layout pass is memoized on identity",
+      "Reordering `actors` to fix layout while keeping message ordering — that flips the visual flow direction. Order actors by their natural left-to-right reading order",
+      "Using `type: \"return\"` for forward-going messages — the dashed style implies a reply, so confused readers expect a prior outgoing message"
+    ],
+    "relatedComponents": [
+      "flowchart",
+      "time-axis",
+      "gantt",
+      "canvas",
+      "diagram"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing actor and message counts. Interactive actor headers and message arrows declare role=\"button\", tabIndex, and Enter/Space activation. The aria-label on each message includes its index, source/target labels, and content. For agent outputs, also expose a parallel ordered list of messages with their from/to/label triples.",
+    "tokenBudget": 360
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "sequence",
+    "uml",
+    "time",
+    "messaging"
+  ]
+}

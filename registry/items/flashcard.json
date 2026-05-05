@@ -1,0 +1,167 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "flashcard",
+  "displayName": "Flashcard",
+  "description": "Front/back card with a 3D flip animation on click. Pure CSS 3D transform; no animation peer. Headless on content — front and back accept any ReactNode. Pairs with Deck for session-level paging and SpacedRepetition for confidence rating.",
+  "category": "artifact",
+  "subcategory": "study",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "front",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Content of the front face."
+    },
+    {
+      "name": "back",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Content of the back face."
+    },
+    {
+      "name": "defaultFlipped",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Uncontrolled initial flipped state."
+    },
+    {
+      "name": "flipped",
+      "type": "boolean",
+      "required": false,
+      "description": "Controlled flipped state. When set, internal state is ignored."
+    },
+    {
+      "name": "onFlipChange",
+      "type": "function",
+      "required": false,
+      "description": "Called with the new flipped value when the user toggles."
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 360,
+      "description": "Pixel width."
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "required": false,
+      "default": 240,
+      "description": "Pixel height."
+    },
+    {
+      "name": "flipDurationMs",
+      "type": "number",
+      "required": false,
+      "default": 500,
+      "description": "Flip animation duration in ms. Set to 0 to disable the animation entirely."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the outer container."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "front",
+      "description": "Front face of the card — typically the prompt / question / term.",
+      "required": true
+    },
+    {
+      "name": "back",
+      "description": "Back face of the card — typically the answer / definition.",
+      "required": true
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/flashcard.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Flashcard — front/back card with a 3D flip animation. Click, Enter, or\n * Space to flip. Pure CSS 3D transform, no animation peer required.\n *\n * Headless on content: pass any ReactNode for `front` and `back`. Pair\n * with Deck (artifacts/deck) for shuffle / next / prev / progress, or\n * with SpacedRepetition (artifacts/spaced-repetition) for confidence\n * rating after each reveal.\n *\n * @example\n * <Flashcard\n *   front={<>What is the capital of France?</>}\n *   back={<>Paris</>}\n * />\n *\n * <Flashcard\n *   flipped={isFlipped}\n *   onFlipChange={setFlipped}\n *   front={term}\n *   back={definition}\n * />\n */\nexport interface FlashcardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\"> {\n\t/** Content of the front face. */\n\tfront: React.ReactNode;\n\t/** Content of the back face. */\n\tback: React.ReactNode;\n\t/** Uncontrolled initial flipped state. Default false. */\n\tdefaultFlipped?: boolean;\n\t/** Controlled flipped state. */\n\tflipped?: boolean;\n\t/** Fired with the new flipped value when the user toggles. */\n\tonFlipChange?: (flipped: boolean) => void;\n\t/** Pixel width. Default 360. */\n\twidth?: number;\n\t/** Pixel height. Default 240. */\n\theight?: number;\n\t/** Flip animation duration in ms. Default 500. Set to 0 to disable the animation entirely. */\n\tflipDurationMs?: number;\n}\n\nfunction Flashcard({\n\tfront,\n\tback,\n\tdefaultFlipped = false,\n\tflipped: flippedProp,\n\tonFlipChange,\n\twidth = 360,\n\theight = 240,\n\tflipDurationMs = 500,\n\tclassName,\n\t...rest\n}: FlashcardProps) {\n\tconst [internalFlipped, setInternalFlipped] = React.useState(defaultFlipped);\n\tconst isControlled = flippedProp !== undefined;\n\tconst flipped = isControlled ? flippedProp : internalFlipped;\n\n\tconst toggle = React.useCallback(() => {\n\t\tconst next = !flipped;\n\t\tif (!isControlled) setInternalFlipped(next);\n\t\tonFlipChange?.(next);\n\t}, [flipped, isControlled, onFlipChange]);\n\n\tconst handleKey = React.useCallback(\n\t\t(e: React.KeyboardEvent) => {\n\t\t\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\t\t\te.preventDefault();\n\t\t\t\ttoggle();\n\t\t\t}\n\t\t},\n\t\t[toggle],\n\t);\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tdata-hex-flashcard\n\t\t\tdata-flipped={flipped}\n\t\t\trole=\"button\"\n\t\t\ttabIndex={0}\n\t\t\taria-pressed={flipped}\n\t\t\taria-label={flipped ? \"Flashcard, back side. Activate to flip to front.\" : \"Flashcard, front side. Activate to reveal back.\"}\n\t\t\tonClick={toggle}\n\t\t\tonKeyDown={handleKey}\n\t\t\tclassName={cn(\n\t\t\t\t\"relative inline-block cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-ring\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t\tstyle={{\n\t\t\t\twidth,\n\t\t\t\theight,\n\t\t\t\tperspective: 1000,\n\t\t\t}}\n\t\t>\n\t\t\t<div\n\t\t\t\tdata-hex-flashcard-inner\n\t\t\t\tclassName=\"relative h-full w-full transition-transform\"\n\t\t\t\tstyle={{\n\t\t\t\t\ttransformStyle: \"preserve-3d\",\n\t\t\t\t\ttransform: flipped ? \"rotateY(180deg)\" : \"rotateY(0deg)\",\n\t\t\t\t\ttransitionDuration: `${flipDurationMs}ms`,\n\t\t\t\t}}\n\t\t\t>\n\t\t\t\t<div\n\t\t\t\t\tdata-hex-flashcard-face\n\t\t\t\t\tdata-side=\"front\"\n\t\t\t\t\tclassName=\"absolute inset-0 flex items-center justify-center rounded-lg border bg-card p-4 text-center text-card-foreground shadow-sm\"\n\t\t\t\t\tstyle={{\n\t\t\t\t\t\tbackfaceVisibility: \"hidden\",\n\t\t\t\t\t\tWebkitBackfaceVisibility: \"hidden\",\n\t\t\t\t\t}}\n\t\t\t\t>\n\t\t\t\t\t{front}\n\t\t\t\t</div>\n\t\t\t\t<div\n\t\t\t\t\tdata-hex-flashcard-face\n\t\t\t\t\tdata-side=\"back\"\n\t\t\t\t\tclassName=\"absolute inset-0 flex items-center justify-center rounded-lg border bg-card p-4 text-center text-card-foreground shadow-sm\"\n\t\t\t\t\tstyle={{\n\t\t\t\t\t\tbackfaceVisibility: \"hidden\",\n\t\t\t\t\t\tWebkitBackfaceVisibility: \"hidden\",\n\t\t\t\t\t\ttransform: \"rotateY(180deg)\",\n\t\t\t\t\t}}\n\t\t\t\t>\n\t\t\t\t\t{back}\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t);\n}\n\nexport { Flashcard };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "card-foreground",
+    "border",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Capital city flashcard",
+      "description": "Classic question-answer card with default uncontrolled state.",
+      "code": "<Flashcard front=\"What is the capital of France?\" back=\"Paris\" />",
+      "composition": [
+        "flashcard",
+        "study",
+        "qa"
+      ]
+    },
+    {
+      "title": "Controlled flashcard inside a Deck",
+      "description": "Parent owns the flipped state to coordinate with progress tracking.",
+      "code": "<Flashcard\n  flipped={isFlipped}\n  onFlipChange={setFlipped}\n  front={term}\n  back={definition}\n/>",
+      "composition": [
+        "flashcard",
+        "controlled"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Render a single self-test prompt where the user retrieves an answer from memory before checking. Vocabulary terms, formula reminders, anatomy labels, code snippets — anywhere the active-recall pattern (think first, then flip) fits.",
+    "whenNotToUse": "Don't use for multiple-choice questions (use Quiz). Don't use for fill-in-the-blank (use Cloze). Don't use for image regions (use ImageOcclusion). Don't use as a generic content card with no flip semantics (use the existing `Card` in components/).",
+    "commonMistakes": [
+      "Putting the answer on the front — defeats the active-recall pattern. Front should be the prompt only",
+      "Mixing controlled and uncontrolled use — pass either `flipped` (controlled) or rely on `defaultFlipped` + internal state, not both",
+      "Wrapping a Flashcard in another clickable parent — Enter / Space activations bubble; the parent's onClick fires too. Stop propagation in the wrapper or move the click handler",
+      "Sizing the card to 0×0 — the 3D transform requires non-zero dimensions to avoid the back face leaking through during the rotation"
+    ],
+    "relatedComponents": [
+      "cloze",
+      "quiz",
+      "image-occlusion",
+      "deck",
+      "spaced-repetition",
+      "card"
+    ],
+    "accessibilityNotes": "The card declares role=\"button\", tabIndex=0, aria-pressed reflecting flipped state, and an aria-label that announces the current side. Enter and Space toggle the flip; Space's default page-scroll is preventDefaulted. Screen readers see both faces in DOM at all times — that's intentional so the back face is announced after the flip without a content swap.",
+    "tokenBudget": 280
+  },
+  "tags": [
+    "artifact",
+    "study",
+    "flashcard",
+    "active-recall",
+    "card"
+  ]
+}

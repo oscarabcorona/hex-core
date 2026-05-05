@@ -1,0 +1,178 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "sankey",
+  "displayName": "Sankey",
+  "description": "Weighted-flow diagram. Nodes arranged in horizontal columns by topological depth; link thickness encodes flow value. Use for funnels, energy/material/money flows, and any \"value moving from A to B\" picture.",
+  "category": "artifact",
+  "subcategory": "flow",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "nodes",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, label }. Every link's source/target MUST match an id here."
+    },
+    {
+      "name": "links",
+      "type": "object",
+      "required": true,
+      "description": "Array of { source, target, value }. Values must be positive."
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 720,
+      "description": "SVG pixel width."
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "required": false,
+      "default": 420,
+      "description": "SVG pixel height."
+    },
+    {
+      "name": "nodeAlign",
+      "type": "enum",
+      "required": false,
+      "default": "justify",
+      "description": "Column alignment strategy.",
+      "enumValues": [
+        "left",
+        "right",
+        "center",
+        "justify"
+      ]
+    },
+    {
+      "name": "nodeWidth",
+      "type": "number",
+      "required": false,
+      "default": 12,
+      "description": "Pixel width of each node rectangle."
+    },
+    {
+      "name": "nodePadding",
+      "type": "number",
+      "required": false,
+      "default": 8,
+      "description": "Vertical pixel gap between nodes in the same column."
+    },
+    {
+      "name": "onLinkHover",
+      "type": "function",
+      "required": false,
+      "description": "Called with the hovered SankeyLink (or null when hover ends)."
+    },
+    {
+      "name": "onNodeClick",
+      "type": "function",
+      "required": false,
+      "description": "Called with the clicked SankeyNode."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the SVG element."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/sankey.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Weighted-flow diagram. Nodes are arranged in horizontal columns by\n * topological depth; links between them are drawn as smooth curves whose\n * thickness encodes the flow value. Common for funnels, energy/material\n * flows, money flows, or any bipartite/multipartite \"value moving from A\n * to B\" visualization.\n *\n * Heavy peer: requires `d3-sankey` (~6 KB gzip; pulls in a small slice of\n * d3-shape too). The hex-core CLI's `add` flow prompts before installing.\n *\n * @example\n * <Sankey\n *   nodes={[\n *     { id: \"src-a\", label: \"Source A\" },\n *     { id: \"src-b\", label: \"Source B\" },\n *     { id: \"sink\", label: \"Sink\" },\n *   ]}\n *   links={[\n *     { source: \"src-a\", target: \"sink\", value: 30 },\n *     { source: \"src-b\", target: \"sink\", value: 10 },\n *   ]}\n * />\n */\nexport type SankeyNode = {\n\tid: string;\n\tlabel: string;\n};\n\nexport type SankeyLink = {\n\tsource: string;\n\ttarget: string;\n\tvalue: number;\n};\n\nexport interface SankeyProps extends Omit<React.SVGAttributes<SVGSVGElement>, \"children\"> {\n\t/** Node definitions. Every link's `source` and `target` MUST match an `id` in this array. */\n\tnodes: SankeyNode[];\n\t/** Weighted links between nodes. Values must be positive. */\n\tlinks: SankeyLink[];\n\t/** Pixel width of the rendered SVG. Default 720. */\n\twidth?: number;\n\t/** Pixel height of the rendered SVG. Default 420. */\n\theight?: number;\n\t/** How nodes within a column are aligned. Default \"justify\". */\n\tnodeAlign?: \"left\" | \"right\" | \"center\" | \"justify\";\n\t/** Pixel width of each node rectangle. Default 12. */\n\tnodeWidth?: number;\n\t/** Vertical pixel gap between nodes in the same column. Default 8. */\n\tnodePadding?: number;\n\t/** Fired when a user hovers a link (or hover ends, with `null`). */\n\tonLinkHover?: (link: SankeyLink | null) => void;\n\t/** Fired when a node is clicked. */\n\tonNodeClick?: (node: SankeyNode) => void;\n}\n\ninterface LaidOutNode {\n\toriginal: SankeyNode;\n\tx0: number;\n\tx1: number;\n\ty0: number;\n\ty1: number;\n}\n\ninterface LaidOutLink {\n\toriginal: SankeyLink;\n\td: string;\n\twidth: number;\n}\n\ntype D3SankeyMod = typeof import(\"d3-sankey\");\n\nfunction Sankey({\n\tnodes,\n\tlinks,\n\twidth = 720,\n\theight = 420,\n\tnodeAlign = \"justify\",\n\tnodeWidth = 12,\n\tnodePadding = 8,\n\tonLinkHover,\n\tonNodeClick,\n\tclassName,\n\t...rest\n}: SankeyProps) {\n\tconst [d3s, setD3s] = React.useState<D3SankeyMod | null>(null);\n\n\tReact.useEffect(() => {\n\t\tlet cancelled = false;\n\t\tvoid import(\"d3-sankey\").then((mod) => {\n\t\t\tif (!cancelled) setD3s(mod);\n\t\t});\n\t\treturn () => {\n\t\t\tcancelled = true;\n\t\t};\n\t}, []);\n\n\t// Memoize the d3-sankey layout pass: it mutates clones every call (heavy\n\t// for large flows) and parents often re-render with stable nodes/links\n\t// identity. Hook order is stable since `d3s` only ever transitions\n\t// null → resolved once.\n\tconst laidOut = React.useMemo(() => {\n\t\tif (!d3s) return null;\n\t\treturn layout(d3s, nodes, links, width, height, nodeAlign, nodeWidth, nodePadding);\n\t}, [d3s, nodes, links, width, height, nodeAlign, nodeWidth, nodePadding]);\n\n\tif (!d3s || !laidOut) {\n\t\treturn (\n\t\t\t<div\n\t\t\t\tdata-hex-sankey-loading\n\t\t\t\taria-busy=\"true\"\n\t\t\t\taria-label=\"Loading Sankey diagram\"\n\t\t\t\tclassName={cn(\"inline-block bg-muted/20\", className)}\n\t\t\t\tstyle={{ width, height }}\n\t\t\t/>\n\t\t);\n\t}\n\n\tconst { nodes: laidOutNodes, links: laidOutLinks } = laidOut;\n\tconst desc = `Sankey diagram with ${nodes.length} node${nodes.length === 1 ? \"\" : \"s\"} and ${links.length} link${links.length === 1 ? \"\" : \"s\"}`;\n\n\treturn (\n\t\t<svg\n\t\t\t{...rest}\n\t\t\tdata-hex-sankey\n\t\t\tdata-node-align={nodeAlign}\n\t\t\trole=\"img\"\n\t\t\twidth={width}\n\t\t\theight={height}\n\t\t\tviewBox={`0 0 ${width} ${height}`}\n\t\t\tclassName={cn(\"block\", className)}\n\t\t>\n\t\t\t<title>Sankey diagram</title>\n\t\t\t<desc>{desc}</desc>\n\t\t\t<g data-hex-sankey-links fill=\"none\">\n\t\t\t\t{laidOutLinks.map((l, i) => {\n\t\t\t\t\tconst interactive = Boolean(onLinkHover);\n\t\t\t\t\tconst fireHover = (link: SankeyLink | null) => onLinkHover?.(link);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<path\n\t\t\t\t\t\t\tkey={`${l.original.source}-${l.original.target}-${i}`}\n\t\t\t\t\t\t\tdata-hex-sankey-link\n\t\t\t\t\t\t\td={l.d}\n\t\t\t\t\t\t\tstroke=\"hsl(var(--primary))\"\n\t\t\t\t\t\t\tstrokeOpacity={0.4}\n\t\t\t\t\t\t\tstrokeWidth={Math.max(1, l.width)}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={interactive ? `Flow: ${l.original.source} → ${l.original.target} (${l.original.value})` : undefined}\n\t\t\t\t\t\t\tstyle={{\n\t\t\t\t\t\t\t\tcursor: interactive ? \"pointer\" : undefined,\n\t\t\t\t\t\t\t\ttransition: \"stroke-opacity 120ms ease\",\n\t\t\t\t\t\t\t}}\n\t\t\t\t\t\t\tonMouseEnter={interactive ? () => fireHover(l.original) : undefined}\n\t\t\t\t\t\t\tonMouseLeave={interactive ? () => fireHover(null) : undefined}\n\t\t\t\t\t\t\tonFocus={interactive ? () => fireHover(l.original) : undefined}\n\t\t\t\t\t\t\tonBlur={interactive ? () => fireHover(null) : undefined}\n\t\t\t\t\t\t/>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t\t<g data-hex-sankey-nodes>\n\t\t\t\t{laidOutNodes.map((n) => {\n\t\t\t\t\tconst w = n.x1 - n.x0;\n\t\t\t\t\tconst h = n.y1 - n.y0;\n\t\t\t\t\tconst isRightSide = n.x0 > width / 2;\n\t\t\t\t\tconst interactive = Boolean(onNodeClick);\n\t\t\t\t\tconst handleActivate = () => onNodeClick?.(n.original);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<g\n\t\t\t\t\t\t\tkey={n.original.id}\n\t\t\t\t\t\t\tdata-hex-sankey-node\n\t\t\t\t\t\t\ttransform={`translate(${n.x0},${n.y0})`}\n\t\t\t\t\t\t\trole={interactive ? \"button\" : undefined}\n\t\t\t\t\t\t\ttabIndex={interactive ? 0 : undefined}\n\t\t\t\t\t\t\taria-label={interactive ? n.original.label : undefined}\n\t\t\t\t\t\t\tstyle={interactive ? { cursor: \"pointer\" } : undefined}\n\t\t\t\t\t\t\tonClick={interactive ? handleActivate : undefined}\n\t\t\t\t\t\t\tonKeyDown={interactive ? (e) => activateOnKey(e, handleActivate) : undefined}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<rect width={w} height={h} fill=\"hsl(var(--primary))\" stroke=\"hsl(var(--background))\" />\n\t\t\t\t\t\t\t<text\n\t\t\t\t\t\t\t\tx={isRightSide ? -6 : w + 6}\n\t\t\t\t\t\t\t\ty={h / 2}\n\t\t\t\t\t\t\t\tdy=\"0.35em\"\n\t\t\t\t\t\t\t\tfontSize={11}\n\t\t\t\t\t\t\t\tfill=\"hsl(var(--foreground))\"\n\t\t\t\t\t\t\t\ttextAnchor={isRightSide ? \"end\" : \"start\"}\n\t\t\t\t\t\t\t\tstyle={{ pointerEvents: \"none\" }}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{n.original.label}\n\t\t\t\t\t\t\t</text>\n\t\t\t\t\t\t</g>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</g>\n\t\t</svg>\n\t);\n}\n\nfunction layout(\n\td3s: D3SankeyMod,\n\tnodes: SankeyNode[],\n\tlinks: SankeyLink[],\n\twidth: number,\n\theight: number,\n\talign: \"left\" | \"right\" | \"center\" | \"justify\",\n\tnodeWidth: number,\n\tnodePadding: number,\n): { nodes: LaidOutNode[]; links: LaidOutLink[] } {\n\tconst alignFn =\n\t\talign === \"left\"\n\t\t\t? d3s.sankeyLeft\n\t\t\t: align === \"right\"\n\t\t\t? d3s.sankeyRight\n\t\t\t: align === \"center\"\n\t\t\t? d3s.sankeyCenter\n\t\t\t: d3s.sankeyJustify;\n\n\t// d3-sankey mutates its input — clone so consumer arrays stay pristine.\n\tconst nodesClone = nodes.map((n) => ({ ...n }));\n\tconst linksClone = links.map((l) => ({ ...l }));\n\n\ttype WorkingNode = SankeyNode & {\n\t\tindex?: number;\n\t\tx0?: number;\n\t\tx1?: number;\n\t\ty0?: number;\n\t\ty1?: number;\n\t};\n\ttype WorkingLink = SankeyLink & { width?: number };\n\n\tconst sankeyGen = d3s\n\t\t.sankey<WorkingNode, WorkingLink>()\n\t\t.nodeId((d) => d.id)\n\t\t.nodeAlign(alignFn)\n\t\t.nodeWidth(nodeWidth)\n\t\t.nodePadding(nodePadding)\n\t\t.extent([\n\t\t\t[1, 1],\n\t\t\t[width - 1, height - 1],\n\t\t]);\n\n\tconst result = sankeyGen({ nodes: nodesClone, links: linksClone });\n\tconst linkPath = d3s.sankeyLinkHorizontal<WorkingNode, WorkingLink>();\n\n\t// Carry the consumer-supplied node/link by index so future widenings of\n\t// SankeyNode / SankeyLink (color, group, metadata) round-trip into\n\t// callbacks without us having to re-cherry-pick fields here.\n\treturn {\n\t\tnodes: result.nodes.map((n, i) => ({\n\t\t\toriginal: { ...nodes[i] },\n\t\t\tx0: n.x0 ?? 0,\n\t\t\tx1: n.x1 ?? 0,\n\t\t\ty0: n.y0 ?? 0,\n\t\t\ty1: n.y1 ?? 0,\n\t\t})),\n\t\tlinks: result.links.map((l, i) => ({\n\t\t\toriginal: {\n\t\t\t\t...links[i],\n\t\t\t\t// Re-pin source/target to ids — d3-sankey replaced them with the\n\t\t\t\t// resolved node objects in place, but the consumer-facing shape\n\t\t\t\t// is `{ source: string, target: string, value: number }`.\n\t\t\t\tsource: typeof l.source === \"string\" ? l.source : (l.source as WorkingNode).id,\n\t\t\t\ttarget: typeof l.target === \"string\" ? l.target : (l.target as WorkingNode).id,\n\t\t\t\tvalue: l.value,\n\t\t\t},\n\t\t\td: linkPath(l) ?? \"\",\n\t\t\twidth: l.width ?? 1,\n\t\t})),\n\t};\n}\n\nfunction activateOnKey(e: React.KeyboardEvent, fn: () => void): void {\n\tif (e.key === \"Enter\" || e.key === \" \") {\n\t\te.preventDefault();\n\t\tfn();\n\t}\n}\n\nexport { Sankey };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ],
+    "heavyPeer": [
+      {
+        "name": "d3-sankey",
+        "version": "^0.12.3",
+        "bundleKbGzip": 6,
+        "reason": "Computes the column layout and link routing; the component renders SVG with the result"
+      }
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "background",
+    "foreground",
+    "muted"
+  ],
+  "examples": [
+    {
+      "title": "Energy flow",
+      "description": "Two sources flowing into a single sink.",
+      "code": "<Sankey\n  nodes={[\n    { id: \"coal\", label: \"Coal\" },\n    { id: \"gas\", label: \"Gas\" },\n    { id: \"grid\", label: \"Grid\" },\n  ]}\n  links={[\n    { source: \"coal\", target: \"grid\", value: 60 },\n    { source: \"gas\", target: \"grid\", value: 30 },\n  ]}\n/>",
+      "composition": [
+        "sankey",
+        "flow",
+        "energy"
+      ]
+    },
+    {
+      "title": "Funnel-style with hover",
+      "description": "Surface link details on hover for tooltips.",
+      "code": "<Sankey\n  nodes={steps}\n  links={transitions}\n  onLinkHover={(l) => setActive(l)}\n/>",
+      "composition": [
+        "sankey",
+        "interactive",
+        "tooltip"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Visualize how a quantity is distributed and re-distributed across a multi-step pipeline — energy mix, marketing-funnel transitions, traffic referral flows, budget allocation by department × line-item. The thicker the link, the more value moves along it.",
+    "whenNotToUse": "Don't use for hierarchies (use TreeMap or Sunburst). Don't use for arbitrary node-edge graphs without a clear left-to-right flow (use Canvas). Don't use when total flow doesn't conserve from column to column — d3-sankey assumes a balanced graph.",
+    "commonMistakes": [
+      "A link's source or target id not present in `nodes` — d3-sankey throws an opaque error. Validate ids upstream",
+      "Negative or zero `value` — produces zero-width or NaN-positioned links. Filter or clamp upstream",
+      "Cycles in the link graph — d3-sankey requires a DAG. If your data has feedback loops, collapse them or split into multiple Sankeys",
+      "Mutating the input `nodes` / `links` between renders — the component clones internally to protect consumer arrays, but unmemoized inputs still trigger a full re-layout each render. Memoize"
+    ],
+    "relatedComponents": [
+      "funnel",
+      "pyramid",
+      "flowchart",
+      "canvas",
+      "diagram"
+    ],
+    "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing node and link counts. For agent outputs, also expose a parallel <table> of source / target / value triples so screen-reader users get the flow magnitudes.",
+    "tokenBudget": 360
+  },
+  "tags": [
+    "artifact",
+    "diagram",
+    "sankey",
+    "flow",
+    "weighted",
+    "funnel"
+  ]
+}
