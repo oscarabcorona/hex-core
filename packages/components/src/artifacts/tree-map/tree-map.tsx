@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { pickChartHue } from "../../lib/chart-palette.js";
 import { cn } from "../../lib/utils.js";
 
 /**
@@ -55,16 +56,15 @@ interface LaidOutLeaf {
 	x1: number;
 	y1: number;
 	value: number;
+	/** Leaf index in pre-order traversal — used to cycle through CHART_PALETTE
+	 * so adjacent rectangles read as distinct categories. */
+	leafIdx: number;
+	/** Index of this leaf's depth-1 ancestor; multi-level trees use this so
+	 * descendants of the same branch share a hue family. */
+	rootSiblingIdx: number;
 }
 
 type D3HierarchyMod = typeof import("d3-hierarchy");
-
-const DEPTH_PALETTE = [
-	"hsl(var(--primary))",
-	"hsl(var(--accent))",
-	"hsl(var(--secondary))",
-	"hsl(var(--muted))",
-];
 
 function TreeMap({
 	root,
@@ -134,18 +134,41 @@ function TreeMap({
 							width={w}
 							height={h}
 							fill={fill}
+							fillOpacity={0.85}
 							stroke="hsl(var(--background))"
 							strokeWidth={1}
 						/>
 						{w > 40 && h > 16 ? (
 							<text
-								x={4}
-								y={14}
-								fontSize={11}
-								fill="hsl(var(--foreground))"
-								style={{ pointerEvents: "none" }}
+								x={6}
+								y={16}
+								fontSize={12}
+								fontWeight={500}
+								fill="hsl(var(--background))"
+								style={{
+									pointerEvents: "none",
+									paintOrder: "stroke",
+									stroke: "hsl(var(--foreground) / 0.35)",
+									strokeWidth: 2,
+								}}
 							>
 								{l.node.label}
+							</text>
+						) : null}
+						{w > 60 && h > 32 ? (
+							<text
+								x={6}
+								y={32}
+								fontSize={11}
+								fill="hsl(var(--background) / 0.85)"
+								style={{
+									pointerEvents: "none",
+									paintOrder: "stroke",
+									stroke: "hsl(var(--foreground) / 0.3)",
+									strokeWidth: 1.5,
+								}}
+							>
+								{l.value.toLocaleString()}
 							</text>
 						) : null}
 					</g>
@@ -175,15 +198,24 @@ function layout(
 		.tile(tileFn)
 		.size([width, height])
 		.padding(padding)(hierarchy);
-	return layoutRoot.leaves().map((leaf) => ({
-		node: leaf.data,
-		depth: leaf.depth,
-		x0: leaf.x0,
-		y0: leaf.y0,
-		x1: leaf.x1,
-		y1: leaf.y1,
-		value: leaf.value ?? 0,
-	}));
+	return layoutRoot.leaves().map((leaf, leafIdx) => {
+		// Walk up to depth-1 ancestor; descendants of the same top-level
+		// branch share a hue family for tree visual cohesion.
+		let cursor: typeof leaf | null = leaf;
+		while (cursor && cursor.depth > 1) cursor = cursor.parent;
+		const ancestorIdx = cursor?.parent?.children?.indexOf(cursor) ?? leafIdx;
+		return {
+			node: leaf.data,
+			depth: leaf.depth,
+			x0: leaf.x0,
+			y0: leaf.y0,
+			x1: leaf.x1,
+			y1: leaf.y1,
+			value: leaf.value ?? 0,
+			leafIdx,
+			rootSiblingIdx: Math.max(0, ancestorIdx),
+		};
+	});
 }
 
 function resolveFill(
@@ -193,10 +225,14 @@ function resolveFill(
 ): string {
 	if (typeof colorBy === "function") return colorBy(leaf.node, leaf.depth);
 	if (colorBy === "value") {
-		const t = Math.max(0.15, Math.min(1, leaf.value / maxValue));
-		return `hsl(var(--primary) / ${t.toFixed(2)})`;
+		const t = Math.max(0.2, Math.min(1, leaf.value / maxValue));
+		return `hsl(var(--chart-1) / ${t.toFixed(2)})`;
 	}
-	return DEPTH_PALETTE[leaf.depth % DEPTH_PALETTE.length] ?? "hsl(var(--primary))";
+	// "depth" cycles through CHART_PALETTE by ancestor for nested trees,
+	// or by leaf index for single-level trees (where every leaf is at the
+	// same depth and would otherwise collapse to one color).
+	const idx = leaf.depth > 1 ? leaf.rootSiblingIdx : leaf.leafIdx;
+	return pickChartHue(idx);
 }
 
 export { TreeMap };

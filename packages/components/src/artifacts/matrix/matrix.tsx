@@ -143,9 +143,11 @@ function Matrix({
 								width={cellSize}
 								height={cellSize}
 								// Floor at 0.08 so empty cells are visible as grid lines;
-								// ramp up to 0.95 for max-value cells. `--primary` carries
-								// the hue, opacity carries the magnitude.
-								fill="hsl(var(--primary))"
+								// ramp up to 0.95 for max-value cells. `--chart-1` carries
+								// the hue, opacity carries the magnitude. Falls back to
+								// `--primary` for consumers whose theme presets predate
+								// the chart token family.
+								fill="hsl(var(--chart-1, var(--primary)))"
 								fillOpacity={0.08 + 0.87 * c.intensity}
 								stroke="hsl(var(--background))"
 								strokeWidth={0.5}

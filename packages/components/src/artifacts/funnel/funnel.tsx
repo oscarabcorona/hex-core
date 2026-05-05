@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { pickChartHue } from "../../lib/chart-palette.js";
 import { cn } from "../../lib/utils.js";
 
 /**
@@ -96,22 +97,31 @@ function Funnel({
 					>
 						<polygon
 							points={`${s.topLeft},${s.yTop} ${s.topRight},${s.yTop} ${s.bottomRight},${s.yBottom} ${s.bottomLeft},${s.yBottom}`}
-							fill="hsl(var(--primary))"
-							// Floor at 0.6 keeps `primary-foreground` text on the
-							// stage at ≥4.5:1 contrast at any depth.
-							fillOpacity={Math.max(0.6, 1 - s.depth * 0.08)}
+							fill={pickChartHue(s.depth)}
+							fillOpacity={0.85}
 							stroke="hsl(var(--background))"
 							strokeWidth={1}
 						/>
 						<text
+							// Page-bg fill + foreground-tinted stroke is the
+							// classic "outline label" technique: text reads on
+							// any chart-1..6 fill regardless of hue, and stays
+							// readable when the trapezoid narrows below the
+							// label's width (the label spans outside the
+							// polygon onto the page bg).
 							x={width / 2}
 							y={(s.yTop + s.yBottom) / 2}
 							dy="0.35em"
 							textAnchor="middle"
 							fontSize={12}
 							fontWeight={600}
-							fill="hsl(var(--primary-foreground))"
-							style={{ pointerEvents: "none" }}
+							fill="hsl(var(--background))"
+							style={{
+								pointerEvents: "none",
+								paintOrder: "stroke",
+								stroke: "hsl(var(--foreground) / 0.45)",
+								strokeWidth: 2,
+							}}
 						>
 							{`${s.stage.label} · ${s.stage.value.toLocaleString()}`}
 						</text>

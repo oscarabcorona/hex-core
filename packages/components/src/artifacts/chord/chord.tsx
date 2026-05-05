@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { pickChartHue } from "../../lib/chart-palette.js";
 import { cn } from "../../lib/utils.js";
 
 /**
@@ -71,17 +72,13 @@ interface LaidOutChord {
 	sourceValue: number;
 	targetValue: number;
 	d: string;
+	/** Index of the source node — ribbons inherit the source arc's hue
+	 * so the eye can trace "where did this flow originate". */
+	sourceIdx: number;
 }
 
 type D3ChordMod = typeof import("d3-chord");
 type D3ShapeMod = typeof import("d3-shape");
-
-const NODE_PALETTE = [
-	"hsl(var(--primary))",
-	"hsl(var(--accent))",
-	"hsl(var(--secondary))",
-	"hsl(var(--muted))",
-];
 
 function Chord({
 	nodes,
@@ -178,8 +175,8 @@ function Chord({
 							key={`${c.source.id}-${c.target.id}-${i}`}
 							data-hex-chord-ribbon
 							d={c.d}
-							fill="hsl(var(--primary))"
-							fillOpacity={0.4}
+							fill={pickChartHue(c.sourceIdx)}
+							fillOpacity={0.55}
 							stroke="hsl(var(--background))"
 							strokeWidth={0.5}
 							role={interactive ? "button" : undefined}
@@ -220,7 +217,7 @@ function Chord({
 						>
 							<path
 								d={a.d}
-								fill={NODE_PALETTE[a.depth % NODE_PALETTE.length]}
+								fill={pickChartHue(a.depth)}
 								stroke="hsl(var(--background))"
 								strokeWidth={1}
 							/>
@@ -256,7 +253,12 @@ function layout(
 	size: number,
 	padAngle: number,
 ): { arcs: LaidOutArc[]; chords: LaidOutChord[] } {
-	const radius = size / 2 - 24; // leave room for labels
+	// Reserve margin for label text scaled by the longest label, so words
+	// like "Americas" / "Manufacturing" don't clip against the SVG edge.
+	// 6 px/char + 16 px slack — empirically fits 12-char labels at fontSize 11.
+	const longestLabel = nodes.reduce((m, n) => Math.max(m, n.label.length), 0);
+	const labelMargin = Math.max(40, longestLabel * 6 + 16);
+	const radius = size / 2 - labelMargin;
 	const innerRadius = radius - 12;
 	const outerRadius = radius;
 
@@ -305,6 +307,7 @@ function layout(
 			sourceValue: c.source.value,
 			targetValue: c.target.value,
 			d: ribbon(buildRibbonInput(c)) ?? "",
+			sourceIdx: c.source.index,
 		}));
 
 	return { arcs, chords };

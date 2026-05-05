@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { pickChartHue } from "../../lib/chart-palette.js";
 import { cn } from "../../lib/utils.js";
 
 /**
@@ -64,12 +65,18 @@ interface LaidOutNode {
 	x1: number;
 	y0: number;
 	y1: number;
+	/** Index in the consumer-supplied `nodes` array — used to pick a hue
+	 * from CHART_PALETTE so adjacent columns read as distinct categories. */
+	idx: number;
 }
 
 interface LaidOutLink {
 	original: SankeyLink;
 	d: string;
 	width: number;
+	/** Index of the source node — links inherit their source's hue so the
+	 * eye can trace "where did this volume come from". */
+	sourceIdx: number;
 }
 
 type D3SankeyMod = typeof import("d3-sankey");
@@ -140,13 +147,14 @@ function Sankey({
 				{laidOutLinks.map((l, i) => {
 					const interactive = Boolean(onLinkHover);
 					const fireHover = (link: SankeyLink | null) => onLinkHover?.(link);
+					const stroke = pickChartHue(l.sourceIdx);
 					return (
 						<path
 							key={`${l.original.source}-${l.original.target}-${i}`}
 							data-hex-sankey-link
 							d={l.d}
-							stroke="hsl(var(--primary))"
-							strokeOpacity={0.4}
+							stroke={stroke}
+							strokeOpacity={0.45}
 							strokeWidth={Math.max(1, l.width)}
 							role={interactive ? "button" : undefined}
 							tabIndex={interactive ? 0 : undefined}
@@ -170,6 +178,7 @@ function Sankey({
 					const isRightSide = n.x0 > width / 2;
 					const interactive = Boolean(onNodeClick);
 					const handleActivate = () => onNodeClick?.(n.original);
+					const fill = pickChartHue(n.idx);
 					return (
 						<g
 							key={n.original.id}
@@ -182,12 +191,13 @@ function Sankey({
 							onClick={interactive ? handleActivate : undefined}
 							onKeyDown={interactive ? (e) => activateOnKey(e, handleActivate) : undefined}
 						>
-							<rect width={w} height={h} fill="hsl(var(--primary))" stroke="hsl(var(--background))" />
+							<rect width={w} height={h} fill={fill} stroke="hsl(var(--background))" />
 							<text
 								x={isRightSide ? -6 : w + 6}
 								y={h / 2}
 								dy="0.35em"
-								fontSize={11}
+								fontSize={12}
+								fontWeight={500}
 								fill="hsl(var(--foreground))"
 								textAnchor={isRightSide ? "end" : "start"}
 								style={{ pointerEvents: "none" }}
@@ -251,6 +261,9 @@ function layout(
 	// Carry the consumer-supplied node/link by index so future widenings of
 	// SankeyNode / SankeyLink (color, group, metadata) round-trip into
 	// callbacks without us having to re-cherry-pick fields here.
+	const idByIndex = new Map<string, number>();
+	nodes.forEach((n, i) => idByIndex.set(n.id, i));
+
 	return {
 		nodes: result.nodes.map((n, i) => ({
 			original: { ...nodes[i] },
@@ -258,20 +271,21 @@ function layout(
 			x1: n.x1 ?? 0,
 			y0: n.y0 ?? 0,
 			y1: n.y1 ?? 0,
+			idx: i,
 		})),
-		links: result.links.map((l, i) => ({
-			original: {
-				...links[i],
-				// Re-pin source/target to ids — d3-sankey replaced them with the
-				// resolved node objects in place, but the consumer-facing shape
-				// is `{ source: string, target: string, value: number }`.
-				source: typeof l.source === "string" ? l.source : (l.source as WorkingNode).id,
-				target: typeof l.target === "string" ? l.target : (l.target as WorkingNode).id,
-				value: l.value,
-			},
-			d: linkPath(l) ?? "",
-			width: l.width ?? 1,
-		})),
+		links: result.links.map((l, i) => {
+			// Re-pin source/target to ids — d3-sankey replaced them with the
+			// resolved node objects in place, but the consumer-facing shape
+			// is `{ source: string, target: string, value: number }`.
+			const sourceId = typeof l.source === "string" ? l.source : (l.source as WorkingNode).id;
+			const targetId = typeof l.target === "string" ? l.target : (l.target as WorkingNode).id;
+			return {
+				original: { ...links[i], source: sourceId, target: targetId, value: l.value },
+				d: linkPath(l) ?? "",
+				width: l.width ?? 1,
+				sourceIdx: idByIndex.get(sourceId) ?? 0,
+			};
+		}),
 	};
 }
 

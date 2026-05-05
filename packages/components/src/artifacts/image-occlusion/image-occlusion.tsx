@@ -100,7 +100,6 @@ function ImageOcclusion({
 			<div
 				data-hex-image-occlusion-overlay
 				className="pointer-events-none absolute inset-0"
-				aria-hidden="true"
 			>
 				{regions.map((r, i) => {
 					const isRevealed = revealed.has(r.id);

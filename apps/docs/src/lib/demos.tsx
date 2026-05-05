@@ -82,6 +82,29 @@ import { TagDemo } from "../app/demos/tag-demo";
 import { ToolCallDemo } from "../app/demos/tool-call-demo";
 import { ToolbarDemo } from "../app/demos/toolbar-demo";
 import { TreeDemo } from "../app/demos/tree-demo";
+import { MindMapDemo } from "../app/demos/mind-map-demo";
+import { TreeMapDemo } from "../app/demos/tree-map-demo";
+import { OrgChartDemo } from "../app/demos/org-chart-demo";
+import { SunburstDemo } from "../app/demos/sunburst-demo";
+import { DendrogramDemo } from "../app/demos/dendrogram-demo";
+import { SankeyDemo } from "../app/demos/sankey-demo";
+import { FunnelDemo } from "../app/demos/funnel-demo";
+import { PyramidDemo } from "../app/demos/pyramid-demo";
+import { FlowchartDemo } from "../app/demos/flowchart-demo";
+import { VennDemo } from "../app/demos/venn-demo";
+import { ChordDemo } from "../app/demos/chord-demo";
+import { ArcDemo } from "../app/demos/arc-demo";
+import { MatrixDemo } from "../app/demos/matrix-demo";
+import { TimeAxisDemo } from "../app/demos/time-axis-demo";
+import { GanttDemo } from "../app/demos/gantt-demo";
+import { SequenceDemo } from "../app/demos/sequence-demo";
+import { FlashcardDemo } from "../app/demos/flashcard-demo";
+import { ClozeDemo } from "../app/demos/cloze-demo";
+import { ImageOcclusionDemo } from "../app/demos/image-occlusion-demo";
+import { QuizDemo } from "../app/demos/quiz-demo";
+import { CompareTableDemo } from "../app/demos/compare-table-demo";
+import { DeckDemo } from "../app/demos/deck-demo";
+import { SpacedRepetitionDemo } from "../app/demos/spaced-repetition-demo";
 
 /**
  * Map of component slug → rendered demo component.
@@ -176,6 +199,29 @@ export const demos: Record<string, ComponentType> = {
 	"tool-call": ToolCallDemo,
 	toolbar: ToolbarDemo,
 	tree: TreeDemo,
+	"mind-map": MindMapDemo,
+	"tree-map": TreeMapDemo,
+	"org-chart": OrgChartDemo,
+	sunburst: SunburstDemo,
+	dendrogram: DendrogramDemo,
+	sankey: SankeyDemo,
+	funnel: FunnelDemo,
+	pyramid: PyramidDemo,
+	flowchart: FlowchartDemo,
+	venn: VennDemo,
+	chord: ChordDemo,
+	arc: ArcDemo,
+	matrix: MatrixDemo,
+	"time-axis": TimeAxisDemo,
+	gantt: GanttDemo,
+	sequence: SequenceDemo,
+	flashcard: FlashcardDemo,
+	cloze: ClozeDemo,
+	"image-occlusion": ImageOcclusionDemo,
+	quiz: QuizDemo,
+	"compare-table": CompareTableDemo,
+	deck: DeckDemo,
+	"spaced-repetition": SpacedRepetitionDemo,
 };
 
 /**

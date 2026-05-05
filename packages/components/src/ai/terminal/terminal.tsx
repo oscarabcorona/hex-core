@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { hslTripletToHex } from "../../lib/color.js";
 import { cn } from "../../lib/utils.js";
 
 /**
@@ -46,18 +47,42 @@ export interface TerminalProps extends Omit<React.HTMLAttributes<HTMLDivElement>
 	disableInput?: boolean;
 }
 
-const DARK_THEME = {
+// Fallback xterm themes used when the consumer hasn't loaded `@hex-core/tokens`
+// or hasn't defined the standard `--background` / `--foreground` CSS vars
+// (e.g. consumer mounted Terminal in isolation). Match the `Terminal`
+// wrapper's inline `themeBg` defaults below — both must agree or there's
+// a visible seam between the xterm canvas and the wrapper.
+const DARK_FALLBACK = {
 	background: "#0a0a0a",
 	foreground: "#e5e5e5",
 	cursor: "#e5e5e5",
 	selectionBackground: "#404040",
 };
-const LIGHT_THEME = {
+const LIGHT_FALLBACK = {
 	background: "#fafafa",
 	foreground: "#171717",
 	cursor: "#171717",
 	selectionBackground: "#d4d4d4",
 };
+
+/**
+ * Read a CSS HSL-triplet variable from `:root` (or the nearest theme
+ * scope) and convert it to a 6-digit hex string suitable for xterm's
+ * `theme: { background: "#..." }` option, which accepts hex/rgb but NOT
+ * CSS variables. Returns `null` if the variable is unset, so the caller
+ * can fall back to a hand-tuned theme without rendering pure-black.
+ *
+ * @param name - CSS variable name without the leading `--` (e.g. `"background"`).
+ * @returns A `#xxxxxx` hex color string, or `null` if the var isn't defined.
+ */
+function readCssVarAsHex(name: string): string | null {
+	if (typeof document === "undefined") return null;
+	const triplet = getComputedStyle(document.documentElement)
+		.getPropertyValue(`--${name}`)
+		.trim();
+	if (!triplet) return null;
+	return hslTripletToHex(triplet);
+}
 
 /**
  * Renders an xterm.js terminal display.
@@ -98,12 +123,26 @@ function Terminal({
 			const xtermModule = await import("@xterm/xterm");
 			if (disposed || !containerRef.current) return;
 
+			// xterm needs hex colors (it can't accept CSS vars), so read
+			// the consumer's `--background` / `--foreground` triplets at
+			// mount time and convert. A consumer who themes those tokens
+			// gets a terminal that follows the page; a consumer mounting
+			// Terminal in isolation falls back to the hand-tuned defaults.
+			const fallback = theme === "dark" ? DARK_FALLBACK : LIGHT_FALLBACK;
+			const bgHex = readCssVarAsHex("background") ?? fallback.background;
+			const fgHex = readCssVarAsHex("foreground") ?? fallback.foreground;
+
 			const term = new xtermModule.Terminal({
 				cols,
 				rows,
 				cursorBlink,
 				disableStdin: disableInput,
-				theme: theme === "dark" ? DARK_THEME : LIGHT_THEME,
+				theme: {
+					background: bgHex,
+					foreground: fgHex,
+					cursor: fgHex,
+					selectionBackground: fallback.selectionBackground,
+				},
 				fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
 				fontSize: 13,
 			});
@@ -154,14 +193,24 @@ function Terminal({
 		writtenRef.current = next;
 	}, [output]);
 
+	// Inline background matches the xterm theme bg. xterm renders its grid
+	// into a canvas (or DOM rows without their own background-color), so
+	// a11y tools walk up the DOM looking for a background and would
+	// otherwise hit the docs-page bg, producing a contrast false positive
+	// against the xterm fg. The CSS var fallback is an HSL triplet — `hsl()`
+	// rejects hex literals as a fallback, so the triplet is what makes this
+	// work when a consumer mounts Terminal without loading `@hex-core/tokens`.
+	const fallbackTriplet = theme === "dark" ? "0 0% 4%" : "0 0% 98%";
+	const themeBg = `hsl(var(--background, ${fallbackTriplet}))`;
 	return (
 		<div
 			{...rest}
 			ref={containerRef}
 			data-hex-terminal
 			data-theme={theme}
+			style={{ backgroundColor: themeBg, ...(rest.style ?? {}) }}
 			className={cn(
-				"overflow-hidden rounded-md border bg-background p-2",
+				"overflow-hidden rounded-md border p-2",
 				"font-mono text-sm leading-tight",
 				className,
 			)}

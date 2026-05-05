@@ -230,8 +230,15 @@ async function scanPage(
 		mode,
 		{ timeout: PAGE_TIMEOUT_MS },
 	);
+	// Exclude xterm.js internals — the Terminal component embeds a third-party
+	// canvas widget whose offscreen helper textarea (used for IME/keyboard
+	// input capture) trips color-contrast against the canvas-painted bg that
+	// axe-core can't read. The visible terminal grid is already audited via
+	// the rendered `.xterm-rows` / `.xterm-screen` nodes themselves.
 	const results = await new AxeBuilder({ page })
 		.withTags(["wcag2a", "wcag2aa", "wcag22a", "wcag22aa"])
+		.exclude(".xterm-helper-textarea")
+		.exclude(".xterm-char-measure-element")
 		.analyze();
 	return {
 		slug,

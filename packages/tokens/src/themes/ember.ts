@@ -28,6 +28,16 @@ export const emberTheme: Theme = {
 			input: { value: "30 15% 87%", type: "color" },
 			ring: { value: "16 65% 48%", type: "color" },
 			radius: { value: "0.75rem", type: "radius" },
+			// Chart palette — warm-leaning hues that complement the ember
+			// terracotta primary while staying perceptually distinct from
+			// each other for categorical encoding (sunburst/treemap/sankey/
+			// chord/funnel/pyramid/venn/matrix).
+			"chart-1": { value: "16 75% 55%", type: "color" },
+			"chart-2": { value: "180 55% 38%", type: "color" },
+			"chart-3": { value: "200 60% 50%", type: "color" },
+			"chart-4": { value: "45 80% 50%", type: "color" },
+			"chart-5": { value: "280 60% 60%", type: "color" },
+			"chart-6": { value: "330 70% 55%", type: "color" },
 			...sharedTokens,
 		},
 		dark: {
@@ -57,6 +67,14 @@ export const emberTheme: Theme = {
 			input: { value: "20 10% 16%", type: "color" },
 			ring: { value: "16 65% 52%", type: "color" },
 			radius: { value: "0.75rem", type: "radius" },
+			// Lifted lightness so segments stay legible against the warm
+			// near-black background.
+			"chart-1": { value: "16 75% 60%", type: "color" },
+			"chart-2": { value: "180 55% 55%", type: "color" },
+			"chart-3": { value: "200 60% 60%", type: "color" },
+			"chart-4": { value: "45 80% 60%", type: "color" },
+			"chart-5": { value: "280 60% 70%", type: "color" },
+			"chart-6": { value: "330 70% 65%", type: "color" },
 			...sharedTokens,
 		},
 	},
