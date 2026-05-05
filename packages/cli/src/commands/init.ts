@@ -1,24 +1,89 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import pc from "picocolors";
 import { detectTailwind, type TailwindVersion } from "../lib/detect-tailwind.js";
 import { emitTailwindV3Config } from "../lib/emit-tailwind-config.js";
+import { detectSrcLayout } from "../lib/resolve-alias.js";
 import { runInstall } from "../lib/run-install.js";
+import { runDoctor } from "./doctor.js";
+
+/** Per-target overwrite set. `--overwrite` (no value) → "all". */
+export type OverwriteTargets = Set<"globals.css" | "tailwind.config.ts" | "all">;
+
+export interface InitOptions {
+	theme: string;
+	/**
+	 * Either a boolean (legacy: `true` = replace everything, `false` = skip)
+	 * or a typed `Set` of specific files to replace. Boolean form keeps
+	 * older programmatic callers and tests working.
+	 */
+	overwrite?: boolean | OverwriteTargets;
+	install?: boolean;
+	/** When true, skip writes and exit non-zero if alias drift is detected. CI use. */
+	check?: boolean;
+}
+
+function shouldOverwrite(
+	value: boolean | OverwriteTargets | undefined,
+	target: "globals.css" | "tailwind.config.ts",
+): boolean {
+	if (!value) return false;
+	if (value === true) return true;
+	return value.has("all") || value.has(target);
+}
+
+/**
+ * Parse a comma-separated `--overwrite` value into the typed target set.
+ * Bare `--overwrite` (no value) becomes `{"all"}` for backwards compat
+ * with `@hex-core/cli@0.4.x`.
+ */
+export function parseOverwriteFlag(raw: string | boolean | undefined): OverwriteTargets | undefined {
+	if (raw === undefined || raw === false) return undefined;
+	if (raw === true || raw === "") return new Set(["all"]);
+	const set: OverwriteTargets = new Set();
+	for (const part of String(raw).split(",")) {
+		const trimmed = part.trim();
+		if (trimmed === "all" || trimmed === "globals.css" || trimmed === "tailwind.config.ts") {
+			set.add(trimmed);
+		} else {
+			console.error(`Unknown --overwrite target: "${trimmed}". Use one of: all, globals.css, tailwind.config.ts.`);
+			process.exit(1);
+		}
+	}
+	return set;
+}
 
 /**
  * Initialize a new Hex UI project.
  *
  * Writes `hex.config.json` plus a `globals.css` shaped to the consumer's
  * detected Tailwind version, and (for v3) a `tailwind.config.ts`. Prints
- * the exact peer-dep install line the user still needs to run — this
- * stays a print, not an auto-install, until Fix 4 lands.
+ * the exact peer-dep install line the user still needs to run.
+ *
+ * `--check` mode runs the doctor and exits non-zero on drift without
+ * touching any files. Designed for CI / pre-commit hooks.
  *
  * @param options.theme - The theme preset to scaffold from.
- * @param options.overwrite - If true, replace existing globals.css / tailwind.config.ts.
+ * @param options.overwrite - Set of targets to replace; undefined means skip-if-exists.
+ * @param options.check - When true, only verify state; never write.
  */
-export async function initProject(options: { theme: string; overwrite?: boolean; install?: boolean }) {
+export async function initProject(options: InitOptions) {
 	const cwd = process.cwd();
 	const configPath = path.join(cwd, "hex.config.json");
 	const tailwind = detectTailwind(cwd);
+
+	if (options.check) {
+		const checks = await runDoctor(cwd);
+		const failed = checks.filter((c) => c.status === "fail").length;
+		const warned = checks.filter((c) => c.status === "warn").length;
+		console.log(`hex init --check: ${failed} fail, ${warned} warn.`);
+		for (const c of checks) {
+			if (c.status === "fail" || c.status === "warn") {
+				console.log(`  [${c.status}] ${c.name}${c.hint ? ` — ${c.hint}` : ""}`);
+			}
+		}
+		process.exit(failed > 0 ? 1 : 0);
+	}
 
 	if (tailwind.version === "missing") {
 		console.error("tailwindcss is not installed in this project.");
@@ -28,12 +93,13 @@ export async function initProject(options: { theme: string; overwrite?: boolean;
 		process.exit(1);
 	}
 
+	const srcLayout = detectSrcLayout(cwd);
 	const wroteConfig = writeHexConfig(configPath, options.theme);
 	const cssTarget = pickGlobalsTarget(cwd);
-	const wroteCss = await writeGlobalsCss(cssTarget, options.theme, tailwind.version, options.overwrite ?? false);
+	const wroteCss = await writeGlobalsCss(cssTarget, options.theme, tailwind.version, shouldOverwrite(options.overwrite, "globals.css"));
 	const wroteTwConfig =
 		tailwind.version === "v3"
-			? await writeTailwindConfig(path.join(cwd, "tailwind.config.ts"), options.theme, options.overwrite ?? false)
+			? await writeTailwindConfig(path.join(cwd, "tailwind.config.ts"), options.theme, shouldOverwrite(options.overwrite, "tailwind.config.ts"))
 			: { wrote: false, skipped: false };
 
 	const peerDeps = peerDepsFor(tailwind.version);
@@ -48,6 +114,7 @@ export async function initProject(options: { theme: string; overwrite?: boolean;
 		cssTarget: path.relative(cwd, cssTarget),
 		peerDeps,
 		installed: installResult,
+		srcLayout,
 	});
 }
 
@@ -161,21 +228,25 @@ interface SummaryParams {
 	cssTarget: string;
 	peerDeps: string[];
 	installed: MaybeInstallResult;
+	srcLayout: boolean;
 }
 
 function printSummary(p: SummaryParams) {
 	const versionTag = `Tailwind ${p.tailwindVersion}${p.tailwindRange ? ` (${p.tailwindRange})` : ""}`;
 	console.log(`Detected ${versionTag}.`);
+	if (p.srcLayout) {
+		console.log(pc.dim(`Detected src/ layout — components will be written under src/components/.`));
+	}
 	console.log(p.wroteConfig ? "Created hex.config.json" : "hex.config.json already existed — left in place.");
 	console.log(
 		p.wroteCss.skipped
-			? `Skipped ${p.cssTarget} (already exists; pass --overwrite to replace).`
+			? `Skipped ${p.cssTarget} (already exists; pass --overwrite=globals.css to replace).`
 			: `Wrote ${p.cssTarget}`,
 	);
 	if (p.tailwindVersion === "v3") {
 		console.log(
 			p.wroteTwConfig.skipped
-				? "Skipped tailwind.config.ts (already exists; pass --overwrite to replace)."
+				? "Skipped tailwind.config.ts (already exists; pass --overwrite=tailwind.config.ts to replace)."
 				: "Wrote tailwind.config.ts",
 		);
 	}

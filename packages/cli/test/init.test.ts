@@ -134,4 +134,91 @@ describe("init", () => {
 		const errOutput = errSpy.mock.calls.flat().join("\n");
 		expect(errOutput).toMatch(/Unknown theme/);
 	});
+
+	describe("granular --overwrite", () => {
+		it("--overwrite=globals.css replaces only globals.css; tailwind.config.ts is preserved", async () => {
+			writePkg({ tailwindcss: "^3" });
+			fs.mkdirSync(path.join(tmpDir, "app"));
+			fs.writeFileSync(path.join(tmpDir, "app/globals.css"), "/* user css */");
+			fs.writeFileSync(path.join(tmpDir, "tailwind.config.ts"), "/* user tailwind */");
+
+			const targets = new Set(["globals.css"] as const);
+			await initProject({ theme: "default", overwrite: targets as never, install: false });
+
+			expect(fs.readFileSync(path.join(tmpDir, "app/globals.css"), "utf8")).toContain(
+				"@tailwind base",
+			);
+			expect(fs.readFileSync(path.join(tmpDir, "tailwind.config.ts"), "utf8")).toBe(
+				"/* user tailwind */",
+			);
+		});
+
+		it("--overwrite=tailwind.config.ts replaces only tailwind.config.ts", async () => {
+			writePkg({ tailwindcss: "^3" });
+			fs.mkdirSync(path.join(tmpDir, "app"));
+			fs.writeFileSync(path.join(tmpDir, "app/globals.css"), "/* user css */");
+			fs.writeFileSync(path.join(tmpDir, "tailwind.config.ts"), "/* user tailwind */");
+
+			const targets = new Set(["tailwind.config.ts"] as const);
+			await initProject({ theme: "default", overwrite: targets as never, install: false });
+
+			expect(fs.readFileSync(path.join(tmpDir, "app/globals.css"), "utf8")).toBe("/* user css */");
+			expect(fs.readFileSync(path.join(tmpDir, "tailwind.config.ts"), "utf8")).not.toBe(
+				"/* user tailwind */",
+			);
+		});
+
+		it("--overwrite=all replaces both", async () => {
+			writePkg({ tailwindcss: "^3" });
+			fs.mkdirSync(path.join(tmpDir, "app"));
+			fs.writeFileSync(path.join(tmpDir, "app/globals.css"), "/* user css */");
+			fs.writeFileSync(path.join(tmpDir, "tailwind.config.ts"), "/* user tailwind */");
+
+			const targets = new Set(["all"] as const);
+			await initProject({ theme: "default", overwrite: targets as never, install: false });
+
+			expect(fs.readFileSync(path.join(tmpDir, "app/globals.css"), "utf8")).not.toBe("/* user css */");
+			expect(fs.readFileSync(path.join(tmpDir, "tailwind.config.ts"), "utf8")).not.toBe(
+				"/* user tailwind */",
+			);
+		});
+
+		it("legacy --overwrite=true (boolean) still replaces everything for backwards compat", async () => {
+			writePkg({ tailwindcss: "^3" });
+			fs.mkdirSync(path.join(tmpDir, "app"));
+			fs.writeFileSync(path.join(tmpDir, "app/globals.css"), "/* user css */");
+			fs.writeFileSync(path.join(tmpDir, "tailwind.config.ts"), "/* user tailwind */");
+
+			await initProject({ theme: "default", overwrite: true, install: false });
+
+			expect(fs.readFileSync(path.join(tmpDir, "app/globals.css"), "utf8")).not.toBe("/* user css */");
+			expect(fs.readFileSync(path.join(tmpDir, "tailwind.config.ts"), "utf8")).not.toBe(
+				"/* user tailwind */",
+			);
+		});
+	});
+
+	describe("--check mode", () => {
+		it("exits 0 on a clean install", async () => {
+			writePkg({
+				tailwindcss: "^4",
+				clsx: "^2",
+				"tailwind-merge": "^3",
+				"class-variance-authority": "^0.7",
+				"tw-animate-css": "^1",
+			});
+			fs.mkdirSync(path.join(tmpDir, "app"));
+			await initProject({ theme: "default", install: false });
+			await expect(initProject({ theme: "default", check: true })).rejects.toThrow(
+				/process\.exit\(0\)/,
+			);
+		});
+
+		it("exits 1 on missing config / drift", async () => {
+			writePkg({}); // no tailwindcss → doctor will fail
+			await expect(initProject({ theme: "default", check: true })).rejects.toThrow(
+				/process\.exit\(1\)/,
+			);
+		});
+	});
 });

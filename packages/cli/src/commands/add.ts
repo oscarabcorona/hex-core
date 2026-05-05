@@ -1,15 +1,19 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { internalDepToSlug, SLUG_REGEX } from "@hex-core/registry";
+import pc from "picocolors";
+import { z } from "zod";
 import {
 	formatManualInstallCommand,
 	promptHeavyPeers,
 	type PendingHeavyPeer,
 } from "../lib/heavy-peer-prompt.js";
 import { detectPackageManager } from "../lib/package-manager.js";
+import { resolveAlias } from "../lib/resolve-alias.js";
 import { type AliasConfig, DEFAULT_ALIASES, rewriteRegistryImports } from "../lib/rewrite-imports.js";
 import { findRegistryDir } from "../lib/registry-dir.js";
 import { runInstall } from "../lib/run-install.js";
+import { withSpinner } from "../lib/spinner.js";
 
 export interface AddOptions {
 	yes: boolean;
@@ -18,7 +22,15 @@ export interface AddOptions {
 	deps: boolean;
 	/** When true (default), also auto-install npm peer deps via the consumer's package manager. */
 	install: boolean;
+	/** When true, plan but do not write files or run installs. Prints what would happen. */
+	dryRun?: boolean;
+	/** Optional path to a `hex.components.json`-style manifest. If set, the manifest's `components` array seeds the queue. */
+	from?: string;
 }
+
+const ManifestSchema = z.object({
+	components: z.array(z.string().regex(SLUG_REGEX, "invalid component slug")).min(1),
+});
 
 interface Context {
 	registryDir: string;
@@ -33,6 +45,38 @@ interface Context {
 	postInstallHints: Set<string>;
 	/** Heavy peer deps (xterm, mermaid, etc.) keyed by package name. `requiredBy` accumulates the slugs that asked for each. */
 	pendingHeavyPeers: Map<string, PendingHeavyPeer>;
+	/** Files that would be written (in dry-run) or were written. Cwd-relative for stable display. */
+	plannedWrites: string[];
+}
+
+/**
+ * Translate a registry-item file path (e.g. `"components/ui/button.tsx"` or
+ * `"lib/utils.ts"`) into the absolute write path the consumer's project
+ * actually expects, honoring `hex.config.json#aliases` and `tsconfig.json`.
+ *
+ * The registry stores paths with a fixed prefix convention: every component
+ * file starts with `components/`, every shared util with `lib/`. We strip
+ * that prefix and prepend the resolved alias root, so a Next.js `--src-dir`
+ * project gets `<cwd>/src/components/ui/button.tsx` instead of the raw
+ * `<cwd>/components/ui/button.tsx`.
+ */
+export function resolveWritePath(cwd: string, aliases: AliasConfig, filePath: string): string {
+	const normalized = filePath.replace(/\\/g, "/");
+	if (normalized.startsWith("components/")) {
+		const rest = normalized.slice("components/".length);
+		return path.join(resolveAlias(cwd, aliases.components), rest);
+	}
+	if (normalized.startsWith("lib/")) {
+		const rest = normalized.slice("lib/".length);
+		return path.join(resolveAlias(cwd, aliases.lib), rest);
+	}
+	return path.resolve(cwd, normalized);
+}
+
+/** Cwd-relative version for log lines — keeps output portable across machines. */
+function displayPath(cwd: string, abs: string): string {
+	const rel = path.relative(cwd, abs);
+	return rel === "" ? "." : rel;
 }
 
 /**
@@ -114,11 +158,11 @@ function installOne(name: string, ctx: Context): string[] | null {
 	}
 
 	const item = JSON.parse(fs.readFileSync(itemPath, "utf-8"));
-	console.log(`\nAdding ${item.displayName}...`);
+	console.log(`\nAdding ${pc.bold(item.displayName)}...`);
 
 	const cwdPrefix = ctx.cwd.endsWith(path.sep) ? ctx.cwd : ctx.cwd + path.sep;
 	for (const file of item.files) {
-		const targetPath = path.resolve(ctx.cwd, file.path);
+		const targetPath = resolveWritePath(ctx.cwd, ctx.aliases, file.path);
 		// Path-traversal guard: require the resolved target to live strictly under
 		// cwd. A bare `startsWith(ctx.cwd)` would accept "/Users/project-evil/x" as
 		// if it lived under "/Users/project" because the prefix matches without a
@@ -128,6 +172,7 @@ function installOne(name: string, ctx: Context): string[] | null {
 			continue;
 		}
 		const targetDir = path.dirname(targetPath);
+		const display = displayPath(ctx.cwd, targetPath);
 
 		if (fs.existsSync(targetPath) && !ctx.options.overwrite) {
 			// Shared lib files (lib/utils.ts, lib/color.ts) are idempotent
@@ -138,11 +183,10 @@ function installOne(name: string, ctx: Context): string[] | null {
 			// component. Silently no-op for these. Component files keep the loud
 			// hint since "I want to refresh my Button source" is the common case.
 			if (isSharedLibFile(file)) continue;
-			console.log(`  Skip: ${file.path} (already exists, use --overwrite)`);
+			console.log(`  ${pc.dim("Skip:")} ${display} ${pc.dim("(already exists, use --overwrite)")}`);
 			continue;
 		}
 
-		fs.mkdirSync(targetDir, { recursive: true });
 		// Registry items ship with monorepo-source-style imports
 		// (e.g. `../command/command.js`). Rewrite to the consumer's alias
 		// paths and drop `.js` suffixes before writing to disk.
@@ -150,8 +194,13 @@ function installOne(name: string, ctx: Context): string[] | null {
 			file.type === "registry:component" || file.type === "registry:lib" || /\.(?:tsx?|jsx?)$/.test(file.path)
 				? rewriteRegistryImports(file.content, ctx.aliases)
 				: file.content;
-		fs.writeFileSync(targetPath, rewritten);
-		console.log(`  Write: ${file.path}`);
+		if (!ctx.options.dryRun) {
+			fs.mkdirSync(targetDir, { recursive: true });
+			fs.writeFileSync(targetPath, rewritten);
+		}
+		ctx.plannedWrites.push(display);
+		const verb = ctx.options.dryRun ? pc.cyan("Would write:") : pc.green("Write:");
+		console.log(`  ${verb} ${display}`);
 	}
 
 	const deps = item.dependencies ?? {};
@@ -234,6 +283,16 @@ export async function addComponents(components: string[], options: AddOptions): 
 	}
 
 	const cwd = process.cwd();
+
+	// Resolve initial queue: positional args XOR manifest. Mixing them is
+	// almost always a mistake (the user typed both by accident), so error
+	// rather than guess which the user actually meant.
+	if (options.from && components.length > 0) {
+		console.error("Pass either positional component names or --from <manifest>, not both.");
+		process.exit(1);
+	}
+	const queue: string[] = options.from ? readManifest(cwd, options.from) : [...components];
+
 	const ctx: Context = {
 		registryDir,
 		cwd,
@@ -243,9 +302,9 @@ export async function addComponents(components: string[], options: AddOptions): 
 		pendingNpmDeps: new Set(),
 		postInstallHints: new Set(),
 		pendingHeavyPeers: new Map(),
+		plannedWrites: [],
 	};
 
-	const queue: string[] = [...components];
 	const pendingDeps: string[] = [];
 
 	while (queue.length > 0) {
@@ -269,8 +328,9 @@ export async function addComponents(components: string[], options: AddOptions): 
 		// Disk-aware filter at warning time: the user only wants to know about
 		// deps that aren't already present in their project. installOne returned
 		// the full registry list; now we narrow to actually-missing slugs.
+		const componentsRoot = resolveAlias(ctx.cwd, ctx.aliases.components);
 		const missingOnDisk = Array.from(new Set(pendingDeps)).filter((slug) => {
-			const p = path.resolve(ctx.cwd, "components", "ui", `${slug}.tsx`);
+			const p = path.join(componentsRoot, "ui", `${slug}.tsx`);
 			return !fs.existsSync(p);
 		});
 		if (missingOnDisk.length > 0) {
@@ -284,11 +344,15 @@ export async function addComponents(components: string[], options: AddOptions): 
 
 	if (ctx.pendingNpmDeps.size > 0) {
 		const all = Array.from(ctx.pendingNpmDeps);
-		if (!options.install) {
+		if (options.dryRun) {
+			console.log(`\n${pc.cyan("Would install:")} ${all.join(", ")}`);
+		} else if (!options.install) {
 			console.log(`\nSkipping auto-install (--no-install). Run yourself:`);
 			console.log(`  pnpm add ${all.join(" ")}`);
 		} else {
-			const result = await runInstall(all, { cwd });
+			const result = await withSpinner(`Resolving ${all.length} peer dep${all.length === 1 ? "" : "s"}…`, () =>
+				runInstall(all, { cwd }),
+			);
 			if (result.installed.length > 0 && result.exitCode !== 0) {
 				console.log(`\nPeer-dep install via ${result.manager} exited with code ${result.exitCode}.`);
 				console.log(`Run yourself: ${result.manager} ${result.manager === "npm" ? "install" : "add"} ${result.installed.join(" ")}`);
@@ -298,7 +362,12 @@ export async function addComponents(components: string[], options: AddOptions): 
 
 	if (ctx.pendingHeavyPeers.size > 0) {
 		const peers = Array.from(ctx.pendingHeavyPeers.values());
-		if (!options.install) {
+		if (options.dryRun) {
+			console.log(`\n${pc.cyan("Would prompt for heavy peers:")}`);
+			for (const peer of peers) {
+				console.log(`  → ${peer.name}@${peer.version}${peer.bundleKbGzip ? `  (~${peer.bundleKbGzip} KB gzip)` : ""}`);
+			}
+		} else if (!options.install) {
 			const manager = detectPackageManager(cwd);
 			console.log(`\nThe following heavy peer dependencies were skipped (--no-install):`);
 			for (const peer of peers) {
@@ -309,7 +378,10 @@ export async function addComponents(components: string[], options: AddOptions): 
 			const accepted = await promptHeavyPeers(peers, { assumeYes: options.yes });
 			if (accepted) {
 				const specs = peers.map((p) => `${p.name}@${p.version}`);
-				const result = await runInstall(specs, { cwd });
+				const result = await withSpinner(
+					`Installing ${specs.length} heavy peer${specs.length === 1 ? "" : "s"}…`,
+					() => runInstall(specs, { cwd }),
+				);
 				if (result.installed.length > 0 && result.exitCode !== 0) {
 					console.log(`\nHeavy-peer install via ${result.manager} exited with code ${result.exitCode}.`);
 					console.log(`  Run yourself: ${formatManualInstallCommand(result.manager, peers)}`);
@@ -324,9 +396,48 @@ export async function addComponents(components: string[], options: AddOptions): 
 	}
 
 	if (ctx.postInstallHints.size > 0) {
-		console.log(`\nNext steps:`);
+		const heading = options.dryRun ? `Would print next steps:` : `Next steps:`;
+		console.log(`\n${heading}`);
 		for (const hint of ctx.postInstallHints) {
 			console.log(`\n${hint}`);
 		}
 	}
+
+	if (options.dryRun) {
+		console.log(`\n${pc.cyan(`Dry-run summary:`)} ${ctx.plannedWrites.length} file${ctx.plannedWrites.length === 1 ? "" : "s"} would be written, ${ctx.pendingNpmDeps.size} dep${ctx.pendingNpmDeps.size === 1 ? "" : "s"} would be installed.`);
+		console.log(pc.dim(`(Re-run without --dry-run to apply.)`));
+	}
+}
+
+/**
+ * Read a `hex.components.json`-style manifest, validate its shape, and
+ * return the list of component slugs to enqueue. Resolved relative to cwd.
+ *
+ * Schema: `{ "components": ["button", "card", ...] }`. Anything else
+ * (extra fields, mistyped values) errors with a friendly message — the
+ * file format is the user's commit-tracked source of truth, so silent
+ * coercion would mask bugs they need to see.
+ */
+function readManifest(cwd: string, manifestPath: string): string[] {
+	const abs = path.isAbsolute(manifestPath) ? manifestPath : path.resolve(cwd, manifestPath);
+	if (!fs.existsSync(abs)) {
+		console.error(`Manifest not found: ${manifestPath}`);
+		process.exit(1);
+	}
+	let raw: unknown;
+	try {
+		raw = JSON.parse(fs.readFileSync(abs, "utf-8"));
+	} catch (err) {
+		console.error(`Manifest ${manifestPath} is not valid JSON: ${(err as Error).message}`);
+		process.exit(1);
+	}
+	const result = ManifestSchema.safeParse(raw);
+	if (!result.success) {
+		console.error(`Manifest ${manifestPath} is malformed:`);
+		for (const issue of result.error.issues) {
+			console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
+		}
+		process.exit(1);
+	}
+	return result.data.components;
 }

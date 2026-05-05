@@ -29,16 +29,32 @@ program
 program
 	.command("add")
 	.description("Add a component to your project")
-	.argument("<components...>", "Component names to add")
+	.argument("[components...]", "Component names to add (omit when using --from)")
 	.option("-y, --yes", "Skip confirmation prompts", false)
 	.option("-o, --overwrite", "Overwrite existing files", false)
 	.option("--no-deps", "Don't install internal component dependencies recursively")
 	.option("--no-install", "Don't auto-install npm peer dependencies — only print the install line")
+	.option("--dry-run", "Plan but do not write files or run installs", false)
+	.option(
+		"--from <manifest>",
+		"Install every slug from a `hex.components.json`-style manifest instead of positional args",
+	)
 	.action(
 		async (
 			components: string[],
-			options: { yes: boolean; overwrite: boolean; deps: boolean; install: boolean },
+			options: {
+				yes: boolean;
+				overwrite: boolean;
+				deps: boolean;
+				install: boolean;
+				dryRun?: boolean;
+				from?: string;
+			},
 		) => {
+			if (components.length === 0 && !options.from) {
+				console.error("Pass at least one component name, or --from <manifest>.");
+				process.exit(1);
+			}
 			const { addComponents } = await import("./commands/add.js");
 			await addComponents(components, options);
 		},
@@ -48,16 +64,34 @@ program
 	.command("init")
 	.description("Initialize Hex UI in your project")
 	.option("--theme <theme>", "Theme to use", "default")
-	.option("--overwrite", "Replace existing globals.css and tailwind.config.ts", false)
+	.option(
+		"--overwrite [targets]",
+		"Replace existing files. Pass a comma list (globals.css,tailwind.config.ts) or omit the value for everything.",
+	)
 	.option("--no-install", "Don't auto-install peer dependencies — only print the install line")
-	.action(async (options: { theme: string; overwrite: boolean; install: boolean }) => {
-		const { initProject } = await import("./commands/init.js");
-		await initProject(options);
-	});
+	.option("--check", "Verify alias/Tailwind drift and exit non-zero if anything's wrong (CI mode)", false)
+	.action(
+		async (options: {
+			theme: string;
+			overwrite?: string | boolean;
+			install: boolean;
+			check?: boolean;
+		}) => {
+			const { initProject, parseOverwriteFlag } = await import("./commands/init.js");
+			await initProject({
+				theme: options.theme,
+				overwrite: parseOverwriteFlag(options.overwrite),
+				install: options.install,
+				check: options.check,
+			});
+		},
+	);
 
 const recipe = program
 	.command("recipe")
-	.description("Work with Hex UI recipes (spec-driven blueprints: auth-form, settings-page, ...)");
+	.description(
+		"Work with Hex UI recipes (spec-driven blueprints: auth-form, settings-page, ...). Subcommands: list, add.",
+	);
 
 recipe
 	.command("list")
@@ -158,6 +192,18 @@ theme
 	.action(async (options: { category?: string; tag?: string; json?: boolean }) => {
 		const { themeList } = await import("./commands/theme-list.js");
 		await themeList(options);
+	});
+
+theme
+	.command("add")
+	.description("Compose a custom theme from a Hex Core Studio URL and write it as a TypeScript file in your project.")
+	.argument("<slug>", "Slug for the new theme (used as the filename and Theme.name field)")
+	.requiredOption("--from <url>", "Hex Core Studio URL describing the theme (base preset + token overrides)")
+	.option("--out <path>", "Output file path (default: src/themes/<slug>.ts or themes/<slug>.ts)")
+	.option("--overwrite", "Replace the file if it already exists", false)
+	.action(async (slug: string, options: { from: string; out?: string; overwrite: boolean }) => {
+		const { themeAdd } = await import("./commands/theme.js");
+		await themeAdd({ slug, from: options.from, out: options.out, overwrite: options.overwrite });
 	});
 
 theme
