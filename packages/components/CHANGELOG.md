@@ -1,5 +1,200 @@
 # @hex-core/components
 
+## 1.8.0
+
+### Minor Changes
+
+- d67fa60: feat(ai): 5 new AI Elements components + CLI heavy-peer prompt
+
+  Closes the AI Elements parity gap from 13/40 → 18/40 by adding the Code, Voice, and Workflow categories. Each component is a thin headless wrapper around an opt-in engine declared as a heavy peer dep.
+
+  **New components (`@hex-core/components`):**
+  - **`Terminal`** — xterm.js wrapper. Headless data flow: pass `output` (diffed against prior render), receive typed bytes via `onInput`. Peer: `@xterm/xterm@^5.5.0` (~150 KB gzip).
+  - **`Canvas`** — reactflow node-graph canvas for agent workflows / RAG document graphs. Default Background + Controls; slot for MiniMap and Panels. Peer: `reactflow@^11.11.0` (~80 KB gzip).
+  - **`AudioPlayer`** — wavesurfer.js playback control with play/pause + waveform progress + duration. Peer: `wavesurfer.js@^7.8.0` (~50 KB gzip, shared with AudioWaveform).
+  - **`AudioWaveform`** — standalone non-interactive waveform display for voice-message previews and recording indicators. Peer: `wavesurfer.js@^7.8.0`.
+  - **`Diagram`** — Mermaid renderer for AI-emitted flowcharts / sequence / class diagrams. Engine sanitizes SVG via `securityLevel: "strict"`. Peer: `mermaid@^11.0.0` (~700 KB gzip).
+
+  **CLI heavy-peer flow (`@hex-core/cli`):**
+
+  `hex add <component>` now detects heavy peer deps declared in the registry and prompts before installing. Single batched UX for multi-component installs:
+
+  ```
+  This sprint installs 2 components with heavy peer dependencies:
+
+    → @xterm/xterm@^5.5.0  (~150 KB gzip)  for terminal
+       Renders the terminal grid + handles input/output
+    → mermaid@^11.0.0      (~700 KB gzip)  for diagram
+
+    Total: ~850 KB gzip added to your bundle.
+
+  Install now? [Y/n]:
+  ```
+
+  `--yes` skips the prompt. `--no-install` prints the manual install command. Decline keeps the component source on disk so you can install the peer later.
+
+  **Schema (`@hex-core/registry`):**
+
+  New `dependencies.heavyPeer` array on `dependencySchema`: `{ name, version, bundleKbGzip?, reason? }[]`. Optional — existing schema files don't need changes.
+
+  All 5 components ship as optional peers in `@hex-core/components/package.json` (peerDependenciesMeta.optional: true), mirroring the existing pattern for vaul/sonner/cmdk.
+
+- b1b9099: feat(artifacts): flow-family diagram primitives — Sankey, Funnel, Pyramid, Flowchart
+
+  Second batch in the `artifacts/` category. The hierarchy core (MindMap / TreeMap / OrgChart / Sunburst / Dendrogram) shipped first; this batch adds the **flow family**:
+  - **`Sankey`** — weighted-flow diagram via `d3-sankey` (~6 KB gzip optional peer). Nodes arrange in horizontal columns by topological depth; link thickness encodes flow value. Use for energy/material/money flows, marketing-funnel transitions, traffic referral flows.
+  - **`Funnel`** — vertical stack of trapezoidal stages whose width is proportional to each stage's value. Pure SVG, no peer. Renders stage-to-stage conversion percentages by default. Use for monotonic conversion drop-off (signup, sales pipeline, ETL row counts).
+  - **`Pyramid`** — ranked-tier pyramid with `widening` or `narrowing` shape. Pure SVG, no peer. **Distinct from Funnel**: Pyramid encodes RANK (each tier is a distinct level), Funnel encodes FLOW (subset + conversion ratio). Use for Maslow-style hierarchies, organizational tiers, content hierarchies.
+  - **`Flowchart`** — typed React flowchart with topological-rank auto-layout. Nodes support `shape: "rect" | "round" | "diamond"` for terminal markers and decision nodes. Edges support optional `label`. Pure SVG, no peer. Distinct from `<Diagram>` (Mermaid string DSL) and `<Canvas>` (free-form ReactFlow) — Flowchart is the right choice when you have STRUCTURED data and want a polished SVG without a heavy peer.
+
+  **Heavy peer (Sankey only):**
+  - `d3-sankey@^0.12.3` (~6 KB gzip) declared as optional peer in `@hex-core/components`. CLI's `hex add sankey` prompts before installing. Funnel, Pyramid, and Flowchart need no install.
+
+  **Patterns:**
+  - Sankey follows the lazy-import + placeholder-div pattern used by the hierarchy stack
+  - Funnel/Pyramid/Flowchart render synchronously since they're pure SVG
+  - Every artifact emits `role="img"` + non-empty `<title>`/`<desc>` for screen readers
+  - Interactive nodes/segments/stages/tiers carry `data-depth` / `data-rank` / `data-shape` attributes so consumers can theme depth bands or shape variants from CSS without re-implementing the palette
+
+  **Schemas:**
+
+  All four declare full `ai` blocks (`whenToUse`, `whenNotToUse`, `commonMistakes`, `relatedComponents`, `accessibilityNotes`, `tokenBudget`) and the schemas explicitly call out the Pyramid-vs-Funnel and Flowchart-vs-Diagram-vs-Canvas distinctions so an LLM picking between them can make the right call.
+
+  Stacks on top of `feat/artifacts-hierarchy-stack` — both PRs merge into the same `artifacts/` category surface.
+
+- b1b9099: feat(artifacts): hierarchy-family diagram primitives — MindMap, TreeMap, OrgChart, Sunburst, Dendrogram
+
+  Introduces a new `artifacts/` top-level category for typed React diagram primitives. This batch ships the **hierarchy core** — five primitives that all share a single small optional peer (`d3-hierarchy`, ~3 KB gzip), with Sunburst additionally using `d3-shape` for arc paths.
+
+  **New components (`@hex-core/components`):**
+  - **`MindMap`** — typed React mind map with radial or horizontal layout. Pass a hierarchical `root` node; the component lays out children using d3-hierarchy's tree layout. No Mermaid string DSL required.
+  - **`TreeMap`** — squarified treemap where each leaf's area is proportional to its `value`. Supports `tile: "squarify" | "binary" | "slice-dice"` and depth- or value-based coloring.
+  - **`OrgChart`** — top-down organizational chart with collapsible subtrees. Each node renders as a rounded card; click any node with children to fold its subtree behind a `+N` badge. Supports `defaultExpandedDepth` for initial state.
+  - **`Sunburst`** — radial hierarchy by value with click-to-zoom drill-down. Each ring is a deeper level of the tree; segment angles are proportional to summed values. Click the center to zoom back out.
+  - **`Dendrogram`** — clustering tree where every leaf sits at the same depth (the visual signature of taxonomies, phylogenetic trees, hierarchical-clustering output). Supports horizontal/vertical orientation and step/diagonal links.
+
+  All five follow the established heavy-peer pattern from `Canvas` / `Diagram`:
+  - Lazy `import("d3-hierarchy")` on mount; placeholder `<div data-hex-<name>-loading />` until resolution
+  - Optional peer dependency with `peerDependenciesMeta.optional: true`
+  - CLI's `hex add <name>` flow prompts before installing the d3 modules
+  - Typed React-prop API (no string DSL) so consumers can drive the diagram from application state
+  - SVG output with `role="img"` + `<title>` + `<desc>` for screen readers
+
+  **Schema (`@hex-core/registry`):**
+  - `categoryEnum` gains a new `"artifact"` value alongside the existing `"primitive" | "component" | "block" | "ai" | …` set.
+  - `internalDepToSlug` now accepts `"artifacts/…"` paths in addition to `components/`, `primitives/`, and `blocks/`.
+
+  **MCP server (`@hex-core/mcp`):**
+  - The `search_components` tool's `category` filter enum now matches the registry enum (adds `"artifact"`). Without this, `search_components({ category: "artifact" })` would reject at the Zod boundary even though the items exist in the registry.
+
+  **Where to place them:**
+
+  `packages/components/src/artifacts/` — a new top-level category sibling to `primitives/`, `components/`, and `ai/`. Keeps general-purpose visualizations out of the `ai/` folder (whose schemas are tuned for agent-output semantics) and gives the next batches (Flow, Relational, Time) a natural home.
+
+- b1b9099: feat(artifacts): relational-family diagram primitives — Venn, Chord, Arc, Matrix
+
+  Third batch in the `artifacts/` category, stacked on the flow stack. Adds the **relational family** — diagrams whose subject is the relationships _between_ entities rather than a hierarchy or directional flow.
+  - **`Venn`** — set-overlap diagram for 2 or 3 sets. Pure SVG, no peer. Renders a friendly fallback for unsupported set counts (>3 / 0). Use for categorical overlap (Linux ∩ Mac ∩ Windows) — explicitly NOT for area-correct intersection cardinality (that's Euler-diagram territory).
+  - **`Chord`** — circular-relationship diagram via `d3-chord` (~3 KB gzip optional peer) + `d3-shape` (already a peer). Nodes form a ring; ribbons inside encode weighted bidirectional relationships. Use for trade flows, migration corridors, citation networks. Distinct from Sankey — Sankey requires a left-to-right flow direction; Chord is direction-agnostic on a ring.
+  - **`Arc`** — diagram where nodes lie on a horizontal baseline and relationships are drawn as semicircle arcs above. Pure SVG, no peer. Use when node ORDER is meaningful (sequence-aware data: chapter co-occurrence, transit transfer points, citation chronology). Distinct from Chord — Chord = ring (no order), Arc = baseline (order matters).
+  - **`Matrix`** — adjacency matrix where cell (row i, col j) encodes the relationship from node i to node j by color intensity. Pure SVG, no peer. Best for dense graphs that turn into hairballs in node-link form (~100 nodes scales gracefully). Use for confusion matrices, correlation matrices, trade-flow matrices.
+
+  **Heavy peer (Chord only):**
+  - `d3-chord@^0.12.x` declared as optional peer (~3 KB gzip). The CLI's `hex add chord` flow prompts before installing. Venn, Arc, Matrix need no install.
+
+  **Patterns shared with hierarchy + flow stacks:**
+  - Lazy-import + placeholder-div for Chord (heavy peer)
+  - Layout pass memoized on input identity for all four primitives
+  - Every artifact emits `role="img"` + non-empty `<title>`/`<desc>`
+  - Interactive nodes/cells/sets/ribbons declare `role="button"`, `tabIndex=0`, `aria-label`, and Enter/Space keyboard activation
+  - `data-depth` / `data-row` / `data-col` attributes for theming and test introspection
+
+  **Schemas:**
+
+  All four declare full `ai` blocks and explicitly call out the disambiguating distinctions: Venn-vs-Euler (area correctness), Chord-vs-Arc (ring vs baseline order), Matrix-vs-Sankey (dense vs flow), Matrix-vs-Chord (scale vs aesthetic).
+
+  Stacks on top of `feat/artifacts-flow-stack`. No new registry/MCP changes — the hierarchy stack already widened the `artifact` category enum across both packages; Flow and Relational reuse that surface.
+
+- b1b9099: feat(artifacts): study stack — Flashcard, Cloze, ImageOcclusion, Quiz, CompareTable, Deck, SpacedRepetition
+
+  Fifth `artifacts/` batch, stacked on the time stack. Adds the **study / pedagogy** family — primitives a learner or AI tutor reaches for when the content's job is to be _learned_, not just displayed. Web research consensus on best-of-2026 study formats (`reviewjane.com`, `aitooldiscovery.com`, `dev.to/anki`, `help.remnote.com`, `retain.cards`) lands on the four Anki note types as the universal floor; this batch ships those plus three popular layered helpers.
+
+  **Components (`packages/components/src/artifacts/`):**
+  - **`Flashcard`** — front/back card with a CSS 3D flip on click / Enter / Space. Controlled or uncontrolled. Pure CSS transform, no animation peer.
+  - **`Cloze`** — fill-in-the-blank text with click-to-reveal blanks. Each `{ hidden }` token in the `parts` array becomes a redacted span. `revealMode: "click" | "all"` toggles a "Reveal all" escape hatch.
+  - **`ImageOcclusion`** — image with rectangular regions hidden behind opaque overlays. Coordinates are 0–1 fractions so the layout stays correct at any rendered size. Dev-only console.warn when coords escape `[0, 1]` (the "passed pixels not fractions" footgun).
+  - **`Quiz`** — single-question multiple-choice. `selectionMode: "single" | "multi"`. After submit, each option is tagged `data-state="correct|incorrect|missed"` so consumers can theme right / wrong / unselected-but-correct independently. Per-option `explanation` renders below the option after submit.
+  - **`CompareTable`** — side-by-side comparison. Subjects as columns, attributes as rows, optional difference highlighting against the row's first non-empty cell. Dev-only console.warn when an attribute references a subjectId that isn't in the subjects array.
+  - **`Deck`** — paged sequence of flashcards with optional shuffle, prev/next, progress bar, and a `ratingSlot` render-prop for SpacedRepetition composition. Order recomputes only on `cards` identity change — never re-shuffles mid-session.
+  - **`SpacedRepetition`** — Anki-style four-button rating row (Again / Hard / Good / Easy). Headless on scheduling: emits `(rating, cardId)`, consumer wires SM-2 / FSRS / hand-rolled.
+
+  **Patterns shared with prior stacks:**
+  - `useMemo` over any layout pass; keyboard activation (Enter / Space with `preventDefault` on Space)
+  - `data-*` attributes for theming and test introspection (`data-flipped`, `data-revealed`, `data-state`, `data-row`, `data-rating`)
+  - `aria-pressed` / `aria-label` / `role="button"` / `role="status"` / `role="group"` where applicable
+  - Dev-only `console.warn` for invalid-shape inputs (ImageOcclusion fractional coords, CompareTable orphaned subjectIds)
+
+  **Composition story:** `<Deck cards={…} ratingSlot={(card) => <SpacedRepetition cardId={card.id} onRate={…} />} />` is the reference Anki-flow integration. Quiz, Cloze, and ImageOcclusion can also live inside a Deck via the `front`/`back` props since both accept `ReactNode`.
+
+  **No registry / MCP / build-pipeline plumbing changes.** The `artifact` category enum was widened in the hierarchy stack and all five families since (hierarchy → flow → relational → time → study) reuse it. No new heavy peer dependencies — all 7 primitives are pure HTML / CSS.
+
+  This is the fifth and final stack of the initial `artifacts/` rollout. Total artifact primitives ship at 23 across 5 sub-families: hierarchy (5) + flow (4) + relational (4) + time (3) + study (7).
+
+- b1b9099: feat(artifacts): time-family diagram primitives — TimeAxis, Gantt, Sequence
+
+  Fourth and final batch of the initial `artifacts/` rollout, stacked on the relational stack. Adds the **time family** — diagrams whose subject is "what happened, when, and to whom".
+  - **`TimeAxis`** — events plotted along a horizontal time axis. Pure SVG, no peer. Accepts dates as `Date`, ISO string, or epoch ms. Auto-stacks colliding events into rows so labels never overlap. **Distinct from the existing event-list `<Timeline>` in `components/`** — TimeAxis encodes elapsed time as horizontal distance (the _gap_ between events is the message), Timeline keeps event order without time-scaling.
+  - **`Gantt`** — tasks as horizontal bars across a time axis with optional dependency arrows and progress fills. Pure SVG, no peer. Supports the canonical `{ id, label, start, end, progress?, dependencies? }` shape. Use for project schedules, release plans, sprint boards, ETL job schedules.
+  - **`Sequence`** — UML-style sequence diagram. Actors as columns with vertical lifelines; messages as horizontal arrows in declaration order. Pure SVG, no peer. Supports `type: "sync" | "async" | "return"` and self-call loopback paths. Use for API request flows, distributed-system protocols, agent tool-call sequences.
+
+  **Naming choice:** the new time-axis primitive is `TimeAxis`, not `Timeline`, to avoid colliding with the existing event-list `<Timeline>` in `components/timeline`. Both ship side by side; the schemas explicitly call out the disambiguation in their `whenToUse` / `whenNotToUse`.
+
+  **Patterns shared with the prior stacks:**
+  - Layout pass memoized on input identity for all three primitives
+  - Every artifact emits `role="img"` + non-empty `<title>`/`<desc>`
+  - Interactive elements (TimeAxis events, Gantt task bars, Sequence actors + messages) declare `role="button"`, `tabIndex=0`, `aria-label`, and Enter/Space keyboard activation
+  - `data-row` / `data-depth` / `data-type` attributes for theming and test introspection
+
+  **Schemas:**
+
+  All three declare full `ai` blocks. The schemas' `commonMistakes` capture the locale-dependent date-string footgun, dependency-cycle warnings (Gantt), missing-id silent-skip behavior (all three), the elapsed-time-vs-order distinction (TimeAxis vs Timeline), and the sync/async/return arrow-style semantics (Sequence). All are lift-into-validation-ready for an LLM consumer.
+
+  Stacks on top of `feat/artifacts-relational-stack`. No new heavy peers and no registry/MCP changes — the `artifact` category enum was widened in the hierarchy stack and all subsequent stacks reuse that surface.
+
+### Patch Changes
+
+- e82f935: fix(artifacts): unblock diagram primitives + 3 a11y violations + dark-mode card lift
+
+  **User-visible: dark-mode `--card` and `--border` are slightly lighter** so SVG-rendered surfaces are distinguishable from the page background. `--card` lifted from L=8% → L=14% and `--border` from L=14% → L=24% in `defaultTheme.tokens.dark` AND the docs CSS bridge. Every consumer's dark mode picks this up — Card/Dialog/Popover chrome reads cleaner; OrgChart/Flowchart/Sequence/Sunburst's bare-SVG cards are now visible. The regular `<Card>` component compensated with box-shadow chrome that bare SVG couldn't replicate, making the gap-of-6 invisible there but breaking SVG.
+
+  PR #136 shipped 23 artifact components that referenced `hsl(var(--primary))` / `--accent` / `--secondary` / `--muted` for SVG fills and strokes — but those raw HSL-triplet token names were never defined in the docs CSS bridge (only the Tailwind v4 `--color-*` form existed). Result: every artifact rendered with default-black SVG fills, sankey links were entirely invisible, and the "scan failed" pages in the regression gate (sunburst, time-axis, tree-map, venn) all collapsed to monochrome blobs.
+
+  This release wires the bridge AND introduces a perceptually distinct chart palette so categorical-data diagrams (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix) cycle through six hues instead of one. The chart palette tokens carry a `var(--primary)` fallback so consumers on a custom theme without the chart family fall back to monochrome slate instead of black SVG.
+
+  **`@hex-core/tokens`** — `defaultTheme`, `emberTheme`, and `midnightTheme` all now ship `chart-1` … `chart-6` HSL triplets in both `light` and `dark` token sets, hue-tuned per theme. `defaultTheme.tokens.dark` also lifts `--card` (L=8%→14%) and `--border` (L=14%→24%) per the user-visible callout above.
+
+  **`@hex-core/components`** —
+  - New shared `lib/chart-palette.ts` exports `CHART_PALETTE` + `pickChartHue(idx)`. Used by every artifact that encodes categorical data — replaces 7 in-file `CHART_PALETTE` declarations. Every entry is `hsl(var(--chart-N, var(--primary)))` so consumers without the chart family get a slate fallback instead of black.
+  - **Sunburst**: replaced `--primary`/`--accent`/`--secondary`/`--muted` depth palette with `--chart-1..6` cycled by depth-1 ancestor (so all "Equity" descendants share a hue, distinct from "Fixed Income"). Added segment labels with stroke-outline contrast and depth-driven opacity falloff.
+  - **TreeMap**: chart palette cycled by leaf index (single-level trees) or depth-1 ancestor (nested). Labels now show `value` below the label when the cell has room. Outlined text for legibility on any fill.
+  - **Sankey**: links now use the source node's chart hue so volume flows are traceable. Nodes use chart palette. Both `stroke="hsl(var(--primary))"` and `fill="hsl(var(--primary))"` were silently invalid before — links rendered as `stroke: none` and disappeared entirely.
+  - **Chord**: arcs and ribbons use chart palette (ribbons inherit source-arc hue). Replaced fixed `radius - 24` label margin with `max(40, longestLabel * 6 + 16)` so wide labels (Americas, Manufacturing) no longer clip against the SVG edge.
+  - **Funnel** + **Pyramid**: chart palette per stage/tier with stroke-outlined labels (visible even when the polygon is too narrow to back the text).
+  - **Venn**: 3-set palette switched from `--primary/--accent/--secondary` (all near-black in monochrome themes — Linux=dark, Windows/Mac=invisible) to `--chart-1/2/3`.
+  - **Matrix**: cell intensity ramp now uses `--chart-1` (chart-coral) instead of `--primary` (slate), giving heatmaps a recognisable warm-scale gradient.
+  - **Gantt** + **TimeAxis**: x-axis tick formatter now uses MM-DD up to 90 days (was 30) AND dedupes consecutive identical labels — eliminates the "2025-01"/"2025-01"/"2025-01" repeat and the "2025"/"2025"/"2025" repeat at year-scale. TimeAxis event-connector stroke switched from `--primary` 0.4 to `--muted-foreground` 0.65 for dark-mode legibility.
+  - **Sequence**: lifeline opacity bumped 0.4 → 0.7 — the dashed lifelines were near-invisible against the dark page bg.
+  - **Dendrogram**: link opacity bumped 0.6 → 0.8 for dark-mode legibility.
+  - **MindMap**: link stroke switched from `--primary` 0.5 to `--muted-foreground` 0.7 — slate primary at 50% opacity disappeared into the dark bg.
+  - **Terminal**: now reads `--background` and `--foreground` HSL triplets at mount time and converts to hex for xterm's `theme: { background, foreground }` option (xterm rejects CSS vars). Wrapper bg uses `hsl(var(--background, <fallback-triplet>))`. Consumers who theme `--background` get a terminal that follows the page; consumers mounting Terminal in isolation fall back to hand-tuned defaults. Also fixes the original a11y false positive that motivated the inline-style change (the xterm canvas was painting into pixels axe couldn't read).
+  - **Quiz**: replaced the `<ul>` / `<li>` wrapping with `<div>` siblings. The component already overrode `role` to `radiogroup`, which strips the implicit `list` role from `<ul>` and triggered axe's `listitem` rule. Exposed `radiogroup` semantics for screen readers are unchanged.
+  - **ImageOcclusion**: removed `aria-hidden="true"` from the overlay container. The overlay houses focusable `<button>` elements, ARIA-hiding their parent triggered `aria-hidden-focus` while also hiding the buttons' labels from assistive tech. Each button already carries full `aria-label` + `aria-pressed` state.
+  - **ToolCall**: dark-mode "running" badge now uses `dark:bg-primary dark:text-primary-foreground`. The previous `bg-primary/15 text-primary` pairing put fg and bg in the same hue family at 10px font, dropping below WCAG AA (4.41:1 vs 4.5 floor). Light-mode pairing unchanged.
+
+- Updated dependencies [d67fa60]
+- Updated dependencies [b1b9099]
+  - @hex-core/registry@0.3.4
+
 ## 1.7.0
 
 ### Minor Changes
