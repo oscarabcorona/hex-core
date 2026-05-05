@@ -1511,6 +1511,61 @@
       "tokenBudget": 360
     },
     {
+      "name": "cloze",
+      "displayName": "Cloze",
+      "description": "Cloze-deletion text — sentences with redacted spans the learner reveals one at a time (or all at once). Pure HTML; no heavy peer.",
+      "category": "artifact",
+      "subcategory": "study",
+      "tags": [
+        "artifact",
+        "study",
+        "cloze",
+        "fill-in-the-blank",
+        "active-recall"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 280
+    },
+    {
+      "name": "compare-table",
+      "displayName": "CompareTable",
+      "description": "Side-by-side comparison table. Subjects are columns; attributes are rows; cells render the per-subject value for each attribute. Optional difference highlighting flags cells that diverge from the row's reference. Pure HTML; no heavy peer.",
+      "category": "artifact",
+      "subcategory": "study",
+      "tags": [
+        "artifact",
+        "study",
+        "compare-table",
+        "comparison",
+        "matrix"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 320
+    },
+    {
+      "name": "deck",
+      "displayName": "Deck",
+      "description": "Paged sequence of flashcards with optional shuffle, prev/next navigation, a progress bar, and a render slot for per-card SRS rating. Composes Flashcard internally.",
+      "category": "artifact",
+      "subcategory": "study",
+      "tags": [
+        "artifact",
+        "study",
+        "deck",
+        "flashcard",
+        "session"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "artifacts/flashcard/flashcard"
+      ],
+      "tokenBudget": 320
+    },
+    {
       "name": "dendrogram",
       "displayName": "Dendrogram",
       "description": "Clustering tree where every leaf sits at the same depth, regardless of branch length — the visual signature of taxonomies, phylogenetic trees, and hierarchical-clustering output.",
@@ -1528,6 +1583,24 @@
         "lib/utils"
       ],
       "tokenBudget": 320
+    },
+    {
+      "name": "flashcard",
+      "displayName": "Flashcard",
+      "description": "Front/back card with a 3D flip animation on click. Pure CSS 3D transform; no animation peer. Headless on content — front and back accept any ReactNode. Pairs with Deck for session-level paging and SpacedRepetition for confidence rating.",
+      "category": "artifact",
+      "subcategory": "study",
+      "tags": [
+        "artifact",
+        "study",
+        "flashcard",
+        "active-recall",
+        "card"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 280
     },
     {
       "name": "flowchart",
@@ -1584,6 +1657,24 @@
         "lib/utils"
       ],
       "tokenBudget": 360
+    },
+    {
+      "name": "image-occlusion",
+      "displayName": "ImageOcclusion",
+      "description": "Image with rectangular regions hidden behind opaque overlays. Click any region to reveal what's underneath. Pure HTML; no heavy peer. Coordinates are 0–1 fractions so the layout stays correct at any rendered size.",
+      "category": "artifact",
+      "subcategory": "study",
+      "tags": [
+        "artifact",
+        "study",
+        "image-occlusion",
+        "active-recall",
+        "visual"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 320
     },
     {
       "name": "matrix",
@@ -1661,6 +1752,24 @@
       "tokenBudget": 260
     },
     {
+      "name": "quiz",
+      "displayName": "Quiz",
+      "description": "Single-question multiple-choice quiz with submit + reveal. After submit, each option is tagged data-state=\"correct|incorrect|missed\" so consumers can theme right / wrong / unselected-but-correct independently. Pure HTML; no heavy peer.",
+      "category": "artifact",
+      "subcategory": "study",
+      "tags": [
+        "artifact",
+        "study",
+        "quiz",
+        "multiple-choice",
+        "active-recall"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 360
+    },
+    {
       "name": "sankey",
       "displayName": "Sankey",
       "description": "Weighted-flow diagram. Nodes arranged in horizontal columns by topological depth; link thickness encodes flow value. Use for funnels, energy/material/money flows, and any \"value moving from A to B\" picture.",
@@ -1697,6 +1806,25 @@
         "lib/utils"
       ],
       "tokenBudget": 360
+    },
+    {
+      "name": "spaced-repetition",
+      "displayName": "SpacedRepetition",
+      "description": "Anki-style confidence rating row — four buttons (Again / Hard / Good / Easy) that emit a rating signal. Headless on scheduling: consumers wire SM-2, FSRS, or any other algorithm; this primitive just captures the learner's signal.",
+      "category": "artifact",
+      "subcategory": "study",
+      "tags": [
+        "artifact",
+        "study",
+        "spaced-repetition",
+        "srs",
+        "anki",
+        "rating"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 280
     },
     {
       "name": "sunburst",

@@ -1,0 +1,124 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "image-occlusion",
+  "displayName": "ImageOcclusion",
+  "description": "Image with rectangular regions hidden behind opaque overlays. Click any region to reveal what's underneath. Pure HTML; no heavy peer. Coordinates are 0–1 fractions so the layout stays correct at any rendered size.",
+  "category": "artifact",
+  "subcategory": "study",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "src",
+      "type": "string",
+      "required": true,
+      "description": "Image source URL."
+    },
+    {
+      "name": "alt",
+      "type": "string",
+      "required": true,
+      "description": "Alt text for the underlying image."
+    },
+    {
+      "name": "regions",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, x, y, width, height, label? }. All coords are 0–1 fractions of the rendered image."
+    },
+    {
+      "name": "onRegionReveal",
+      "type": "function",
+      "required": false,
+      "description": "Called with the region id when a region is revealed (NOT when hidden again)."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the outer container."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/image-occlusion.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Image occlusion — image with rectangular regions hidden behind opaque\n * overlays. Click / Enter / Space on a region reveals what's underneath.\n * Coordinates are 0–1 fractions of the rendered image so the layout\n * stays correct at any size. Pure HTML; no heavy peer.\n *\n * Common for anatomy diagrams, geographic maps, code snippets — any\n * visual where labels or sub-regions are the recall target.\n *\n * @example\n * <ImageOcclusion\n *   src=\"/anatomy/heart.png\"\n *   alt=\"Cross-section of a human heart\"\n *   regions={[\n *     { id: \"lv\", x: 0.42, y: 0.55, width: 0.18, height: 0.22, label: \"Left ventricle\" },\n *     { id: \"ra\", x: 0.58, y: 0.20, width: 0.16, height: 0.18, label: \"Right atrium\" },\n *   ]}\n * />\n */\nexport type OcclusionRegion = {\n\tid: string;\n\t/** All coords are 0–1 fractions of the rendered image. */\n\tx: number;\n\ty: number;\n\twidth: number;\n\theight: number;\n\tlabel?: string;\n};\n\nexport interface ImageOcclusionProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\"> {\n\t/** Image source URL. */\n\tsrc: string;\n\t/** Alt text for the underlying image. */\n\talt: string;\n\t/** Rectangular regions to hide on top of the image. */\n\tregions: OcclusionRegion[];\n\t/** Fired with the region id when a region is revealed (not when hidden again). */\n\tonRegionReveal?: (id: string) => void;\n}\n\nfunction ImageOcclusion({\n\tsrc,\n\talt,\n\tregions,\n\tonRegionReveal,\n\tclassName,\n\t...rest\n}: ImageOcclusionProps) {\n\tconst [revealed, setRevealed] = React.useState<Set<string>>(() => new Set());\n\tconst onRevealRef = React.useRef(onRegionReveal);\n\tonRevealRef.current = onRegionReveal;\n\n\t// Surface mistakes early in dev when fractional coords escape [0, 1].\n\tconst warnedRef = React.useRef(false);\n\tconst nodeEnv = (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process?.env?.NODE_ENV;\n\tif (nodeEnv !== \"production\" && !warnedRef.current) {\n\t\tconst offender = regions.find(\n\t\t\t(r) => r.x < 0 || r.y < 0 || r.x + r.width > 1.0001 || r.y + r.height > 1.0001,\n\t\t);\n\t\tif (offender) {\n\t\t\twarnedRef.current = true;\n\t\t\t// eslint-disable-next-line no-console\n\t\t\tconsole.warn(\n\t\t\t\t`[hex-core/ImageOcclusion] Region \"${offender.id}\" coords escape [0, 1]. Pass fractions, not pixels — e.g. x: 0.42 (not 168).`,\n\t\t\t);\n\t\t}\n\t}\n\n\tconst toggle = React.useCallback((id: string) => {\n\t\tsetRevealed((prev) => {\n\t\t\tconst next = new Set(prev);\n\t\t\tif (next.has(id)) {\n\t\t\t\tnext.delete(id);\n\t\t\t} else {\n\t\t\t\tnext.add(id);\n\t\t\t\tonRevealRef.current?.(id);\n\t\t\t}\n\t\t\treturn next;\n\t\t});\n\t}, []);\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tdata-hex-image-occlusion\n\t\t\tclassName={cn(\"relative inline-block\", className)}\n\t\t>\n\t\t\t<img\n\t\t\t\tsrc={src}\n\t\t\t\talt={alt}\n\t\t\t\tdata-hex-image-occlusion-img\n\t\t\t\tclassName=\"block h-auto w-full select-none\"\n\t\t\t\tdraggable={false}\n\t\t\t/>\n\t\t\t<div\n\t\t\t\tdata-hex-image-occlusion-overlay\n\t\t\t\tclassName=\"pointer-events-none absolute inset-0\"\n\t\t\t\taria-hidden=\"true\"\n\t\t\t>\n\t\t\t\t{regions.map((r, i) => {\n\t\t\t\t\tconst isRevealed = revealed.has(r.id);\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<button\n\t\t\t\t\t\t\tkey={r.id}\n\t\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\t\tdata-hex-image-occlusion-region\n\t\t\t\t\t\t\tdata-region-id={r.id}\n\t\t\t\t\t\t\tdata-revealed={isRevealed}\n\t\t\t\t\t\t\taria-pressed={isRevealed}\n\t\t\t\t\t\t\taria-label={\n\t\t\t\t\t\t\t\tr.label\n\t\t\t\t\t\t\t\t\t? isRevealed\n\t\t\t\t\t\t\t\t\t\t? `Region ${i + 1} revealed: ${r.label}. Activate to hide.`\n\t\t\t\t\t\t\t\t\t\t: `Region ${i + 1} of ${regions.length}, hidden. Activate to reveal: ${r.label}.`\n\t\t\t\t\t\t\t\t\t: isRevealed\n\t\t\t\t\t\t\t\t\t\t? `Region ${i + 1} revealed. Activate to hide.`\n\t\t\t\t\t\t\t\t\t\t: `Region ${i + 1} of ${regions.length}, hidden. Activate to reveal.`\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tonClick={() => toggle(r.id)}\n\t\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\t\"pointer-events-auto absolute rounded-sm border-2 border-primary/60 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring\",\n\t\t\t\t\t\t\t\tisRevealed\n\t\t\t\t\t\t\t\t\t? \"bg-transparent opacity-30 hover:opacity-60\"\n\t\t\t\t\t\t\t\t\t: \"bg-primary opacity-95 hover:bg-primary/90\",\n\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\tstyle={{\n\t\t\t\t\t\t\t\tleft: `${r.x * 100}%`,\n\t\t\t\t\t\t\t\ttop: `${r.y * 100}%`,\n\t\t\t\t\t\t\t\twidth: `${r.width * 100}%`,\n\t\t\t\t\t\t\t\theight: `${r.height * 100}%`,\n\t\t\t\t\t\t\t\t// Explicit z-index = array index makes stacking deterministic:\n\t\t\t\t\t\t\t\t// later array entries always render (and click-catch) on top.\n\t\t\t\t\t\t\t\tzIndex: i,\n\t\t\t\t\t\t\t}}\n\t\t\t\t\t\t/>\n\t\t\t\t\t);\n\t\t\t\t})}\n\t\t\t</div>\n\t\t</div>\n\t);\n}\n\nexport { ImageOcclusion };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "primary",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Anatomy diagram",
+      "description": "Heart cross-section with named chambers occluded.",
+      "code": "<ImageOcclusion\n  src=\"/anatomy/heart.png\"\n  alt=\"Cross-section of a human heart\"\n  regions={[\n    { id: \"lv\", x: 0.42, y: 0.55, width: 0.18, height: 0.22, label: \"Left ventricle\" },\n    { id: \"ra\", x: 0.58, y: 0.20, width: 0.16, height: 0.18, label: \"Right atrium\" },\n  ]}\n/>",
+      "composition": [
+        "image-occlusion",
+        "anatomy"
+      ]
+    },
+    {
+      "title": "Code snippet with redacted operators",
+      "description": "Hide language operators and have the learner reveal them.",
+      "code": "<ImageOcclusion\n  src=\"/code/snippet.png\"\n  alt=\"JavaScript array map\"\n  regions={[\n    { id: \"op1\", x: 0.30, y: 0.10, width: 0.05, height: 0.08 },\n  ]}\n  onRegionReveal={(id) => track(id)}\n/>",
+      "composition": [
+        "image-occlusion",
+        "code"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Hide labels or sub-regions of a visual the learner needs to recall. Anatomy diagrams, geographic maps, code snippets, anatomical illustrations, mathematical figures — any image where the recall target is a region rather than the whole.",
+    "whenNotToUse": "Don't use for text-only fill-in-the-blank (use Cloze). Don't use when the entire image is the answer (use Flashcard with the image on `back`). Don't use when regions overlap heavily — overlapping overlays interfere with click targets.",
+    "commonMistakes": [
+      "Passing pixel coordinates instead of fractions — `x: 168` instead of `x: 0.42`. The component warns in dev when any region's coords escape [0, 1]",
+      "Region rectangles smaller than ~20px square — too tiny to hit on touch devices. Aim for ≥40 × 40px at the rendered image size",
+      "Heavily overlapping regions — later array entries get higher z-index and catch the click; regions earlier in the array are visible but unclickable underneath. Order regions back-to-front (largest/outermost first, smallest/innermost last)",
+      "Mutating the regions array between renders — react re-runs reveal state, but the input identity matters for any downstream memoization. Memoize the regions array"
+    ],
+    "relatedComponents": [
+      "flashcard",
+      "cloze",
+      "quiz",
+      "deck",
+      "spaced-repetition"
+    ],
+    "accessibilityNotes": "Each overlay is a real <button> with type=\"button\", aria-pressed reflecting reveal state, and an aria-label that names the region's index, total, and label (when provided). The underlying <img> carries the user-supplied alt text. The decorative overlay container is aria-hidden so screen readers don't double-announce regions.",
+    "tokenBudget": 320
+  },
+  "tags": [
+    "artifact",
+    "study",
+    "image-occlusion",
+    "active-recall",
+    "visual"
+  ]
+}

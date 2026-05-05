@@ -118,3 +118,12 @@ export { matrixSchema } from "./artifacts/matrix/matrix.schema.js";
 export { timeAxisSchema } from "./artifacts/time-axis/time-axis.schema.js";
 export { ganttSchema } from "./artifacts/gantt/gantt.schema.js";
 export { sequenceSchema } from "./artifacts/sequence/sequence.schema.js";
+
+// Artifacts — study-family primitives
+export { flashcardSchema } from "./artifacts/flashcard/flashcard.schema.js";
+export { clozeSchema } from "./artifacts/cloze/cloze.schema.js";
+export { imageOcclusionSchema } from "./artifacts/image-occlusion/image-occlusion.schema.js";
+export { quizSchema } from "./artifacts/quiz/quiz.schema.js";
+export { compareTableSchema } from "./artifacts/compare-table/compare-table.schema.js";
+export { deckSchema } from "./artifacts/deck/deck.schema.js";
+export { spacedRepetitionSchema } from "./artifacts/spaced-repetition/spaced-repetition.schema.js";

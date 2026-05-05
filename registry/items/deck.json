@@ -1,0 +1,151 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "deck",
+  "displayName": "Deck",
+  "description": "Paged sequence of flashcards with optional shuffle, prev/next navigation, a progress bar, and a render slot for per-card SRS rating. Composes Flashcard internally.",
+  "category": "artifact",
+  "subcategory": "study",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "cards",
+      "type": "object",
+      "required": true,
+      "description": "Array of { id, front, back }. Display order matches array order unless `shuffle` is set."
+    },
+    {
+      "name": "shuffle",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Initial shuffle. Order recomputes only when `cards` identity changes — not on every prev/next, so the user never gets re-shuffled mid-session."
+    },
+    {
+      "name": "ratingSlot",
+      "type": "function",
+      "required": false,
+      "description": "Optional render function called with the current card; renders below the deck. Used to compose SpacedRepetition under each card."
+    },
+    {
+      "name": "onCardChange",
+      "type": "function",
+      "required": false,
+      "description": "Called with (index, card) whenever the active card changes (after prev / next)."
+    },
+    {
+      "name": "cardWidth",
+      "type": "number",
+      "required": false,
+      "default": 360,
+      "description": "Pixel width of the inner Flashcard."
+    },
+    {
+      "name": "cardHeight",
+      "type": "number",
+      "required": false,
+      "default": 240,
+      "description": "Pixel height of the inner Flashcard."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the outer container."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "ratingSlot",
+      "description": "Render-prop slot called with the current card; ideal for SpacedRepetition's onRate emission.",
+      "required": false
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/deck.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\nimport { Flashcard } from \"../flashcard/flashcard.js\";\n\n/**\n * Deck — a paged sequence of flashcards with optional shuffle, prev/next\n * navigation, a progress bar, and a slot for per-card SRS rating.\n * Composes [Flashcard] internally; consumers don't render Flashcard\n * themselves when they're inside a Deck.\n *\n * @example\n * <Deck\n *   cards={[\n *     { id: \"1\", front: \"Term 1\", back: \"Definition 1\" },\n *     { id: \"2\", front: \"Term 2\", back: \"Definition 2\" },\n *   ]}\n *   shuffle\n *   ratingSlot={(card) => (\n *     <SpacedRepetition cardId={card.id} onRate={(rating) => save(rating, card.id)} />\n *   )}\n * />\n */\nexport type DeckCard = {\n\tid: string;\n\tfront: React.ReactNode;\n\tback: React.ReactNode;\n};\n\nexport interface DeckProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\"> {\n\t/** Cards in order. */\n\tcards: DeckCard[];\n\t/** Initial shuffle. Default false (preserves order). */\n\tshuffle?: boolean;\n\t/** Optional render slot below the card; passed the current card. Useful for SpacedRepetition. */\n\tratingSlot?: (card: DeckCard) => React.ReactNode;\n\t/** Fired whenever the active card changes (after shuffle / prev / next). */\n\tonCardChange?: (index: number, card: DeckCard) => void;\n\t/** Pixel width of the inner Flashcard. Default 360. */\n\tcardWidth?: number;\n\t/** Pixel height of the inner Flashcard. Default 240. */\n\tcardHeight?: number;\n}\n\nfunction shuffleArray<T>(arr: T[]): T[] {\n\t// Fisher-Yates. Cheap and deterministic-shape (just non-deterministic\n\t// order on each call). Consumers wanting reproducibility wire their own\n\t// pre-shuffled array and pass `shuffle={false}`.\n\tconst out = arr.slice();\n\tfor (let i = out.length - 1; i > 0; i--) {\n\t\tconst j = Math.floor(Math.random() * (i + 1));\n\t\t[out[i], out[j]] = [out[j], out[i]];\n\t}\n\treturn out;\n}\n\nfunction Deck({\n\tcards,\n\tshuffle = false,\n\tratingSlot,\n\tonCardChange,\n\tcardWidth = 360,\n\tcardHeight = 240,\n\tclassName,\n\t...rest\n}: DeckProps) {\n\t// Order is recomputed only when `cards` identity OR `shuffle` flips —\n\t// not on every prev/next, so the user never gets re-shuffled mid-session.\n\tconst order = React.useMemo(() => (shuffle ? shuffleArray(cards) : cards.slice()), [cards, shuffle]);\n\tconst [index, setIndex] = React.useState(0);\n\tconst [flipped, setFlipped] = React.useState(false);\n\tconst onCardChangeRef = React.useRef(onCardChange);\n\tonCardChangeRef.current = onCardChange;\n\n\t// Reset to the first card when the order changes (cards swap, shuffle toggles).\n\tReact.useEffect(() => {\n\t\tsetIndex(0);\n\t\tsetFlipped(false);\n\t}, [order]);\n\n\tconst total = order.length;\n\tconst currentCard = order[index];\n\n\tconst goPrev = React.useCallback(() => {\n\t\tif (index === 0) return;\n\t\tconst next = index - 1;\n\t\tsetIndex(next);\n\t\tsetFlipped(false);\n\t\tconst card = order[next];\n\t\tif (card) onCardChangeRef.current?.(next, card);\n\t}, [index, order]);\n\n\tconst goNext = React.useCallback(() => {\n\t\tif (index >= total - 1) return;\n\t\tconst next = index + 1;\n\t\tsetIndex(next);\n\t\tsetFlipped(false);\n\t\tconst card = order[next];\n\t\tif (card) onCardChangeRef.current?.(next, card);\n\t}, [index, order, total]);\n\n\tif (total === 0) {\n\t\treturn (\n\t\t\t<div\n\t\t\t\t{...rest}\n\t\t\t\tdata-hex-deck\n\t\t\t\tdata-empty=\"true\"\n\t\t\t\tclassName={cn(\"rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground\", className)}\n\t\t\t>\n\t\t\t\tNo cards in this deck.\n\t\t\t</div>\n\t\t);\n\t}\n\n\tconst progressPercent = total > 0 ? ((index + 1) / total) * 100 : 0;\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tdata-hex-deck\n\t\t\tdata-index={index}\n\t\t\tdata-total={total}\n\t\t\tclassName={cn(\"inline-flex flex-col items-center gap-4\", className)}\n\t\t>\n\t\t\t{currentCard ? (\n\t\t\t\t<Flashcard\n\t\t\t\t\tkey={currentCard.id}\n\t\t\t\t\tfront={currentCard.front}\n\t\t\t\t\tback={currentCard.back}\n\t\t\t\t\tflipped={flipped}\n\t\t\t\t\tonFlipChange={setFlipped}\n\t\t\t\t\twidth={cardWidth}\n\t\t\t\t\theight={cardHeight}\n\t\t\t\t/>\n\t\t\t) : null}\n\t\t\t<div data-hex-deck-controls className=\"flex w-full items-center gap-3\" style={{ width: cardWidth }}>\n\t\t\t\t<button\n\t\t\t\t\ttype=\"button\"\n\t\t\t\t\tdata-hex-deck-prev\n\t\t\t\t\tdisabled={index === 0}\n\t\t\t\t\tonClick={goPrev}\n\t\t\t\t\taria-label={`Previous card. Currently ${index + 1} of ${total}.`}\n\t\t\t\t\tclassName=\"inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring\"\n\t\t\t\t>\n\t\t\t\t\tPrev\n\t\t\t\t</button>\n\t\t\t\t<div data-hex-deck-progress className=\"flex-1\" aria-hidden=\"true\">\n\t\t\t\t\t<div className=\"h-1.5 overflow-hidden rounded-full bg-muted\">\n\t\t\t\t\t\t<div\n\t\t\t\t\t\t\tclassName=\"h-full bg-primary transition-all\"\n\t\t\t\t\t\t\tstyle={{ width: `${progressPercent}%` }}\n\t\t\t\t\t\t/>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div className=\"mt-1 text-center text-xs text-muted-foreground\">\n\t\t\t\t\t\t{index + 1} / {total}\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t<button\n\t\t\t\t\ttype=\"button\"\n\t\t\t\t\tdata-hex-deck-next\n\t\t\t\t\tdisabled={index >= total - 1}\n\t\t\t\t\tonClick={goNext}\n\t\t\t\t\taria-label={`Next card. Currently ${index + 1} of ${total}.`}\n\t\t\t\t\tclassName=\"inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring\"\n\t\t\t\t>\n\t\t\t\t\tNext\n\t\t\t\t</button>\n\t\t\t</div>\n\t\t\t{ratingSlot && currentCard ? (\n\t\t\t\t<div data-hex-deck-rating-slot className=\"w-full\" style={{ width: cardWidth }}>\n\t\t\t\t\t{ratingSlot(currentCard)}\n\t\t\t\t</div>\n\t\t\t) : null}\n\t\t</div>\n\t);\n}\n\nexport { Deck };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex UI: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils",
+      "artifacts/flashcard/flashcard"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "background",
+    "muted",
+    "muted-foreground",
+    "primary",
+    "border",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Vocabulary deck with shuffle",
+      "description": "Three cards, shuffled on first render.",
+      "code": "<Deck\n  shuffle\n  cards={[\n    { id: \"1\", front: \"Hello\", back: \"Hola\" },\n    { id: \"2\", front: \"Thank you\", back: \"Gracias\" },\n    { id: \"3\", front: \"Goodbye\", back: \"Adiós\" },\n  ]}\n/>",
+      "composition": [
+        "deck",
+        "vocabulary"
+      ]
+    },
+    {
+      "title": "Deck composed with SpacedRepetition rating",
+      "description": "Each card surfaces an Anki-style rating row after flip.",
+      "code": "<Deck\n  cards={cards}\n  ratingSlot={(card) => (\n    <SpacedRepetition cardId={card.id} onRate={(r) => save(r, card.id)} />\n  )}\n/>",
+      "composition": [
+        "deck",
+        "srs"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Render an ordered (or shuffled) study session of N flashcards with prev/next navigation and progress feedback. Use when the user is grinding through a deck end-to-end. Pair with SpacedRepetition via `ratingSlot` for Anki-style review sessions.",
+    "whenNotToUse": "Don't use for a single card (just render Flashcard directly). Don't use when navigation is non-linear (skip-around, jump-to-id) — Deck is strictly sequential. Don't use for grading multiple-question quizzes (use Quiz directly + your own state). Don't use when shuffle should be reproducible across sessions — `Math.random()` is non-seeded; pre-shuffle in your data layer and pass `shuffle={false}`.",
+    "commonMistakes": [
+      "Toggling `shuffle` mid-session — the deck recomputes order and resets to card 1. Set `shuffle` once at mount or pre-shuffle in the consumer's data layer",
+      "Mutating the cards array in place — internal layout treats `cards` as immutable; spread or rebuild from source on each change",
+      "Card ids that aren't unique — React's reconciliation depends on the unique id key for Flashcard. Duplicate ids cause stale flip state to leak between cards",
+      "Putting interactive content inside `front` / `back` that's also clickable — those click events bubble to Flashcard's flip handler. Stop propagation in the inner click handler"
+    ],
+    "relatedComponents": [
+      "flashcard",
+      "spaced-repetition",
+      "cloze",
+      "quiz",
+      "progress"
+    ],
+    "accessibilityNotes": "Prev / Next buttons declare aria-label including current and total positions (\"Next card. Currently 3 of 12.\"). The progress bar is aria-hidden because the same information is in the visible '3 / 12' label and in the button labels. The inner Flashcard owns its own ARIA semantics; flipping it via Enter/Space works while the deck nav buttons remain accessible via tab order.",
+    "tokenBudget": 320
+  },
+  "tags": [
+    "artifact",
+    "study",
+    "deck",
+    "flashcard",
+    "session"
+  ]
+}

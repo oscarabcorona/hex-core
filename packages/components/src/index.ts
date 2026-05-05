@@ -394,6 +394,27 @@ export {
 	type SequenceMessage,
 	type SequenceProps,
 } from "./artifacts/sequence/sequence.js";
+// Artifacts — study-family primitives
+export { Flashcard, type FlashcardProps } from "./artifacts/flashcard/flashcard.js";
+export { Cloze, type ClozePart, type ClozeProps } from "./artifacts/cloze/cloze.js";
+export {
+	ImageOcclusion,
+	type ImageOcclusionProps,
+	type OcclusionRegion,
+} from "./artifacts/image-occlusion/image-occlusion.js";
+export { Quiz, type QuizOption, type QuizProps } from "./artifacts/quiz/quiz.js";
+export {
+	CompareTable,
+	type CompareAttribute,
+	type CompareSubject,
+	type CompareTableProps,
+} from "./artifacts/compare-table/compare-table.js";
+export { Deck, type DeckCard, type DeckProps } from "./artifacts/deck/deck.js";
+export {
+	SpacedRepetition,
+	type SpacedRepetitionProps,
+	type SrsRating,
+} from "./artifacts/spaced-repetition/spaced-repetition.js";
 
 // Schemas live in `@hex-core/components/schemas` (1.4.0+) so the runtime
 // barrel doesn't pull in the `@hex-core/registry` type at the consumer's
