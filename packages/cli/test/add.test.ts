@@ -3,6 +3,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { addComponents } from "../src/commands/add.js";
+import { _resetAliasCacheForTests } from "../src/lib/resolve-alias.js";
 
 let tmpDir: string;
 let originalCwd: string;
@@ -12,6 +13,7 @@ beforeEach(() => {
 	originalCwd = process.cwd();
 	tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hex-add-test-"));
 	process.chdir(tmpDir);
+	_resetAliasCacheForTests();
 	// Skeleton hex.config.json so add doesn't need to walk to the real one.
 	fs.writeFileSync(
 		path.join(tmpDir, "hex.config.json"),
@@ -24,6 +26,7 @@ afterEach(() => {
 	process.chdir(originalCwd);
 	fs.rmSync(tmpDir, { recursive: true, force: true });
 	logSpy.mockRestore();
+	_resetAliasCacheForTests();
 });
 
 /**
@@ -143,5 +146,155 @@ describe("addComponents — heavy peer aggregation", () => {
 		await addComponents(["button"], { yes: false, overwrite: false, deps: false, install: false });
 		const stdout = logSpy.mock.calls.flat().join("\n");
 		expect(stdout).toMatch(/Skip: components\/ui\/button\.tsx \(already exists, use --overwrite\)/);
+	});
+});
+
+/**
+ * Alias-aware write-path resolution. The @hex-core/cli@0.4.0 reviewer
+ * found components landing in `<cwd>/components/ui/` regardless of
+ * `tsconfig.json#paths` or `--src-dir` Next.js layout. These tests
+ * lock in the fix for v0.5.0.
+ */
+describe("addComponents — alias-aware write paths", () => {
+	it("writes to <cwd>/components/ui when no src/ layout exists (regression baseline)", async () => {
+		await addComponents(["button"], { yes: false, overwrite: false, deps: false, install: false });
+		expect(fs.existsSync(path.join(tmpDir, "components/ui/button.tsx"))).toBe(true);
+		expect(fs.existsSync(path.join(tmpDir, "src/components/ui/button.tsx"))).toBe(false);
+	});
+
+	it("writes to src/components/ui when src/ layout is detected (no tsconfig)", async () => {
+		fs.mkdirSync(path.join(tmpDir, "src/app"), { recursive: true });
+		await addComponents(["button"], { yes: false, overwrite: false, deps: false, install: false });
+		expect(fs.existsSync(path.join(tmpDir, "src/components/ui/button.tsx"))).toBe(true);
+		expect(fs.existsSync(path.join(tmpDir, "components/ui/button.tsx"))).toBe(false);
+		expect(fs.existsSync(path.join(tmpDir, "src/lib/utils.ts"))).toBe(true);
+	});
+
+	it("writes to src/components/ui when tsconfig maps `@/*` to ./src/*", async () => {
+		fs.writeFileSync(
+			path.join(tmpDir, "tsconfig.json"),
+			JSON.stringify({ compilerOptions: { paths: { "@/*": ["./src/*"] } } }),
+		);
+		await addComponents(["button"], { yes: false, overwrite: false, deps: false, install: false });
+		expect(fs.existsSync(path.join(tmpDir, "src/components/ui/button.tsx"))).toBe(true);
+	});
+
+	it("writes to app/components when tsconfig maps `@/*` to ./app/*", async () => {
+		fs.writeFileSync(
+			path.join(tmpDir, "tsconfig.json"),
+			JSON.stringify({ compilerOptions: { paths: { "@/*": ["./app/*"] } } }),
+		);
+		await addComponents(["button"], { yes: false, overwrite: false, deps: false, install: false });
+		expect(fs.existsSync(path.join(tmpDir, "app/components/ui/button.tsx"))).toBe(true);
+	});
+
+	it("logs the resolved path, not the raw registry path", async () => {
+		fs.mkdirSync(path.join(tmpDir, "src/app"), { recursive: true });
+		await addComponents(["button"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).toContain("src/components/ui/button.tsx");
+	});
+});
+
+/**
+ * --dry-run gates every disk-mutating call. Output mirrors a real run
+ * so users can preview exactly what would happen.
+ */
+describe("addComponents — --dry-run", () => {
+	it("does not write any files to disk", async () => {
+		await addComponents(["button"], {
+			yes: false,
+			overwrite: false,
+			deps: false,
+			install: false,
+			dryRun: true,
+		});
+		expect(fs.existsSync(path.join(tmpDir, "components/ui/button.tsx"))).toBe(false);
+		expect(fs.existsSync(path.join(tmpDir, "lib/utils.ts"))).toBe(false);
+	});
+
+	it("logs `Would write:` for each file that would be written", async () => {
+		await addComponents(["button"], {
+			yes: false,
+			overwrite: false,
+			deps: false,
+			install: false,
+			dryRun: true,
+		});
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).toMatch(/Would write:.*button\.tsx/);
+		expect(stdout).toContain("Dry-run summary:");
+	});
+});
+
+/**
+ * --from <manifest> reads a `hex.components.json`-style file and uses
+ * its `components` array as the install queue. Mixing positional args
+ * with --from is an error.
+ */
+describe("addComponents — --from manifest", () => {
+	it("reads the manifest's components array and installs them", async () => {
+		fs.writeFileSync(
+			path.join(tmpDir, "hex.components.json"),
+			JSON.stringify({ components: ["button", "input"] }),
+		);
+		await addComponents([], {
+			yes: false,
+			overwrite: false,
+			deps: false,
+			install: false,
+			from: "hex.components.json",
+		});
+		expect(fs.existsSync(path.join(tmpDir, "components/ui/button.tsx"))).toBe(true);
+		expect(fs.existsSync(path.join(tmpDir, "components/ui/input.tsx"))).toBe(true);
+	});
+
+	it("errors on a malformed manifest", async () => {
+		fs.writeFileSync(path.join(tmpDir, "bad.json"), JSON.stringify({ wrong: true }));
+		const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: string | number | null | undefined) => {
+			throw new Error(`process.exit(${code ?? 0})`);
+		}) as never);
+		const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+		try {
+			await expect(
+				addComponents([], {
+					yes: false,
+					overwrite: false,
+					deps: false,
+					install: false,
+					from: "bad.json",
+				}),
+			).rejects.toThrow(/exit/);
+			expect(errSpy.mock.calls.flat().join("\n")).toContain("malformed");
+		} finally {
+			exitSpy.mockRestore();
+			errSpy.mockRestore();
+		}
+	});
+
+	it("errors when both positional args and --from are provided", async () => {
+		fs.writeFileSync(
+			path.join(tmpDir, "hex.components.json"),
+			JSON.stringify({ components: ["button"] }),
+		);
+		const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: string | number | null | undefined) => {
+			throw new Error(`process.exit(${code ?? 0})`);
+		}) as never);
+		const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+		try {
+			await expect(
+				addComponents(["button"], {
+					yes: false,
+					overwrite: false,
+					deps: false,
+					install: false,
+					from: "hex.components.json",
+				}),
+			).rejects.toThrow(/exit/);
+			expect(errSpy.mock.calls.flat().join("\n")).toMatch(/either positional component names or --from/);
+		} finally {
+			exitSpy.mockRestore();
+			errSpy.mockRestore();
+		}
 	});
 });

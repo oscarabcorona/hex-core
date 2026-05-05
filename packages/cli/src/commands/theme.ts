@@ -1,10 +1,20 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import pc from "picocolors";
+import { parseStudioUrl } from "../lib/parse-studio-url.js";
+import { detectSrcLayout } from "../lib/resolve-alias.js";
 
 interface InitOptions {
 	name: string;
 	out: string;
 	format: "css" | "json" | "ts";
+	overwrite: boolean;
+}
+
+interface AddOptions {
+	slug: string;
+	from: string;
+	out?: string;
 	overwrite: boolean;
 }
 
@@ -59,6 +69,95 @@ export async function themeInit(options: InitOptions) {
 	console.log(`Tokens: ${Object.keys(theme.tokens.light).length} light, ${Object.keys(theme.tokens.dark).length} dark.`);
 	console.log(`Edit any token by changing its CSS variable value — every Hex Core component will reflow.`);
 	console.log(`Or run: hex theme edit --token <key>=<value>`);
+}
+
+/**
+ * Compose a custom theme from a Hex Core Studio URL and write it to the
+ * project as a TypeScript file. Resolves `--from`'s `base` against the
+ * preset catalog, applies the URL's per-token overrides via
+ * `extendTheme`, and serializes the result through `renderTheme(..., "ts")`.
+ *
+ * Output path defaults to `themes/<slug>.ts` (or `src/themes/<slug>.ts`
+ * when a `src/` layout is detected). No network call — everything Studio
+ * encodes in the URL is enough to rebuild the theme locally.
+ *
+ * @param options.slug - File name + theme `name` field for the new theme.
+ * @param options.from - The full Studio URL.
+ * @param options.out - Optional override for the output path.
+ * @param options.overwrite - Replace an existing file at the target path.
+ */
+export async function themeAdd(options: AddOptions) {
+	let parsed: ReturnType<typeof parseStudioUrl>;
+	try {
+		parsed = parseStudioUrl(options.from);
+	} catch (err) {
+		console.error((err as Error).message);
+		process.exit(1);
+	}
+
+	const tokens = await import("@hex-core/tokens");
+	const themesPkg = await import("@hex-core/themes");
+	const baseTheme = tokens.getTheme(parsed.base) ?? themesPkg.getPremiumTheme(parsed.base);
+	if (!baseTheme) {
+		const all = [
+			...new Set([...Object.keys(tokens.themes), ...Object.keys(themesPkg.premiumThemes)]),
+		].sort();
+		console.error(
+			`Unknown base preset "${parsed.base}". Run \`hex theme list\` to see all ${all.length} options.`,
+		);
+		process.exit(1);
+	}
+
+	for (const warning of parsed.warnings) {
+		console.warn(pc.yellow(`warn:`) + ` ${warning}`);
+	}
+
+	const customTheme = themesPkg.extendTheme(baseTheme, {
+		name: options.slug,
+		displayName: toDisplayName(options.slug),
+		tokens: {
+			light: parsed.light as never,
+			dark: parsed.dark as never,
+		},
+	});
+
+	const cwd = process.cwd();
+	const outPath = options.out
+		? path.resolve(cwd, options.out)
+		: path.join(cwd, detectSrcLayout(cwd) ? "src/themes" : "themes", `${options.slug}.ts`);
+
+	const { renderTheme } = await import("./theme-interactive.js");
+	const content = renderTheme(customTheme, "ts");
+
+	fs.mkdirSync(path.dirname(outPath), { recursive: true });
+	// Atomic write: `wx` fails if outPath exists, closing the TOCTOU race
+	// between an existsSync check and writeFileSync that CodeQL flagged.
+	const writeFlag = options.overwrite ? "w" : "wx";
+	try {
+		fs.writeFileSync(outPath, content, { encoding: "utf8", flag: writeFlag });
+	} catch (err) {
+		if ((err as NodeJS.ErrnoException).code === "EEXIST") {
+			console.error(`${path.relative(cwd, outPath)} already exists. Pass --overwrite to replace.`);
+			process.exit(1);
+		}
+		throw err;
+	}
+
+	const displayed = path.relative(cwd, outPath);
+	console.log(`Created ${pc.green(displayed)} from "${baseTheme.displayName}" preset.`);
+	console.log(
+		`Tokens overridden: ${Object.keys(parsed.light).length} light, ${Object.keys(parsed.dark).length} dark.`,
+	);
+	console.log(pc.dim(`Import it from your app entry, e.g.:`));
+	console.log(pc.dim(`  import { theme } from "./${displayed.replace(/\.ts$/, "")}";`));
+}
+
+function toDisplayName(slug: string): string {
+	return slug
+		.split(/[-_]/)
+		.filter(Boolean)
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join(" ");
 }
 
 /**

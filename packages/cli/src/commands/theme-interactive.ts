@@ -243,6 +243,14 @@ export function renderThemeAsTs(theme: Theme): string {
 			.map(([name, token]) => renderTokenLine(name, token))
 			.join("\n");
 
+	// Slugs are kebab-case ("midnight-custom") but TS identifiers can't
+	// contain hyphens. Convert to camelCase for the export name; the
+	// `name` field on the Theme object preserves the original slug.
+	const exportIdent = theme.name
+		.split(/[-_]/)
+		.map((part, i) => (i === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)))
+		.join("");
+
 	return `import type { Theme, TokenValue } from "@hex-core/registry";
 
 /**
@@ -253,7 +261,7 @@ const sharedTokens: Record<string, TokenValue> = {
 ${sharedInline}
 };
 
-export const ${theme.name}Theme: Theme = {
+export const ${exportIdent}Theme: Theme = {
 \tname: ${JSON.stringify(theme.name)},
 \tdisplayName: ${JSON.stringify(theme.displayName)},
 \tdescription: ${JSON.stringify(theme.description)},

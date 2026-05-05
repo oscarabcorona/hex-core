@@ -3,15 +3,18 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { type Check, runDoctor } from "../src/commands/doctor.js";
+import { _resetAliasCacheForTests } from "../src/lib/resolve-alias.js";
 
 let tmpDir: string;
 
 beforeEach(() => {
 	tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "hex-doctor-test-"));
+	_resetAliasCacheForTests();
 });
 
 afterEach(() => {
 	fs.rmSync(tmpDir, { recursive: true, force: true });
+	_resetAliasCacheForTests();
 });
 
 function findCheck(checks: Check[], pattern: RegExp): Check | undefined {
@@ -118,6 +121,46 @@ describe("doctor", () => {
 		);
 		const checks = await runDoctor(tmpDir);
 		expect(findCheck(checks, /@radix-ui\/react-dialog/)?.status).toBe("fail");
+	});
+
+	it("warns when components live at <cwd>/components but src/ layout exists", async () => {
+		writePkg({
+			dependencies: {
+				tailwindcss: "^4",
+				clsx: "^2",
+				"tailwind-merge": "^2",
+				"class-variance-authority": "^0.7",
+				"tw-animate-css": "^1",
+			},
+		});
+		writeFile("hex.config.json", JSON.stringify({ aliases: { lib: "@/lib", components: "@/components" } }));
+		writeFile("src/app/globals.css", `@import "tailwindcss";\n`);
+		// Components ended up in the wrong place — at <cwd>/components instead of src/components.
+		writeFile("components/ui/button.tsx", "export const x = 1;");
+
+		const checks = await runDoctor(tmpDir);
+		const drift = checks.find((c) => /aliases match/.test(c.name));
+		expect(drift?.status).toBe("warn");
+		expect(drift?.hint).toMatch(/mv components\/ui src\/components\/ui/);
+	});
+
+	it("passes the alias-consistency check when layout matches the resolved alias", async () => {
+		writePkg({
+			dependencies: {
+				tailwindcss: "^4",
+				clsx: "^2",
+				"tailwind-merge": "^2",
+				"class-variance-authority": "^0.7",
+				"tw-animate-css": "^1",
+			},
+		});
+		writeFile("hex.config.json", JSON.stringify({ aliases: { lib: "@/lib", components: "@/components" } }));
+		writeFile("src/app/globals.css", `@import "tailwindcss";\n`);
+		writeFile("src/components/ui/button.tsx", "export const x = 1;");
+
+		const checks = await runDoctor(tmpDir);
+		const drift = checks.find((c) => /aliases match/.test(c.name));
+		expect(drift?.status).toBe("pass");
 	});
 
 	it("detects radix deps from src/components/ui too (--src-dir layout)", async () => {

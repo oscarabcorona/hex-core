@@ -1,6 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import pc from "picocolors";
 import { detectTailwind } from "../lib/detect-tailwind.js";
+import { detectSrcLayout, resolveAlias } from "../lib/resolve-alias.js";
 import { type AliasConfig, DEFAULT_ALIASES } from "../lib/rewrite-imports.js";
 
 export type CheckStatus = "pass" | "fail" | "warn" | "info";
@@ -37,6 +39,7 @@ export async function runDoctor(cwd: string = process.cwd()): Promise<Check[]> {
 	const checks: Check[] = [];
 	checks.push(checkHexConfig(ctx));
 	checks.push(checkTailwind(ctx));
+	checks.push(checkAliasConsistency(ctx));
 	checks.push(checkLibUtils(ctx));
 	checks.push(checkGlobalsCss(ctx));
 	checks.push(...checkBaseDeps(ctx));
@@ -73,20 +76,24 @@ function buildContext(cwd: string): DoctorContext {
 		pkg,
 		aliases,
 		tailwindVersion: tailwind.version,
-		componentsDir: pickComponentsDir(cwd),
+		componentsDir: pickComponentsDir(cwd, aliases),
 	};
 }
 
 /**
- * Pick the consumer's `components/ui` directory based on which app layout
- * exists. Mirrors the priority used by `init`'s globals.css picker.
+ * Pick the consumer's `components/ui` directory by resolving the configured
+ * alias through `resolveAlias` (which honors tsconfig and src/ layout).
+ * Falls back to whichever conventional directory exists if the resolved
+ * alias points nowhere yet (first-run case).
  */
-function pickComponentsDir(cwd: string): string {
+function pickComponentsDir(cwd: string, aliases: AliasConfig): string {
+	const resolved = path.join(resolveAlias(cwd, aliases.components), "ui");
+	if (fs.existsSync(resolved)) return resolved;
 	const candidates = [path.join(cwd, "src", "components", "ui"), path.join(cwd, "components", "ui")];
 	for (const c of candidates) {
 		if (fs.existsSync(c)) return c;
 	}
-	return candidates[1];
+	return resolved;
 }
 
 function checkHexConfig(ctx: DoctorContext): Check {
@@ -113,7 +120,7 @@ function checkTailwind(ctx: DoctorContext): Check {
 }
 
 function checkLibUtils(ctx: DoctorContext): Check {
-	const libDir = aliasToProjectPath(ctx.cwd, ctx.aliases.lib);
+	const libDir = resolveAlias(ctx.cwd, ctx.aliases.lib);
 	const utilsPath = path.join(libDir, "utils.ts");
 	const utilsTsx = path.join(libDir, "utils.tsx");
 	const exists = fs.existsSync(utilsPath) || fs.existsSync(utilsTsx);
@@ -122,6 +129,49 @@ function checkLibUtils(ctx: DoctorContext): Check {
 		status: exists ? "pass" : "warn",
 		hint: exists ? undefined : "Add any component (e.g. `hex add button`) — utils.ts is bundled with every install.",
 	};
+}
+
+/**
+ * Detect drift between `hex.config.json#aliases` and the actual
+ * filesystem layout — the bug class the @hex-core/cli@0.4.0 reviewer
+ * hit on every Next.js `--src-dir` project. Three drift modes:
+ *
+ * 1. Components live under `<cwd>/components/ui` but the resolver
+ *    points at `<cwd>/src/components/ui` (or vice-versa). User has
+ *    files in the wrong place; suggest `mv`.
+ * 2. `aliases.components` is `@/...` but neither tsconfig nor src/
+ *    layout exists — user will get cwd-rooted writes that may
+ *    surprise them. Info-level (works, but explain).
+ * 3. Resolved alias points at a directory that doesn't exist yet
+ *    AND no `components/ui` exists at the fallback location either.
+ *    First-run state; info-level.
+ */
+function checkAliasConsistency(ctx: DoctorContext): Check {
+	const resolved = resolveAlias(ctx.cwd, ctx.aliases.components);
+	const resolvedUiDir = path.join(resolved, "ui");
+	const altUiDir = detectSrcLayout(ctx.cwd)
+		? path.join(ctx.cwd, "components", "ui")
+		: path.join(ctx.cwd, "src", "components", "ui");
+
+	if (fs.existsSync(altUiDir) && !fs.existsSync(resolvedUiDir)) {
+		const altRel = path.relative(ctx.cwd, altUiDir);
+		const targetRel = path.relative(ctx.cwd, resolvedUiDir);
+		return {
+			name: "aliases match filesystem layout",
+			status: "warn",
+			hint: `Components are at ${altRel} but the resolver expects ${targetRel}. Run: mv ${altRel} ${targetRel} (and the matching lib/ dir).`,
+		};
+	}
+
+	if (!fs.existsSync(resolvedUiDir)) {
+		return {
+			name: "aliases match filesystem layout",
+			status: "info",
+			hint: `Will write to ${path.relative(ctx.cwd, resolvedUiDir)} on first \`hex add\`.`,
+		};
+	}
+
+	return { name: "aliases match filesystem layout", status: "pass" };
 }
 
 function checkGlobalsCss(ctx: DoctorContext): Check {
@@ -221,27 +271,24 @@ function depPresent(pkg: PackageJson | undefined, name: string): boolean {
 	return Boolean(pkg.dependencies?.[name] ?? pkg.devDependencies?.[name]);
 }
 
-function aliasToProjectPath(cwd: string, alias: string): string {
-	// "@/lib" → resolve via tsconfig paths if present, else assume "@/" maps to "./" (default Next.js).
-	if (alias.startsWith("@/")) return path.join(cwd, alias.slice(2));
-	if (alias.startsWith("./")) return path.join(cwd, alias.slice(2));
-	if (alias.startsWith("/")) return alias;
-	return path.join(cwd, alias);
-}
-
 /**
  * Pretty-print the check list for terminal consumption. Returns the exit
  * code the CLI should propagate (0 if every check passes or warns; 1 if
  * any check fails).
  */
 export function reportDoctor(checks: Check[]): number {
-	const labels = { pass: "[ok]  ", fail: "[FAIL]", warn: "[warn]", info: "[info]" } as const;
+	const labels = {
+		pass: pc.green("[ok]  "),
+		fail: pc.red("[FAIL]"),
+		warn: pc.yellow("[warn]"),
+		info: pc.cyan("[info]"),
+	} as const;
 	let failed = 0;
-	console.log("Hex UI doctor");
+	console.log(pc.bold("Hex UI doctor"));
 	for (const check of checks) {
-		console.log(`  ${labels[check.status]} ${check.name}${check.hint ? `\n         ${check.hint}` : ""}`);
+		console.log(`  ${labels[check.status]} ${check.name}${check.hint ? `\n         ${pc.dim(check.hint)}` : ""}`);
 		if (check.status === "fail") failed++;
 	}
-	console.log(failed === 0 ? "\nAll checks passed." : `\n${failed} check${failed === 1 ? "" : "s"} failed.`);
+	console.log(failed === 0 ? `\n${pc.green("All checks passed.")}` : `\n${pc.red(`${failed} check${failed === 1 ? "" : "s"} failed.`)}`);
 	return failed > 0 ? 1 : 0;
 }
