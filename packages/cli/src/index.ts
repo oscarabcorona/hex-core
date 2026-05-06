@@ -217,6 +217,43 @@ theme
 	});
 
 program
+	.command("migrate")
+	.description("Convert an existing Next.js / Vite / CRA / CRACO + shadcn/ui project to Hex Core in-place")
+	.option("-y, --yes", "Skip the confirmation prompt before writing", false)
+	.option("--dry-run", "Plan + print every would-write/would-install line without touching disk", false)
+	.option("--no-backup", "Don't write *.shadcn.bak alongside replaced files (default: backup is on)")
+	.option("--no-install", "Don't auto-install peer dependencies — only print the install line")
+	.option("--from <dir>", "Treat <dir> as project root instead of cwd (monorepo escape hatch)")
+	.option("--theme <mode>", "globals.css strategy: preserve | replace", "preserve")
+	.option("--only <slugs>", "Comma-list of shadcn slugs to migrate (default: all detected)")
+	.action(
+		async (options: {
+			yes: boolean;
+			dryRun: boolean;
+			backup: boolean;
+			install: boolean;
+			from?: string;
+			theme: string;
+			only?: string;
+		}) => {
+			if (options.theme !== "preserve" && options.theme !== "replace") {
+				console.error(`Unknown --theme value: "${options.theme}". Use 'preserve' or 'replace'.`);
+				process.exit(1);
+			}
+			const { migrateProject } = await import("./commands/migrate.js");
+			await migrateProject({
+				yes: options.yes,
+				dryRun: options.dryRun,
+				backup: options.backup,
+				install: options.install,
+				from: options.from,
+				theme: options.theme,
+				only: options.only ? options.only.split(",").map((s) => s.trim()).filter(Boolean) : [],
+			});
+		},
+	);
+
+program
 	.command("doctor")
 	.description("Diagnose your Hex Core install and report what's missing")
 	.action(async () => {
