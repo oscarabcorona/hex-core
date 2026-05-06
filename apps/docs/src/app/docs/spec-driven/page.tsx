@@ -6,7 +6,7 @@ import { DocsPage } from "../../../components/docs-page";
 export const metadata = {
 	title: "Spec-driven",
 	description:
-		"Turn a brief or spec.md into a checklist-driven component build. Four MCP tools, six recipes, no runtime service.",
+		"Turn a brief or spec.md into a checklist-driven component build. Four MCP tools, seven recipes, no runtime service.",
 };
 
 const SECTIONS = [
@@ -46,6 +46,7 @@ const RECIPES = [
 	{ slug: "data-table-view", title: "Data table view", summary: "Search + paginated table + row actions." },
 	{ slug: "confirm-destructive", title: "Destructive confirm", summary: "Typed-name confirmation flow." },
 	{ slug: "command-palette", title: "Command palette", summary: "Cmd-K dialog with grouped actions." },
+	{ slug: "intro-sequence", title: "Intro sequence", summary: "Hero + CTA reveal via the motion timeline." },
 ];
 
 /** Spec-driven development — positioning page explaining recipes + MCP tools. */
@@ -54,7 +55,7 @@ export default function SpecDrivenPage() {
 		<DocsPage
 			pathname="/docs/spec-driven"
 			title="Spec-driven development"
-			description="Turn a brief or a spec.md section into a checklist-driven build. Four MCP tools, six recipes, no runtime service."
+			description="Turn a brief or a spec.md section into a checklist-driven build. Four MCP tools, seven recipes, no runtime service."
 			sections={SECTIONS}
 			editPath="apps/docs/src/app/docs/spec-driven/page.tsx"
 		>

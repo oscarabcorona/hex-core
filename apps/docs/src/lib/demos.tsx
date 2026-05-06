@@ -105,6 +105,14 @@ import { QuizDemo } from "../app/demos/quiz-demo";
 import { CompareTableDemo } from "../app/demos/compare-table-demo";
 import { DeckDemo } from "../app/demos/deck-demo";
 import { SpacedRepetitionDemo } from "../app/demos/spaced-repetition-demo";
+import { MotionDemo } from "../app/demos/motion-demo";
+import { PresenceDemo } from "../app/demos/presence-demo";
+import { UseAnimateDemo } from "../app/demos/use-animate-demo";
+import { UseScrollDemo } from "../app/demos/use-scroll-demo";
+import { MotionTimelineDemo } from "../app/demos/motion-timeline-demo";
+import { VariantsDemo } from "../app/demos/variants-demo";
+import { SceneDemo } from "../app/demos/scene-demo";
+import { ClipDemo } from "../app/demos/clip-demo";
 
 /**
  * Map of component slug → rendered demo component.
@@ -222,6 +230,14 @@ export const demos: Record<string, ComponentType> = {
 	"compare-table": CompareTableDemo,
 	deck: DeckDemo,
 	"spaced-repetition": SpacedRepetitionDemo,
+	motion: MotionDemo,
+	presence: PresenceDemo,
+	"use-animate": UseAnimateDemo,
+	"use-scroll": UseScrollDemo,
+	"motion-timeline": MotionTimelineDemo,
+	variants: VariantsDemo,
+	scene: SceneDemo,
+	clip: ClipDemo,
 };
 
 /**

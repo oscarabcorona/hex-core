@@ -1900,6 +1900,186 @@
         "lib/utils"
       ],
       "tokenBudget": 280
+    },
+    {
+      "name": "clip",
+      "displayName": "Clip",
+      "description": "A single animation segment inside a Timeline/Scene. Targets a CSS selector and animates from `from` → `to` over `duration`. Renders nothing.",
+      "category": "motion",
+      "subcategory": "timeline",
+      "tags": [
+        "motion",
+        "timeline",
+        "clip",
+        "composer"
+      ],
+      "internalDeps": [
+        "motion-timeline",
+        "scene"
+      ],
+      "tokenBudget": 220
+    },
+    {
+      "name": "motion-pro",
+      "displayName": "Motion Pro",
+      "description": "Optional adapter that wraps `motion@^11`'s React API. Use only when the zero-dep core can't cover the need (layout/FLIP, drag gestures, shared-element transitions). Imported from `@hex-core/motion/adapters/motion`.",
+      "category": "motion",
+      "subcategory": "adapters",
+      "tags": [
+        "motion",
+        "adapter",
+        "motion-pro",
+        "layout",
+        "gestures"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 250
+    },
+    {
+      "name": "motion-timeline",
+      "displayName": "Motion Timeline",
+      "description": "Deterministic scene composer for multi-step UI sequences. Imported from `@hex-core/motion/timeline`. NOT for video export — no FFmpeg, no MP4. Children are <Scene> and <Clip>. Slug is `motion-timeline` to avoid colliding with the existing chronological-event `timeline` component.",
+      "category": "motion",
+      "subcategory": "timeline",
+      "tags": [
+        "motion",
+        "timeline",
+        "composer",
+        "scene",
+        "deterministic"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 350
+    },
+    {
+      "name": "motion",
+      "displayName": "Motion",
+      "description": "Declarative React animation factory. Use Motion.div / Motion.span / Motion.button / etc. with `initial`, `animate`, `exit`, `transition`, `whileHover`, `whileTap` props. Powered by the WAAPI engine; no peer deps.",
+      "category": "motion",
+      "subcategory": "primitives",
+      "tags": [
+        "motion",
+        "animation",
+        "react",
+        "waapi",
+        "transition"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 350
+    },
+    {
+      "name": "presence",
+      "displayName": "Presence",
+      "description": "Defers child unmount until the child's `exit` animation completes. Tracks children by `key`; works with any Motion.* element.",
+      "category": "motion",
+      "subcategory": "primitives",
+      "tags": [
+        "motion",
+        "animation",
+        "presence",
+        "exit",
+        "unmount"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 250
+    },
+    {
+      "name": "scene",
+      "displayName": "Scene",
+      "description": "A time window inside a Timeline. Children's Clip `start` props are interpreted relative to this scene's `start`. Renders no DOM — purely defines the time context.",
+      "category": "motion",
+      "subcategory": "timeline",
+      "tags": [
+        "motion",
+        "timeline",
+        "scene",
+        "composer"
+      ],
+      "internalDeps": [
+        "motion-timeline"
+      ],
+      "tokenBudget": 180
+    },
+    {
+      "name": "track",
+      "displayName": "Track",
+      "description": "Optional grouping for parallel clips on a named track (e.g. `<Track name=\"opacity\">`). Tracks are a labeling/inspection convenience; they don't affect playback ordering.",
+      "category": "motion",
+      "subcategory": "timeline",
+      "tags": [
+        "motion",
+        "timeline",
+        "track",
+        "composer"
+      ],
+      "internalDeps": [
+        "motion-timeline"
+      ],
+      "tokenBudget": 150
+    },
+    {
+      "name": "transition",
+      "displayName": "Transition",
+      "description": "Token-aware easing/duration object. Accepts named easings (standard, emphasized, decelerate, accelerate, bounce) so motion stays consistent across primitives even when themes change.",
+      "category": "motion",
+      "subcategory": "tokens",
+      "tags": [
+        "motion",
+        "transition",
+        "easing",
+        "duration",
+        "tokens"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 180
+    },
+    {
+      "name": "use-animate",
+      "displayName": "useAnimate",
+      "description": "Imperative animate hook. Returns `[scope, animate]` — `scope` is a ref to attach to a wrapper, `animate(target, to, transition)` runs an animation and returns a controllable handle with a `finished` Promise.",
+      "category": "motion",
+      "subcategory": "hooks",
+      "tags": [
+        "motion",
+        "hook",
+        "imperative",
+        "useAnimate"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 220
+    },
+    {
+      "name": "use-scroll",
+      "displayName": "useScroll",
+      "description": "Subscribable motion values for window scroll position and progress. Returns `{ scrollY, scrollYProgress }`. Read with `useMotionValueRender(value)` or wire directly into a Motion animation.",
+      "category": "motion",
+      "subcategory": "hooks",
+      "tags": [
+        "motion",
+        "scroll",
+        "hook",
+        "useScroll",
+        "parallax"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 200
+    },
+    {
+      "name": "variants",
+      "displayName": "Variants",
+      "description": "Named-state map for orchestrating multi-state animations. Pass strings to Motion.* `initial`/`animate` to switch between states declaratively.",
+      "category": "motion",
+      "subcategory": "primitives",
+      "tags": [
+        "motion",
+        "variants",
+        "state-machine",
+        "animation"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 200
     }
   ]
 }

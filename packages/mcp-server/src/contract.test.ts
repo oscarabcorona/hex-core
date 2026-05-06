@@ -108,6 +108,51 @@ async function main(): Promise<void> {
 		}
 		pass("tools/call list_themes returns a JSON array");
 
+		// ─── 3a. tools/call search_components(category:"motion") surfaces every motion item ───
+		// Pins the new `motion` category to the protocol surface so a regression
+		// in the schema enum or registry index reaches CI before publish.
+		const MOTION_SLUGS = [
+			"clip",
+			"motion",
+			"motion-pro",
+			"motion-timeline",
+			"presence",
+			"scene",
+			"track",
+			"transition",
+			"use-animate",
+			"use-scroll",
+			"variants",
+		];
+		const motionResult = await client.callTool({
+			name: TOOL.SEARCH_COMPONENTS,
+			arguments: { category: "motion" },
+		});
+		const motionPayload = motionResult.content as Array<{ type: string; text?: string }>;
+		const motionText = motionPayload?.[0]?.text;
+		if (typeof motionText !== "string") {
+			fail("search_components(category:motion) response missing text content");
+		}
+		let motionParsed: unknown;
+		try {
+			motionParsed = JSON.parse(motionText);
+		} catch {
+			fail("search_components(category:motion) content[0].text is not JSON");
+		}
+		if (!Array.isArray(motionParsed)) {
+			fail(`search_components(category:motion) returned ${typeof motionParsed}, expected array`);
+		}
+		const gotSlugs = (motionParsed as Array<{ name: string }>).map((i) => i.name).sort();
+		const missingMotion = MOTION_SLUGS.filter((s) => !gotSlugs.includes(s));
+		if (missingMotion.length > 0) {
+			fail(
+				`search_components(category:motion) missing slugs: ${missingMotion.join(", ")} (got: ${gotSlugs.join(", ")})`,
+			);
+		}
+		pass(
+			`search_components(category:motion) returns all ${MOTION_SLUGS.length} motion items`,
+		);
+
 		// ─── 4. resources/list contains hex://catalog ───
 		const resourcesResult = await client.listResources();
 		const catalog = resourcesResult.resources.find(

@@ -76,10 +76,11 @@ export const CATEGORY_LABELS: Record<string, string> = {
 	component: "Components",
 	block: "Blocks",
 	hook: "Hooks",
+	motion: "Motion",
 };
 
 /** Preferred display order of categories across the docs surface. */
-export const CATEGORY_ORDER = ["primitive", "ai", "component", "block", "hook"] as const;
+export const CATEGORY_ORDER = ["primitive", "ai", "motion", "component", "block", "hook"] as const;
 
 /**
  * Group components by `category` (primitive, component, block, etc.). Return

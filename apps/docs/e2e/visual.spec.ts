@@ -27,6 +27,18 @@ interface RegistryIndex {
 const REGISTRY_PATH = path.resolve(__dirname, "../../../registry/registry.json");
 const registry = JSON.parse(fs.readFileSync(REGISTRY_PATH, "utf-8")) as RegistryIndex;
 
+/**
+ * Some registry items ship intentionally without a live demo:
+ *   - motion-pro   — peer-deps motion@^11; a demo would crash at import time
+ *   - transition   — pure type/token bag, nothing to render visually
+ *   - track        — label-only context provider, no DOM of its own
+ *
+ * The component page renders no `<ComponentPreview>` for these, so the
+ * screenshot target wouldn't exist. Skipping them here is intentional —
+ * the items still get an axe-scan via the a11y audit.
+ */
+const NO_VISUAL_DEMO = new Set(["motion-pro", "transition", "track"]);
+
 const themes = [
 	{ name: "light", html: "" },
 	{ name: "dark", html: "dark" },
@@ -47,6 +59,7 @@ const FREEZE_CSS = `
 `;
 
 for (const { name: slug, displayName } of registry.items) {
+	if (NO_VISUAL_DEMO.has(slug)) continue;
 	for (const theme of themes) {
 		test(`${slug} (${theme.name})`, async ({ page }) => {
 			// Set the theme class BEFORE the page renders to avoid a flash.

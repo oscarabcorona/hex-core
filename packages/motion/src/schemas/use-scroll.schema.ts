@@ -1,0 +1,40 @@
+import type { ComponentSchemaDefinition } from "@hex-core/registry";
+
+export const useScrollSchema: ComponentSchemaDefinition = {
+	name: "use-scroll",
+	displayName: "useScroll",
+	description:
+		"Subscribable motion values for window scroll position and progress. Returns `{ scrollY, scrollYProgress }`. Read with `useMotionValueRender(value)` or wire directly into a Motion animation.",
+	category: "motion",
+	subcategory: "hooks",
+	props: [],
+	variants: [],
+	slots: [],
+	dependencies: {
+		npm: ["@hex-core/motion"],
+		internal: [],
+		peer: ["react"],
+	},
+	tokensUsed: [],
+	examples: [
+		{
+			title: "Scroll progress bar",
+			description: "Drives a fixed-position bar that fills as the page scrolls.",
+			code: 'const { scrollYProgress } = useScroll();\nconst progress = useMotionValueRender(scrollYProgress);\nreturn <div style={{ width: `${progress * 100}%` }} />;',
+		},
+	],
+	ai: {
+		whenToUse:
+			"Use for scroll-driven UI: progress bars, sticky parallax, scroll-linked fades.",
+		whenNotToUse:
+			"Don't use for scroll spies on element visibility — use `useInView` instead.",
+		commonMistakes: [
+			"Reading `scrollY.get()` during render — the value is mutable; use `useMotionValueRender` for render-time access.",
+		],
+		relatedComponents: ["use-animate", "motion"],
+		accessibilityNotes:
+			"Avoid scroll-linked animations that aggressively change layout — they can trigger motion sickness; gate behind `prefers-reduced-motion`.",
+		tokenBudget: 200,
+	},
+	tags: ["motion", "scroll", "hook", "useScroll", "parallax"],
+};
