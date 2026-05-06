@@ -113,6 +113,22 @@ import { MotionTimelineDemo } from "../app/demos/motion-timeline-demo";
 import { VariantsDemo } from "../app/demos/variants-demo";
 import { SceneDemo } from "../app/demos/scene-demo";
 import { ClipDemo } from "../app/demos/clip-demo";
+// Phase 2 popular-animation catalog
+import { FadeInDemo } from "../app/demos/fade-in-demo";
+import { SlideInDemo } from "../app/demos/slide-in-demo";
+import { ScaleInDemo } from "../app/demos/scale-in-demo";
+import { BlurInDemo } from "../app/demos/blur-in-demo";
+import { PulseDemo } from "../app/demos/pulse-demo";
+import { BounceDemo } from "../app/demos/bounce-demo";
+import { ShimmerDemo } from "../app/demos/shimmer-demo";
+import { StaggerDemo } from "../app/demos/stagger-demo";
+import { RevealOnScrollDemo } from "../app/demos/reveal-on-scroll-demo";
+import { CountUpDemo } from "../app/demos/count-up-demo";
+import { TypewriterDemo } from "../app/demos/typewriter-demo";
+import { MarqueeDemo } from "../app/demos/marquee-demo";
+import { ShakeDemo } from "../app/demos/shake-demo";
+import { ParallaxDemo } from "../app/demos/parallax-demo";
+import { PageTransitionDemo } from "../app/demos/page-transition-demo";
 
 /**
  * Map of component slug → rendered demo component.
@@ -238,6 +254,21 @@ export const demos: Record<string, ComponentType> = {
 	variants: VariantsDemo,
 	scene: SceneDemo,
 	clip: ClipDemo,
+	"fade-in": FadeInDemo,
+	"slide-in": SlideInDemo,
+	"scale-in": ScaleInDemo,
+	"blur-in": BlurInDemo,
+	pulse: PulseDemo,
+	bounce: BounceDemo,
+	shimmer: ShimmerDemo,
+	stagger: StaggerDemo,
+	"reveal-on-scroll": RevealOnScrollDemo,
+	"count-up": CountUpDemo,
+	typewriter: TypewriterDemo,
+	marquee: MarqueeDemo,
+	shake: ShakeDemo,
+	parallax: ParallaxDemo,
+	"page-transition": PageTransitionDemo,
 };
 
 /**

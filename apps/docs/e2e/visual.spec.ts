@@ -74,6 +74,13 @@ for (const { name: slug, displayName } of registry.items) {
 				}
 			}, theme.html);
 
+			// Force reduced-motion BEFORE navigating so the @hex-core/motion
+			// engine collapses every WAAPI animation to its final state. CSS
+			// transitions/animations are also covered (FREEZE_CSS), but WAAPI
+			// reads `matchMedia("(prefers-reduced-motion: reduce)")` directly
+			// and that's what the emulateMedia call below sets. Result:
+			// motion demos render deterministically at their end frame.
+			await page.emulateMedia({ reducedMotion: "reduce" });
 			await page.goto(`/docs/components/${slug}`, { waitUntil: "networkidle" });
 			await page.addStyleTag({ content: FREEZE_CSS });
 			await page.evaluate((cls) => {

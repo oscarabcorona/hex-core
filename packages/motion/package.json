@@ -38,6 +38,10 @@
 		"./adapters/motion": {
 			"types": "./dist/adapters/motion/index.d.ts",
 			"import": "./dist/adapters/motion/index.js"
+		},
+		"./*": {
+			"types": "./dist/*.d.ts",
+			"import": "./dist/*.js"
 		}
 	},
 	"files": [
@@ -60,6 +64,7 @@
 		"@testing-library/react": "^16.0.0",
 		"@types/react": "^19.0.0",
 		"@types/react-dom": "^19.0.0",
+		"fast-glob": "^3.3.3",
 		"jsdom": "^25.0.0",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",

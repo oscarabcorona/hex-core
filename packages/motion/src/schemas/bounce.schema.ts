@@ -1,0 +1,48 @@
+import type { ComponentSchemaDefinition } from "@hex-core/registry";
+
+export const bounceSchema: ComponentSchemaDefinition = {
+	name: "bounce",
+	displayName: "Bounce",
+	description:
+		"Mount-time overshoot bounce. Scale 0.7 → (1 + intensity) → 1 with synced opacity fade. Different from <Pulse> (continuous) and <ScaleIn> (no overshoot) — Bounce is for items landing into a layout with personality.",
+	category: "motion",
+	subcategory: "wrapper",
+	props: [
+		{ name: "intensity", type: "number", required: false, default: 0.1, description: "Overshoot scale delta." },
+		{ name: "duration", type: "number", required: false, default: 600, description: "Total duration in ms." },
+		{ name: "delay", type: "number", required: false, default: 0, description: "Delay before bounce starts." },
+		{ name: "className", type: "string", required: false, description: "Element class name." },
+	],
+	variants: [],
+	slots: [
+		{ name: "children", description: "Content that bounces in.", required: true, acceptedTypes: ["ReactNode"] },
+	],
+	dependencies: {
+		npm: ["@hex-core/motion"],
+		internal: ["motion"],
+		peer: ["react"],
+	},
+	tokensUsed: ["duration-slow", "ease-emphasized"],
+	examples: [
+		{
+			title: "Toast bounce",
+			description: "Toast notifications bounce in for emphasis.",
+			code: "<Bounce intensity={0.15}>{toastContent}</Bounce>",
+		},
+	],
+	ai: {
+		whenToUse:
+			"Use for toasts, achievement unlocks, or any 'celebrated' moment in the UI. Reach for ScaleIn instead when the moment doesn't warrant the overshoot personality.",
+		whenNotToUse:
+			"Don't use for high-frequency events (typing feedback, scroll position) — the bounce gets exhausting fast.",
+		commonMistakes: [
+			"Intensity > 0.3 looks cartoonish; keep ≤ 0.2 for product UI.",
+			"Bouncing 4+ items at once with no stagger — they compete; pair with <Stagger>.",
+		],
+		relatedComponents: ["motion", "scale-in", "stagger"],
+		accessibilityNotes:
+			"Reduced-motion mode collapses to instant final-state.",
+		tokenBudget: 220,
+	},
+	tags: ["motion", "bounce", "wrapper", "entry", "overshoot"],
+};

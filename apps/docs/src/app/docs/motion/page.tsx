@@ -13,11 +13,30 @@ const SECTIONS = [
 	{ id: "philosophy", title: "Philosophy" },
 	{ id: "install", title: "Install" },
 	{ id: "decision-tree", title: "Decision tree" },
+	{ id: "catalog", title: "Catalog" },
 	{ id: "tokens", title: "Easing + duration tokens" },
 	{ id: "timeline", title: "The timeline composer" },
 	{ id: "data-attr", title: "Non-React opt-in" },
 	{ id: "adapter", title: "motion@^11 adapter" },
 	{ id: "what-this-is-not", title: "What this is NOT" },
+];
+
+const CATALOG: ReadonlyArray<readonly [string, string, string]> = [
+	["fade-in", "Mount fade", "Opacity 0 → 1, the smallest possible Motion.div invocation."],
+	["slide-in", "Direction-aware slide", "Drops/rises/glides into place from a chosen edge."],
+	["scale-in", "Modal pop", "Scale 0.95 → 1 with synced opacity. Use for modals, toasts, primary CTAs."],
+	["blur-in", "Cinematic focus-pull", "filter:blur(N) → blur(0) for hero headings."],
+	["pulse", "Continuous attention", "Infinite scale pulse. Notification dots, hint buttons."],
+	["bounce", "Overshoot landing", "Scale 0.7 → (1+intensity) → 1 with personality. Toasts, achievements."],
+	["shimmer", "Skeleton sweep", "Translucent gradient band travels across loading-state cards."],
+	["stagger", "Cascade orchestrator", "Injects per-child delays. Pairs with FadeIn / SlideIn / ScaleIn."],
+	["reveal-on-scroll", "Visibility-triggered reveal", "Fades + slides children up when they enter the viewport."],
+	["count-up", "Numeric tween", "Animate a number from `from` to `to`. Pluggable formatter."],
+	["typewriter", "Character-by-character text", "Clock-driven text reveal with optional blinking cursor."],
+	["marquee", "Infinite scroller", "Logo cloud, ticker, testimonial carousel. Pause-on-hover by default."],
+	["shake", "Error feedback", "Trigger-driven horizontal jitter for invalid input."],
+	["parallax", "Scroll-driven drift", "Translates child by scroll progress."],
+	["page-transition", "Router enter/exit", "Wraps the page tree in keyed Presence + Motion."],
 ];
 
 const INSTALL_CMD = `# CLI
@@ -171,6 +190,45 @@ export default function MotionPage() {
 					Imperative example using <InlineCode>useAnimate</InlineCode>:
 				</p>
 				<CodeBlock label="tsx" code={IMPERATIVE_SNIPPET} />
+			</DocSection>
+
+			<DocSection id="catalog" title="Catalog">
+				<p className="text-sm leading-6">
+					Phase 2 of <InlineCode>@hex-core/motion</InlineCode> ships 15
+					opinionated wrappers around the engine. Reach for these instead of
+					hand-writing the same <InlineCode>{`<Motion.div initial animate>`}</InlineCode>{" "}
+					boilerplate per project. Each item is also a registry slug — install
+					the runtime once via <InlineCode>npx @hex-core/cli add motion</InlineCode>,
+					then{" "}
+					<InlineCode>{`import { FadeIn } from "@hex-core/motion"`}</InlineCode>.
+				</p>
+				<div className="overflow-hidden rounded-md border">
+					<table className="w-full text-left text-sm">
+						<thead className="bg-muted text-xs font-medium">
+							<tr>
+								<th className="px-3 py-2">Slug</th>
+								<th className="px-3 py-2">Use case</th>
+								<th className="px-3 py-2">One-liner</th>
+							</tr>
+						</thead>
+						<tbody>
+							{CATALOG.map(([slug, title, hint]) => (
+								<tr key={slug} className="border-t">
+									<td className="px-3 py-2 align-top">
+										<Link
+											href={`/docs/components/${slug}`}
+											className="underline underline-offset-2 hover:text-foreground"
+										>
+											<InlineCode>{slug}</InlineCode>
+										</Link>
+									</td>
+									<td className="px-3 py-2 align-top text-foreground">{title}</td>
+									<td className="px-3 py-2 align-top text-muted-foreground">{hint}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
 			</DocSection>
 
 			<DocSection id="tokens" title="Easing + duration tokens">

@@ -1,0 +1,57 @@
+import type { ComponentSchemaDefinition } from "@hex-core/registry";
+
+export const blurInSchema: ComponentSchemaDefinition = {
+	name: "blur-in",
+	displayName: "BlurIn",
+	description:
+		"CSS filter:blur(N) → blur(0) wrapper. Adds a focus-pull aesthetic to entrance moments. Filter is the only non-compositor-friendly prop the engine animates by design — keep blur radii small (≤16px) to stay GPU-accelerated.",
+	category: "motion",
+	subcategory: "wrapper",
+	props: [
+		{ name: "from", type: "number", required: false, default: 8, description: "Initial blur in px." },
+		{ name: "fade", type: "boolean", required: false, default: true, description: "Co-fade with the blur." },
+		{ name: "duration", type: "number", required: false, description: "Duration in ms." },
+		{ name: "delay", type: "number", required: false, description: "Delay in ms." },
+		{
+			name: "easing",
+			type: "enum",
+			required: false,
+			description: "Named easing or CSS easing string.",
+			enumValues: ["linear", "standard", "emphasized", "decelerate", "accelerate", "bounce"],
+		},
+		{ name: "as", type: "string", required: false, default: "div", description: "Host tag." },
+		{ name: "className", type: "string", required: false, description: "Element class name." },
+	],
+	variants: [],
+	slots: [
+		{ name: "children", description: "Content that focus-pulls in.", required: true, acceptedTypes: ["ReactNode"] },
+	],
+	dependencies: {
+		npm: ["@hex-core/motion"],
+		internal: ["motion"],
+		peer: ["react"],
+	},
+	tokensUsed: ["duration-normal"],
+	examples: [
+		{
+			title: "Hero focus-pull",
+			description: "Heading sharpens into focus on mount.",
+			code: '<BlurIn from={6} duration={400}><h1>Spec-driven UI</h1></BlurIn>',
+		},
+	],
+	ai: {
+		whenToUse:
+			"Use for hero headings or feature reveals where you want a cinematic focus-pull. Distinct from FadeIn — adds depth without heavy motion.",
+		whenNotToUse:
+			"Don't use on small text (<14px) — the blur is illegible mid-animation. Don't use on lists; cumulative blur is GPU-heavy.",
+		commonMistakes: [
+			"Blur radii > 16px cause noticeable jank on lower-end GPUs.",
+			"Stacking BlurIn over FadeIn is redundant; keep `fade` enabled instead.",
+		],
+		relatedComponents: ["motion", "fade-in", "scale-in"],
+		accessibilityNotes:
+			"Reduced-motion collapses the blur, ensuring text is immediately legible.",
+		tokenBudget: 200,
+	},
+	tags: ["motion", "blur", "wrapper", "entry", "filter"],
+};

@@ -1,0 +1,56 @@
+import type { ComponentSchemaDefinition } from "@hex-core/registry";
+
+export const marqueeSchema: ComponentSchemaDefinition = {
+	name: "marquee",
+	displayName: "Marquee",
+	description:
+		"Infinite-scrolling track with seamless wrap. Duplicates children once; translates the inner track so the seam stays invisible. Pauses on hover by default so users can read.",
+	category: "motion",
+	subcategory: "wrapper",
+	props: [
+		{
+			name: "direction",
+			type: "enum",
+			required: false,
+			default: "left",
+			description: "Travel direction.",
+			enumValues: ["left", "right", "up", "down"],
+		},
+		{ name: "speed", type: "number", required: false, default: 20000, description: "Duration of one full cycle in ms." },
+		{ name: "pauseOnHover", type: "boolean", required: false, default: true, description: "Pause scrolling on pointer hover." },
+		{ name: "gap", type: "number", required: false, default: 0, description: "Pixels between duplicated track halves." },
+		{ name: "className", type: "string", required: false, description: "Outer container class name." },
+	],
+	variants: [],
+	slots: [
+		{ name: "children", description: "Items rendered in the scrolling track.", required: true, acceptedTypes: ["ReactNode"] },
+	],
+	dependencies: {
+		npm: ["@hex-core/motion"],
+		internal: ["motion"],
+		peer: ["react"],
+	},
+	tokensUsed: [],
+	examples: [
+		{
+			title: "Logo cloud",
+			description: "Infinite logo strip with hover pause.",
+			code: "<Marquee speed={25000} gap={32}>{logos}</Marquee>",
+		},
+	],
+	ai: {
+		whenToUse:
+			"Use for logo clouds, ticker bars, testimonial carousels — content that benefits from continuous motion and forgiving width constraints.",
+		whenNotToUse:
+			"Don't use for primary content (headings, actions) — users with vestibular sensitivities can't disable continuous motion easily.",
+		commonMistakes: [
+			"Forgetting to set a fixed parent width — the marquee wraps inside its container instead of overflowing.",
+			"Speed < 5000ms reads as flickery; keep ≥ 10000 for readable cycles.",
+		],
+		relatedComponents: ["motion"],
+		accessibilityNotes:
+			"Animation suppressed under prefers-reduced-motion (track stops, content remains visible). Pause-on-hover gives readers a chance to scan; consider adding pause-on-focus for keyboard users.",
+		tokenBudget: 260,
+	},
+	tags: ["motion", "marquee", "wrapper", "loop", "scroll"],
+};

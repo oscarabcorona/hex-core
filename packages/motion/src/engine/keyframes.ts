@@ -14,6 +14,14 @@ export interface AnimateProps {
 	opacity?: number;
 	backgroundColor?: string;
 	color?: string;
+	/**
+	 * CSS `filter` expression — `"blur(8px)"`, `"grayscale(0.5)"`,
+	 * `"brightness(1.2)"`, etc. Animated as a raw string keyframe; consumers
+	 * compose multi-filter chains by passing the full expression. Used by
+	 * `<BlurIn>` and similar wrappers; stays opt-in so the default Motion
+	 * composition path remains transform/opacity-only.
+	 */
+	filter?: string;
 }
 
 export interface Transition {
@@ -53,6 +61,7 @@ function frameFromProps(props: AnimateProps): Keyframe {
 	if (props.opacity !== undefined) frame.opacity = props.opacity;
 	if (props.backgroundColor !== undefined) frame.backgroundColor = props.backgroundColor;
 	if (props.color !== undefined) frame.color = props.color;
+	if (props.filter !== undefined) frame.filter = props.filter;
 	return frame;
 }
 

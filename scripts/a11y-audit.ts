@@ -218,7 +218,12 @@ async function scanPage(
 	// emulating prefers-color-scheme is the canonical way to flip the docs
 	// site into the requested palette. Setting <html class="dark"> directly
 	// races with next-themes' MutationObserver and gets reverted.
-	await page.emulateMedia({ colorScheme: mode });
+	//
+	// Also force reduced-motion: this neutralizes WAAPI animations on motion
+	// demos (FadeIn / SlideIn / ScaleIn / BlurIn / Stagger) so axe-core
+	// samples the *final* rendered state instead of catching mid-animation
+	// opacity values that fail color-contrast.
+	await page.emulateMedia({ colorScheme: mode, reducedMotion: "reduce" });
 	await page.goto(url, { waitUntil: "domcontentloaded", timeout: PAGE_TIMEOUT_MS });
 	// Wait for hydration signals AND for next-themes to apply the dark class.
 	// Some registry items legitimately have no live demo (motion-pro adapter,

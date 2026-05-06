@@ -1,0 +1,93 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "shimmer",
+  "displayName": "Shimmer",
+  "description": "Skeleton loader gradient sweep. A translucent highlight band travels left to right across the host. Pair with <Skeleton> + bg-muted for the standard loading affordance.",
+  "category": "motion",
+  "subcategory": "wrapper",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "default": 30,
+      "description": "Highlight band width as a % of host."
+    },
+    {
+      "name": "duration",
+      "type": "number",
+      "required": false,
+      "default": 1800,
+      "description": "Single sweep duration in ms."
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "required": false,
+      "description": "CSS color for the highlight band."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Element class name."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "children",
+      "description": "Optional content rendered behind the sweep.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [],
+  "dependencies": {
+    "npm": [
+      "@hex-core/motion"
+    ],
+    "internal": [
+      "motion"
+    ],
+    "peer": [
+      "react"
+    ]
+  },
+  "tokensUsed": [
+    "duration-slow"
+  ],
+  "examples": [
+    {
+      "title": "Loading card",
+      "description": "Skeleton card with shimmer sweep.",
+      "code": "<Shimmer className=\"h-24 rounded-md bg-muted\" />"
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use for loading-state cards, table rows, image placeholders. Composes naturally with <Skeleton>.",
+    "whenNotToUse": "Don't use without a backing color — the gradient blends into white space and shows nothing.",
+    "commonMistakes": [
+      "Forgetting to set a background (bg-muted, bg-card) on the host — the highlight is invisible.",
+      "Using vivid `color` values — the band should be subtle white/translucent for both themes."
+    ],
+    "relatedComponents": [
+      "skeleton",
+      "loading"
+    ],
+    "accessibilityNotes": "Animation suppressed under prefers-reduced-motion. Pair with role='status' + aria-busy='true' on the parent so screen readers announce loading.",
+    "tokenBudget": 200
+  },
+  "tags": [
+    "motion",
+    "shimmer",
+    "wrapper",
+    "loop",
+    "loading",
+    "skeleton"
+  ]
+}

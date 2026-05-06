@@ -1,0 +1,259 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "landing-hero",
+  "title": "Landing hero",
+  "summary": "Marketing-page hero that composes the Phase 2 motion catalog: FadeIn headline + SlideIn subhead + ScaleIn primary CTA + CountUp stat tiles. Demonstrates how the wrappers compose with the existing layout primitives without writing any timeline JSX.",
+  "tags": [
+    "motion",
+    "hero",
+    "landing",
+    "marketing",
+    "stats",
+    "intro"
+  ],
+  "brief": "Build a marketing landing-page hero. The headline should fade in, the subhead should slide up after it, the primary CTA should scale in last, and three numeric stat tiles should count up below. Use named easings; respect prefers-reduced-motion.",
+  "steps": [
+    {
+      "component": "container",
+      "reason": "Bound the hero width and center it on the viewport",
+      "role": "supporting"
+    },
+    {
+      "component": "stack",
+      "reason": "Vertical rhythm between headline / subhead / CTA",
+      "role": "supporting"
+    },
+    {
+      "component": "button",
+      "reason": "Primary CTA target",
+      "role": "primary"
+    },
+    {
+      "component": "fade-in",
+      "reason": "Headline reveal — opacity 0 → 1",
+      "role": "primary"
+    },
+    {
+      "component": "slide-in",
+      "reason": "Subhead rises into place after the headline",
+      "role": "primary"
+    },
+    {
+      "component": "scale-in",
+      "reason": "CTA lands with a deliberate pop",
+      "role": "primary"
+    },
+    {
+      "component": "count-up",
+      "reason": "Stat tiles tween from 0 to their target",
+      "role": "supporting"
+    },
+    {
+      "component": "stagger",
+      "reason": "Cascade the three stat tiles for orchestrated impact",
+      "role": "optional"
+    }
+  ],
+  "checklist": [
+    {
+      "id": "prefers-reduced-motion",
+      "check": "Do NOT pass `MotionConfig reducedMotion=\"never\"` in production — every wrapper honors the OS setting by default and that's the whole point.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "stagger-fade-not-other",
+      "check": "<Stagger> injects a `delay` prop. Wrap fade-in/slide-in/scale-in/count-up children only — wrappers without a delay prop pass through unchanged.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "cta-easing",
+      "check": "The CTA's <ScaleIn> uses `easing=\"emphasized\"` so it lands with attention, not the standard linear-ish curve.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "count-up-format",
+      "check": "For non-integer stats (1.2M, 99.9%), pass a `format` callback that's memoized with useMemo — inline arrow functions cause the tween to restart every render.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "duration-budget",
+      "check": "Hero should reach interactive state by ~1200ms. Cap individual wrapper durations at 400ms; cascade delays at ≤180ms.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "container-wrapping-a-container-in-another-container-and-ge",
+      "check": "[Container] Avoid: Wrapping a `Container` in another `Container` and getting an unexpectedly narrow column",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "container-using-padding-none-and-forgetting-that-children-",
+      "check": "[Container] Avoid: Using `padding=\"none\"` and forgetting that children still need their own gutter — the parent contributes nothing",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "container-treating-lg-as-the-largest-size-xl-66rem-and-ful",
+      "check": "[Container] Avoid: Treating `lg` as the largest size — `xl` (66rem) and `full` are bigger",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "container-a11y",
+      "check": "[Container] A11y: Container is presentational. Wrap in a semantic landmark (`<main>`, `<section>`, `<article>`) when the page structure needs it; Container itself renders a plain `<div>`.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "stack-setting-gap-md-then-adding-mt-space-y-on-individ",
+      "check": "[Stack] Avoid: Setting `gap=\"md\"` then adding `mt-*` / `space-y-*` on individual children — pick one spacing system",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "stack-using-align-center-and-wondering-why-children-ex",
+      "check": "[Stack] Avoid: Using `align=\"center\"` and wondering why children expand to full width — that's the `stretch` default for cross-axis",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "stack-nesting-stack-inside-stack-with-the-same-gap-whe",
+      "check": "[Stack] Avoid: Nesting Stack inside Stack with the same gap when one Stack with two children would suffice",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "stack-a11y",
+      "check": "[Stack] A11y: Stack is presentational. Wrap stacked navigation links in a `<nav>`, stacked form fields in a `<form>`, etc. — Stack does not contribute landmark semantics.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "button-nesting-interactive-elements-inside-aschild-butt",
+      "check": "[Button] Avoid: Nesting interactive elements inside asChild button",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-with-plain-onclick-for-navigation-i",
+      "check": "[Button] Avoid: Using <Button> with plain onClick for navigation instead of <Button asChild><a href=...></a></Button> — breaks middle-click, cmd-click, and right-click → 'open in new tab', and skips the browser history entry",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-variant-destructive-for-recoverable",
+      "check": "[Button] Avoid: Using <Button variant='destructive'> for recoverable actions like 'Reset filters' — reserve destructive for delete/archive/leave; use 'secondary' or 'ghost' for resets",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-size-icon-without-an-aria-label-scr",
+      "check": "[Button] Avoid: Using <Button size='icon'> without an aria-label — screen readers have nothing to announce; always pair icon-only buttons with aria-label or visible text",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-a11y",
+      "check": "[Button] A11y: Automatically handles focus ring, disabled state, and aria attributes. Icon-only buttons MUST have aria-label. Loading state automatically sets disabled.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "fade-in-wrapping-a-static-element-that-never-re-renders-",
+      "check": "[FadeIn] Avoid: Wrapping a static element that never re-renders — adds JS for no behavior.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "fade-in-stacking-fadein-over-a-parent-that-already-fades",
+      "check": "[FadeIn] Avoid: Stacking <FadeIn> over a parent that already fades — animations compound and look mushy.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "fade-in-a11y",
+      "check": "[FadeIn] A11y: Honors prefers-reduced-motion via the engine; collapses to instant render when reduce is active.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "slide-in-distance-100px-feels-heavy-on-mobile-keep-32-for",
+      "check": "[SlideIn] Avoid: Distance > 100px feels heavy on mobile; keep ≤ 32 for default subtlety.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "slide-in-disabling-fade-while-sliding-in-opacity-aware-te",
+      "check": "[SlideIn] Avoid: Disabling fade while sliding in opacity-aware text can look abrupt — leave fade on unless choreographed.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "slide-in-a11y",
+      "check": "[SlideIn] A11y: Reduced-motion collapses the slide to instant final-state, preserving content visibility for vestibular-sensitive users.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "scale-in-disabling-fade-with-from-0-95-can-look-like-a-gl",
+      "check": "[ScaleIn] Avoid: Disabling fade with `from` < 0.95 can look like a glitch — keep fade on for from < 0.95.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "scale-in-pairing-with-bounce-double-animates-the-scale-di",
+      "check": "[ScaleIn] Avoid: Pairing with <Bounce> double-animates the scale dimension.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "scale-in-a11y",
+      "check": "[ScaleIn] A11y: Reduced-motion collapses to instant final-state.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "count-up-forgetting-to-memoize-the-format-callback-the-tw",
+      "check": "[CountUp] Avoid: Forgetting to memoize the `format` callback — the tween restarts every render.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "count-up-setting-duration-2000ms-feels-artificial-users-t",
+      "check": "[CountUp] Avoid: Setting duration > 2000ms — feels artificial; users tune out.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "count-up-a11y",
+      "check": "[CountUp] A11y: Reduced-motion snaps to the final value immediately. Wrap in role='status' aria-live='polite' if the value updates dynamically.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "stagger-wrapping-a-non-motion-element-a-plain-div-the-ca",
+      "check": "[Stagger] Avoid: Wrapping a non-motion element (a plain <div>) — the cascade no-ops without warning.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "stagger-setting-gap-30ms-the-cascade-reads-as-a-single-f",
+      "check": "[Stagger] Avoid: Setting gap < 30ms — the cascade reads as a single fade rather than an ordered reveal.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "stagger-a11y",
+      "check": "[Stagger] A11y: Inherits children's reduced-motion behavior. Cascade collapses to instant when reduce is active.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "example": "import { Container } from \"@/components/ui/container\";\nimport { Stack } from \"@/components/ui/stack\";\nimport { Button } from \"@/components/ui/button\";\nimport { FadeIn, SlideIn, ScaleIn, CountUp, Stagger } from \"@hex-core/motion\";\n\nexport function LandingHero() {\n  return (\n    <Container>\n      <Stack gap=\"lg\">\n        <FadeIn duration={350}>\n          <h1 className=\"text-5xl font-bold tracking-tight\">Ship spec-driven UI.</h1>\n        </FadeIn>\n        <SlideIn direction=\"bottom\" delay={150} duration={400}>\n          <p className=\"text-lg text-muted-foreground\">\n            From brief to component checklist over MCP.\n          </p>\n        </SlideIn>\n        <ScaleIn delay={350} duration={400} easing=\"emphasized\">\n          <Button size=\"lg\">Get started</Button>\n        </ScaleIn>\n        <Stagger gap={150} initialDelay={500} className=\"grid grid-cols-3 gap-6\">\n          <FadeIn duration={300}>\n            <Stat label=\"Components\"><CountUp to={117} duration={1200} /></Stat>\n          </FadeIn>\n          <FadeIn duration={300}>\n            <Stat label=\"Motion items\"><CountUp to={26} duration={1100} /></Stat>\n          </FadeIn>\n          <FadeIn duration={300}>\n            <Stat label=\"Skills\"><CountUp to={9} duration={1000} /></Stat>\n          </FadeIn>\n        </Stagger>\n      </Stack>\n    </Container>\n  );\n}\n\nfunction Stat({ label, children }: { label: string; children: React.ReactNode }) {\n  return (\n    <div className=\"rounded-md border bg-card p-4 text-center\">\n      <div className=\"text-3xl font-bold\">{children}</div>\n      <div className=\"mt-1 text-xs text-muted-foreground\">{label}</div>\n    </div>\n  );\n}",
+  "tokenBudget": 2400
+}

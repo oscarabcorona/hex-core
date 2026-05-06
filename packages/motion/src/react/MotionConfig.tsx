@@ -34,6 +34,17 @@ export interface MotionConfigProps {
 	children?: ReactNode;
 }
 
+/**
+ * Stable key for a `Transition` object. Memoized children depend on the
+ * fields, not the reference, so a parent that constructs `{ duration: 200 }`
+ * inline on every render doesn't bust descendant `useEffect`s. Cheap;
+ * called once per MotionConfig render.
+ */
+function transitionKey(t: Transition | undefined): string {
+	if (!t) return "";
+	return `${t.duration ?? ""}|${t.delay ?? ""}|${t.easing ?? ""}|${t.iterations ?? ""}|${t.fill ?? ""}`;
+}
+
 export function MotionConfig({
 	clock,
 	driver,
@@ -42,6 +53,12 @@ export function MotionConfig({
 	children,
 }: MotionConfigProps) {
 	const parent = useContext(MotionContext);
+	const parentDefaultsKey = transitionKey(parent.defaults);
+	const ownDefaultsKey = transitionKey(defaults);
+	// Memoize on the structural-key string of `defaults` (and the parent's)
+	// rather than the object reference. Inline `defaults={{ duration: 200 }}`
+	// in a parent render no longer churns the context value, which in turn
+	// keeps `useTween` / `useEffect` consumers stable across renders.
 	const value = useMemo<MotionContextValue>(
 		() => ({
 			clock: clock ?? parent.clock,
@@ -49,7 +66,17 @@ export function MotionConfig({
 			reducedMotion: reducedMotion ?? parent.reducedMotion,
 			defaults: { ...parent.defaults, ...defaults },
 		}),
-		[clock, driver, reducedMotion, defaults, parent],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[
+			clock,
+			driver,
+			reducedMotion,
+			ownDefaultsKey,
+			parent.clock,
+			parent.driver,
+			parent.reducedMotion,
+			parentDefaultsKey,
+		],
 	);
 	return <MotionContext.Provider value={value}>{children}</MotionContext.Provider>;
 }
