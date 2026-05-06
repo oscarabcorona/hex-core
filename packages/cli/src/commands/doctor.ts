@@ -55,6 +55,9 @@ export async function runDoctor(cwd: string = process.cwd()): Promise<Check[]> {
  * `<components>/ui/toast.tsx` — survive `hex migrate` only when the user
  * skipped them or aborted mid-flight. Surfaces as `warn` so re-running
  * `hex migrate` is the obvious next step.
+ * @param ctx - Doctor context (carries cwd + resolved components dir).
+ * @returns A `pass` check when no artifacts are found, otherwise a `warn`
+ *          listing what's left.
  */
 function checkShadcnArtifacts(ctx: DoctorContext): Check {
 	const componentsJsonAtRoot = fs.existsSync(path.join(ctx.cwd, "components.json"));

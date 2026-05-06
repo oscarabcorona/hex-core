@@ -26,6 +26,11 @@ interface PackageJson {
 	devDependencies?: Record<string, string>;
 }
 
+/**
+ * Read + parse `package.json` at `cwd`. Returns null on missing or invalid file.
+ * @param cwd - Project root.
+ * @returns Parsed package.json or null on any read/parse error.
+ */
 function readPackageJson(cwd: string): PackageJson | null {
 	const file = path.join(cwd, "package.json");
 	if (!fs.existsSync(file)) return null;
@@ -36,10 +41,24 @@ function readPackageJson(cwd: string): PackageJson | null {
 	}
 }
 
+/**
+ * Test whether a dep is declared in either `dependencies` or `devDependencies`.
+ * @param pkg - Parsed package.json.
+ * @param name - Exact package name to look up.
+ * @returns True when the spec is present in either bucket.
+ */
 function hasDep(pkg: PackageJson, name: string): boolean {
 	return Boolean(pkg.dependencies?.[name] ?? pkg.devDependencies?.[name]);
 }
 
+/**
+ * Filesystem existence check rooted at `cwd`. Variadic segments are joined
+ * before the existsSync call so callers can write `exists(cwd, "src", "app")`
+ * without manually composing the path.
+ * @param cwd - Project root.
+ * @param segments - Path segments joined onto `cwd`.
+ * @returns True when the resolved path exists on disk.
+ */
 function exists(cwd: string, ...segments: string[]): boolean {
 	return fs.existsSync(path.join(cwd, ...segments));
 }

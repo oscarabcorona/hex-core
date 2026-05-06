@@ -47,6 +47,11 @@ interface PackageJson {
 	devDependencies?: Record<string, string>;
 }
 
+/**
+ * Read + parse `package.json` at `cwd`. Returns null on missing or invalid file.
+ * @param cwd - Project root.
+ * @returns Parsed package.json or null on any read/parse error.
+ */
 function readPackageJson(cwd: string): PackageJson | null {
 	const file = path.join(cwd, "package.json");
 	if (!fs.existsSync(file)) return null;
@@ -57,8 +62,13 @@ function readPackageJson(cwd: string): PackageJson | null {
 	}
 }
 
-/** Pick the components/ui directory the consumer's shadcn install would
- * have written to, given the framework detection. Honors `srcDir`. */
+/**
+ * Pick the components/ui directory the consumer's shadcn install would
+ * have written to, given the framework detection. Honors `srcDir`.
+ * @param cwd - Project root.
+ * @param framework - Framework detection (drives src/ vs no-src candidate order).
+ * @returns Absolute path to the UI dir, or null when none of the candidates exist.
+ */
 function resolveUiDir(cwd: string, framework: FrameworkDetection): string | null {
 	const candidates = framework.srcDir
 		? ["src/components/ui", "src/components"]
@@ -70,9 +80,13 @@ function resolveUiDir(cwd: string, framework: FrameworkDetection): string | null
 	return null;
 }
 
-/** Walk a directory non-recursively and return `*.tsx` files. shadcn writes
+/**
+ * Walk a directory non-recursively and return `*.tsx` files. shadcn writes
  * each component as a single .tsx at the top of components/ui/, so we
- * deliberately don't recurse — that would scoop up the consumer's own UI. */
+ * deliberately don't recurse — that would scoop up the consumer's own UI.
+ * @param dir - Absolute directory to scan.
+ * @returns Absolute paths of every `*.tsx` immediately inside `dir`.
+ */
 function listTsxFiles(dir: string): string[] {
 	if (!fs.existsSync(dir)) return [];
 	return fs
@@ -81,7 +95,11 @@ function listTsxFiles(dir: string): string[] {
 		.map((e) => path.join(dir, e.name));
 }
 
-/** Find shadcn's `components.json` at the project root or `src/`. */
+/**
+ * Find shadcn's `components.json` at the project root or `src/`.
+ * @param cwd - Project root.
+ * @returns Absolute path of the file when present, or null.
+ */
 function findComponentsJson(cwd: string): string | null {
 	for (const rel of ["components.json", "src/components.json"]) {
 		const abs = path.join(cwd, rel);
@@ -105,6 +123,9 @@ function findComponentsJson(cwd: string): string | null {
  * Files are intersected with the SHADCN_TO_HEX mapping. Files not in the
  * mapping (custom additions, blocks, etc.) are NOT included in `uiFiles`
  * — the migrator leaves them in place untouched.
+ * @param cwd - Project root.
+ * @param framework - Framework detection result (drives UI dir resolution).
+ * @returns Detection summary used to plan the migration.
  */
 export function detectShadcn(cwd: string, framework: FrameworkDetection): ShadcnDetection {
 	const componentsJsonPath = findComponentsJson(cwd);
