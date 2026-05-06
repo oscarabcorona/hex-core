@@ -1,5 +1,63 @@
 # @hex-core/cli
 
+## 0.7.0
+
+### Minor Changes
+
+- 870fbcc: chore: rebrand "Hex UI" → "Hex Core" across the published surface
+
+  Project name aligns with the `@hex-core/*` npm scope, the `hex-core` GitHub repo, and `hex-core.dev` domain. User-facing strings, package descriptions, READMEs, MCP server name + bin, skill directory naming, payload output headers, and the registry top-level name all switch from `Hex UI` / `hex-ui` → `Hex Core` / `hex-core`.
+
+  **Migration for existing consumers:**
+  - `hex-ui-mcp` binary renamed to `hex-core-mcp`. If you have a shell alias or script that calls `hex-ui-mcp` directly, update it. The canonical `npx -y @hex-core/mcp` invocation is unchanged.
+  - Bundled skill directories renamed `skills/hex-ui-*` → `skills/hex-core-*`. Re-run `npx @hex-core/cli skills install --overwrite` to migrate `.claude/skills/hex-ui-*` to the new names. The CLI's skill detector now looks for the `hex-core-` prefix only.
+  - Docs site `localStorage` theme key renamed from `hex-ui-theme` to `hex-core-theme`; users will see the system-default theme on first reload after upgrade.
+  - MCP server's handshake `name` is now `hex-core` (was `hex-ui`). Clients connect by stdio command, not by name lookup, so this is informational only.
+  - Recommended MCP config key in docs is now `"hex-core"`. Existing configs keyed `"hex-ui"` keep working — the key is a user-chosen label.
+
+  Output formats: `emit_app_context` headers are now `# App context — Hex Core`, `emit_figma_tokens` collection naming is `Hex Core — <theme>`. Anything snapshotting these strings should refresh.
+
+  No public TypeScript API surface changed.
+
+- dc54d07: feat(cli): `hex migrate` — convert Next.js / Vite / CRA / CRACO + shadcn/ui projects to Hex Core in-place
+
+  Detects the host framework + shadcn footprint, replaces each `<components>/ui/*.tsx` with the matching Hex Core source at the same alias-resolved path, installs missing peer deps via the consumer's package manager (npm / pnpm / yarn / bun — auto-detected), and writes a `*.shadcn.bak` next to each converted file so the original survives for diff/restore.
+
+  **What it migrates (file-replace strategy)**
+  - 36 of 40 canonical shadcn slugs (button, dialog, dropdown-menu, form, …) map 1:1 by name.
+  - `toast` → `sonner` (rename — Hex Core ships only the Sonner wrapper). The original `toast.tsx` is backed up and removed.
+  - `carousel` and `chart` are skipped with a warning — no Hex Core equivalent yet.
+
+  **Framework detection**
+
+  Recognizes Next.js (App Router and Pages Router, with or without `--src-dir`), Vite + React, Create React App, and CRACO. The framework drives the Toaster mount hint in the report (e.g. `src/app/layout.tsx` for Next.js App Router, `src/main.tsx` for Vite).
+
+  **Flag set**
+
+  ```
+  hex migrate [--dry-run] [--yes] [--no-backup] [--no-install]
+              [--from <dir>] [--theme=preserve|replace]
+              [--only <slugs>]
+  ```
+
+  - `--dry-run` plans without writing or spawning.
+  - `--theme=replace` swaps the consumer's `globals.css` palette via the existing `theme apply` machinery (surgical — preserves custom rules).
+  - `--only <slugs>` restricts the migration to a comma-list of shadcn slugs.
+
+  **Doctor extension**
+
+  `hex doctor` now flags leftover shadcn artifacts (`components.json`, `toast.tsx`, `hooks/use-toast.ts`) with a `warn` and points the user at `hex migrate`. Idempotent: a re-run on a successfully-migrated project finds no signal and exits cleanly.
+
+  **Out of scope (future)**
+  - v2 will add npm-imported libraries (MUI, Chakra, Mantine, NextUI) via codemod + `hex add` + `npm uninstall`.
+  - v3 will add CSS-class libraries (Bootstrap, DaisyUI) via className rewriting.
+  - Heavy-modification detection (`shadcn-baselines.json` + Levenshtein heuristic) — v1 always backs up + overwrites.
+
+### Patch Changes
+
+- Updated dependencies [870fbcc]
+  - @hex-core/registry@0.3.5
+
 ## 0.6.0
 
 ### Minor Changes
