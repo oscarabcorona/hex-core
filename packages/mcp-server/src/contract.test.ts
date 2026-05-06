@@ -295,13 +295,72 @@ async function main(): Promise<void> {
 			fail("search_compositions returned examples that don't actually overlap the query tags.");
 		}
 		pass("search_compositions returns tag-matched examples ranked by overlap");
+
+		// ─── 10. Blocks round-trip — search_components(category:"block") + get_component ───
+		// Locks the block tier as a first-class registry surface. A regression that
+		// dropped block schemas from the build (or stripped the "block" filter from
+		// search_components) would surface here before consumers saw it.
+		const blocksResult = (await client.callTool({
+			name: TOOL.SEARCH_COMPONENTS,
+			arguments: { category: "block" },
+		})) as { content?: Array<{ type: string; text?: string }> };
+		const blocksText = blocksResult.content?.[0]?.text ?? "";
+		let blocksParsed: Array<{ name: string; category: string }>;
+		try {
+			blocksParsed = JSON.parse(blocksText);
+		} catch {
+			fail(`search_components(category:"block") did not return JSON: ${blocksText.slice(0, 120)}`);
+		}
+		if (!Array.isArray(blocksParsed) || blocksParsed.length === 0) {
+			fail(`search_components(category:"block") returned ${blocksParsed?.length ?? 0} blocks, expected ≥1.`);
+		}
+		const wrongCategory = blocksParsed.filter((b) => b.category !== "block");
+		if (wrongCategory.length > 0) {
+			fail(
+				`search_components(category:"block") leaked non-block items: ${wrongCategory
+					.map((b) => `${b.name}=${b.category}`)
+					.join(", ")}`,
+			);
+		}
+		pass(`search_components(category:"block") returns ${blocksParsed.length} block(s)`);
+
+		// Confirm the canonical first-shipped block (auth-sign-in-split) round-trips
+		// through get_component with its full spec — schema, files, AuthAdapter prop.
+		const blockResult = (await client.callTool({
+			name: TOOL.GET_COMPONENT,
+			arguments: { name: "auth-sign-in-split" },
+		})) as { content?: Array<{ type: string; text?: string }> };
+		const blockText = blockResult.content?.[0]?.text ?? "";
+		let blockParsed: {
+			name?: string;
+			category?: string;
+			props?: Array<{ name: string; required: boolean }>;
+			files?: Array<{ path: string }>;
+		};
+		try {
+			blockParsed = JSON.parse(blockText);
+		} catch {
+			fail(`get_component(auth-sign-in-split) did not return JSON: ${blockText.slice(0, 120)}`);
+		}
+		if (blockParsed.category !== "block") {
+			fail(`get_component(auth-sign-in-split): category was ${blockParsed.category}, expected "block".`);
+		}
+		const adapterProp = blockParsed.props?.find((p) => p.name === "adapter");
+		if (!adapterProp || !adapterProp.required) {
+			fail("get_component(auth-sign-in-split): required `adapter` prop missing — AuthAdapter contract not surfaced.");
+		}
+		const adapterFile = blockParsed.files?.find((f) => f.path === "components/_shared/auth-adapter.tsx");
+		if (!adapterFile) {
+			fail("get_component(auth-sign-in-split): adapter source not bundled at components/_shared/auth-adapter.tsx — install would write a broken import.");
+		}
+		pass("get_component(auth-sign-in-split) round-trips with adapter prop + bundled adapter source");
 	} finally {
-		// ─── 10. Clean disposal — close should not throw ───
+		// ─── 11. Clean disposal — close should not throw ───
 		await client.close();
 		pass("client.close() disposed transport cleanly");
 	}
 
-	console.log("\nMCP contract test: all 11 assertions passed.");
+	console.log("\nMCP contract test: all 13 assertions passed.");
 }
 
 main().catch((err) => {

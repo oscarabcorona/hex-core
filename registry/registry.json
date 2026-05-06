@@ -1130,6 +1130,30 @@
       "tokenBudget": 700
     },
     {
+      "name": "auth-sign-in-split",
+      "displayName": "AuthSignInSplit",
+      "description": "Split-screen sign-in page. Marketing panel on the left (≥lg), credential form on the right. Routes every credential / OAuth call through a consumer-supplied AuthAdapter.",
+      "category": "block",
+      "subcategory": "auth",
+      "tags": [
+        "block",
+        "auth",
+        "sign-in",
+        "login",
+        "form",
+        "split-screen"
+      ],
+      "internalDeps": [
+        "components/alert/alert",
+        "primitives/button/button",
+        "primitives/checkbox/checkbox",
+        "primitives/input/input",
+        "primitives/label/label",
+        "primitives/separator/separator"
+      ],
+      "tokenBudget": 1800
+    },
+    {
       "name": "attachment",
       "displayName": "Attachment",
       "description": "File / image thumbnail with optional remove affordance + upload-progress overlay. Composes with the AI Composer for multimodal message drafts. Auto-detects image vs file variant from MIME type + preview URL.",

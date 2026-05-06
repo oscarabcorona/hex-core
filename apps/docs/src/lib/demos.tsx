@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { AccordionDemo } from "../app/demos/accordion-demo";
+import { AuthSignInSplitDemo } from "../app/demos/auth-sign-in-split-demo";
 import { AlertDemo } from "../app/demos/alert-demo";
 import { AlertDialogDemo } from "../app/demos/alert-dialog-demo";
 import { AspectRatioDemo } from "../app/demos/aspect-ratio-demo";
@@ -222,6 +223,7 @@ export const demos: Record<string, ComponentType> = {
 	"compare-table": CompareTableDemo,
 	deck: DeckDemo,
 	"spaced-repetition": SpacedRepetitionDemo,
+	"auth-sign-in-split": AuthSignInSplitDemo,
 };
 
 /**

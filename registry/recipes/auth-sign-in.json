@@ -1,30 +1,35 @@
 {
   "$schema": "https://hex-core.dev/schema/recipe.json",
-  "slug": "auth-form",
-  "title": "Auth form (deprecated — see auth-sign-in)",
-  "summary": "[Superseded by auth-sign-in] Login or signup form with validated fields, remember-me, submit button, and error alert. Prefer the auth-sign-in recipe + auth-sign-in-split block for new work — it ships the page-level composition with adapter routing, social providers, and a forgot-password link out of the box.",
+  "slug": "auth-sign-in",
+  "title": "Auth sign-in (split-screen)",
+  "summary": "Production-grade sign-in page with optional social providers, remember-me, forgot-password link, and pluggable AuthAdapter for credential routing.",
   "tags": [
     "auth",
-    "form",
+    "sign-in",
     "login",
-    "signup",
-    "deprecated"
+    "block",
+    "split-screen"
   ],
-  "brief": "Build a login page with email + password, a remember-me checkbox, a submit button, and error display.",
+  "brief": "Ship a sign-in page wired to my auth library — email + password with remember-me, optional GitHub/Google social buttons, forgot-password link, and a real error surface for failed sign-ins.",
   "steps": [
     {
-      "component": "form",
-      "reason": "React Hook Form + zod integration wrapper",
+      "component": "auth-sign-in-split",
+      "reason": "The page-level block — wires the form state, social handoff, error display, and pending state. Routes every credential call through the supplied AuthAdapter.",
       "role": "primary"
     },
     {
+      "component": "form",
+      "reason": "Field validation + a11y wiring (FormItem / FormControl)",
+      "role": "supporting"
+    },
+    {
       "component": "label",
-      "reason": "Accessible labels for each field",
+      "reason": "Accessible labels for email + password + remember-me",
       "role": "supporting"
     },
     {
       "component": "input",
-      "reason": "Email and password fields",
+      "reason": "Email + password fields",
       "role": "supporting"
     },
     {
@@ -34,27 +39,80 @@
     },
     {
       "component": "button",
-      "reason": "Submit CTA",
+      "reason": "Submit + social CTAs (loading prop drives the busy state)",
       "role": "primary"
     },
     {
       "component": "alert",
       "reason": "Inline error surface for failed sign-in",
+      "role": "supporting"
+    },
+    {
+      "component": "separator",
+      "reason": "Visual divider between social and credential sections",
       "role": "optional"
     }
   ],
   "checklist": [
     {
-      "id": "password-input-type",
-      "check": "Password field sets type='password' and autoComplete='current-password'.",
+      "id": "auth-adapter-wired",
+      "check": "Pass an AuthAdapter via the `adapter` prop. The block surfaces an 'unimplemented' error if the user submits without one — there is no built-in fallback.",
       "severity": "blocker",
       "source": "author"
     },
     {
-      "id": "submit-pending-state",
-      "check": "Submit button uses loading prop while the request is in flight.",
+      "id": "on-success-handler",
+      "check": "Provide an `onSuccess` handler that navigates the user. The adapter's `redirect` field is informational; the block does not navigate by itself.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "structured-error-payload",
+      "check": "Adapter methods must return `{ ok: false, error: { code, message } }` on failure (never throw). The block reads `error.message` into the Alert; thrown errors lose the structured payload.",
       "severity": "warn",
       "source": "author"
+    },
+    {
+      "id": "social-providers-shape",
+      "check": "socialProviders entries must be `{ provider, label, icon? }`. `provider` is forwarded verbatim to `adapter.signInWithSocial({ provider })`.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "marketing-aside-is-decorative",
+      "check": "The left marketing panel is `aria-hidden` so SR users skip directly to the form. Don't put critical info there — duplicate any required text inside the form area.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "auth-sign-in-split-forgetting-to-pass-the-authadapter-the-block-has",
+      "check": "[AuthSignInSplit] Avoid: Forgetting to pass the AuthAdapter — the block has no built-in fallback and will surface 'unimplemented' errors when the user submits.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-sign-in-split-hard-coding-signuphref-forgotpasswordhref-to-abs",
+      "check": "[AuthSignInSplit] Avoid: Hard-coding signUpHref / forgotPasswordHref to absolute URLs — they're plain anchor hrefs, prefer in-app relative paths so the consumer's router handles navigation.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-sign-in-split-skipping-onsuccess-and-relying-on-adapter-redire",
+      "check": "[AuthSignInSplit] Avoid: Skipping onSuccess and relying on adapter.redirect alone — the redirect is informational; the consumer's onSuccess handler is what actually navigates.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-sign-in-split-wiring-auth-state-inside-the-adapter-methods-ins",
+      "check": "[AuthSignInSplit] Avoid: Wiring auth state inside the adapter methods instead of returning { ok, error } — the block reads the result and shows the error Alert; throwing inside the adapter loses the structured error payload.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-sign-in-split-a11y",
+      "check": "[AuthSignInSplit] A11y: Form inputs have explicit Label htmlFor pairing, autoComplete='email' / 'current-password', and required attributes. Submit button uses the canonical loading prop (sets aria-busy + disabled). Errors render in an Alert with role='alert' so they're announced. Marketing aside is aria-hidden so screen-reader users don't traverse decorative copy before reaching the form.",
+      "severity": "warn",
+      "source": "derived-a11y"
     },
     {
       "id": "form-forgetting-to-spread-field-into-the-form-control",
@@ -211,7 +269,25 @@
       "check": "[Alert] A11y: Root renders role='alert' so screen readers announce it. For non-urgent info banners consider role='status' or aria-live='polite' via className overrides.",
       "severity": "warn",
       "source": "derived-a11y"
+    },
+    {
+      "id": "separator-using-as-spacing-instead-of-semantic-separation",
+      "check": "[Separator] Avoid: Using as spacing instead of semantic separation",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "separator-forgetting-orientation-vertical-needs-parent-hei",
+      "check": "[Separator] Avoid: Forgetting orientation='vertical' needs parent height",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "separator-a11y",
+      "check": "[Separator] A11y: Set decorative=false if the separator conveys semantic meaning. Radix handles role='separator'.",
+      "severity": "warn",
+      "source": "derived-a11y"
     }
   ],
-  "tokenBudget": 2400
+  "tokenBudget": 1800
 }

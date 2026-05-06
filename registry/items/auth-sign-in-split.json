@@ -1,0 +1,196 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "auth-sign-in-split",
+  "displayName": "AuthSignInSplit",
+  "description": "Split-screen sign-in page. Marketing panel on the left (≥lg), credential form on the right. Routes every credential / OAuth call through a consumer-supplied AuthAdapter.",
+  "category": "block",
+  "subcategory": "auth",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "adapter",
+      "type": "object",
+      "required": true,
+      "description": "AuthAdapter implementation. The block calls adapter.signInWithPassword and (if socialProviders are passed) adapter.signInWithSocial. Hex Core never touches credentials directly."
+    },
+    {
+      "name": "socialProviders",
+      "type": "object",
+      "required": false,
+      "description": "ReadonlyArray<{ provider: AuthSocialProvider; label: string; icon?: ReactNode }>. List of social-login buttons rendered above the email field. The `provider` value is forwarded verbatim to adapter.signInWithSocial({ provider }). Pass an empty array or omit the prop to hide the social section and the 'or' divider."
+    },
+    {
+      "name": "brand",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Brand block (logo + product name) shown at the top of the marketing panel."
+    },
+    {
+      "name": "marketing",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Marketing copy / quote / illustration shown below the brand block."
+    },
+    {
+      "name": "signUpHref",
+      "type": "string",
+      "required": false,
+      "default": "/sign-up",
+      "description": "Href for the 'Sign up' link rendered below the form."
+    },
+    {
+      "name": "forgotPasswordHref",
+      "type": "string",
+      "required": false,
+      "default": "/forgot-password",
+      "description": "Href for the 'Forgot?' link inline with the password label."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional classes applied to the root grid wrapper."
+    },
+    {
+      "name": "onSuccess",
+      "type": "function",
+      "required": false,
+      "description": "Called after a successful sign-in (any flow) with the adapter's redirect target: (redirect: string | undefined) => void."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "brand",
+      "description": "Optional brand block in the marketing panel.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    },
+    {
+      "name": "marketing",
+      "description": "Optional marketing copy / quote in the marketing panel.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/auth-sign-in-split.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Alert, AlertDescription, AlertTitle } from \"../../components/alert/alert.js\";\nimport { Button } from \"../../primitives/button/button.js\";\nimport { Checkbox } from \"../../primitives/checkbox/checkbox.js\";\nimport { Input } from \"../../primitives/input/input.js\";\nimport { Label } from \"../../primitives/label/label.js\";\nimport { Separator } from \"../../primitives/separator/separator.js\";\nimport { cn } from \"../../lib/utils.js\";\nimport type { AuthAdapter, AuthSocialProvider } from \"../_shared/auth-adapter.js\";\n\nexport interface AuthSignInSocialProvider {\n\tprovider: AuthSocialProvider;\n\tlabel: string;\n\ticon?: React.ReactNode;\n}\n\nexport interface AuthSignInSplitProps {\n\t/** Wires every credential / OAuth call to the consumer's auth library. */\n\tadapter: AuthAdapter;\n\t/** Optional list of social-login buttons rendered above the email field. */\n\tsocialProviders?: ReadonlyArray<AuthSignInSocialProvider>;\n\t/** Brand block (logo + product name) shown at the top of the marketing panel. */\n\tbrand?: React.ReactNode;\n\t/** Marketing copy / quote / illustration shown below the brand block. */\n\tmarketing?: React.ReactNode;\n\t/** Href for the \"Sign up\" link rendered below the form. */\n\tsignUpHref?: string;\n\t/** Href for the \"Forgot?\" link inline with the password label. */\n\tforgotPasswordHref?: string;\n\t/** Additional classes applied to the root grid wrapper. */\n\tclassName?: string;\n\t/** Called after a successful sign-in (any flow) with the adapter's redirect target. */\n\tonSuccess?: (redirect: string | undefined) => void;\n}\n\ntype Submitting = null | \"password\" | AuthSocialProvider;\n\n/**\n * Split-screen sign-in page. Marketing panel on the left (≥lg), credential\n * form on the right. All submit paths route through the supplied\n * `AuthAdapter` — Hex Core never touches credentials directly.\n */\nexport function AuthSignInSplit({\n\tadapter,\n\tsocialProviders,\n\tbrand,\n\tmarketing,\n\tsignUpHref = \"/sign-up\",\n\tforgotPasswordHref = \"/forgot-password\",\n\tclassName,\n\tonSuccess,\n}: AuthSignInSplitProps) {\n\tconst [email, setEmail] = React.useState(\"\");\n\tconst [password, setPassword] = React.useState(\"\");\n\tconst [remember, setRemember] = React.useState(false);\n\tconst [submitting, setSubmitting] = React.useState<Submitting>(null);\n\tconst [error, setError] = React.useState<{ code: string; message: string } | null>(null);\n\n\tconst isBusy = submitting !== null;\n\n\tasync function handleSubmit(e: React.FormEvent<HTMLFormElement>) {\n\t\te.preventDefault();\n\t\tif (!adapter.signInWithPassword) {\n\t\t\tconsole.warn(\n\t\t\t\t\"[AuthSignInSplit] adapter.signInWithPassword is not implemented — wire it up before exposing the form.\",\n\t\t\t);\n\t\t\tsetError({ code: \"unimplemented\", message: \"Sign-in is currently unavailable. Please try again later.\" });\n\t\t\treturn;\n\t\t}\n\t\tsetError(null);\n\t\tsetSubmitting(\"password\");\n\t\ttry {\n\t\t\tconst result = await adapter.signInWithPassword({ email, password, remember });\n\t\t\tif (!result.ok) {\n\t\t\t\tsetError(result.error ?? { code: \"unknown\", message: \"Sign-in failed.\" });\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tonSuccess?.(result.redirect);\n\t\t} finally {\n\t\t\tsetSubmitting(null);\n\t\t}\n\t}\n\n\tasync function handleSocial(provider: AuthSocialProvider) {\n\t\tif (!adapter.signInWithSocial) {\n\t\t\tconsole.warn(\n\t\t\t\t`[AuthSignInSplit] adapter.signInWithSocial is not implemented but a ${provider} button is rendered — drop the entry from socialProviders or wire the method.`,\n\t\t\t);\n\t\t\tsetError({\n\t\t\t\tcode: \"unimplemented\",\n\t\t\t\tmessage: \"This sign-in option is currently unavailable. Please try a different method.\",\n\t\t\t});\n\t\t\treturn;\n\t\t}\n\t\tsetError(null);\n\t\tsetSubmitting(provider);\n\t\ttry {\n\t\t\tconst result = await adapter.signInWithSocial({ provider });\n\t\t\tif (!result.ok) {\n\t\t\t\tsetError(result.error ?? { code: \"social-failed\", message: \"Sign-in failed.\" });\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tonSuccess?.(result.redirect);\n\t\t} finally {\n\t\t\tsetSubmitting(null);\n\t\t}\n\t}\n\n\treturn (\n\t\t<div className={cn(\"grid min-h-svh lg:grid-cols-2\", className)}>\n\t\t\t<aside\n\t\t\t\taria-hidden=\"true\"\n\t\t\t\tclassName=\"hidden flex-col justify-between bg-muted/40 p-10 lg:flex\"\n\t\t\t>\n\t\t\t\t<div>{brand}</div>\n\t\t\t\t<div className=\"text-sm text-muted-foreground\">{marketing}</div>\n\t\t\t</aside>\n\t\t\t<main className=\"flex items-center justify-center p-6 sm:p-10\">\n\t\t\t\t<div className=\"w-full max-w-sm space-y-6\">\n\t\t\t\t\t<header className=\"space-y-2 text-center lg:text-left\">\n\t\t\t\t\t\t<h1 className=\"text-2xl font-semibold tracking-tight\">Welcome back</h1>\n\t\t\t\t\t\t<p className=\"text-sm text-muted-foreground\">\n\t\t\t\t\t\t\tSign in to your account to continue.\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</header>\n\n\t\t\t\t\t{error ? (\n\t\t\t\t\t\t<Alert variant=\"destructive\">\n\t\t\t\t\t\t\t<AlertTitle>Sign-in failed</AlertTitle>\n\t\t\t\t\t\t\t<AlertDescription>{error.message}</AlertDescription>\n\t\t\t\t\t\t</Alert>\n\t\t\t\t\t) : null}\n\n\t\t\t\t\t{socialProviders && socialProviders.length > 0 ? (\n\t\t\t\t\t\t<>\n\t\t\t\t\t\t\t<div className=\"grid gap-2\">\n\t\t\t\t\t\t\t\t{socialProviders.map((p) => (\n\t\t\t\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\t\t\t\tkey={p.provider}\n\t\t\t\t\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\t\t\t\t\tvariant=\"outline\"\n\t\t\t\t\t\t\t\t\t\tonClick={() => handleSocial(p.provider)}\n\t\t\t\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\t\t\t\tloading={submitting === p.provider}\n\t\t\t\t\t\t\t\t\t\tclassName=\"w-full justify-center gap-2\"\n\t\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t\t{p.icon}\n\t\t\t\t\t\t\t\t\t\t<span>Continue with {p.label}</span>\n\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div className=\"relative\">\n\t\t\t\t\t\t\t\t<Separator />\n\t\t\t\t\t\t\t\t<span className=\"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs uppercase text-muted-foreground\">\n\t\t\t\t\t\t\t\t\tor\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</>\n\t\t\t\t\t) : null}\n\n\t\t\t\t\t<form onSubmit={handleSubmit} className=\"space-y-4\" noValidate>\n\t\t\t\t\t\t<div className=\"space-y-2\">\n\t\t\t\t\t\t\t<Label htmlFor=\"auth-sign-in-email\">Email</Label>\n\t\t\t\t\t\t\t<Input\n\t\t\t\t\t\t\t\tid=\"auth-sign-in-email\"\n\t\t\t\t\t\t\t\ttype=\"email\"\n\t\t\t\t\t\t\t\tautoComplete=\"email\"\n\t\t\t\t\t\t\t\trequired\n\t\t\t\t\t\t\t\tvalue={email}\n\t\t\t\t\t\t\t\tonChange={(e) => setEmail(e.target.value)}\n\t\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div className=\"space-y-2\">\n\t\t\t\t\t\t\t<div className=\"flex items-center justify-between\">\n\t\t\t\t\t\t\t\t<Label htmlFor=\"auth-sign-in-password\">Password</Label>\n\t\t\t\t\t\t\t\t<a\n\t\t\t\t\t\t\t\t\thref={forgotPasswordHref}\n\t\t\t\t\t\t\t\t\tclassName=\"text-xs text-muted-foreground transition-all duration-200 ease-out hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded\"\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\tForgot?\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<Input\n\t\t\t\t\t\t\t\tid=\"auth-sign-in-password\"\n\t\t\t\t\t\t\t\ttype=\"password\"\n\t\t\t\t\t\t\t\tautoComplete=\"current-password\"\n\t\t\t\t\t\t\t\trequired\n\t\t\t\t\t\t\t\tvalue={password}\n\t\t\t\t\t\t\t\tonChange={(e) => setPassword(e.target.value)}\n\t\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div className=\"flex items-center gap-2\">\n\t\t\t\t\t\t\t<Checkbox\n\t\t\t\t\t\t\t\tid=\"auth-sign-in-remember\"\n\t\t\t\t\t\t\t\tchecked={remember}\n\t\t\t\t\t\t\t\tonCheckedChange={(v) => setRemember(v === true)}\n\t\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<Label htmlFor=\"auth-sign-in-remember\" className=\"text-sm font-normal\">\n\t\t\t\t\t\t\t\tRemember me on this device\n\t\t\t\t\t\t\t</Label>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\ttype=\"submit\"\n\t\t\t\t\t\t\tclassName=\"w-full\"\n\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\tloading={submitting === \"password\"}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{submitting === \"password\" ? \"Signing in\" : \"Sign in\"}\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t</form>\n\n\t\t\t\t\t<p className=\"text-center text-sm text-muted-foreground lg:text-left\">\n\t\t\t\t\t\tDon&rsquo;t have an account?{\" \"}\n\t\t\t\t\t\t<a\n\t\t\t\t\t\t\thref={signUpHref}\n\t\t\t\t\t\t\tclassName=\"font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded\"\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\tSign up\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</main>\n\t\t</div>\n\t);\n}\n",
+      "type": "component"
+    },
+    {
+      "path": "components/_shared/auth-adapter.tsx",
+      "content": "/**\n * The contract every Hex Core auth block consumes via its `adapter` prop.\n *\n * Hex Core does not ship session management — auth blocks are presentation-\n * only and delegate every credential, OTP, and OAuth handoff to whatever\n * the consumer wires up (better-auth, Clerk, NextAuth, Supabase Auth, a\n * custom server, …). The adapter is the single seam.\n *\n * Every method is **optional**. A block that needs `signInWithPassword` but\n * not passkeys passes an adapter implementing only the methods it needs;\n * the block surfaces a runtime error if the user hits a code path the\n * adapter doesn't implement, rather than failing to render. This lets a\n * consumer ship password-only on day one and add passkeys later without\n * forking the block source.\n *\n * A reference {@link mockAuthAdapter} lives below — used by the docs\n * showcase routes and unit tests; never ship it in production.\n */\nexport interface AuthAdapterResult {\n\tok: boolean;\n\terror?: { code: string; message: string };\n\tredirect?: string;\n}\n\nexport type AuthSocialProvider = \"github\" | \"google\" | \"microsoft\" | (string & {});\n\nexport type AuthOtpIntent = \"sign-in\" | \"verify-email\" | \"mfa\";\n\nexport interface AuthAdapter {\n\tsignInWithPassword?(p: {\n\t\temail: string;\n\t\tpassword: string;\n\t\tremember: boolean;\n\t}): Promise<AuthAdapterResult>;\n\tsignUpWithPassword?(p: {\n\t\temail: string;\n\t\tpassword: string;\n\t\tname?: string;\n\t}): Promise<AuthAdapterResult>;\n\tsignInWithSocial?(p: { provider: AuthSocialProvider }): Promise<AuthAdapterResult>;\n\tsendMagicLink?(p: { email: string }): Promise<AuthAdapterResult>;\n\tverifyOtp?(p: { code: string; intent: AuthOtpIntent }): Promise<AuthAdapterResult>;\n\trequestPasswordReset?(p: { email: string }): Promise<AuthAdapterResult>;\n\tresetPassword?(p: { token: string; password: string }): Promise<AuthAdapterResult>;\n\tregisterPasskey?(): Promise<AuthAdapterResult>;\n\tsignInWithPasskey?(): Promise<AuthAdapterResult>;\n}\n\nconst wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));\n\n/**\n * In-memory mock adapter for docs showcase + tests. Every method delays\n * 400ms to simulate a network round-trip and resolves `{ ok: true }`. Do\n * not use in production — there is no validation, no persistence, and no\n * security.\n */\nexport const mockAuthAdapter: Required<AuthAdapter> = {\n\tasync signInWithPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n\tasync signUpWithPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/verify-email\" };\n\t},\n\tasync signInWithSocial({ provider }) {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: `/oauth/${provider}/callback` };\n\t},\n\tasync sendMagicLink() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync verifyOtp() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n\tasync requestPasswordReset() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync resetPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/sign-in\" };\n\t},\n\tasync registerPasskey() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync signInWithPasskey() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n};\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-checkbox",
+      "@radix-ui/react-label",
+      "@radix-ui/react-separator",
+      "@radix-ui/react-slot",
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "components/alert/alert",
+      "primitives/button/button",
+      "primitives/checkbox/checkbox",
+      "primitives/input/input",
+      "primitives/label/label",
+      "primitives/separator/separator"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "background",
+    "foreground",
+    "muted",
+    "muted-foreground",
+    "primary",
+    "primary-foreground",
+    "destructive",
+    "destructive-foreground",
+    "border",
+    "input",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Mock adapter (showcase / tests)",
+      "description": "Demo with the in-memory mock adapter — every method resolves ok:true after 400ms.",
+      "code": "import { AuthSignInSplit, mockAuthAdapter } from \"@hex-core/components\";\n\n<AuthSignInSplit\n  adapter={mockAuthAdapter}\n  brand={<strong>Acme</strong>}\n  marketing=\"The fastest way to ship spec-driven UI.\"\n  socialProviders={[\n    { provider: \"github\", label: \"GitHub\" },\n    { provider: \"google\", label: \"Google\" },\n  ]}\n/>",
+      "composition": [
+        "auth",
+        "sign-in",
+        "form",
+        "split-screen"
+      ]
+    },
+    {
+      "title": "Real provider (better-auth)",
+      "description": "Wire better-auth's email/password and social methods through the AuthAdapter contract.",
+      "code": "import { AuthSignInSplit, type AuthAdapter } from \"@hex-core/components\";\nimport { authClient } from \"@/lib/auth-client\";\n\nconst adapter: AuthAdapter = {\n  async signInWithPassword({ email, password, remember }) {\n    const res = await authClient.signIn.email({ email, password, rememberMe: remember });\n    if (res.error) return { ok: false, error: { code: res.error.code, message: res.error.message } };\n    return { ok: true, redirect: \"/app\" };\n  },\n  async signInWithSocial({ provider }) {\n    await authClient.signIn.social({ provider });\n    return { ok: true };\n  },\n};\n\n<AuthSignInSplit adapter={adapter} />",
+      "composition": [
+        "auth",
+        "sign-in",
+        "better-auth"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use as the default sign-in page when you have meaningful marketing copy or a brand panel to show alongside the form. The split layout earns its keep on desktop; on mobile it collapses cleanly to the form-only view.",
+    "whenNotToUse": "Don't use for in-app re-auth modals (use a Dialog with form fields instead). Don't use when the marketing panel would be empty — drop to a centered single-column block.",
+    "commonMistakes": [
+      "Forgetting to pass the AuthAdapter — the block has no built-in fallback and will surface 'unimplemented' errors when the user submits.",
+      "Hard-coding signUpHref / forgotPasswordHref to absolute URLs — they're plain anchor hrefs, prefer in-app relative paths so the consumer's router handles navigation.",
+      "Skipping onSuccess and relying on adapter.redirect alone — the redirect is informational; the consumer's onSuccess handler is what actually navigates.",
+      "Wiring auth state inside the adapter methods instead of returning { ok, error } — the block reads the result and shows the error Alert; throwing inside the adapter loses the structured error payload."
+    ],
+    "relatedComponents": [
+      "form",
+      "input",
+      "label",
+      "checkbox",
+      "button",
+      "alert",
+      "separator"
+    ],
+    "accessibilityNotes": "Form inputs have explicit Label htmlFor pairing, autoComplete='email' / 'current-password', and required attributes. Submit button uses the canonical loading prop (sets aria-busy + disabled). Errors render in an Alert with role='alert' so they're announced. Marketing aside is aria-hidden so screen-reader users don't traverse decorative copy before reaching the form.",
+    "tokenBudget": 1800
+  },
+  "tags": [
+    "block",
+    "auth",
+    "sign-in",
+    "login",
+    "form",
+    "split-screen"
+  ]
+}

@@ -394,5 +394,13 @@ export {
 	SpacedRepetition,
 	type SpacedRepetitionProps,
 	type SrsRating,
+	AuthSignInSplit,
+	type AuthSignInSplitProps,
+	type AuthSignInSocialProvider,
+	type AuthAdapter,
+	type AuthAdapterResult,
+	type AuthOtpIntent,
+	type AuthSocialProvider,
+	mockAuthAdapter,
 	cn,
 } from "@hex-core/components";

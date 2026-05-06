@@ -5,13 +5,14 @@
   "items": [
     {
       "slug": "auth-form",
-      "title": "Auth form",
-      "summary": "Login or signup form with validated fields, remember-me, submit button, and error alert.",
+      "title": "Auth form (deprecated — see auth-sign-in)",
+      "summary": "[Superseded by auth-sign-in] Login or signup form with validated fields, remember-me, submit button, and error alert. Prefer the auth-sign-in recipe + auth-sign-in-split block for new work — it ships the page-level composition with adapter routing, social providers, and a forgot-password link out of the box.",
       "tags": [
         "auth",
         "form",
         "login",
-        "signup"
+        "signup",
+        "deprecated"
       ],
       "components": [
         "form",
@@ -22,6 +23,29 @@
         "alert"
       ],
       "tokenBudget": 2400
+    },
+    {
+      "slug": "auth-sign-in",
+      "title": "Auth sign-in (split-screen)",
+      "summary": "Production-grade sign-in page with optional social providers, remember-me, forgot-password link, and pluggable AuthAdapter for credential routing.",
+      "tags": [
+        "auth",
+        "sign-in",
+        "login",
+        "block",
+        "split-screen"
+      ],
+      "components": [
+        "auth-sign-in-split",
+        "form",
+        "label",
+        "input",
+        "checkbox",
+        "button",
+        "alert",
+        "separator"
+      ],
+      "tokenBudget": 1800
     },
     {
       "slug": "command-palette",
