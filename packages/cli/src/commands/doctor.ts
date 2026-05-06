@@ -45,7 +45,40 @@ export async function runDoctor(cwd: string = process.cwd()): Promise<Check[]> {
 	checks.push(...checkBaseDeps(ctx));
 	if (ctx.tailwindVersion === "v3") checks.push(checkTailwindConfig(ctx));
 	checks.push(...checkRadixDeps(ctx));
+	checks.push(checkShadcnArtifacts(ctx));
 	return checks;
+}
+
+/**
+ * Detect shadcn artifacts left over after a partial migration. The two
+ * positive signals — `components.json` (shadcn-ui's marker) and
+ * `<components>/ui/toast.tsx` — survive `hex migrate` only when the user
+ * skipped them or aborted mid-flight. Surfaces as `warn` so re-running
+ * `hex migrate` is the obvious next step.
+ * @param ctx - Doctor context (carries cwd + resolved components dir).
+ * @returns A `pass` check when no artifacts are found, otherwise a `warn`
+ *          listing what's left.
+ */
+function checkShadcnArtifacts(ctx: DoctorContext): Check {
+	const componentsJsonAtRoot = fs.existsSync(path.join(ctx.cwd, "components.json"));
+	const componentsJsonAtSrc = fs.existsSync(path.join(ctx.cwd, "src", "components.json"));
+	const toastTsx = fs.existsSync(path.join(ctx.componentsDir, "toast.tsx"));
+	const useToastDir = fs.existsSync(path.join(ctx.cwd, "hooks", "use-toast.ts")) ||
+		fs.existsSync(path.join(ctx.cwd, "src", "hooks", "use-toast.ts"));
+	const found = componentsJsonAtRoot || componentsJsonAtSrc || toastTsx || useToastDir;
+	if (!found) {
+		return { name: "no shadcn artifacts", status: "pass" };
+	}
+	const bits: string[] = [];
+	if (componentsJsonAtRoot) bits.push("components.json");
+	if (componentsJsonAtSrc) bits.push("src/components.json");
+	if (toastTsx) bits.push("toast.tsx");
+	if (useToastDir) bits.push("hooks/use-toast.ts");
+	return {
+		name: "shadcn artifacts left over",
+		status: "warn",
+		hint: `Found: ${bits.join(", ")}. Run \`hex migrate\` to finish converting.`,
+	};
 }
 
 function buildContext(cwd: string): DoctorContext {
