@@ -14,10 +14,50 @@ export const metadata = {
 const SECTIONS = [
 	{ id: "what", title: "What is a block" },
 	{ id: "preview", title: "Live preview" },
+	{ id: "auth-journey", title: "Password-auth journey" },
 	{ id: "shape", title: "Shape" },
 	{ id: "auth-adapter", title: "AuthAdapter" },
 	{ id: "install", title: "Install" },
 	{ id: "roadmap", title: "Roadmap" },
+];
+
+const AUTH_JOURNEY = [
+	{
+		slug: "auth-sign-in-split",
+		title: "Sign in",
+		summary: "Split-screen credential form with optional social providers.",
+		route: "/sign-in",
+	},
+	{
+		slug: "auth-sign-up-card",
+		title: "Sign up",
+		summary: "Centered card — name, email, password (with confirm), terms.",
+		route: "/sign-up",
+	},
+	{
+		slug: "auth-forgot-password",
+		title: "Forgot password",
+		summary: "Single email field; success state composed from Empty.",
+		route: "/forgot-password",
+	},
+	{
+		slug: "auth-reset-password",
+		title: "Reset password",
+		summary: "Token-driven new-password + confirm form.",
+		route: "/reset-password?token=demo-token",
+	},
+	{
+		slug: "auth-verify-email",
+		title: "Verify email",
+		summary: "Transactional 'check your inbox' with optional resend cooldown.",
+		route: "/verify-email",
+	},
+	{
+		slug: "auth-verify-otp",
+		title: "Verify OTP",
+		summary: "Auto-submitting 6-digit code entry for sign-in / verify / MFA.",
+		route: "/verify-otp",
+	},
 ];
 
 const INSTALL_CMD = `pnpm dlx @hex-core/cli add auth-sign-in-split`;
@@ -49,10 +89,10 @@ const MOCK_EXAMPLE = `import { mockAuthAdapter } from "@hex-core/components";
 <SignInBlock adapter={mockAuthAdapter} />`;
 
 const ROADMAP = [
-	{ category: "Auth", count: 8, status: "Phase 2 (sign-up, forgot, reset, verify-email, OTP, MFA, passkey, social)" },
-	{ category: "Landing", count: 8, status: "Phase 3" },
-	{ category: "App shell + dashboard", count: 5, status: "Phase 4" },
-	{ category: "Errors + utility", count: 5, status: "Phase 5" },
+	{ category: "Auth (advanced)", count: 3, status: "Future — passkey, MFA, social-only" },
+	{ category: "Landing", count: 8, status: "Future — hero, bento, pricing, faq, footer, …" },
+	{ category: "App shell + dashboard", count: 5, status: "Future" },
+	{ category: "Errors + utility", count: 5, status: "Future" },
 ];
 
 /** Concept page introducing blocks as the third tier above primitives + components. */
@@ -99,6 +139,40 @@ export default function BlocksDocPage() {
 					resolves <InlineCode>{"{ ok: true }"}</InlineCode> after 400ms.
 				</p>
 				<AuthSignInSplitDemo />
+			</DocSection>
+
+			<DocSection id="auth-journey" title="Password-auth journey">
+				<p className="text-sm leading-6">
+					Six blocks compose the full password-auth loop. Every block routes through
+					the same <InlineCode>AuthAdapter</InlineCode> contract, so swapping providers
+					(better-auth → Clerk → NextAuth) means rewriting one file, not the pages.
+				</p>
+				<ul className="grid gap-2 sm:grid-cols-2">
+					{AUTH_JOURNEY.map((b) => (
+						<li
+							key={b.slug}
+							className="rounded-lg border bg-card p-4 transition-all duration-200 ease-out hover:border-foreground/40"
+						>
+							<Link
+								href={b.route}
+								className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+							>
+								<div className="flex items-start justify-between gap-3">
+									<div>
+										<div className="text-sm font-semibold text-foreground">
+											{b.title}
+										</div>
+										<InlineCode>{b.slug}</InlineCode>
+									</div>
+									<span aria-hidden="true" className="text-xs text-muted-foreground">
+										→
+									</span>
+								</div>
+								<p className="mt-2 text-xs text-muted-foreground">{b.summary}</p>
+							</Link>
+						</li>
+					))}
+				</ul>
 			</DocSection>
 
 			<DocSection id="shape" title="Shape">

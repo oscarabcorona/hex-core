@@ -420,12 +420,26 @@ export {
 export type {
 	AuthAdapter,
 	AuthAdapterResult,
+	AuthForgotPasswordProps,
 	AuthOtpIntent,
+	AuthResetPasswordProps,
 	AuthSignInSocialProvider,
 	AuthSignInSplitProps,
+	AuthSignUpCardProps,
+	AuthSignUpCardSocialProvider,
 	AuthSocialProvider,
+	AuthVerifyEmailProps,
+	AuthVerifyOtpProps,
 } from "./blocks/index.js";
-export { AuthSignInSplit, mockAuthAdapter } from "./blocks/index.js";
+export {
+	AuthForgotPassword,
+	AuthResetPassword,
+	AuthSignInSplit,
+	AuthSignUpCard,
+	AuthVerifyEmail,
+	AuthVerifyOtp,
+	mockAuthAdapter,
+} from "./blocks/index.js";
 
 // Schemas live in `@hex-core/components/schemas` (1.4.0+) so the runtime
 // barrel doesn't pull in the `@hex-core/registry` type at the consumer's

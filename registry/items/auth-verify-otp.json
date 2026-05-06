@@ -1,0 +1,165 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "auth-verify-otp",
+  "displayName": "AuthVerifyOtp",
+  "description": "One-time-code verification page. Renders an InputOTP of N slots and auto-submits when the code is full; routes verification through adapter.verifyOtp({ code, intent }). Optional resend button calls adapter.resendOtp.",
+  "category": "block",
+  "subcategory": "auth",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "adapter",
+      "type": "object",
+      "required": true,
+      "description": "AuthAdapter implementation. The block calls adapter.verifyOtp({ code, intent }) when the OTP is full and adapter.resendOtp({ intent }) when the resend button is clicked."
+    },
+    {
+      "name": "intent",
+      "type": "enum",
+      "required": true,
+      "description": "Reason for the verification. Drives the heading + description copy and is forwarded verbatim to both verifyOtp and resendOtp so consumers can route to the correct backend code.",
+      "enumValues": [
+        "sign-in",
+        "verify-email",
+        "mfa"
+      ]
+    },
+    {
+      "name": "length",
+      "type": "number",
+      "required": false,
+      "default": 6,
+      "description": "Total number of digits in the code. Drives both maxLength on the underlying input-otp library and the number of slots rendered."
+    },
+    {
+      "name": "resendCooldownSeconds",
+      "type": "number",
+      "required": false,
+      "default": 30,
+      "description": "Seconds the resend button stays disabled after each successful resend. Counter ticks down every second while > 0."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional classes applied to the outer flex wrapper."
+    },
+    {
+      "name": "onSuccess",
+      "type": "function",
+      "required": false,
+      "description": "Called after a successful verification with the adapter's redirect target: (redirect: string | undefined) => void."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/auth-verify-otp.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Alert, AlertDescription, AlertTitle } from \"../../components/alert/alert.js\";\nimport {\n\tInputOTP,\n\tInputOTPGroup,\n\tInputOTPSlot,\n} from \"../../components/input-otp/input-otp.js\";\nimport { Button } from \"../../primitives/button/button.js\";\nimport { cn } from \"../../lib/utils.js\";\nimport type { AuthAdapter, AuthOtpIntent } from \"../_shared/auth-adapter.js\";\n\nexport interface AuthVerifyOtpProps {\n\tadapter: AuthAdapter;\n\t/** Forwarded verbatim to adapter.verifyOtp({ code, intent }). */\n\tintent: AuthOtpIntent;\n\t/** Total number of digits in the code. Defaults to 6. */\n\tlength?: number;\n\t/** Seconds the resend button stays disabled after each successful resend. */\n\tresendCooldownSeconds?: number;\n\tclassName?: string;\n\tonSuccess?: (redirect: string | undefined) => void;\n}\n\nconst HEADINGS: Record<AuthOtpIntent, { title: string; description: string }> = {\n\t\"sign-in\": {\n\t\ttitle: \"Enter your sign-in code\",\n\t\tdescription: \"We sent a 6-digit code to your email or phone. Enter it below to sign in.\",\n\t},\n\t\"verify-email\": {\n\t\ttitle: \"Verify your email\",\n\t\tdescription: \"Enter the 6-digit code we sent to confirm your email address.\",\n\t},\n\tmfa: {\n\t\ttitle: \"Two-factor authentication\",\n\t\tdescription: \"Enter the 6-digit code from your authenticator app.\",\n\t},\n};\n\n/**\n * One-time-code verification page. Renders an `InputOTP` of `length` slots\n * and submits automatically when the code is full. Routes verification\n * through `adapter.verifyOtp({ code, intent })`. Optional resend button\n * calls `adapter.resendOtp({ intent })` when implemented.\n */\nexport function AuthVerifyOtp({\n\tadapter,\n\tintent,\n\tlength = 6,\n\tresendCooldownSeconds = 30,\n\tclassName,\n\tonSuccess,\n}: AuthVerifyOtpProps) {\n\tconst [code, setCode] = React.useState(\"\");\n\tconst [submitting, setSubmitting] = React.useState(false);\n\tconst [resending, setResending] = React.useState(false);\n\tconst [cooldownLeft, setCooldownLeft] = React.useState(0);\n\tconst [error, setError] = React.useState<{ code: string; message: string } | null>(null);\n\t// Tracks the last code value we auto-submitted, so the effect doesn't\n\t// re-fire when `submitting` toggles false after a request resolves.\n\tconst lastSubmittedRef = React.useRef<string>(\"\");\n\n\tReact.useEffect(() => {\n\t\tif (cooldownLeft <= 0) return;\n\t\tconst timer = setTimeout(() => setCooldownLeft((s) => s - 1), 1000);\n\t\treturn () => clearTimeout(timer);\n\t}, [cooldownLeft]);\n\n\tconst handleSubmit = React.useCallback(\n\t\tasync (codeToSubmit: string) => {\n\t\t\tif (!adapter.verifyOtp) {\n\t\t\t\tconsole.warn(\n\t\t\t\t\t\"[AuthVerifyOtp] adapter.verifyOtp is not implemented — wire it up before exposing the form.\",\n\t\t\t\t);\n\t\t\t\tsetError({\n\t\t\t\t\tcode: \"unimplemented\",\n\t\t\t\t\tmessage: \"Verification is currently unavailable. Please try again later.\",\n\t\t\t\t});\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tsetError(null);\n\t\t\tsetSubmitting(true);\n\t\t\ttry {\n\t\t\t\tconst result = await adapter.verifyOtp({ code: codeToSubmit, intent });\n\t\t\t\tif (!result.ok) {\n\t\t\t\t\tsetError(\n\t\t\t\t\t\tresult.error ?? { code: \"unknown\", message: \"Couldn't verify code.\" },\n\t\t\t\t\t);\n\t\t\t\t\t// Reset both the visible value and the dedup ref so the user can\n\t\t\t\t\t// re-enter the same digits without the effect short-circuiting.\n\t\t\t\t\tsetCode(\"\");\n\t\t\t\t\tlastSubmittedRef.current = \"\";\n\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t\tonSuccess?.(result.redirect);\n\t\t\t} finally {\n\t\t\t\tsetSubmitting(false);\n\t\t\t}\n\t\t},\n\t\t[adapter, intent, onSuccess],\n\t);\n\n\t// Auto-submit when the code reaches full length. Guarded by a ref so the\n\t// effect doesn't re-fire when `submitting` flips back to false after the\n\t// request resolves — `setCode(\"\")` on error already gives a fresh attempt.\n\tReact.useEffect(() => {\n\t\tif (code.length !== length) return;\n\t\tif (submitting) return;\n\t\tif (lastSubmittedRef.current === code) return;\n\t\tlastSubmittedRef.current = code;\n\t\tvoid handleSubmit(code);\n\t}, [code, length, submitting, handleSubmit]);\n\n\tasync function handleResend() {\n\t\tif (!adapter.resendOtp) {\n\t\t\tconsole.warn(\n\t\t\t\t\"[AuthVerifyOtp] adapter.resendOtp is not implemented — hide the resend button or wire the method.\",\n\t\t\t);\n\t\t\tsetError({\n\t\t\t\tcode: \"unimplemented\",\n\t\t\t\tmessage: \"Resending is currently unavailable. Please try again later.\",\n\t\t\t});\n\t\t\treturn;\n\t\t}\n\t\tsetError(null);\n\t\tsetResending(true);\n\t\ttry {\n\t\t\tconst result = await adapter.resendOtp({ intent });\n\t\t\tif (!result.ok) {\n\t\t\t\tsetError(result.error ?? { code: \"unknown\", message: \"Couldn't resend code.\" });\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tsetCooldownLeft(resendCooldownSeconds);\n\t\t\tsetCode(\"\");\n\t\t} finally {\n\t\t\tsetResending(false);\n\t\t}\n\t}\n\n\tconst heading = HEADINGS[intent];\n\tconst slots = React.useMemo(\n\t\t() => Array.from({ length }, (_, i) => i),\n\t\t[length],\n\t);\n\tconst cooldownLabel =\n\t\tcooldownLeft > 0 ? `Resend in ${cooldownLeft}s` : \"Resend code\";\n\n\treturn (\n\t\t<div className={cn(\"flex min-h-svh items-center justify-center p-6 sm:p-10\", className)}>\n\t\t\t<div className=\"w-full max-w-sm space-y-6\">\n\t\t\t\t<header className=\"space-y-2 text-center\">\n\t\t\t\t\t<h1 className=\"text-2xl font-semibold tracking-tight\">{heading.title}</h1>\n\t\t\t\t\t<p className=\"text-sm text-muted-foreground\">{heading.description}</p>\n\t\t\t\t</header>\n\n\t\t\t\t{error ? (\n\t\t\t\t\t<Alert variant=\"destructive\">\n\t\t\t\t\t\t<AlertTitle>Couldn&rsquo;t verify code</AlertTitle>\n\t\t\t\t\t\t<AlertDescription>{error.message}</AlertDescription>\n\t\t\t\t\t</Alert>\n\t\t\t\t) : null}\n\n\t\t\t\t<div className=\"flex flex-col items-center gap-4\">\n\t\t\t\t\t<InputOTP\n\t\t\t\t\t\tmaxLength={length}\n\t\t\t\t\t\tvalue={code}\n\t\t\t\t\t\tonChange={setCode}\n\t\t\t\t\t\tdisabled={submitting}\n\t\t\t\t\t\taria-label=\"One-time code\"\n\t\t\t\t\t>\n\t\t\t\t\t\t<InputOTPGroup>\n\t\t\t\t\t\t\t{slots.map((i) => (\n\t\t\t\t\t\t\t\t<InputOTPSlot key={i} index={i} />\n\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t</InputOTPGroup>\n\t\t\t\t\t</InputOTP>\n\n\t\t\t\t\t{adapter.resendOtp ? (\n\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\t\tvariant=\"ghost\"\n\t\t\t\t\t\t\tsize=\"sm\"\n\t\t\t\t\t\t\tonClick={handleResend}\n\t\t\t\t\t\t\tdisabled={resending || cooldownLeft > 0 || submitting}\n\t\t\t\t\t\t\tloading={resending}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{cooldownLabel}\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t) : null}\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t);\n}\n",
+      "type": "component"
+    },
+    {
+      "path": "components/_shared/auth-adapter.tsx",
+      "content": "/**\n * The contract every Hex Core auth block consumes via its `adapter` prop.\n *\n * Hex Core does not ship session management — auth blocks are presentation-\n * only and delegate every credential, OTP, and OAuth handoff to whatever\n * the consumer wires up (better-auth, Clerk, NextAuth, Supabase Auth, a\n * custom server, …). The adapter is the single seam.\n *\n * Every method is **optional**. A block that needs `signInWithPassword` but\n * not passkeys passes an adapter implementing only the methods it needs;\n * the block surfaces a runtime error if the user hits a code path the\n * adapter doesn't implement, rather than failing to render. This lets a\n * consumer ship password-only on day one and add passkeys later without\n * forking the block source.\n *\n * A reference {@link mockAuthAdapter} lives below — used by the docs\n * showcase routes and unit tests; never ship it in production.\n */\nexport interface AuthAdapterResult {\n\tok: boolean;\n\terror?: { code: string; message: string };\n\tredirect?: string;\n}\n\nexport type AuthSocialProvider = \"github\" | \"google\" | \"microsoft\" | (string & {});\n\nexport type AuthOtpIntent = \"sign-in\" | \"verify-email\" | \"mfa\";\n\nexport interface AuthAdapter {\n\tsignInWithPassword?(p: {\n\t\temail: string;\n\t\tpassword: string;\n\t\tremember: boolean;\n\t}): Promise<AuthAdapterResult>;\n\tsignUpWithPassword?(p: {\n\t\temail: string;\n\t\tpassword: string;\n\t\tname?: string;\n\t}): Promise<AuthAdapterResult>;\n\tsignInWithSocial?(p: { provider: AuthSocialProvider }): Promise<AuthAdapterResult>;\n\tsendMagicLink?(p: { email: string }): Promise<AuthAdapterResult>;\n\tverifyOtp?(p: { code: string; intent: AuthOtpIntent }): Promise<AuthAdapterResult>;\n\trequestPasswordReset?(p: { email: string }): Promise<AuthAdapterResult>;\n\tresetPassword?(p: { token: string; password: string }): Promise<AuthAdapterResult>;\n\tregisterPasskey?(): Promise<AuthAdapterResult>;\n\tsignInWithPasskey?(): Promise<AuthAdapterResult>;\n\t/**\n\t * Re-send a magic link to the same address. Distinct from {@link sendMagicLink}\n\t * so consumers can throttle resends and surface different analytics / error\n\t * copy for the second-and-onward attempt. Used by the verify-email block.\n\t */\n\tresendMagicLink?(p: { email: string }): Promise<AuthAdapterResult>;\n\t/**\n\t * Re-send a one-time code for the given intent. Distinct from the initial\n\t * code dispatch so consumers can throttle and log resends separately. Used\n\t * by the verify-otp block.\n\t */\n\tresendOtp?(p: { intent: AuthOtpIntent }): Promise<AuthAdapterResult>;\n}\n\nconst wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));\n\n/**\n * In-memory mock adapter for docs showcase + tests. Every method delays\n * 400ms to simulate a network round-trip and resolves `{ ok: true }`. Do\n * not use in production — there is no validation, no persistence, and no\n * security.\n */\nexport const mockAuthAdapter: Required<AuthAdapter> = {\n\tasync signInWithPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n\tasync signUpWithPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/verify-email\" };\n\t},\n\tasync signInWithSocial({ provider }) {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: `/oauth/${provider}/callback` };\n\t},\n\tasync sendMagicLink() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync verifyOtp() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n\tasync requestPasswordReset() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync resetPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/sign-in\" };\n\t},\n\tasync registerPasskey() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync signInWithPasskey() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n\tasync resendMagicLink() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync resendOtp() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n};\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-slot",
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "components/alert/alert",
+      "components/input-otp/input-otp",
+      "primitives/button/button"
+    ],
+    "peer": [
+      "react",
+      "react-dom",
+      "input-otp"
+    ]
+  },
+  "tokensUsed": [
+    "background",
+    "foreground",
+    "muted",
+    "muted-foreground",
+    "primary",
+    "primary-foreground",
+    "destructive",
+    "destructive-foreground",
+    "border",
+    "input",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Sign-in OTP (mock adapter)",
+      "description": "Magic-link or email-OTP sign-in flow with auto-submit when full.",
+      "code": "import { AuthVerifyOtp, mockAuthAdapter } from \"@hex-core/components\";\n\n<AuthVerifyOtp adapter={mockAuthAdapter} intent=\"sign-in\" />",
+      "composition": [
+        "auth",
+        "verify-otp",
+        "sign-in"
+      ]
+    },
+    {
+      "title": "MFA challenge",
+      "description": "Second-factor TOTP entry with intent='mfa'.",
+      "code": "<AuthVerifyOtp adapter={authAdapter} intent=\"mfa\" />",
+      "composition": [
+        "auth",
+        "verify-otp",
+        "mfa"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use whenever you need to verify a 6-digit code (or longer) — sign-in via email OTP, post-signup email verification, or TOTP MFA challenge. The intent prop drives both copy and the adapter routing.",
+    "whenNotToUse": "Don't use for magic-link verification (that lands the user via email click — there's no code to enter). For magic-link wait pages, use auth-verify-email instead.",
+    "commonMistakes": [
+      "Submitting the form yourself — the block already auto-submits when the code reaches `length`. Don't render an extra submit button.",
+      "Hard-coding length=6 when the backend expects a different number — drive `length` from the same constant the email/SMS template uses.",
+      "Mismatching intent between verifyOtp and resendOtp — the block forwards the same intent to both. If the consumer's adapter routes them differently, that's a bug to fix in the adapter, not the block.",
+      "Showing the resend button when adapter.resendOtp isn't implemented — the block already hides it; don't re-implement that gate.",
+      "Setting resendCooldownSeconds too low (< 10s) — invites accidental double-sends and tripping rate-limit responses."
+    ],
+    "relatedComponents": [
+      "auth-sign-in-split",
+      "auth-verify-email",
+      "input-otp",
+      "button",
+      "alert"
+    ],
+    "accessibilityNotes": "InputOTP is labeled via aria-label='One-time code' so screen readers know what's being entered. Resend button uses the canonical loading prop (sets aria-busy + disabled). Cooldown countdown is reflected in the visible button label. Errors render in an Alert with role='alert'. The OTP value clears on error so users can re-enter without manually deleting digits.",
+    "tokenBudget": 1300
+  },
+  "tags": [
+    "block",
+    "auth",
+    "verify-otp",
+    "otp",
+    "mfa",
+    "totp"
+  ]
+}

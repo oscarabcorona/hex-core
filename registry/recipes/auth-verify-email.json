@@ -1,0 +1,170 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "auth-verify-email",
+  "title": "Auth verify email (waiting page)",
+  "summary": "Transactional 'check your inbox' page composed from the auth-verify-email block. Mostly visual — optional resend button calls adapter.resendMagicLink with a client-side cooldown timer.",
+  "tags": [
+    "auth",
+    "verify-email",
+    "transactional",
+    "block"
+  ],
+  "brief": "After signup, route the user to a waiting page that reminds them to click the verification link in their email, with an optional resend button that's rate-limited client-side.",
+  "steps": [
+    {
+      "component": "auth-verify-email",
+      "reason": "The page-level block — composes Empty for the zero-state-style landmark, optional resend button, cooldown timer, and confirmation Alert.",
+      "role": "primary"
+    },
+    {
+      "component": "empty",
+      "reason": "Region landmark + 'Check your inbox' title",
+      "role": "supporting"
+    },
+    {
+      "component": "button",
+      "reason": "Resend + 'Back to sign in' CTAs",
+      "role": "supporting"
+    },
+    {
+      "component": "alert",
+      "reason": "Resend-result confirmation + error surface",
+      "role": "optional"
+    }
+  ],
+  "checklist": [
+    {
+      "id": "pass-email-when-known",
+      "check": "Pass the user's email via the `email` prop so the description names the address explicitly. Both the resend button and the descriptive copy depend on it.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "resend-cooldown-not-too-low",
+      "check": "Keep `resendCooldownSeconds` ≥ 10 — lower invites accidental double-sends and trips backend rate limits.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "resend-method-or-no-button",
+      "check": "Implement adapter.resendMagicLink to enable the resend button. Without it the button hides automatically; users have no way to retry.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "verification-handled-via-link-or-otp",
+      "check": "This block only renders the waiting page. The actual verification happens via the magic-link click (server) or via auth-verify-otp if you also collect a code.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "auth-verify-email-showing-the-resend-button-when-adapter-resendmag",
+      "check": "[AuthVerifyEmail] Avoid: Showing the resend button when adapter.resendMagicLink isn't implemented — the block already hides it automatically; don't re-implement that gate.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-verify-email-treating-resendmagiclink-and-the-initial-sendmag",
+      "check": "[AuthVerifyEmail] Avoid: Treating resendMagicLink and the initial sendMagicLink as interchangeable — the dedicated resend method exists so consumers can throttle resends differently and surface different analytics.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-verify-email-setting-resendcooldownseconds-too-low-10s-invite",
+      "check": "[AuthVerifyEmail] Avoid: Setting resendCooldownSeconds too low (< 10s) — invites accidental double-sends and tripping rate-limit responses on the consumer's auth backend.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-verify-email-hard-coding-email-when-it-s-unknown-to-the-route",
+      "check": "[AuthVerifyEmail] Avoid: Hard-coding email when it's unknown to the route — pass undefined instead so the description falls back to a generic line and the resend button hides.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-verify-email-a11y",
+      "check": "[AuthVerifyEmail] A11y: The Empty primitive provides a region landmark with aria-labelledby pointing at the title — screen readers announce 'Check your inbox' as the section heading. Resend button uses the canonical loading prop (sets aria-busy + disabled). The cooldown countdown is reflected in the visible button label, so SR users hear 'Resend available in 28s' as the timer ticks.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "empty-using-empty-without-an-action-leaves-the-user-st",
+      "check": "[Empty] Avoid: Using Empty without an action — leaves the user stuck",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "empty-long-descriptions-keep-to-one-sentence-this-is-a",
+      "check": "[Empty] Avoid: Long descriptions — keep to one sentence; this is a state surface, not documentation",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "empty-forgetting-titleas-when-the-page-already-has-an-",
+      "check": "[Empty] Avoid: Forgetting titleAs when the page already has an h2 above (heading hierarchy break)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "empty-a11y",
+      "check": "[Empty] A11y: Wrapped in a region landmark labeled by the title (aria-labelledby + auto-generated id). Icon is decorative (aria-hidden). Pair the action with a Button that has a visible label.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "button-nesting-interactive-elements-inside-aschild-butt",
+      "check": "[Button] Avoid: Nesting interactive elements inside asChild button",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-with-plain-onclick-for-navigation-i",
+      "check": "[Button] Avoid: Using <Button> with plain onClick for navigation instead of <Button asChild><a href=...></a></Button> — breaks middle-click, cmd-click, and right-click → 'open in new tab', and skips the browser history entry",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-variant-destructive-for-recoverable",
+      "check": "[Button] Avoid: Using <Button variant='destructive'> for recoverable actions like 'Reset filters' — reserve destructive for delete/archive/leave; use 'secondary' or 'ghost' for resets",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-size-icon-without-an-aria-label-scr",
+      "check": "[Button] Avoid: Using <Button size='icon'> without an aria-label — screen readers have nothing to announce; always pair icon-only buttons with aria-label or visible text",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-a11y",
+      "check": "[Button] A11y: Automatically handles focus ring, disabled state, and aria attributes. Icon-only buttons MUST have aria-label. Loading state automatically sets disabled.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "alert-using-destructive-for-non-error-messages",
+      "check": "[Alert] Avoid: Using destructive for non-error messages",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "alert-missing-alerttitle-reduces-scannability",
+      "check": "[Alert] Avoid: Missing AlertTitle (reduces scannability)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "alert-stacking-multiple-alerts-on-the-same-page-instea",
+      "check": "[Alert] Avoid: Stacking multiple Alerts on the same page instead of grouping",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "alert-a11y",
+      "check": "[Alert] A11y: Root renders role='alert' so screen readers announce it. For non-urgent info banners consider role='status' or aria-live='polite' via className overrides.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 1100
+}

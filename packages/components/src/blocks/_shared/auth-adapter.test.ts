@@ -50,5 +50,11 @@ describe("mockAuthAdapter", () => {
 
 		const r9 = await mockAuthAdapter.signInWithPasskey();
 		expect(r9.ok).toBe(true);
+
+		const r10 = await mockAuthAdapter.resendMagicLink({ email: "a@b.co" });
+		expect(r10.ok).toBe(true);
+
+		const r11 = await mockAuthAdapter.resendOtp({ intent: "verify-email" });
+		expect(r11.ok).toBe(true);
 	});
 });

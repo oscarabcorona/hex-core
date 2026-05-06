@@ -1130,6 +1130,50 @@
       "tokenBudget": 700
     },
     {
+      "name": "auth-forgot-password",
+      "displayName": "AuthForgotPassword",
+      "description": "Single-field 'forgot password' page. On submit, dispatches a reset link via adapter.requestPasswordReset and swaps to an Empty-based 'check your inbox' confirmation state.",
+      "category": "block",
+      "subcategory": "auth",
+      "tags": [
+        "block",
+        "auth",
+        "forgot-password",
+        "password-reset",
+        "form",
+        "transactional"
+      ],
+      "internalDeps": [
+        "components/alert/alert",
+        "primitives/button/button",
+        "primitives/empty/empty",
+        "primitives/input/input",
+        "primitives/label/label"
+      ],
+      "tokenBudget": 1100
+    },
+    {
+      "name": "auth-reset-password",
+      "displayName": "AuthResetPassword",
+      "description": "'Set a new password' page paired with a reset link. Two fields (new password + confirm) with manual confirm-match validation; the opaque token is forwarded verbatim to adapter.resetPassword.",
+      "category": "block",
+      "subcategory": "auth",
+      "tags": [
+        "block",
+        "auth",
+        "reset-password",
+        "password",
+        "form"
+      ],
+      "internalDeps": [
+        "components/alert/alert",
+        "primitives/button/button",
+        "primitives/input/input",
+        "primitives/label/label"
+      ],
+      "tokenBudget": 1300
+    },
+    {
       "name": "auth-sign-in-split",
       "displayName": "AuthSignInSplit",
       "description": "Split-screen sign-in page. Marketing panel on the left (≥lg), credential form on the right. Routes every credential / OAuth call through a consumer-supplied AuthAdapter.",
@@ -1152,6 +1196,72 @@
         "primitives/separator/separator"
       ],
       "tokenBudget": 1800
+    },
+    {
+      "name": "auth-sign-up-card",
+      "displayName": "AuthSignUpCard",
+      "description": "Centered-card sign-up page. Email + password (with confirm) + optional name + terms checkbox + optional social providers. Routes account creation through a consumer-supplied AuthAdapter.",
+      "category": "block",
+      "subcategory": "auth",
+      "tags": [
+        "block",
+        "auth",
+        "sign-up",
+        "register",
+        "form",
+        "card"
+      ],
+      "internalDeps": [
+        "components/alert/alert",
+        "components/card/card",
+        "primitives/button/button",
+        "primitives/checkbox/checkbox",
+        "primitives/input/input",
+        "primitives/label/label",
+        "primitives/separator/separator"
+      ],
+      "tokenBudget": 2200
+    },
+    {
+      "name": "auth-verify-email",
+      "displayName": "AuthVerifyEmail",
+      "description": "Transactional 'verify your email' page composed from the Empty primitive. Optional resend button calls adapter.resendMagicLink with a client-side cooldown timer; resend hides automatically when the adapter doesn't implement the method.",
+      "category": "block",
+      "subcategory": "auth",
+      "tags": [
+        "block",
+        "auth",
+        "verify-email",
+        "transactional",
+        "empty-state"
+      ],
+      "internalDeps": [
+        "components/alert/alert",
+        "primitives/button/button",
+        "primitives/empty/empty"
+      ],
+      "tokenBudget": 1100
+    },
+    {
+      "name": "auth-verify-otp",
+      "displayName": "AuthVerifyOtp",
+      "description": "One-time-code verification page. Renders an InputOTP of N slots and auto-submits when the code is full; routes verification through adapter.verifyOtp({ code, intent }). Optional resend button calls adapter.resendOtp.",
+      "category": "block",
+      "subcategory": "auth",
+      "tags": [
+        "block",
+        "auth",
+        "verify-otp",
+        "otp",
+        "mfa",
+        "totp"
+      ],
+      "internalDeps": [
+        "components/alert/alert",
+        "components/input-otp/input-otp",
+        "primitives/button/button"
+      ],
+      "tokenBudget": 1300
     },
     {
       "name": "attachment",

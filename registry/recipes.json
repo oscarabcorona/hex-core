@@ -4,6 +4,27 @@
   "version": "0.1.0",
   "items": [
     {
+      "slug": "auth-forgot-password",
+      "title": "Auth forgot password",
+      "summary": "Single-field 'forgot password' page composing the auth-forgot-password block. Dispatches a reset link via adapter.requestPasswordReset and swaps to a 'check your inbox' state on success.",
+      "tags": [
+        "auth",
+        "forgot-password",
+        "password-reset",
+        "block",
+        "transactional"
+      ],
+      "components": [
+        "auth-forgot-password",
+        "input",
+        "label",
+        "button",
+        "alert",
+        "empty"
+      ],
+      "tokenBudget": 1100
+    },
+    {
       "slug": "auth-form",
       "title": "Auth form (deprecated — see auth-sign-in)",
       "summary": "[Superseded by auth-sign-in] Login or signup form with validated fields, remember-me, submit button, and error alert. Prefer the auth-sign-in recipe + auth-sign-in-split block for new work — it ships the page-level composition with adapter routing, social providers, and a forgot-password link out of the box.",
@@ -23,6 +44,25 @@
         "alert"
       ],
       "tokenBudget": 2400
+    },
+    {
+      "slug": "auth-reset-password",
+      "title": "Auth reset password",
+      "summary": "'Set a new password' page paired with a reset link. Composes the auth-reset-password block; the opaque token (typically from a `?token=…` URL parameter) is forwarded verbatim to adapter.resetPassword.",
+      "tags": [
+        "auth",
+        "reset-password",
+        "password",
+        "block"
+      ],
+      "components": [
+        "auth-reset-password",
+        "input",
+        "label",
+        "button",
+        "alert"
+      ],
+      "tokenBudget": 1300
     },
     {
       "slug": "auth-sign-in",
@@ -46,6 +86,68 @@
         "separator"
       ],
       "tokenBudget": 1800
+    },
+    {
+      "slug": "auth-sign-up",
+      "title": "Auth sign-up (centered card)",
+      "summary": "Production-grade sign-up page composing the auth-sign-up-card block. Email + password (with confirm) + optional name + terms checkbox + optional social providers, all routed through a pluggable AuthAdapter.",
+      "tags": [
+        "auth",
+        "sign-up",
+        "register",
+        "block",
+        "card"
+      ],
+      "components": [
+        "auth-sign-up-card",
+        "card",
+        "form",
+        "label",
+        "input",
+        "checkbox",
+        "button",
+        "alert",
+        "separator"
+      ],
+      "tokenBudget": 2200
+    },
+    {
+      "slug": "auth-verify-email",
+      "title": "Auth verify email (waiting page)",
+      "summary": "Transactional 'check your inbox' page composed from the auth-verify-email block. Mostly visual — optional resend button calls adapter.resendMagicLink with a client-side cooldown timer.",
+      "tags": [
+        "auth",
+        "verify-email",
+        "transactional",
+        "block"
+      ],
+      "components": [
+        "auth-verify-email",
+        "empty",
+        "button",
+        "alert"
+      ],
+      "tokenBudget": 1100
+    },
+    {
+      "slug": "auth-verify-otp",
+      "title": "Auth verify OTP",
+      "summary": "6-digit (configurable) one-time-code verification page. Composes the auth-verify-otp block which auto-submits when the code is full and routes verification through adapter.verifyOtp({ code, intent }).",
+      "tags": [
+        "auth",
+        "verify-otp",
+        "otp",
+        "mfa",
+        "totp",
+        "block"
+      ],
+      "components": [
+        "auth-verify-otp",
+        "input-otp",
+        "button",
+        "alert"
+      ],
+      "tokenBudget": 1300
     },
     {
       "slug": "command-palette",

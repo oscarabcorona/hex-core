@@ -44,6 +44,18 @@ export interface AuthAdapter {
 	resetPassword?(p: { token: string; password: string }): Promise<AuthAdapterResult>;
 	registerPasskey?(): Promise<AuthAdapterResult>;
 	signInWithPasskey?(): Promise<AuthAdapterResult>;
+	/**
+	 * Re-send a magic link to the same address. Distinct from {@link sendMagicLink}
+	 * so consumers can throttle resends and surface different analytics / error
+	 * copy for the second-and-onward attempt. Used by the verify-email block.
+	 */
+	resendMagicLink?(p: { email: string }): Promise<AuthAdapterResult>;
+	/**
+	 * Re-send a one-time code for the given intent. Distinct from the initial
+	 * code dispatch so consumers can throttle and log resends separately. Used
+	 * by the verify-otp block.
+	 */
+	resendOtp?(p: { intent: AuthOtpIntent }): Promise<AuthAdapterResult>;
 }
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -90,5 +102,13 @@ export const mockAuthAdapter: Required<AuthAdapter> = {
 	async signInWithPasskey() {
 		await wait(400);
 		return { ok: true, redirect: "/app" };
+	},
+	async resendMagicLink() {
+		await wait(400);
+		return { ok: true };
+	},
+	async resendOtp() {
+		await wait(400);
+		return { ok: true };
 	},
 };

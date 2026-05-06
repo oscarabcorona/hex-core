@@ -311,8 +311,22 @@ async function main(): Promise<void> {
 		} catch {
 			fail(`search_components(category:"block") did not return JSON: ${blocksText.slice(0, 120)}`);
 		}
-		if (!Array.isArray(blocksParsed) || blocksParsed.length === 0) {
-			fail(`search_components(category:"block") returned ${blocksParsed?.length ?? 0} blocks, expected ≥1.`);
+		// Lock the password-auth journey: sign-in + sign-up + forgot + reset +
+		// verify-email + verify-otp. Six blocks proves both the contract surface
+		// (registry round-trip) and that the bundle hasn't dropped any of the
+		// auth journey's blocks via a build regression.
+		const EXPECTED_AUTH_BLOCKS = [
+			"auth-sign-in-split",
+			"auth-sign-up-card",
+			"auth-forgot-password",
+			"auth-reset-password",
+			"auth-verify-email",
+			"auth-verify-otp",
+		];
+		if (!Array.isArray(blocksParsed) || blocksParsed.length < EXPECTED_AUTH_BLOCKS.length) {
+			fail(
+				`search_components(category:"block") returned ${blocksParsed?.length ?? 0} blocks, expected ≥${EXPECTED_AUTH_BLOCKS.length}.`,
+			);
 		}
 		const wrongCategory = blocksParsed.filter((b) => b.category !== "block");
 		if (wrongCategory.length > 0) {
@@ -322,7 +336,14 @@ async function main(): Promise<void> {
 					.join(", ")}`,
 			);
 		}
-		pass(`search_components(category:"block") returns ${blocksParsed.length} block(s)`);
+		const blockNames = new Set(blocksParsed.map((b) => b.name));
+		const missingAuth = EXPECTED_AUTH_BLOCKS.filter((slug) => !blockNames.has(slug));
+		if (missingAuth.length > 0) {
+			fail(
+				`search_components(category:"block") missing password-journey blocks: ${missingAuth.join(", ")}`,
+			);
+		}
+		pass(`search_components(category:"block") returns ${blocksParsed.length} block(s) including the password-auth journey`);
 
 		// Confirm the canonical first-shipped block (auth-sign-in-split) round-trips
 		// through get_component with its full spec — schema, files, AuthAdapter prop.

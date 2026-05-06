@@ -85,15 +85,18 @@ describe("dist bundle shape", () => {
 		expect(schemasDts).toMatch(/dialogSchema/);
 	});
 
-	it("per-component bundles stay under 20KB raw", () => {
-		// 20KB is generous — current largest is ~12KB (combobox/command).
-		// Catches accidental imports of large transitive libs.
+	it("per-component bundles stay under 24KB raw", () => {
+		// 24KB sits comfortably above primitives + components (~12KB max for
+		// combobox/command) AND blocks (auth-sign-up-card composes Card +
+		// 4 form fields + terms + social section, ships ~22KB). The cap
+		// catches accidental imports of large transitive libs (d3, mermaid,
+		// xterm), not inherent composition size.
 		const all = fs
 			.readdirSync(distDir)
 			.filter((f) => f.endsWith(".js") && f !== "index.js" && f !== "schemas.js");
 		for (const file of all) {
 			const size = fs.statSync(path.join(distDir, file)).size;
-			expect(size, `${file} grew past 20KB raw (${size} bytes)`).toBeLessThan(20 * 1024);
+			expect(size, `${file} grew past 24KB raw (${size} bytes)`).toBeLessThan(24 * 1024);
 		}
 	});
 
