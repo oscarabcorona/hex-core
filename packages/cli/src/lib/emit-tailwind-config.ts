@@ -2,7 +2,7 @@
  * Emit a Tailwind v3 `tailwind.config.ts` mapping the raw `--<key>` CSS
  * variables (which `globals.css` writes inside `@layer base { :root {} }`)
  * to color/radius/spacing utilities. Mirrors the shadcn/ui shape since
- * Hex UI's components target the same utility surface.
+ * Hex Core's components target the same utility surface.
  *
  * The tokens-derived `theme.extend` map comes pre-built from
  * `themeToTailwindConfig` (in @hex-core/tokens) — this just wraps it in

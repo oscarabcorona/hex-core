@@ -63,7 +63,7 @@ export default function SpecDrivenPage() {
 					Agents are good at writing React once they know <em>which</em> components to
 					reach for. GitHub Spec-Kit, AWS Kiro, and Claude Code plan mode all produce{" "}
 					<InlineCode>spec.md</InlineCode> / <InlineCode>tasks.md</InlineCode> artifacts
-					— none of them know the Hex UI catalog. Hex UI closes that loop with recipes,
+					— none of them know the Hex Core catalog. Hex Core closes that loop with recipes,
 					a resolver, and a verifier. No server. No runtime. Same copy-the-code
 					distribution.
 				</p>
@@ -124,7 +124,7 @@ export default function SpecDrivenPage() {
 
 			<DocSection id="cli" title="CLI shortcut">
 				<p className="text-sm leading-6">
-					If you&rsquo;re driving Hex UI from a shell instead of an MCP client, the CLI
+					If you&rsquo;re driving Hex Core from a shell instead of an MCP client, the CLI
 					exposes the same surface:
 				</p>
 				<CodeBlock label="bash" code={RECIPE_CLI} />

@@ -40,7 +40,7 @@ interface Recipe {
 export async function listRecipes(): Promise<void> {
 	const registryDir = findRegistryDir();
 	if (!registryDir) {
-		console.error("Could not find registry. Run from the hex-ui project root.");
+		console.error("Could not find registry. Run from the hex-core project root.");
 		process.exit(1);
 	}
 
@@ -52,7 +52,7 @@ export async function listRecipes(): Promise<void> {
 
 	const index: { items: RecipeIndexItem[] } = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
 
-	console.log("\nHex UI Recipes\n");
+	console.log("\nHex Core Recipes\n");
 	for (const recipe of index.items) {
 		console.log(`  ${recipe.slug.padEnd(22)} ${recipe.title}`);
 		console.log(`  ${" ".repeat(22)} ${recipe.summary}`);
@@ -83,7 +83,7 @@ export async function addRecipe(
 
 	const registryDir = findRegistryDir();
 	if (!registryDir) {
-		console.error("Could not find registry. Run from the hex-ui project root.");
+		console.error("Could not find registry. Run from the hex-core project root.");
 		process.exit(1);
 	}
 

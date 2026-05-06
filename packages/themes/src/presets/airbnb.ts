@@ -4,7 +4,7 @@
 // Brief updated: 2026-04-27T18:59:06+03:00
 //
 // Style reference inspired by Airbnb's publicly visible design system.
-// Hex UI is not affiliated with, endorsed by, or sponsored by Airbnb.
+// Hex Core is not affiliated with, endorsed by, or sponsored by Airbnb.
 // Re-run `pnpm import:themes` to regenerate from the latest briefs.
 import type { Theme } from "@hex-core/registry";
 import { sharedTokens } from "@hex-core/tokens";

@@ -1,9 +1,9 @@
 {
 	"name": "@hex-core/tokens",
 	"version": "1.3.3",
-	"description": "Design token engine for Hex UI — HSL tokens + typography scale shared between components and themes.",
+	"description": "Design token engine for Hex Core — HSL tokens + typography scale shared between components and themes.",
 	"keywords": [
-		"hex-ui",
+		"hex-core",
 		"tokens",
 		"design-tokens",
 		"tailwind",

@@ -4,7 +4,7 @@
 [![downloads](https://img.shields.io/npm/dm/@hex-core/cli.svg)](https://www.npmjs.com/package/@hex-core/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/oscarabcorona/hex-core/blob/main/LICENSE)
 
-Copy Hex UI components into your project with one command. No runtime dependency on the library — you own the source.
+Copy Hex Core components into your project with one command. No runtime dependency on the library — you own the source.
 
 > [!WARNING]
 > **Use the scoped package name.** This package is `@hex-core/cli` (with the `@hex-core/` scope). An unrelated `hex-core` package is published on npm by a different author — `npx hex-core …` will fail with `npm error could not determine executable to run`. Always include the scope in `npx` / `pnpm dlx` commands.
@@ -82,7 +82,7 @@ hex recipe add settings-page
 
 ### `hex skills install`
 
-Copies the eight bundled Hex UI skills into `.claude/skills/` (or a custom `--target`). Skills are SKILL.md prose packs that Claude Code loads on demand via trigger keywords.
+Copies the eight bundled Hex Core skills into `.claude/skills/` (or a custom `--target`). Skills are SKILL.md prose packs that Claude Code loads on demand via trigger keywords.
 
 ```bash
 hex skills install                         # default target: .claude/skills/

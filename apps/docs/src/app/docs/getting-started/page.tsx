@@ -5,7 +5,7 @@ import { DocsPage } from "../../../components/docs-page";
 const MCP_SETTINGS = `// .claude/settings.json
 {
   "mcpServers": {
-    "hex-ui": {
+    "hex-core": {
       "command": "npx",
       "args": ["@hex-core/mcp"]
     }
@@ -14,11 +14,11 @@ const MCP_SETTINGS = `// .claude/settings.json
 
 export const metadata = {
 	title: "Introduction",
-	description: "Hex UI is an AI-native component library with MCP distribution.",
+	description: "Hex Core is an AI-native component library with MCP distribution.",
 };
 
 const SECTIONS = [
-	{ id: "what", title: "What is Hex UI?" },
+	{ id: "what", title: "What is Hex Core?" },
 	{ id: "ai-native", title: "AI-Native" },
 	{ id: "mcp", title: "MCP Server" },
 	{ id: "tech", title: "Tech Stack" },
@@ -35,15 +35,15 @@ export default function GettingStarted() {
 			editPath="apps/docs/src/app/docs/getting-started/page.tsx"
 		>
 			<p className="text-sm leading-6">
-				Hex UI is a component library designed for both{" "}
+				Hex Core is a component library designed for both{" "}
 				<strong>AI coding assistants</strong> and <strong>human developers</strong>. Every
 				component ships with machine-readable schemas, usage hints, and accessibility
 				metadata that LLMs can consume via MCP.
 			</p>
 
-			<DocSection id="what" title="What is Hex UI?">
+			<DocSection id="what" title="What is Hex Core?">
 				<p className="text-sm leading-6">
-					Unlike traditional component libraries, Hex UI is <strong>not</strong> a
+					Unlike traditional component libraries, Hex Core is <strong>not</strong> a
 					package you install as a dependency. Instead, you pick the components you
 					need and copy them into your project. This gives you full ownership and
 					control over the code — no vendor lock-in, no version conflicts.
@@ -76,14 +76,14 @@ export default function GettingStarted() {
 
 			<DocSection id="mcp" title="MCP Server">
 				<p className="text-sm leading-6">
-					Add the Hex UI MCP server to your Claude Code settings and discover components
+					Add the Hex Core MCP server to your Claude Code settings and discover components
 					with natural language:
 				</p>
 				<CodeBlock label="json" code={MCP_SETTINGS} />
 				<p className="text-sm leading-6">
 					Then ask:{" "}
 					<em>
-						&ldquo;Search hex-ui for a button component and add it to my project.&rdquo;
+						&ldquo;Search hex-core for a button component and add it to my project.&rdquo;
 					</em>
 				</p>
 			</DocSection>

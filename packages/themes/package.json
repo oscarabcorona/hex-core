@@ -1,9 +1,9 @@
 {
 	"name": "@hex-core/themes",
 	"version": "0.2.0",
-	"description": "Theme catalog for Hex UI — premium presets and convenience re-exports built on @hex-core/tokens.",
+	"description": "Theme catalog for Hex Core — premium presets and convenience re-exports built on @hex-core/tokens.",
 	"keywords": [
-		"hex-ui",
+		"hex-core",
 		"themes",
 		"design-tokens",
 		"theme-catalog"

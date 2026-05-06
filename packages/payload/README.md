@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@hex-core/payload.svg)](https://www.npmjs.com/package/@hex-core/payload)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/oscarabcorona/hex-core/blob/main/LICENSE)
 
-Pure-function builders for Hex UI's paste-into-LLM payloads. Renders themes + components + recipes into deterministic markdown (`emit_app_context` shape) and Figma Variables REST JSON (`emit_figma_tokens` shape).
+Pure-function builders for Hex Core's paste-into-LLM payloads. Renders themes + components + recipes into deterministic markdown (`emit_app_context` shape) and Figma Variables REST JSON (`emit_figma_tokens` shape).
 
 Consumed internally by [`@hex-core/mcp`](../mcp-server) for the MCP stdio server's tool handlers. **Importable directly** by Next.js apps, generator scripts, and CI fixtures that want the canonical format without the subprocess + JSON-RPC overhead of running an MCP client.
 

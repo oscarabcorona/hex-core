@@ -1,8 +1,8 @@
 {
   "$schema": "https://hex-core.dev/schema/registry.json",
-  "name": "hex-ui",
+  "name": "hex-core",
   "version": "0.1.0",
-  "description": "Hex UI — AI-native component library for LLMs and humans",
+  "description": "Hex Core — AI-native component library for LLMs and humans",
   "homepage": "https://hex-core.dev",
   "items": [
     {
@@ -662,7 +662,7 @@
     {
       "name": "data-table",
       "displayName": "Data Table",
-      "description": "Generic data-driven table built on TanStack Table + Hex UI Table primitives. Pass columns + data; add sorting/filtering/pagination via TanStack hooks.",
+      "description": "Generic data-driven table built on TanStack Table + Hex Core Table primitives. Pass columns + data; add sorting/filtering/pagination via TanStack hooks.",
       "category": "component",
       "subcategory": "data",
       "tags": [

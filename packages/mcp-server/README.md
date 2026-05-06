@@ -4,7 +4,7 @@
 [![downloads](https://img.shields.io/npm/dm/@hex-core/mcp.svg)](https://www.npmjs.com/package/@hex-core/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/oscarabcorona/hex-core/blob/main/LICENSE)
 
-Universal MCP server for Hex UI. Gives any MCP-capable AI agent — Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, Zed — structured access to the component registry. No prose scraping, no copy-paste.
+Universal MCP server for Hex Core. Gives any MCP-capable AI agent — Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, Zed — structured access to the component registry. No prose scraping, no copy-paste.
 
 ## Install
 
@@ -26,7 +26,7 @@ Project-scoped; for global wiring use ~/.claude/settings.json.
 ```json
 {
   "mcpServers": {
-    "hex-ui": {
+    "hex-core": {
       "command": "npx",
       "args": ["-y", "@hex-core/mcp"]
     }
@@ -45,7 +45,7 @@ Project-scoped; for all projects use ~/.cursor/mcp.json.
 ```json
 {
   "mcpServers": {
-    "hex-ui": {
+    "hex-core": {
       "command": "npx",
       "args": ["-y", "@hex-core/mcp"]
     }
@@ -63,7 +63,7 @@ Continue migrated from JSON to YAML; the legacy ~/.continue/config.json still wo
 
 ```yaml
 mcpServers:
-  - name: hex-ui
+  - name: hex-core
     command: npx
     args:
       - -y
@@ -83,7 +83,7 @@ Global scope; project-scoped wiring goes in .gemini/settings.json at the repo ro
 ```json
 {
   "mcpServers": {
-    "hex-ui": {
+    "hex-core": {
       "command": "npx",
       "args": ["-y", "@hex-core/mcp"]
     }
@@ -103,7 +103,7 @@ macOS path; Windows: %APPDATA%\ChatGPT\mcp.json. MCP support requires Developer 
 ```json
 {
   "mcpServers": {
-    "hex-ui": {
+    "hex-core": {
       "command": "npx",
       "args": ["-y", "@hex-core/mcp"]
     }
@@ -124,7 +124,7 @@ Open via Cmd+, in Zed; the file is plain JSONC (comments + trailing commas allow
 ```jsonc
 {
   "context_servers": {
-    "hex-ui": {
+    "hex-core": {
       "source": "custom",
       "command": "npx",
       "args": ["-y", "@hex-core/mcp"]
@@ -167,14 +167,14 @@ AI-native intent layer (0.4.0+):
 
 ## Prompts that "just work"
 
-- "Find a hex-ui component for a confirmation dialog and add it"
-- "Resolve this spec into hex-ui components: build a settings page with notifications toggle"
-- "Walk me through the hex-ui auth-form recipe and install it"
-- "Verify I have all the hex-ui internal deps for combobox"
+- "Find a hex-core component for a confirmation dialog and add it"
+- "Resolve this spec into hex-core components: build a settings page with notifications toggle"
+- "Walk me through the hex-core auth-form recipe and install it"
+- "Verify I have all the hex-core internal deps for combobox"
 
 ## Pair with skills (Claude Code only)
 
-The MCP server returns structured data. For prose reasoning context (when to pick recipe X, how themes compose, React 19 anti-patterns), the Hex UI skills pack adds Claude-Code-trigger-keyword docs alongside the typed tool calls:
+The MCP server returns structured data. For prose reasoning context (when to pick recipe X, how themes compose, React 19 anti-patterns), the Hex Core skills pack adds Claude-Code-trigger-keyword docs alongside the typed tool calls:
 
 ```bash
 npx @hex-core/cli skills install

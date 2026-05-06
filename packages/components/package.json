@@ -1,7 +1,7 @@
 {
 	"name": "@hex-core/components",
 	"version": "1.8.0",
-	"description": "AI-native React components for Hex UI — Radix UI + Tailwind CSS with machine-readable schemas. RSC-aware per-component bundles + tree-shakable.",
+	"description": "AI-native React components for Hex Core — Radix UI + Tailwind CSS with machine-readable schemas. RSC-aware per-component bundles + tree-shakable.",
 	"keywords": [
 		"react",
 		"components",
@@ -10,7 +10,7 @@
 		"mcp",
 		"ai-native",
 		"component-library",
-		"hex-ui"
+		"hex-core"
 	],
 	"license": "MIT",
 	"author": "Oscar Corona <oabc4004@gmail.com>",

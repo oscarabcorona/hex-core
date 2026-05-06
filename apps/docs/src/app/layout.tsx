@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hex-core.dev";
-const siteTitle = "Hex UI — AI-Native Component Library";
+const siteTitle = "Hex Core — AI-Native Component Library";
 const componentCount = listComponents().length;
 const siteDescription = `Component library designed for LLMs and humans. MCP-first distribution, Radix UI + Tailwind CSS, ${componentCount} polished primitives and compounds.`;
 
@@ -23,13 +23,13 @@ export const metadata: Metadata = {
 	metadataBase: new URL(siteUrl),
 	title: {
 		default: siteTitle,
-		template: "%s — Hex UI",
+		template: "%s — Hex Core",
 	},
 	description: siteDescription,
-	applicationName: "Hex UI",
-	authors: [{ name: "Hex UI" }],
+	applicationName: "Hex Core",
+	authors: [{ name: "Hex Core" }],
 	keywords: [
-		"hex ui",
+		"hex core",
 		"component library",
 		"mcp",
 		"ai-native",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 	openGraph: {
 		type: "website",
 		url: siteUrl,
-		siteName: "Hex UI",
+		siteName: "Hex Core",
 		title: siteTitle,
 		description: siteDescription,
 		locale: "en_US",
@@ -81,7 +81,7 @@ export default function RootLayout({
 					enableSystem
 					enableColorScheme
 					disableTransitionOnChange
-					storageKey="hex-ui-theme"
+					storageKey="hex-core-theme"
 				>
 					{children}
 				</ThemeProvider>

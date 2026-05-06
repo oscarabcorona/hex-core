@@ -631,7 +631,7 @@ function renderPresetTs(args: {
 // Brief updated: ${sourceUpdatedAt}
 //
 // Style reference inspired by ${displayName}'s publicly visible design system.
-// Hex UI is not affiliated with, endorsed by, or sponsored by ${displayName}.
+// Hex Core is not affiliated with, endorsed by, or sponsored by ${displayName}.
 // Re-run \`pnpm import:themes\` to regenerate from the latest briefs.
 import type { Theme } from "@hex-core/registry";
 import { sharedTokens } from "@hex-core/tokens";

@@ -4,7 +4,7 @@
 // Brief updated: 2026-04-27T13:04:10+03:00
 //
 // Style reference inspired by Claude's publicly visible design system.
-// Hex UI is not affiliated with, endorsed by, or sponsored by Claude.
+// Hex Core is not affiliated with, endorsed by, or sponsored by Claude.
 // Re-run `pnpm import:themes` to regenerate from the latest briefs.
 import type { Theme } from "@hex-core/registry";
 import { sharedTokens } from "@hex-core/tokens";

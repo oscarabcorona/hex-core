@@ -201,7 +201,7 @@ function renderChecklist(slug: string, item: RegistryItemFull, cluster: number):
  */
 function renderIndex(items: RegistryItemBrief[]): string {
 	const lines: string[] = [
-		"# Hex UI — QA Polish Index",
+		"# Hex Core — QA Polish Index",
 		"",
 		"> Status tracker for the senior-designer polish pass across all 47 components.",
 		"> See `CHECKLIST_TEMPLATE.md` for the per-component checklist. Each component has its own `<slug>.md`.",

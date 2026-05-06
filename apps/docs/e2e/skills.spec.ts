@@ -20,14 +20,14 @@ test.describe("skills page", () => {
 		await page.goto("/docs/skills");
 		const shippedSection = page.locator("#shipped");
 		const slugs = [
-			"hex-ui-overview",
-			"hex-ui-mcp-tools",
-			"hex-ui-recipes-workflow",
-			"hex-ui-theming",
-			"hex-ui-cli",
-			"hex-ui-accessibility",
-			"hex-ui-anti-patterns",
-			"hex-ui-registry-authoring",
+			"hex-core-overview",
+			"hex-core-mcp-tools",
+			"hex-core-recipes-workflow",
+			"hex-core-theming",
+			"hex-core-cli",
+			"hex-core-accessibility",
+			"hex-core-anti-patterns",
+			"hex-core-registry-authoring",
 		];
 		for (const slug of slugs) {
 			await expect(shippedSection.getByText(slug, { exact: true })).toBeVisible();

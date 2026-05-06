@@ -18,7 +18,7 @@ import {
 } from "../table/table.js";
 
 /**
- * Generic DataTable wrapper that renders a TanStack Table model using Hex UI's
+ * Generic DataTable wrapper that renders a TanStack Table model using Hex Core's
  * Table primitives. Pass columns + data; use TanStack hooks for sorting,
  * filtering, pagination, row-selection as needed.
  * @template TData - Row data type. Cell value types are inferred per column by TanStack.
@@ -34,7 +34,7 @@ export interface DataTableProps<TData> {
 	/**
 	 * Accessible label for the table when no visible caption is shown.
 	 * Forwarded as `aria-label` on the underlying `<table>` element. Kebab-case
-	 * to match the canonical ARIA prop convention used elsewhere in Hex UI.
+	 * to match the canonical ARIA prop convention used elsewhere in Hex Core.
 	 */
 	"aria-label"?: string;
 }

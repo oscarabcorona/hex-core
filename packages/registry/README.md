@@ -4,7 +4,7 @@
 [![downloads](https://img.shields.io/npm/dm/@hex-core/registry.svg)](https://www.npmjs.com/package/@hex-core/registry)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/oscarabcorona/hex-core/blob/main/LICENSE)
 
-Zod schemas + TypeScript types for the Hex UI component registry.
+Zod schemas + TypeScript types for the Hex Core component registry.
 
 This package is the **shared contract** between `@hex-core/components`, `@hex-core/cli`, and `@hex-core/mcp`. It doesn't ship runtime UI — it's schemas describing what a component is (props, variants, examples, AI hints).
 
@@ -70,7 +70,7 @@ LLMs asked "what's the right token for a delete button background" reach for `bu
 
 ## Notes
 
-Most users of Hex UI never touch this package directly. If you're building a custom tool that reads the registry JSON (`registry/registry.json` in the repo, or `/registry.json` on the docs site), this is your source of truth for the schema.
+Most users of Hex Core never touch this package directly. If you're building a custom tool that reads the registry JSON (`registry/registry.json` in the repo, or `/registry.json` on the docs site), this is your source of truth for the schema.
 
 ## Docs
 

@@ -1,5 +1,5 @@
 /**
- * `@hex-core/payload` — pure-function builders for Hex UI's paste-into-LLM
+ * `@hex-core/payload` — pure-function builders for Hex Core's paste-into-LLM
  * payloads. Renders themes + components + recipes into deterministic markdown
  * (`emit_app_context` shape) and Figma Variables REST JSON (`emit_figma_tokens`
  * shape). Consumed by `@hex-core/mcp` for the stdio server's tool handlers and

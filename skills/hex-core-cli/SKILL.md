@@ -1,9 +1,9 @@
 ---
-name: hex-ui-cli
+name: hex-core-cli
 description: Using the hex CLI. Load when the user runs or asks about hex init, hex add, hex list, hex recipe, hex skills, pnpm dlx @hex-core/cli, or npx @hex-core/cli.
 ---
 
-# Hex UI — CLI
+# Hex Core — CLI
 
 The `hex` binary is provided by `@hex-core/cli`. Install via `pnpm dlx @hex-core/cli <cmd>` or `pnpm add -g @hex-core/cli`.
 
@@ -37,7 +37,7 @@ Recipes: `auth-form`, `settings-page`, `pricing-table`, `data-table-view`, `conf
 
 ### `hex skills install [--target <path>] [--overwrite]`
 
-Copies the 8 skills that ship with hex-ui into `<cwd>/.claude/skills/` by default. An agent reading the host repo will then load them into context as needed.
+Copies the 8 skills that ship with hex-core into `<cwd>/.claude/skills/` by default. An agent reading the host repo will then load them into context as needed.
 
 ## Canonical flows
 

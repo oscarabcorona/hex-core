@@ -118,7 +118,7 @@ pnpm dlx @hex-core/cli theme edit \\
   --token "primary=258 90% 66%" \\
   --token "ring=258 90% 66%"`;
 
-const LLM_CONTEXT_SNIPPET = `# Hex UI — your theme
+const LLM_CONTEXT_SNIPPET = `# Hex Core — your theme
 
 ## globals.css
 <paste the globals.css you scaffolded with \`hex theme init\`>
@@ -183,7 +183,7 @@ export default function ThemingPage() {
 					presets are <em>style references inspired by publicly visible design
 					systems</em>, not endorsements. Names like Tesla, Stripe, Apple, Notion,
 					Linear, and every other brand referenced are trademarks of their
-					respective owners. Hex UI is not affiliated with, endorsed by, or
+					respective owners. Hex Core is not affiliated with, endorsed by, or
 					sponsored by any of these companies. Each preset file carries the same
 					notice in its header comment, and the source MIT license is preserved
 					at <InlineCode>LICENSES/voltagent-MIT.md</InlineCode> in the repo.

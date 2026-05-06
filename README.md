@@ -1,4 +1,4 @@
-# Hex UI
+# Hex Core
 
 [![CI](https://github.com/oscarabcorona/hex-core/actions/workflows/ci.yml/badge.svg)](https://github.com/oscarabcorona/hex-core/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@hex-core/components.svg?label=%40hex-core%2Fcomponents)](https://www.npmjs.com/package/@hex-core/components)
@@ -8,11 +8,11 @@
 
 **The component layer for spec-driven UI development.**
 
-Hex UI turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 12 MCP tools over a catalog of 83 components.
+Hex Core turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 12 MCP tools over a catalog of 83 components.
 
-## Why Hex UI?
+## Why Hex Core?
 
-shadcn/ui is built for humans browsing docs. Hex UI is built for **AI agents** that need:
+shadcn/ui is built for humans browsing docs. Hex Core is built for **AI agents** that need:
 
 - **Machine-readable component specs** — Zod schemas with props, variants, slots, and constraints
 - **AI hints** — `whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes` per component
@@ -32,7 +32,7 @@ Add to your Claude Code settings (`.claude/settings.json`):
 ```json
 {
   "mcpServers": {
-    "hex-ui": {
+    "hex-core": {
       "command": "npx",
       "args": ["@hex-core/mcp"]
     }
@@ -40,7 +40,7 @@ Add to your Claude Code settings (`.claude/settings.json`):
 }
 ```
 
-Then ask Claude: *"Search hex-ui for a button component and add it to my project"*
+Then ask Claude: *"Search hex-core for a button component and add it to my project"*
 
 ### For Humans (CLI)
 
@@ -89,11 +89,11 @@ npx @hex-core/cli recipe list
 npx @hex-core/cli recipe add settings-page
 ```
 
-Or from an MCP client: ask *"Resolve this spec into hex-ui components: build a settings page with notifications toggle"* — `resolve_spec` returns the `settings-page` recipe and a ranked component shortlist.
+Or from an MCP client: ask *"Resolve this spec into hex-core components: build a settings page with notifications toggle"* — `resolve_spec` returns the `settings-page` recipe and a ranked component shortlist.
 
 ## Skills (for Claude Code)
 
-Hex UI ships eight prose context packs in `SKILL.md` format — overview, MCP tools decision tree, recipes workflow, theming, CLI, a11y, anti-patterns, registry authoring. Install in one command:
+Hex Core ships eight prose context packs in `SKILL.md` format — overview, MCP tools decision tree, recipes workflow, theming, CLI, a11y, anti-patterns, registry authoring. Install in one command:
 
 ```bash
 npx @hex-core/cli skills install
@@ -124,7 +124,7 @@ pnpm run build:registry
 ## Architecture
 
 ```
-hex-ui/
+hex-core/
 ├── packages/
 │   ├── registry/       # Zod schemas + types
 │   ├── tokens/         # Design token engine

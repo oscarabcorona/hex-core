@@ -73,7 +73,7 @@
     },
     {
       "id": "command-querying-commandseparator-via-cmdk-s-internal-se",
-      "check": "[Command] Avoid: Querying CommandSeparator via cmdk's internal Separator state — Hex UI renders it as a presentational div with role='none' (and the `data-cmdk-separator` attribute preserved for selector compatibility) so it can sit inside CommandList's role=listbox without violating ARIA",
+      "check": "[Command] Avoid: Querying CommandSeparator via cmdk's internal Separator state — Hex Core renders it as a presentational div with role='none' (and the `data-cmdk-separator` attribute preserved for selector compatibility) so it can sit inside CommandList's role=listbox without violating ARIA",
       "severity": "warn",
       "source": "derived-mistake"
     },

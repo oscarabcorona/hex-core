@@ -79,7 +79,7 @@ export const commandSchema: ComponentSchemaDefinition = {
 			"Giving CommandItem non-unique values (breaks filtering and controlled state)",
 			"Overriding CommandInput className to remove the border/padding — breaks the ⌘K icon layout",
 			"Not rendering CommandEmpty — the list looks broken when a search has no matches",
-			"Querying CommandSeparator via cmdk's internal Separator state — Hex UI renders it as a presentational div with role='none' (and the `data-cmdk-separator` attribute preserved for selector compatibility) so it can sit inside CommandList's role=listbox without violating ARIA",
+			"Querying CommandSeparator via cmdk's internal Separator state — Hex Core renders it as a presentational div with role='none' (and the `data-cmdk-separator` attribute preserved for selector compatibility) so it can sit inside CommandList's role=listbox without violating ARIA",
 		],
 		relatedComponents: ["combobox", "dialog", "dropdown-menu"],
 		accessibilityNotes:

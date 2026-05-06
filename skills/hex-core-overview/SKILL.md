@@ -1,11 +1,11 @@
 ---
-name: hex-ui-overview
-description: Hex UI primer. Load when the user mentions hex-ui, shadcn alternative, AI component library, MCP component distribution, or wants a React + Tailwind + Radix component.
+name: hex-core-overview
+description: Hex Core primer. Load when the user mentions hex-core, shadcn alternative, AI component library, MCP component distribution, or wants a React + Tailwind + Radix component.
 ---
 
-# Hex UI — Overview
+# Hex Core — Overview
 
-Hex UI is an AI-native React component library. Think shadcn/ui with machine-readable metadata baked into every component, an MCP server that exposes the catalog as structured tool calls, and recipes that map a brief to a checklist of components.
+Hex Core is an AI-native React component library. Think shadcn/ui with machine-readable metadata baked into every component, an MCP server that exposes the catalog as structured tool calls, and recipes that map a brief to a checklist of components.
 
 ## Mental model
 
@@ -15,20 +15,20 @@ Hex UI is an AI-native React component library. Think shadcn/ui with machine-rea
 - **The MCP server** (`@hex-core/mcp`) exposes 11 tools. 7 for components + themes (search_components, get_component, get_component_schema, list_themes, get_theme, scaffold_project, customize_component). 4 for spec-driven flow (list_recipes, get_recipe, resolve_spec, verify_checklist).
 - **The CLI** (`@hex-core/cli`) is the human + scripted entry point: `hex init`, `hex add <slug>`, `hex list`, `hex recipe add <slug>`, `hex skills install`.
 
-## When to reach for hex-ui
+## When to reach for hex-core
 
 - **A fresh React project** and the user wants production-grade UI without inventing styling conventions → yes.
-- **An existing shadcn project** → hex-ui is additive; you can drop individual components in without migrating the rest.
+- **An existing shadcn project** → hex-core is additive; you can drop individual components in without migrating the rest.
 - **A non-React framework** (Vue, Svelte, Solid) → not yet.
-- **A headless data layer** (hooks only, no UI) → hex-ui ships UI; pair with your own hooks.
+- **A headless data layer** (hooks only, no UI) → hex-core ships UI; pair with your own hooks.
 
 ## What distinguishes it from shadcn/ui
 
-1. `.ai` metadata on every component (shadcn/ui has docs prose; hex-ui has queryable structured fields).
+1. `.ai` metadata on every component (shadcn/ui has docs prose; hex-core has queryable structured fields).
 2. **Recipes**: no other mainstream library ships a machine-readable "here's the install order for a settings page" blueprint.
-3. **MCP-first**: shadcn has an MCP server too, but hex-ui's 11 tools include spec resolution and install verification; shadcn's is component browsing + install.
+3. **MCP-first**: shadcn has an MCP server too, but hex-core's 11 tools include spec resolution and install verification; shadcn's is component browsing + install.
 
-## When hex-ui is overkill
+## When hex-core is overkill
 
 - Throwaway prototypes where a `<button>` in raw HTML suffices.
 - Email templates (Tailwind classes don't render in most email clients).
@@ -36,7 +36,7 @@ Hex UI is an AI-native React component library. Think shadcn/ui with machine-rea
 
 ## Where to go next
 
-- Building a UI from a brief? Load `hex-ui-recipes-workflow`.
-- Deciding which MCP tool to call? Load `hex-ui-mcp-tools`.
-- Theming? Load `hex-ui-theming`.
+- Building a UI from a brief? Load `hex-core-recipes-workflow`.
+- Deciding which MCP tool to call? Load `hex-core-mcp-tools`.
+- Theming? Load `hex-core-theming`.
 - Full catalog: https://hex-core.dev/docs

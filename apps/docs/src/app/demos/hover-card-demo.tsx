@@ -35,7 +35,7 @@ export function HoverCardDemo() {
 							</Avatar>
 							<div className="space-y-1">
 								<h4 className="text-sm font-semibold">@oscarabcorona</h4>
-								<p className="text-sm">Building Hex UI — an AI-native component library.</p>
+								<p className="text-sm">Building Hex Core — an AI-native component library.</p>
 								<div className="text-xs text-muted-foreground">Joined December 2021</div>
 							</div>
 						</div>
@@ -48,7 +48,7 @@ export function HoverCardDemo() {
 					Inline link preview
 				</p>
 				<p className="text-sm leading-relaxed">
-					Hex UI is built on{" "}
+					Hex Core is built on{" "}
 					<HoverCard>
 						<HoverCardTrigger asChild>
 							<Button

@@ -26,7 +26,7 @@ export function NavigationMenuDemo() {
 								>
 									<div className="text-sm font-medium leading-none">Getting Started</div>
 									<p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-										Install and configure Hex UI in your project.
+										Install and configure Hex Core in your project.
 									</p>
 								</NavigationMenuLink>
 							</li>
@@ -37,7 +37,7 @@ export function NavigationMenuDemo() {
 								>
 									<div className="text-sm font-medium leading-none">Components</div>
 									<p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-										Browse all available Hex UI components.
+										Browse all available Hex Core components.
 									</p>
 								</NavigationMenuLink>
 							</li>

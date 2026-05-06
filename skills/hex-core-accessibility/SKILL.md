@@ -1,11 +1,11 @@
 ---
-name: hex-ui-accessibility
-description: Accessibility patterns for hex-ui components. Load when the user asks about a11y, aria-label, screen reader, keyboard navigation, focus management, or WCAG compliance with hex-ui.
+name: hex-core-accessibility
+description: Accessibility patterns for hex-core components. Load when the user asks about a11y, aria-label, screen reader, keyboard navigation, focus management, or WCAG compliance with hex-core.
 ---
 
-# Hex UI — Accessibility
+# Hex Core — Accessibility
 
-Hex UI components wrap Radix UI primitives, so most accessibility behavior (roles, keyboard nav, focus traps) is Radix's. The hex-ui layer adds styling and a few conventions.
+Hex Core components wrap Radix UI primitives, so most accessibility behavior (roles, keyboard nav, focus traps) is Radix's. The hex-core layer adds styling and a few conventions.
 
 ## What Radix handles automatically
 

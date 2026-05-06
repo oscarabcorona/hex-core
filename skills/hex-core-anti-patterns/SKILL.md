@@ -1,17 +1,17 @@
 ---
-name: hex-ui-anti-patterns
-description: Top mistakes to avoid with hex-ui. Load when writing React 19, editing components/ui/, handling forms, composing dialogs, or anywhere an agent is about to make a known-bad choice.
+name: hex-core-anti-patterns
+description: Top mistakes to avoid with hex-core. Load when writing React 19, editing components/ui/, handling forms, composing dialogs, or anywhere an agent is about to make a known-bad choice.
 ---
 
-# Hex UI — Anti-Patterns
+# Hex Core — Anti-Patterns
 
-These are the repeated mistakes across real hex-ui projects. Most come from the `.ai.commonMistakes` field on the underlying components; this skill aggregates and contextualizes them.
+These are the repeated mistakes across real hex-core projects. Most come from the `.ai.commonMistakes` field on the underlying components; this skill aggregates and contextualizes them.
 
 ## React 19 / Next 16 hygiene
 
 ### Do not add `forwardRef` to new components
 
-React 19 makes `ref` a regular prop. New hex-ui components omit `forwardRef`. Legacy code keeping it is fine during migration, but don't add it to new code.
+React 19 makes `ref` a regular prop. New hex-core components omit `forwardRef`. Legacy code keeping it is fine during migration, but don't add it to new code.
 
 ```tsx
 // ❌ WRONG (React 19)

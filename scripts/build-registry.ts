@@ -270,7 +270,7 @@ function resolveSourceFile(fromDir: string, spec: string): string | null {
 
 // ─── Main ───
 
-console.log("Building Hex UI registry...\n");
+console.log("Building Hex Core registry...\n");
 
 const schemaFiles = findSchemaFiles();
 const libFiles = readLibFiles();
@@ -379,9 +379,9 @@ for (const sf of schemaFiles) {
 // Write registry index
 const registryIndex = {
 	$schema: "https://hex-core.dev/schema/registry.json",
-	name: "hex-ui",
+	name: "hex-core",
 	version: "0.1.0",
-	description: "Hex UI — AI-native component library for LLMs and humans",
+	description: "Hex Core — AI-native component library for LLMs and humans",
 	homepage: "https://hex-core.dev",
 	items: indexItems,
 };
@@ -420,7 +420,7 @@ function slugify(input: string): string {
 	return raw.length > 0 ? raw : "item";
 }
 
-console.log("\nBuilding Hex UI recipes...\n");
+console.log("\nBuilding Hex Core recipes...\n");
 
 const recipeIndex: RecipeIndexEntry[] = [];
 
@@ -526,7 +526,7 @@ fs.writeFileSync(
 	JSON.stringify(
 		{
 			$schema: "https://hex-core.dev/schema/recipes.json",
-			name: "hex-ui",
+			name: "hex-core",
 			version: "0.1.0",
 			items: recipeIndex,
 		},

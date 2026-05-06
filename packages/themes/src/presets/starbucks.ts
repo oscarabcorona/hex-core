@@ -4,7 +4,7 @@
 // Brief updated: 2026-04-20T10:48:31+03:00
 //
 // Style reference inspired by Starbucks's publicly visible design system.
-// Hex UI is not affiliated with, endorsed by, or sponsored by Starbucks.
+// Hex Core is not affiliated with, endorsed by, or sponsored by Starbucks.
 // Re-run `pnpm import:themes` to regenerate from the latest briefs.
 import type { Theme } from "@hex-core/registry";
 import { sharedTokens } from "@hex-core/tokens";

@@ -9,7 +9,7 @@ import {
 
 export const metadata = {
 	title: "Components",
-	description: "Browse every component in the Hex UI registry, grouped by category.",
+	description: "Browse every component in the Hex Core registry, grouped by category.",
 };
 
 interface CategoryGroup {
@@ -41,7 +41,7 @@ export default function DocsIndexPage() {
 			<div className="mb-10">
 				<h1 className="text-3xl font-bold tracking-tight">Components</h1>
 				<p className="mt-2 text-lg text-muted-foreground">
-					Every component in the Hex UI registry, grouped by category. Click any card to
+					Every component in the Hex Core registry, grouped by category. Click any card to
 					see usage, props, and AI-ready metadata.
 				</p>
 			</div>

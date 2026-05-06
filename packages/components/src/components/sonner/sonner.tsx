@@ -6,7 +6,7 @@ type ToasterProps = React.ComponentProps<typeof SonnerToaster>;
 
 /**
  * The global toast container. Render once in your app root.
- * Re-export of Sonner's Toaster styled to use Hex UI theme tokens.
+ * Re-export of Sonner's Toaster styled to use Hex Core theme tokens.
  * @param props - Sonner Toaster props (position, richColors, etc.)
  * @returns A styled portal container for toast notifications
  */

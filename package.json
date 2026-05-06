@@ -1,5 +1,5 @@
 {
-	"name": "hex-ui",
+	"name": "hex-core",
 	"private": true,
 	"type": "module",
 	"description": "AI-native component library for LLMs and humans",

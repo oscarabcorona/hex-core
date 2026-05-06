@@ -52,7 +52,7 @@ export function loadRecipes(): RecipeIndex {
 	const dir = getRegistryDir();
 	const indexPath = path.join(dir, "recipes.json");
 	if (!fs.existsSync(indexPath)) {
-		return { name: "hex-ui", version: "0.0.0", items: [] };
+		return { name: "hex-core", version: "0.0.0", items: [] };
 	}
 	const content = fs.readFileSync(indexPath, "utf-8");
 	return JSON.parse(content);

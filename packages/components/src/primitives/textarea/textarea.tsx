@@ -3,7 +3,7 @@ import { cn } from "../../lib/utils.js";
 
 /**
  * A styled multi-line text input with smooth focus transitions and shadow effects.
- * Extends the native HTML textarea element with Hex UI styling.
+ * Extends the native HTML textarea element with Hex Core styling.
  */
 export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
