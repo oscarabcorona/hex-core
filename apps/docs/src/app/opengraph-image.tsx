@@ -3,7 +3,7 @@ import { listComponents } from "../lib/registry";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Hex UI — AI-Native Component Library";
+export const alt = "Hex Core — AI-Native Component Library";
 
 /*
  * Colors here mirror the dark-mode palette in `apps/docs/src/app/globals.css`
@@ -57,7 +57,7 @@ export default function OpenGraphImage() {
 				</div>
 				<div style={{ display: "flex", flexDirection: "column" }}>
 					<div style={{ display: "flex", fontSize: 32, fontWeight: 600, letterSpacing: "-0.02em" }}>
-						Hex UI
+						Hex Core
 					</div>
 					<div style={{ display: "flex", fontSize: 18, opacity: 0.7 }}>
 						AI-Native Component Library

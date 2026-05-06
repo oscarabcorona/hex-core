@@ -4,7 +4,7 @@
 // Brief updated: 2026-04-11T17:03:12+03:00
 //
 // Style reference inspired by PlayStation's publicly visible design system.
-// Hex UI is not affiliated with, endorsed by, or sponsored by PlayStation.
+// Hex Core is not affiliated with, endorsed by, or sponsored by PlayStation.
 // Re-run `pnpm import:themes` to regenerate from the latest briefs.
 import type { Theme } from "@hex-core/registry";
 import { sharedTokens } from "@hex-core/tokens";

@@ -1,9 +1,9 @@
 ---
-name: hex-ui-recipes-workflow
-description: End-to-end spec-driven flow for hex-ui. Load when the user asks to build a login form, settings page, pricing table, data table, confirmation dialog, command palette, or any multi-component layout from a brief.
+name: hex-core-recipes-workflow
+description: End-to-end spec-driven flow for hex-core. Load when the user asks to build a login form, settings page, pricing table, data table, confirmation dialog, command palette, or any multi-component layout from a brief.
 ---
 
-# Hex UI — Spec-Driven Workflow
+# Hex Core — Spec-Driven Workflow
 
 When a user hands you a brief ("build me a settings page with profile + notifications + security sections"), don't go straight to components. Walk this pipeline.
 

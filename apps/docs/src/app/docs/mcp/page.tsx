@@ -7,7 +7,7 @@ import { DocsPage } from "../../../components/docs-page";
 export const metadata = {
 	title: "MCP Server",
 	description:
-		"Wire the Hex UI MCP server into Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, or Zed for natural-language component discovery.",
+		"Wire the Hex Core MCP server into Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, or Zed for natural-language component discovery.",
 };
 
 const SECTIONS = [
@@ -23,7 +23,7 @@ export default function McpPage() {
 		<DocsPage
 			pathname="/docs/mcp"
 			title="MCP Server"
-			description="The Hex UI MCP server exposes the component registry as structured tool calls. Install once and let any MCP-capable agent — Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, Zed — pick the right primitive."
+			description="The Hex Core MCP server exposes the component registry as structured tool calls. Install once and let any MCP-capable agent — Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, Zed — pick the right primitive."
 			sections={SECTIONS}
 			editPath="apps/docs/src/app/docs/mcp/page.tsx"
 		>
@@ -139,12 +139,12 @@ export default function McpPage() {
 
 			<DocSection id="prompts" title="Example prompts">
 				<ul className="list-disc space-y-1 pl-6 text-sm text-muted-foreground">
-					<li>&ldquo;Find a hex-ui component for a confirmation dialog and add it.&rdquo;</li>
+					<li>&ldquo;Find a hex-core component for a confirmation dialog and add it.&rdquo;</li>
 					<li>
-						&ldquo;Search hex-ui for a data table primitive and wire it to my users
+						&ldquo;Search hex-core for a data table primitive and wire it to my users
 						list.&rdquo;
 					</li>
-					<li>&ldquo;What hex-ui components should I use for a settings page?&rdquo;</li>
+					<li>&ldquo;What hex-core components should I use for a settings page?&rdquo;</li>
 				</ul>
 			</DocSection>
 		</DocsPage>

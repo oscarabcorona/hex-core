@@ -6,7 +6,7 @@ import { DocsPage } from "../../../components/docs-page";
 export const metadata = {
 	title: "Skills",
 	description:
-		"Agent skills for Hex UI — eight SKILL.md packs that give Claude Code prose context alongside the 11 MCP tools.",
+		"Agent skills for Hex Core — eight SKILL.md packs that give Claude Code prose context alongside the 11 MCP tools.",
 };
 
 const SECTIONS = [
@@ -24,42 +24,42 @@ npx @hex-core/cli skills install --target ./my-skills`;
 
 const SKILLS = [
 	{
-		slug: "hex-ui-overview",
+		slug: "hex-core-overview",
 		title: "Overview",
-		summary: "Primer + mental model + when to reach for hex-ui vs shadcn.",
+		summary: "Primer + mental model + when to reach for hex-core vs shadcn.",
 	},
 	{
-		slug: "hex-ui-mcp-tools",
+		slug: "hex-core-mcp-tools",
 		title: "MCP tools decision tree",
 		summary: "Which of the 11 tools to call for any given intent.",
 	},
 	{
-		slug: "hex-ui-recipes-workflow",
+		slug: "hex-core-recipes-workflow",
 		title: "Recipes workflow",
 		summary: "End-to-end brief → resolve → get_recipe → install → verify.",
 	},
 	{
-		slug: "hex-ui-theming",
+		slug: "hex-core-theming",
 		title: "Theming",
 		summary: "HSL tokens, dark mode, customize_component, adding themes.",
 	},
 	{
-		slug: "hex-ui-cli",
+		slug: "hex-core-cli",
 		title: "CLI",
 		summary: "hex init / add / list / recipe add / skills install with all flags.",
 	},
 	{
-		slug: "hex-ui-accessibility",
+		slug: "hex-core-accessibility",
 		title: "Accessibility",
 		summary: "Radix defaults, icon-only aria-label rule, keyboard maps.",
 	},
 	{
-		slug: "hex-ui-anti-patterns",
+		slug: "hex-core-anti-patterns",
 		title: "Anti-patterns",
 		summary: "React 19 / Next 16 hygiene + top compositional mistakes.",
 	},
 	{
-		slug: "hex-ui-registry-authoring",
+		slug: "hex-core-registry-authoring",
 		title: "Registry authoring",
 		summary: "Writing your own components, recipes, or third-party registry.",
 	},
@@ -86,7 +86,7 @@ export default function SkillsPage() {
 					eight packs cost ~800 tokens of system prompt total, not 8 × 5k.
 				</p>
 				<p className="text-sm leading-6">
-					Hex UI follows{" "}
+					Hex Core follows{" "}
 					<a
 						className="underline underline-offset-2 hover:text-foreground"
 						href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview"
@@ -154,7 +154,7 @@ export default function SkillsPage() {
 					>
 						Spec-driven development
 					</Link>{" "}
-					and the <InlineCode>hex-ui-registry-authoring</InlineCode> skill.
+					and the <InlineCode>hex-core-registry-authoring</InlineCode> skill.
 				</p>
 			</DocSection>
 		</DocsPage>

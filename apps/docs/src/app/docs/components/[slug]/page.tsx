@@ -29,7 +29,7 @@ export async function generateMetadata({
 		title: item.displayName,
 		description: item.description,
 		openGraph: {
-			title: `${item.displayName} — Hex UI`,
+			title: `${item.displayName} — Hex Core`,
 			description: item.description,
 			url: `/docs/components/${slug}`,
 			type: "article",

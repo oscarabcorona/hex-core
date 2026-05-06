@@ -1,9 +1,9 @@
 ---
-name: hex-ui-mcp-tools
-description: Decision tree for the 11 hex-ui MCP tools. Load when picking between search_components, get_component, get_component_schema, resolve_spec, get_recipe, verify_checklist, or any other hex-ui tool call.
+name: hex-core-mcp-tools
+description: Decision tree for the 11 hex-core MCP tools. Load when picking between search_components, get_component, get_component_schema, resolve_spec, get_recipe, verify_checklist, or any other hex-core tool call.
 ---
 
-# Hex UI MCP Tools — Decision Tree
+# Hex Core MCP Tools — Decision Tree
 
 The server exposes 11 tools. Picking the right one first saves 3–5 unnecessary calls.
 
@@ -49,5 +49,5 @@ Every tool returns `content: [{ type: "text", text: "<stringified JSON>" }]`. Pa
 
 ## Where to go next
 
-- Full spec-driven flow walkthrough: `hex-ui-recipes-workflow`
-- Theme tokens in depth: `hex-ui-theming`
+- Full spec-driven flow walkthrough: `hex-core-recipes-workflow`
+- Theme tokens in depth: `hex-core-theming`

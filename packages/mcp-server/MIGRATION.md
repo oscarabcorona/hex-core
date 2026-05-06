@@ -26,7 +26,7 @@ If your `.claude/settings.json` / `.cursor/mcp.json` / etc. just calls:
 ```json
 {
   "mcpServers": {
-    "hex-ui": {
+    "hex-core": {
       "command": "npx",
       "args": ["-y", "@hex-core/mcp"]
     }
@@ -98,7 +98,7 @@ console.log(index.items.length); // 59
 
 ## Verification
 
-If your code path matches Path A above, run the standard MCP health check from your client (e.g. `/mcp` in Claude Code) — `hex-ui` should report 13 tools + the `hex://catalog` resource.
+If your code path matches Path A above, run the standard MCP health check from your client (e.g. `/mcp` in Claude Code) — `hex-core` should report 13 tools + the `hex://catalog` resource.
 
 If your code path matches Path B or C, run your own integration tests after the dep bump. The 19/19-check `verify-direct.mjs` + `verify-mcp.mjs` smoke harnesses in `/tmp/hex-core-payload-verify/` (see `.claude/findings/finding-5-verification.md` "2026-04-28 closing run #2") cover both consumption modes against the public-npm tarballs.
 

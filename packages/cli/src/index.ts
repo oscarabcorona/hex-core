@@ -16,11 +16,11 @@ try {
 
 const program = new Command();
 
-program.name("hex").description("Hex UI — AI-native component library").version(pkg.version);
+program.name("hex").description("Hex Core — AI-native component library").version(pkg.version);
 
 program
 	.command("list")
-	.description("List all available Hex UI components")
+	.description("List all available Hex Core components")
 	.action(async () => {
 		const { listComponents } = await import("./commands/list.js");
 		await listComponents();
@@ -62,7 +62,7 @@ program
 
 program
 	.command("init")
-	.description("Initialize Hex UI in your project")
+	.description("Initialize Hex Core in your project")
 	.option("--theme <theme>", "Theme to use", "default")
 	.option(
 		"--overwrite [targets]",
@@ -90,7 +90,7 @@ program
 const recipe = program
 	.command("recipe")
 	.description(
-		"Work with Hex UI recipes (spec-driven blueprints: auth-form, settings-page, ...). Subcommands: list, add.",
+		"Work with Hex Core recipes (spec-driven blueprints: auth-form, settings-page, ...). Subcommands: list, add.",
 	);
 
 recipe
@@ -218,7 +218,7 @@ theme
 
 program
 	.command("doctor")
-	.description("Diagnose your Hex UI install and report what's missing")
+	.description("Diagnose your Hex Core install and report what's missing")
 	.action(async () => {
 		const { runDoctor, reportDoctor } = await import("./commands/doctor.js");
 		const checks = await runDoctor();
@@ -228,11 +228,11 @@ program
 
 const skills = program
 	.command("skills")
-	.description("Manage Hex UI agent skills (SKILL.md packs for Claude Code)");
+	.description("Manage Hex Core agent skills (SKILL.md packs for Claude Code)");
 
 skills
 	.command("install")
-	.description("Copy Hex UI skills into .claude/skills/ (or a custom --target)")
+	.description("Copy Hex Core skills into .claude/skills/ (or a custom --target)")
 	.option("-t, --target <path>", "Target directory (default: .claude/skills/)")
 	.option("-o, --overwrite", "Replace existing skill directories", false)
 	.action(async (options: { target?: string; overwrite: boolean }) => {

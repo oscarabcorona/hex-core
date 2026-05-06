@@ -1,9 +1,9 @@
 ---
-name: hex-ui-registry-authoring
-description: Authoring components, recipes, or a third-party hex-ui-compatible registry. Load when the user wants to add a new component, publish a registry, write a .recipe.ts file, or extend the hex-ui catalog.
+name: hex-core-registry-authoring
+description: Authoring components, recipes, or a third-party hex-core-compatible registry. Load when the user wants to add a new component, publish a registry, write a .recipe.ts file, or extend the hex-core catalog.
 ---
 
-# Hex UI — Registry Authoring
+# Hex Core — Registry Authoring
 
 Two kinds of authoring: adding to the first-party registry (contributing), or publishing your own registry that follows the same shape.
 

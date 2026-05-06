@@ -158,7 +158,7 @@ describe("CLI binary end-to-end (built dist/index.js)", () => {
 		fs.writeFileSync(path.join(tmpDir, "package.json"), JSON.stringify(pkg));
 
 		const doctor = runCli(["doctor"]);
-		expect(doctor.stdout).toContain("Hex UI doctor");
+		expect(doctor.stdout).toContain("Hex Core doctor");
 		expect(doctor.stdout).toContain("[ok]   tailwindcss v4");
 		expect(doctor.stdout).toContain("[ok]   globals.css (v4 syntax)");
 		// All checks should pass — exit 0

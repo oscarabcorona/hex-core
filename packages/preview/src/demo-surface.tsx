@@ -17,9 +17,9 @@ export interface DemoSurfaceProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * An elevated surface for showcasing Hex UI components.
+ * An elevated surface for showcasing Hex Core components.
  *
- * Hex UI components (Button outline/secondary, Input, Card, etc.) are designed
+ * Hex Core components (Button outline/secondary, Input, Card, etc.) are designed
  * to read against a Card-elevated surface. When dropped onto a flat-white page
  * they appear washed out. `<DemoSurface>` provides the same recipe used in the
  * official docs preview wrapper — `bg-muted/30` plus a subtle inset shadow —

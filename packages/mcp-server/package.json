@@ -1,9 +1,9 @@
 {
 	"name": "@hex-core/mcp",
 	"version": "0.4.4",
-	"description": "Universal MCP server for Hex UI — runs on Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, and Zed. 13 tools over the component registry. Thin transport shell — pure-function builders live in @hex-core/payload.",
+	"description": "Universal MCP server for Hex Core — runs on Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, and Zed. 13 tools over the component registry. Thin transport shell — pure-function builders live in @hex-core/payload.",
 	"keywords": [
-		"hex-ui",
+		"hex-core",
 		"mcp",
 		"model-context-protocol",
 		"mcp-client-agnostic",
@@ -24,7 +24,7 @@
 	"type": "module",
 	"main": "dist/index.js",
 	"bin": {
-		"hex-ui-mcp": "dist/index.js"
+		"hex-core-mcp": "dist/index.js"
 	},
 	"exports": {
 		".": {

@@ -3,7 +3,7 @@
  * `@hex-core/tokens` themes (`H S% L%`, e.g. `"240 5.9% 10%"` — no `hsl()`
  * wrapper, no commas).
  *
- * The triplet is the round-trip-safe serialization for Hex UI: tokens flow
+ * The triplet is the round-trip-safe serialization for Hex Core: tokens flow
  * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker
  * component edits triplets directly. Hex/RGB conversions are display
  * adapters, not the source of truth.

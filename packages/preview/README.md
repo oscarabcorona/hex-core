@@ -1,10 +1,10 @@
 # @hex-core/preview
 
-Demo-surface primitives for showcasing Hex UI components on otherwise-flat pages.
+Demo-surface primitives for showcasing Hex Core components on otherwise-flat pages.
 
 ## Why
 
-Hex UI components (Button outline/secondary, Input, Card, etc.) are tuned to read against a Card-elevated surface. Dropped onto a flat-white page background they appear washed out — the borders and shadows that carry shape have been deliberately kept subtle (see the `--border` and `--input` token notes in `@hex-core/tokens`).
+Hex Core components (Button outline/secondary, Input, Card, etc.) are tuned to read against a Card-elevated surface. Dropped onto a flat-white page background they appear washed out — the borders and shadows that carry shape have been deliberately kept subtle (see the `--border` and `--input` token notes in `@hex-core/tokens`).
 
 This package exports `<DemoSurface>`, the same elevated container the official docs site uses to wrap its previews. Consumers can drop it around any demo and get the right visual context without re-creating the recipe.
 
@@ -14,7 +14,7 @@ This package exports `<DemoSurface>`, the same elevated container the official d
 pnpm add @hex-core/preview
 ```
 
-Peer deps: `react ^18 || ^19`, `react-dom ^18 || ^19`. Tailwind CSS classes assume the consumer's app already loads Hex UI's token CSS (so utilities like `bg-muted` resolve).
+Peer deps: `react ^18 || ^19`, `react-dom ^18 || ^19`. Tailwind CSS classes assume the consumer's app already loads Hex Core's token CSS (so utilities like `bg-muted` resolve).
 
 ## Use
 

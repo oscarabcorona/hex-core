@@ -27,7 +27,7 @@ interface DoctorContext {
 }
 
 /**
- * Diagnose a Hex UI install. Returns a flat list of checks so the runner
+ * Diagnose a Hex Core install. Returns a flat list of checks so the runner
  * can render them with the desired UI (icons, color, exit-code policy).
  *
  * Pure with respect to fs/cwd — no spawn, no install — so tests can
@@ -284,7 +284,7 @@ export function reportDoctor(checks: Check[]): number {
 		info: pc.cyan("[info]"),
 	} as const;
 	let failed = 0;
-	console.log(pc.bold("Hex UI doctor"));
+	console.log(pc.bold("Hex Core doctor"));
 	for (const check of checks) {
 		console.log(`  ${labels[check.status]} ${check.name}${check.hint ? `\n         ${pc.dim(check.hint)}` : ""}`);
 		if (check.status === "fail") failed++;

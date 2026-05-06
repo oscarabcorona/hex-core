@@ -27,7 +27,7 @@ export function AccordionDemo() {
 					<AccordionItem value="item-2">
 						<AccordionTrigger>Is it styled?</AccordionTrigger>
 						<AccordionContent>
-							Yes. It comes with Hex UI&apos;s refined modern styling. Override any part via
+							Yes. It comes with Hex Core&apos;s refined modern styling. Override any part via
 							the <code className="rounded bg-muted px-1 py-0.5 text-xs">className</code>{" "}
 							prop.
 						</AccordionContent>

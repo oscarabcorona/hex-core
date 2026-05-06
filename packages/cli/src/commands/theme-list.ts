@@ -99,7 +99,7 @@ export async function themeList(options: ListOptions = {}): Promise<void> {
 	];
 
 	console.log(
-		pico.bold(`Hex UI theme catalog — ${filtered.length} preset${filtered.length === 1 ? "" : "s"}`),
+		pico.bold(`Hex Core theme catalog — ${filtered.length} preset${filtered.length === 1 ? "" : "s"}`),
 	);
 	console.log("");
 

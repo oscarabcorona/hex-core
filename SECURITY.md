@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-If you find a security issue in any Hex UI package, please **do not open a public issue**. Instead, open a [GitHub Security Advisory](https://github.com/oscarabcorona/hex-core/security/advisories/new) on this repo. We'll respond via the advisory thread within 72 hours.
+If you find a security issue in any Hex Core package, please **do not open a public issue**. Instead, open a [GitHub Security Advisory](https://github.com/oscarabcorona/hex-core/security/advisories/new) on this repo. We'll respond via the advisory thread within 72 hours.
 
 Please include:
 
@@ -28,4 +28,4 @@ Please include:
 
 We'll acknowledge receipt within 72 hours and aim to issue a patched release within 14 days for high-severity issues.
 
-Thanks for helping keep Hex UI safe.
+Thanks for helping keep Hex Core safe.

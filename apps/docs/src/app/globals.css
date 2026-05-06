@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Scan workspace component source so Tailwind picks up classes used in @hex-ui/components */
+/* Scan workspace component source so Tailwind picks up classes used in @hex-core/components */
 @source "../../../../packages/components/src/**/*.{ts,tsx}";
 
 /* Dark-mode variant — class-based, set on <html> by next-themes. */

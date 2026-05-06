@@ -1,6 +1,6 @@
 {
   "$schema": "https://hex-core.dev/schema/recipes.json",
-  "name": "hex-ui",
+  "name": "hex-core",
   "version": "0.1.0",
   "items": [
     {

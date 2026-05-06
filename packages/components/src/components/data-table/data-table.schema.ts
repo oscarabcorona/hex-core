@@ -3,7 +3,7 @@ import type { ComponentSchemaDefinition } from "@hex-core/registry";
 export const dataTableSchema: ComponentSchemaDefinition = {
 	name: "data-table",
 	displayName: "Data Table",
-	description: "Generic data-driven table built on TanStack Table + Hex UI Table primitives. Pass columns + data; add sorting/filtering/pagination via TanStack hooks.",
+	description: "Generic data-driven table built on TanStack Table + Hex Core Table primitives. Pass columns + data; add sorting/filtering/pagination via TanStack hooks.",
 	category: "component",
 	subcategory: "data",
 	props: [

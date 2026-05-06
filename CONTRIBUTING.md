@@ -1,6 +1,6 @@
-# Contributing to Hex UI
+# Contributing to Hex Core
 
-Thanks for wanting to help. Hex UI is an AI-native component library — every component ships with a machine-readable schema. A good contribution keeps that contract clean.
+Thanks for wanting to help. Hex Core is an AI-native component library — every component ships with a machine-readable schema. A good contribution keeps that contract clean.
 
 ## Prerequisites
 

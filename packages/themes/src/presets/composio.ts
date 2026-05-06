@@ -4,7 +4,7 @@
 // Brief updated: 2026-04-28T16:10:34+03:00
 //
 // Style reference inspired by Composio's publicly visible design system.
-// Hex UI is not affiliated with, endorsed by, or sponsored by Composio.
+// Hex Core is not affiliated with, endorsed by, or sponsored by Composio.
 // Re-run `pnpm import:themes` to regenerate from the latest briefs.
 import type { Theme } from "@hex-core/registry";
 import { sharedTokens } from "@hex-core/tokens";

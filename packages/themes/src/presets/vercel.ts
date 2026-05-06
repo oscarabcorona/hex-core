@@ -4,7 +4,7 @@
 // Brief updated: 2026-04-09T18:04:01+03:00
 //
 // Style reference inspired by Vercel's publicly visible design system.
-// Hex UI is not affiliated with, endorsed by, or sponsored by Vercel.
+// Hex Core is not affiliated with, endorsed by, or sponsored by Vercel.
 // Re-run `pnpm import:themes` to regenerate from the latest briefs.
 import type { Theme } from "@hex-core/registry";
 import { sharedTokens } from "@hex-core/tokens";

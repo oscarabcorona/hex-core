@@ -3,7 +3,7 @@ import { DocsPage } from "../../../components/docs-page";
 
 export const metadata = {
 	title: "FAQ",
-	description: "Common questions about Hex UI, MCP integration, and customization.",
+	description: "Common questions about Hex Core, MCP integration, and customization.",
 };
 
 interface FaqEntry {
@@ -17,7 +17,7 @@ const QUESTIONS: readonly FaqEntry[] = [
 	{
 		id: "why-not-npm",
 		label: "Not an npm package",
-		q: "Why isn't Hex UI a plain npm package?",
+		q: "Why isn't Hex Core a plain npm package?",
 		a: "Because you shouldn't version-lock to a library's internals. You copy components into your project — full ownership, no dep upgrades, no runtime cost.",
 	},
 	{

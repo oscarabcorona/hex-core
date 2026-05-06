@@ -54,7 +54,7 @@ export function parseOverwriteFlag(raw: string | boolean | undefined): Overwrite
 }
 
 /**
- * Initialize a new Hex UI project.
+ * Initialize a new Hex Core project.
  *
  * Writes `hex.config.json` plus a `globals.css` shaped to the consumer's
  * detected Tailwind version, and (for v3) a `tailwind.config.ts`. Prints

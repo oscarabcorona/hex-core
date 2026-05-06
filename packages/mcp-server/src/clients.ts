@@ -55,7 +55,7 @@ export const HEX_SERVER_COMMAND = {
 
 const CLAUDE_CURSOR_GEMINI_CHATGPT_SNIPPET = `{
   "mcpServers": {
-    "hex-ui": {
+    "hex-core": {
       "command": "npx",
       "args": ["-y", "@hex-core/mcp"]
     }
@@ -63,7 +63,7 @@ const CLAUDE_CURSOR_GEMINI_CHATGPT_SNIPPET = `{
 }`;
 
 const CONTINUE_SNIPPET = `mcpServers:
-  - name: hex-ui
+  - name: hex-core
     command: npx
     args:
       - -y
@@ -71,7 +71,7 @@ const CONTINUE_SNIPPET = `mcpServers:
 
 const ZED_SNIPPET = `{
   "context_servers": {
-    "hex-ui": {
+    "hex-core": {
       "source": "custom",
       "command": "npx",
       "args": ["-y", "@hex-core/mcp"]

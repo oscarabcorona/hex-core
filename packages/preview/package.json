@@ -1,9 +1,9 @@
 {
 	"name": "@hex-core/preview",
 	"version": "0.2.0",
-	"description": "Demo-surface primitives for showcasing Hex UI components on flat pages — provides the Card-elevated surface OS components were designed for.",
+	"description": "Demo-surface primitives for showcasing Hex Core components on flat pages — provides the Card-elevated surface OS components were designed for.",
 	"keywords": [
-		"hex-ui",
+		"hex-core",
 		"preview",
 		"demo",
 		"playground",

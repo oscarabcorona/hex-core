@@ -16,7 +16,7 @@ describe("hex list", () => {
 		await listComponents();
 		const stdout = logSpy.mock.calls.flat().join("\n");
 
-		expect(stdout).toContain("Hex UI Components");
+		expect(stdout).toContain("Hex Core Components");
 		expect(stdout).toMatch(/Total: \d+ components/);
 
 		// Recipes section appears after the components list

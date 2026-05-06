@@ -16,13 +16,13 @@ interface RecipeSummary {
 export async function listComponents() {
 	const indexPath = findRegistryIndex();
 	if (!indexPath) {
-		console.error("Could not find registry. Run from the hex-ui project root.");
+		console.error("Could not find registry. Run from the hex-core project root.");
 		process.exit(1);
 	}
 
 	const registry = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
 
-	console.log("\nHex UI Components\n");
+	console.log("\nHex Core Components\n");
 
 	const grouped: Record<string, Array<{ name: string; description: string }>> = {};
 	for (const item of registry.items) {

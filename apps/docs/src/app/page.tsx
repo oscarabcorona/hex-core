@@ -22,7 +22,7 @@ const FEATURES: readonly Feature[] = [
 	},
 	{
 		title: "MCP-first distribution",
-		body: "Discover and install components through the Hex UI MCP server. Claude Code reads the registry and picks the right primitive for your task.",
+		body: "Discover and install components through the Hex Core MCP server. Claude Code reads the registry and picks the right primitive for your task.",
 	},
 	{
 		title: "Dark mode by default",
@@ -33,7 +33,7 @@ const FEATURES: readonly Feature[] = [
 const SAMPLE_COMPONENT_SLUG = "button";
 
 export const metadata: Metadata = {
-	title: { absolute: "Hex UI — AI-Native Component Library" },
+	title: { absolute: "Hex Core — AI-Native Component Library" },
 };
 
 /** Marketing landing page for the docs site. Server-rendered. */
@@ -93,8 +93,8 @@ function Hero({ componentCount }: { componentCount: number }) {
 				The component layer for spec-driven UI.
 			</h1>
 			<p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-				Hex UI ships production-grade Radix + Tailwind components with machine-readable
-				schemas and recipes. Hand your agent a brief — Hex UI resolves it to a ranked
+				Hex Core ships production-grade Radix + Tailwind components with machine-readable
+				schemas and recipes. Hand your agent a brief — Hex Core resolves it to a ranked
 				component checklist over MCP, no runtime service required.
 			</p>
 			<div className="mt-10 flex flex-wrap items-center justify-center gap-3">
@@ -159,7 +159,7 @@ function LandingFooter() {
 	return (
 		<footer className="border-t">
 			<div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6 text-xs text-muted-foreground lg:px-8">
-				<span>© {new Date().getFullYear()} Hex UI</span>
+				<span>© {new Date().getFullYear()} Hex Core</span>
 				<nav aria-label="Footer" className="flex gap-4">
 					<Link href="/docs" className="transition-all duration-200 ease-out hover:text-foreground">
 						Docs

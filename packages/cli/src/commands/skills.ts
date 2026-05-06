@@ -32,7 +32,7 @@ function copyDirRecursive(src: string, dest: string): void {
 }
 
 /**
- * Install hex-ui's bundled agent skills into a target directory. Default
+ * Install hex-core's bundled agent skills into a target directory. Default
  * target is `<cwd>/.claude/skills/`, which is where Claude Code looks for
  * project-scoped skills. Per-directory idempotency: an existing skill
  * directory is skipped unless `--overwrite` is passed.
@@ -78,7 +78,7 @@ export async function installSkills(options: SkillsInstallOptions): Promise<void
 	}
 
 	const displayTarget = path.relative(cwd, targetRoot) || targetRoot;
-	console.log(`\nInstalled ${installed.length} Hex UI skill(s) into ${displayTarget}:`);
+	console.log(`\nInstalled ${installed.length} Hex Core skill(s) into ${displayTarget}:`);
 	for (const name of installed) {
 		console.log(`  + ${name}`);
 	}

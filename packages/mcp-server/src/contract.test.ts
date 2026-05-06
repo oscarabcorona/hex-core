@@ -226,7 +226,7 @@ async function main(): Promise<void> {
 		})) as { content?: Array<{ type: string; text?: string }> };
 		const figmaText = figmaResult.content?.[0]?.text ?? "";
 		const requiredFigmaKeys = [
-			"# Figma tokens — Hex UI",
+			"# Figma tokens — Hex Core",
 			"```json",
 			'"variableCollections"',
 			'"variableModes"',

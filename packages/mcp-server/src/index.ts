@@ -26,7 +26,7 @@ import { TOOL } from "./tool-names.js";
 const registry = loadRegistry();
 
 const server = new McpServer({
-	name: "hex-ui",
+	name: "hex-core",
 	version: "0.1.0",
 });
 
@@ -36,7 +36,7 @@ server.registerTool(
 	TOOL.SEARCH_COMPONENTS,
 	{
 		description:
-			"Search for Hex UI components by name, description, category, or tags. Returns lightweight summaries for discovery.",
+			"Search for Hex Core components by name, description, category, or tags. Returns lightweight summaries for discovery.",
 		inputSchema: z
 			.object({
 				query: z
@@ -111,7 +111,7 @@ server.registerTool(
 	TOOL.GET_COMPONENT,
 	{
 		description:
-			"Get the full Hex UI component definition including source code, props, variants, examples, and AI hints. Use this to install a component into a project.",
+			"Get the full Hex Core component definition including source code, props, variants, examples, and AI hints. Use this to install a component into a project.",
 		inputSchema: z
 			.object({
 				name: z.string().describe("Component name (e.g. 'button', 'input', 'label')"),
@@ -203,7 +203,7 @@ server.registerTool(
 	TOOL.GET_THEME,
 	{
 		description:
-			"Get a Hex UI theme in the specified format. Use 'css' for globals.css, 'json' for flat token map (most token-efficient for AI), 'tailwind' for Tailwind config extension.",
+			"Get a Hex Core theme in the specified format. Use 'css' for globals.css, 'json' for flat token map (most token-efficient for AI), 'tailwind' for Tailwind config extension.",
 		inputSchema: z
 			.object({
 				name: z.string().describe("Theme name (e.g. 'default', 'midnight', 'ember')"),
@@ -267,7 +267,7 @@ server.registerTool(
 	TOOL.LIST_THEMES,
 	{
 		description:
-			"List all available Hex UI themes with names, descriptions, and (when set) category + tags + attribution. Includes 71 brand-derived voltagent presets (Tesla, Stripe, Linear, …) plus first-party themes (default, midnight, ember). Brand presets are style references inspired by publicly visible design systems — not endorsements; trademarks belong to their respective owners.",
+			"List all available Hex Core themes with names, descriptions, and (when set) category + tags + attribution. Includes 71 brand-derived voltagent presets (Tesla, Stripe, Linear, …) plus first-party themes (default, midnight, ember). Brand presets are style references inspired by publicly visible design systems — not endorsements; trademarks belong to their respective owners.",
 		inputSchema: z.object({}).strict(),
 	},
 	async () => {
@@ -353,7 +353,7 @@ server.registerTool(
 	TOOL.SCAFFOLD_PROJECT,
 	{
 		description:
-			"Generate a complete file tree to set up Hex UI in a project. Returns the config file, globals.css with theme tokens, tailwind config extension, utility functions, and requested components.",
+			"Generate a complete file tree to set up Hex Core in a project. Returns the config file, globals.css with theme tokens, tailwind config extension, utility functions, and requested components.",
 		inputSchema: z
 			.object({
 				components: z.array(z.string()).describe("Component names to include"),
@@ -515,7 +515,7 @@ server.registerTool(
 	TOOL.LIST_RECIPES,
 	{
 		description:
-			"List all Hex UI recipes — spec-driven blueprints that map a UI goal (auth form, settings page, pricing table) to an ordered checklist of components. Use this to discover recipes before calling get_recipe.",
+			"List all Hex Core recipes — spec-driven blueprints that map a UI goal (auth form, settings page, pricing table) to an ordered checklist of components. Use this to discover recipes before calling get_recipe.",
 		inputSchema: z.object({}).strict(),
 	},
 	async () => {
@@ -537,7 +537,7 @@ server.registerTool(
 	TOOL.GET_RECIPE,
 	{
 		description:
-			"Get the full Hex UI recipe: ordered install steps, the union of npm peer dependencies across all components, a post-install checklist (author-written plus items derived from each component's commonMistakes / accessibilityNotes), and an optional JSX example. Use this after list_recipes or resolve_spec to execute a blueprint.",
+			"Get the full Hex Core recipe: ordered install steps, the union of npm peer dependencies across all components, a post-install checklist (author-written plus items derived from each component's commonMistakes / accessibilityNotes), and an optional JSX example. Use this after list_recipes or resolve_spec to execute a blueprint.",
 		inputSchema: z
 			.object({
 				slug: z.string().describe("Recipe slug (e.g. 'settings-page', 'auth-form')"),
@@ -616,7 +616,7 @@ server.registerTool(
 	TOOL.RESOLVE_SPEC,
 	{
 		description:
-			"Resolve a freeform brief or spec.md fragment ('build me a settings page') into a ranked shortlist of Hex UI components and recipes. Deterministic keyword + tag matching — no LLM reasoning server-side. Use this as the first step when translating a plan document into a concrete build.",
+			"Resolve a freeform brief or spec.md fragment ('build me a settings page') into a ranked shortlist of Hex Core components and recipes. Deterministic keyword + tag matching — no LLM reasoning server-side. Use this as the first step when translating a plan document into a concrete build.",
 		inputSchema: z
 			.object({
 				brief: z
@@ -782,7 +782,7 @@ server.registerTool(
 	TOOL.EMIT_APP_CONTEXT,
 	{
 		description:
-			"Synthesize a deterministic markdown payload describing the chosen theme, components, and recipes — formatted for paste-into-LLM workflows so a downstream agent has the full Hex UI stack in one block. Looks up each slug in the registry; unknown slugs are flagged inline rather than dropped silently. Emits ## Theme highlights, ## globals.css (full :root + .dark block with optional density vars and per-token overrides), ## tailwind.config.ts (theme.extend), ## Components, ## Recipes, ## Install, and ## Context prompt sections.",
+			"Synthesize a deterministic markdown payload describing the chosen theme, components, and recipes — formatted for paste-into-LLM workflows so a downstream agent has the full Hex Core stack in one block. Looks up each slug in the registry; unknown slugs are flagged inline rather than dropped silently. Emits ## Theme highlights, ## globals.css (full :root + .dark block with optional density vars and per-token overrides), ## tailwind.config.ts (theme.extend), ## Components, ## Recipes, ## Install, and ## Context prompt sections.",
 		inputSchema: z
 			.object({
 				theme: z
@@ -846,7 +846,7 @@ server.registerTool(
 	TOOL.EMIT_FIGMA_TOKENS,
 	{
 		description:
-			"Render a Hex UI theme as a Figma Variables REST POST payload. Output is markdown wrapping a JSON body shaped for `POST /v1/files/:file_key/variables` — one collection (Hex UI — <theme>), two modes (Light + Dark), one variable per token (typed COLOR for color tokens, FLOAT for radius/spacing/dimension/duration/font), and one mode-value per (variable × mode). Paste into a Figma plugin or curl call to get a populated Variables kit. Unknown theme slugs are flagged inline rather than dropped silently.",
+			"Render a Hex Core theme as a Figma Variables REST POST payload. Output is markdown wrapping a JSON body shaped for `POST /v1/files/:file_key/variables` — one collection (Hex Core — <theme>), two modes (Light + Dark), one variable per token (typed COLOR for color tokens, FLOAT for radius/spacing/dimension/duration/font), and one mode-value per (variable × mode). Paste into a Figma plugin or curl call to get a populated Variables kit. Unknown theme slugs are flagged inline rather than dropped silently.",
 		inputSchema: z
 			.object({
 				theme: z
@@ -1050,7 +1050,7 @@ server.resource(
 	"catalog",
 	"hex://catalog",
 	{
-		description: "Full Hex UI component catalog — lightweight index of all available components",
+		description: "Full Hex Core component catalog — lightweight index of all available components",
 		mimeType: "application/json",
 	},
 	async () => ({
@@ -1066,7 +1066,7 @@ server.resource(
 
 // ─── Start Server ───
 
-/** Initialize the MCP stdio transport and start the Hex UI server. */
+/** Initialize the MCP stdio transport and start the Hex Core server. */
 async function main() {
 	const transport = new StdioServerTransport();
 	await server.connect(transport);

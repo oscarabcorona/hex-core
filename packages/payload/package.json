@@ -3,7 +3,7 @@
 	"version": "0.2.2",
 	"description": "Pure-function builders for @hex-core/* paste-into-LLM payloads. Renders themes + components + recipes into deterministic markdown (App Context) and Figma Variables REST JSON. Consumed by @hex-core/mcp; importable directly by Next.js apps and CI scripts that want the canonical format without subprocess overhead.",
 	"keywords": [
-		"hex-ui",
+		"hex-core",
 		"payload",
 		"llm-context",
 		"figma-variables",

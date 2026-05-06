@@ -6,7 +6,7 @@ import { INSTALL_COMMAND_LABEL, installCommand } from "../../../lib/registry";
 
 export const metadata = {
 	title: "Installation",
-	description: "How to add Hex UI to an existing Next.js or Vite project.",
+	description: "How to add Hex Core to an existing Next.js or Vite project.",
 };
 
 const SECTIONS = [
@@ -32,7 +32,7 @@ export default function InstallationPage() {
 		<DocsPage
 			pathname="/docs/installation"
 			title="Installation"
-			description="How to add Hex UI components to your project in under a minute."
+			description="How to add Hex Core components to your project in under a minute."
 			sections={SECTIONS}
 			editPath="apps/docs/src/app/docs/installation/page.tsx"
 		>
@@ -73,7 +73,7 @@ export default function InstallationPage() {
 
 			<DocSection id="tailwind" title="Tailwind setup">
 				<p className="text-sm leading-6">
-					Hex UI uses HSL design tokens defined as Tailwind theme vars. Add this block to
+					Hex Core uses HSL design tokens defined as Tailwind theme vars. Add this block to
 					your <InlineCode>globals.css</InlineCode> — you can freely override any token.
 				</p>
 				<CodeBlock label="css" code={TAILWIND_SNIPPET} />
