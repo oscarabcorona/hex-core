@@ -333,8 +333,8 @@ async function applyDefaultTheme(ctx: MigrateContext): Promise<void> {
  * @param ctx - Migration context.
  */
 function writeHexConfig(ctx: MigrateContext): void {
+	if (ctx.options.dryRun) return;
 	const dst = path.join(ctx.cwd, "hex.config.json");
-	if (fs.existsSync(dst) || ctx.options.dryRun) return;
 	const config = {
 		$schema: "https://hex-core.dev/schema/config.json",
 		framework: "react",
@@ -343,8 +343,16 @@ function writeHexConfig(ctx: MigrateContext): void {
 		theme: "default",
 		aliases: ctx.aliases,
 	};
-	fs.writeFileSync(dst, `${JSON.stringify(config, null, 2)}\n`);
-	console.log(`  ${pc.green("Wrote:")} hex.config.json`);
+	// Atomic exclusive-create: closes the existsSync→writeFileSync TOCTOU
+	// race CodeQL flagged. EEXIST is the expected branch when migrate is
+	// re-run on a partially-migrated project; everything else propagates.
+	try {
+		fs.writeFileSync(dst, `${JSON.stringify(config, null, 2)}\n`, { flag: "wx" });
+		console.log(`  ${pc.green("Wrote:")} hex.config.json`);
+	} catch (err) {
+		if ((err as NodeJS.ErrnoException).code === "EEXIST") return;
+		throw err;
+	}
 }
 
 /**
