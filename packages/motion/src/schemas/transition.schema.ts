@@ -1,0 +1,74 @@
+import type { ComponentSchemaDefinition } from "@hex-core/registry";
+
+export const transitionSchema: ComponentSchemaDefinition = {
+	name: "transition",
+	displayName: "Transition",
+	description:
+		"Token-aware easing/duration object. Accepts named easings (standard, emphasized, decelerate, accelerate, bounce) so motion stays consistent across primitives even when themes change.",
+	category: "motion",
+	subcategory: "tokens",
+	props: [
+		{
+			name: "duration",
+			type: "number",
+			required: false,
+			description: "Duration in milliseconds.",
+		},
+		{
+			name: "delay",
+			type: "number",
+			required: false,
+			description: "Delay before the animation starts, in milliseconds.",
+		},
+		{
+			name: "easing",
+			type: "enum",
+			required: false,
+			description: "Named easing token or any CSS easing string.",
+			enumValues: ["linear", "standard", "emphasized", "decelerate", "accelerate", "bounce"],
+		},
+		{
+			name: "iterations",
+			type: "number",
+			required: false,
+			description: "How many times the animation repeats. Defaults to 1.",
+		},
+		{
+			name: "fill",
+			type: "enum",
+			required: false,
+			description: "WAAPI fill mode. Defaults to `both`.",
+			enumValues: ["none", "forwards", "backwards", "both", "auto"],
+		},
+	],
+	variants: [],
+	slots: [],
+	dependencies: {
+		npm: ["@hex-core/motion"],
+		internal: [],
+		peer: ["react"],
+	},
+	tokensUsed: ["duration-fast", "duration-normal", "duration-slow", "ease-standard", "ease-emphasized"],
+	examples: [
+		{
+			title: "Standard transition",
+			description: "200ms with the standard cubic-bezier.",
+			code: 'transition={{ duration: 200, easing: "standard" }}',
+		},
+	],
+	ai: {
+		whenToUse:
+			"Use everywhere a motion timing is needed — Motion props, useAnimate calls, Timeline clips. Centralize timing here instead of inline numbers.",
+		whenNotToUse:
+			"Don't use as a runtime config object — these values are static. For dynamic, runtime-driven motion use useMotionValue.",
+		commonMistakes: [
+			"Hard-coding ms numbers throughout the codebase instead of named easings — themes can't override them later.",
+			"Setting `duration: 0` to disable a transition; pass `initial={false}` on the host instead.",
+		],
+		relatedComponents: ["motion", "variants"],
+		accessibilityNotes:
+			"Always respects MotionConfig's reducedMotion mode at the engine level.",
+		tokenBudget: 180,
+	},
+	tags: ["motion", "transition", "easing", "duration", "tokens"],
+};

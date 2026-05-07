@@ -220,10 +220,17 @@ async function scanPage(
 	// races with next-themes' MutationObserver and gets reverted.
 	await page.emulateMedia({ colorScheme: mode });
 	await page.goto(url, { waitUntil: "domcontentloaded", timeout: PAGE_TIMEOUT_MS });
-	// Wait for the demo region to mount AND for next-themes to apply the dark
-	// class. Both are stable hydration signals — unlike `networkidle` or a
-	// fixed sleep.
-	await page.locator('[role="tabpanel"]').first().waitFor({ state: "visible", timeout: PAGE_TIMEOUT_MS });
+	// Wait for hydration signals AND for next-themes to apply the dark class.
+	// Some registry items legitimately have no live demo (motion-pro adapter,
+	// pure-type primitives like `transition`, label-only Track) — in that case
+	// no `[role="tabpanel"]` exists, but the Installation section heading is
+	// always rendered for every slug, so we fall back to that as the gate.
+	const tabpanel = page.locator('[role="tabpanel"]').first();
+	const installHeading = page.locator('h2#installation, [id="installation"]').first();
+	await Promise.race([
+		tabpanel.waitFor({ state: "visible", timeout: PAGE_TIMEOUT_MS }),
+		installHeading.waitFor({ state: "visible", timeout: PAGE_TIMEOUT_MS }),
+	]);
 	await page.waitForFunction(
 		(m) =>
 			document.documentElement.classList.contains("dark") === (m === "dark"),

@@ -207,6 +207,29 @@
       "tokenBudget": 3000
     },
     {
+      "slug": "intro-sequence",
+      "title": "Intro sequence",
+      "summary": "Hero + subhead + CTA reveal orchestrated by the motion timeline. Demonstrates @hex-core/motion composing existing primitives into a deterministic, agent-authorable sequence.",
+      "tags": [
+        "motion",
+        "timeline",
+        "hero",
+        "intro",
+        "onboarding",
+        "reveal"
+      ],
+      "components": [
+        "container",
+        "stack",
+        "button",
+        "motion-timeline",
+        "scene",
+        "clip",
+        "transition"
+      ],
+      "tokenBudget": 1800
+    },
+    {
       "slug": "pricing-table",
       "title": "Pricing table",
       "summary": "Three-tier pricing grid with a highlighted plan, feature list per tier, CTAs, and tooltips for advanced features.",

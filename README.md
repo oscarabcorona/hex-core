@@ -57,6 +57,7 @@ npx @hex-core/cli doctor                  # diagnose what's missing if anything 
 | `@hex-core/registry` | Zod schemas and types for the component registry |
 | `@hex-core/tokens` | Design token engine with 3 themes |
 | `@hex-core/components` | Component source code (React + Tailwind) |
+| `@hex-core/motion` | UI animation primitives + deterministic timeline composer (zero-dep WAAPI core, optional `motion@^11` adapter) |
 | `@hex-core/mcp` | MCP server for AI-native distribution |
 | `@hex-core/cli` | CLI for human developers |
 
@@ -93,7 +94,7 @@ Or from an MCP client: ask *"Resolve this spec into hex-core components: build a
 
 ## Skills (for Claude Code)
 
-Hex Core ships eight prose context packs in `SKILL.md` format — overview, MCP tools decision tree, recipes workflow, theming, CLI, a11y, anti-patterns, registry authoring. Install in one command:
+Hex Core ships nine prose context packs in `SKILL.md` format — overview, MCP tools decision tree, recipes workflow, theming, CLI, a11y, anti-patterns, registry authoring, motion. Install in one command:
 
 ```bash
 npx @hex-core/cli skills install
@@ -109,7 +110,7 @@ This copies the skills into `.claude/skills/` so any agent working in your repo 
 
 ## Components
 
-**83 components** across primitives (Button, Input, Checkbox, Switch, Slider, …), compounds (Combobox, DataTable, Command, Calendar, Date Picker, …), and AI-native (Composer, Message, Reasoning, ToolCall, Terminal, Canvas, Diagram, AudioPlayer, AudioWaveform, SpeechRecognition, …). Every component ships with a machine-readable `.schema.ts` containing props, variants, AI hints (`whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes`), and a token budget.
+**117 registry items** across primitives (Button, Input, Checkbox, Switch, Slider, …), compounds (Combobox, DataTable, Command, Calendar, Date Picker, …), AI-native (Composer, Message, Reasoning, ToolCall, Terminal, Canvas, Diagram, AudioPlayer, AudioWaveform, SpeechRecognition, …), 23 artifact diagrams (sankey, mindmap, gantt, …), and 11 motion primitives (Motion factory, Presence, Timeline composer, useAnimate, useScroll, …). Every item ships with a machine-readable `.schema.ts` containing props, variants, AI hints (`whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes`), and a token budget.
 
 Full catalog + live demos: **[hex-core.dev/docs](https://hex-core.dev/docs)**
 

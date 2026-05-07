@@ -20,7 +20,7 @@ test.describe("spec-driven page", () => {
 		}
 	});
 
-	test("lists all six shipped recipes", async ({ page }) => {
+	test("lists all seven shipped recipes", async ({ page }) => {
 		await page.goto("/docs/spec-driven");
 		const recipesSection = page.locator("#recipes");
 		const slugs = [
@@ -30,6 +30,7 @@ test.describe("spec-driven page", () => {
 			"data-table-view",
 			"confirm-destructive",
 			"command-palette",
+			"intro-sequence",
 		];
 		for (const slug of slugs) {
 			await expect(recipesSection.getByText(slug, { exact: true })).toBeVisible();

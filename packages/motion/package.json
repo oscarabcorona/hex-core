@@ -1,0 +1,84 @@
+{
+	"name": "@hex-core/motion",
+	"version": "0.1.0",
+	"description": "UI animation primitives + lightweight scene/timeline composer for Hex Core. Zero-dep WAAPI core, optional motion@^11 adapter.",
+	"keywords": [
+		"hex-core",
+		"motion",
+		"animation",
+		"waapi",
+		"timeline",
+		"react",
+		"ai-native"
+	],
+	"license": "MIT",
+	"author": "Oscar Corona <oabc4004@gmail.com>",
+	"homepage": "https://hex-core.dev",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/oscarabcorona/hex-core.git",
+		"directory": "packages/motion"
+	},
+	"bugs": {
+		"url": "https://github.com/oscarabcorona/hex-core/issues"
+	},
+	"type": "module",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./timeline": {
+			"types": "./dist/timeline/index.d.ts",
+			"import": "./dist/timeline/index.js"
+		},
+		"./adapters/motion": {
+			"types": "./dist/adapters/motion/index.d.ts",
+			"import": "./dist/adapters/motion/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "tsup",
+		"clean": "rm -rf dist",
+		"test": "vitest run",
+		"prepack": "pnpm run build"
+	},
+	"devDependencies": {
+		"@hex-core/registry": "workspace:^",
+		"@testing-library/jest-dom": "^6.6.0",
+		"@testing-library/react": "^16.0.0",
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
+		"jsdom": "^25.0.0",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"tsup": "^8.3.0",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.5"
+	},
+	"peerDependencies": {
+		"@hex-core/registry": "*",
+		"motion": "^11.0.0",
+		"react": "^18.0.0 || ^19.0.0",
+		"react-dom": "^18.0.0 || ^19.0.0"
+	},
+	"peerDependenciesMeta": {
+		"@hex-core/registry": {
+			"optional": true
+		},
+		"motion": {
+			"optional": true
+		}
+	}
+}

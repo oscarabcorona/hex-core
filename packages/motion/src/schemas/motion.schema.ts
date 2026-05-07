@@ -1,0 +1,100 @@
+import type { ComponentSchemaDefinition } from "@hex-core/registry";
+
+export const motionSchema: ComponentSchemaDefinition = {
+	name: "motion",
+	displayName: "Motion",
+	description:
+		"Declarative React animation factory. Use Motion.div / Motion.span / Motion.button / etc. with `initial`, `animate`, `exit`, `transition`, `whileHover`, `whileTap` props. Powered by the WAAPI engine; no peer deps.",
+	category: "motion",
+	subcategory: "primitives",
+	props: [
+		{
+			name: "initial",
+			type: "object",
+			required: false,
+			description:
+				"Starting animation state (e.g. { opacity: 0, y: 8 }). Pass `false` to skip the mount animation.",
+		},
+		{
+			name: "animate",
+			type: "object",
+			required: false,
+			description: "Target animation state. Re-runs whenever the value changes.",
+		},
+		{
+			name: "exit",
+			type: "object",
+			required: false,
+			description:
+				"Animation to run on unmount. Requires the element to live inside <Presence>.",
+		},
+		{
+			name: "transition",
+			type: "object",
+			required: false,
+			description:
+				"Timing config: `{ duration, delay, easing, iterations, fill }`. Defaults to MotionConfig.defaults.",
+		},
+		{
+			name: "variants",
+			type: "object",
+			required: false,
+			description:
+				"Map of named states. `animate` and `initial` can then take string keys instead of objects.",
+		},
+		{
+			name: "whileHover",
+			type: "object",
+			required: false,
+			description: "State to apply while pointer is over the element.",
+		},
+		{
+			name: "whileTap",
+			type: "object",
+			required: false,
+			description: "State to apply while the pointer is pressed on the element.",
+		},
+	],
+	variants: [],
+	slots: [
+		{
+			name: "children",
+			description: "Element content. Motion wraps a host element (div/span/button/...).",
+			required: false,
+			acceptedTypes: ["ReactNode"],
+		},
+	],
+	dependencies: {
+		npm: ["@hex-core/motion"],
+		internal: [],
+		peer: ["react", "react-dom"],
+	},
+	tokensUsed: ["duration-fast", "duration-normal", "duration-slow"],
+	examples: [
+		{
+			title: "Mount fade-in",
+			description: "Fades + slides up on mount.",
+			code: '<Motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 200, easing: "standard" }} />',
+		},
+		{
+			title: "Hover lift",
+			description: "Translates 4px up on hover.",
+			code: "<Motion.button whileHover={{ y: -4 }} whileTap={{ scale: 0.97 }}>Click</Motion.button>",
+		},
+	],
+	ai: {
+		whenToUse:
+			"Use for declarative mount, hover, tap, and exit animations on existing primitives. Pairs with <Presence> for conditional rendering with exit transitions.",
+		whenNotToUse:
+			"Don't use for layout transitions (FLIP), shared-element morphs, or gesture-driven drag — install @hex-core/motion/adapters/motion for those.",
+		commonMistakes: [
+			"Animating layout-affecting props (width/height/margin) instead of transform — kills compositor performance.",
+			"Forgetting <Presence> when an exit animation is required for unmount.",
+		],
+		relatedComponents: ["presence", "transition", "variants", "use-animate"],
+		accessibilityNotes:
+			"Honors `prefers-reduced-motion` automatically. Override with <MotionConfig reducedMotion=\"never\"> only for screenshot tests.",
+		tokenBudget: 350,
+	},
+	tags: ["motion", "animation", "react", "waapi", "transition"],
+};

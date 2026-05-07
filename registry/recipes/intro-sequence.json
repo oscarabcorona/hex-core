@@ -1,0 +1,230 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "intro-sequence",
+  "title": "Intro sequence",
+  "summary": "Hero + subhead + CTA reveal orchestrated by the motion timeline. Demonstrates @hex-core/motion composing existing primitives into a deterministic, agent-authorable sequence.",
+  "tags": [
+    "motion",
+    "timeline",
+    "hero",
+    "intro",
+    "onboarding",
+    "reveal"
+  ],
+  "brief": "Build a landing-page hero where the heading fades + slides up first, the subhead follows shortly after, and the primary CTA scales in last. Same input must always render the same final frame.",
+  "steps": [
+    {
+      "component": "container",
+      "reason": "Bound the hero width and center it",
+      "role": "supporting"
+    },
+    {
+      "component": "stack",
+      "reason": "Vertical rhythm between heading, subhead, CTA",
+      "role": "supporting"
+    },
+    {
+      "component": "button",
+      "reason": "Primary call-to-action target of the final clip",
+      "role": "primary"
+    },
+    {
+      "component": "motion-timeline",
+      "reason": "Owns the clock and seek; renders nothing itself",
+      "role": "primary"
+    },
+    {
+      "component": "scene",
+      "reason": "Group clips into hero / subhead / CTA windows",
+      "role": "supporting"
+    },
+    {
+      "component": "clip",
+      "reason": "One clip per element targeted by CSS selector",
+      "role": "supporting"
+    },
+    {
+      "component": "transition",
+      "reason": "Token-aware easing (use `emphasized` for the CTA reveal)",
+      "role": "optional"
+    }
+  ],
+  "checklist": [
+    {
+      "id": "stable-target-ids",
+      "check": "Each animated element has a stable `id` (or unique selector) that the matching <Clip target> references.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "from-state-set",
+      "check": "Every <Clip> declares `from` AND `to` so the initial paint matches the t=0 state (no flicker on mount).",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "duration-budget",
+      "check": "Total timeline duration stays under 1500ms so the user reaches the interactive state quickly.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "respects-reduced-motion",
+      "check": "Do NOT pass `MotionConfig reducedMotion=\"never\"` in production — the timeline collapses to final state when the OS setting is reduce.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "cta-emphasis",
+      "check": "The CTA clip uses `easing=\"emphasized\"` so it lands with attention, not the standard linear-ish curve.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "container-wrapping-a-container-in-another-container-and-ge",
+      "check": "[Container] Avoid: Wrapping a `Container` in another `Container` and getting an unexpectedly narrow column",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "container-using-padding-none-and-forgetting-that-children-",
+      "check": "[Container] Avoid: Using `padding=\"none\"` and forgetting that children still need their own gutter — the parent contributes nothing",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "container-treating-lg-as-the-largest-size-xl-66rem-and-ful",
+      "check": "[Container] Avoid: Treating `lg` as the largest size — `xl` (66rem) and `full` are bigger",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "container-a11y",
+      "check": "[Container] A11y: Container is presentational. Wrap in a semantic landmark (`<main>`, `<section>`, `<article>`) when the page structure needs it; Container itself renders a plain `<div>`.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "stack-setting-gap-md-then-adding-mt-space-y-on-individ",
+      "check": "[Stack] Avoid: Setting `gap=\"md\"` then adding `mt-*` / `space-y-*` on individual children — pick one spacing system",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "stack-using-align-center-and-wondering-why-children-ex",
+      "check": "[Stack] Avoid: Using `align=\"center\"` and wondering why children expand to full width — that's the `stretch` default for cross-axis",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "stack-nesting-stack-inside-stack-with-the-same-gap-whe",
+      "check": "[Stack] Avoid: Nesting Stack inside Stack with the same gap when one Stack with two children would suffice",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "stack-a11y",
+      "check": "[Stack] A11y: Stack is presentational. Wrap stacked navigation links in a `<nav>`, stacked form fields in a `<form>`, etc. — Stack does not contribute landmark semantics.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "button-nesting-interactive-elements-inside-aschild-butt",
+      "check": "[Button] Avoid: Nesting interactive elements inside asChild button",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-with-plain-onclick-for-navigation-i",
+      "check": "[Button] Avoid: Using <Button> with plain onClick for navigation instead of <Button asChild><a href=...></a></Button> — breaks middle-click, cmd-click, and right-click → 'open in new tab', and skips the browser history entry",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-variant-destructive-for-recoverable",
+      "check": "[Button] Avoid: Using <Button variant='destructive'> for recoverable actions like 'Reset filters' — reserve destructive for delete/archive/leave; use 'secondary' or 'ghost' for resets",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-size-icon-without-an-aria-label-scr",
+      "check": "[Button] Avoid: Using <Button size='icon'> without an aria-label — screen readers have nothing to announce; always pair icon-only buttons with aria-label or visible text",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-a11y",
+      "check": "[Button] A11y: Automatically handles focus ring, disabled state, and aria attributes. Icon-only buttons MUST have aria-label. Loading state automatically sets disabled.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "motion-timeline-targeting-elements-with-selectors-that-don-t-exi",
+      "check": "[Motion Timeline] Avoid: Targeting elements with selectors that don't exist yet — clips silently skip non-matches.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "motion-timeline-mixing-imperative-useanimate-calls-on-the-same-t",
+      "check": "[Motion Timeline] Avoid: Mixing imperative useAnimate calls on the same target — the timeline driver will overwrite them.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "motion-timeline-a11y",
+      "check": "[Motion Timeline] A11y: Respects `prefers-reduced-motion`; with reduce active all clips collapse to their `to` state immediately.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "scene-overlapping-scenes-that-animate-the-same-target-",
+      "check": "[Scene] Avoid: Overlapping scenes that animate the same target with conflicting `to` values — the later animation will cancel the earlier one mid-flight.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "scene-a11y",
+      "check": "[Scene] A11y: Inherits the Timeline's reduced-motion behavior.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "clip-omitting-from-and-expecting-an-inferred-initial-",
+      "check": "[Clip] Avoid: Omitting `from` and expecting an inferred initial — the engine treats undefined as the element's current style, which can flicker.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "clip-using-non-unique-selectors-that-match-multiple-e",
+      "check": "[Clip] Avoid: Using non-unique selectors that match multiple elements — only the first match is animated.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "clip-a11y",
+      "check": "[Clip] A11y: Inherits the Timeline's reduced-motion behavior.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "transition-hard-coding-ms-numbers-throughout-the-codebase-i",
+      "check": "[Transition] Avoid: Hard-coding ms numbers throughout the codebase instead of named easings — themes can't override them later.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "transition-setting-duration-0-to-disable-a-transition-pass-",
+      "check": "[Transition] Avoid: Setting `duration: 0` to disable a transition; pass `initial={false}` on the host instead.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "transition-a11y",
+      "check": "[Transition] A11y: Always respects MotionConfig's reducedMotion mode at the engine level.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "example": "import { Container } from \"@/components/ui/container\";\nimport { Stack } from \"@/components/ui/stack\";\nimport { Button } from \"@/components/ui/button\";\nimport { Timeline, Scene, Clip } from \"@hex-core/motion/timeline\";\n\nexport function HeroIntro() {\n  return (\n    <>\n      <Container>\n        <Stack gap=\"lg\">\n          <h1 id=\"hero-title\" style={{ opacity: 0 }}>Ship spec-driven UI.</h1>\n          <p id=\"hero-sub\" style={{ opacity: 0 }}>From brief to component checklist over MCP.</p>\n          <div id=\"hero-cta\" style={{ opacity: 0, transform: \"translateY(24px)\" }}>\n            <Button size=\"lg\">Get started</Button>\n          </div>\n        </Stack>\n      </Container>\n      <Timeline duration={1400} autoPlay>\n        <Scene start={0} duration={400}>\n          <Clip target=\"#hero-title\" from={{ opacity: 0, y: 8 }} to={{ opacity: 1, y: 0 }} />\n        </Scene>\n        <Scene start={250} duration={400}>\n          <Clip target=\"#hero-sub\" from={{ opacity: 0 }} to={{ opacity: 1 }} />\n        </Scene>\n        <Scene start={600} duration={500}>\n          <Clip target=\"#hero-cta\" from={{ opacity: 0, y: 24 }} to={{ opacity: 1, y: 0 }} easing=\"emphasized\" />\n        </Scene>\n      </Timeline>\n    </>\n  );\n}",
+  "tokenBudget": 1800
+}
