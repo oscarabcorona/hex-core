@@ -149,11 +149,27 @@ PACKAGES=(
 	"packages/tokens"
 	"packages/themes"
 	"packages/components"
+	"packages/motion"
 	"packages/cli"
 	"packages/payload"
 	"packages/mcp-server"
 	"packages/preview"
 )
+
+# Drift check — every publishable workspace package (i.e. not "private": true)
+# must appear in PACKAGES above. Catches the silent-skip failure mode where a
+# new package lands but never gets added to this list.
+for pkgjson in packages/*/package.json; do
+	pkg_dir="packages/$(basename "$(dirname "$pkgjson")")"
+	is_private=$(node -p "require('./$pkgjson').private === true" 2>/dev/null)
+	[[ "$is_private" == "true" ]] && continue
+	found=""
+	for p in "${PACKAGES[@]}"; do [[ "$p" == "$pkg_dir" ]] && found=1 && break; done
+	if [[ -z "$found" ]]; then
+		err "Publishable package '$pkg_dir' is missing from PACKAGES array in $(basename "$0"). Add it (and verify ordering: registry first, leaves after) and re-run."
+		exit 1
+	fi
+done
 
 PUBLISHED=()
 SKIPPED=()

@@ -1,5 +1,9 @@
 # @hex-core/motion
 
+[![npm](https://img.shields.io/npm/v/@hex-core/motion.svg)](https://www.npmjs.com/package/@hex-core/motion)
+[![downloads](https://img.shields.io/npm/dm/@hex-core/motion.svg)](https://www.npmjs.com/package/@hex-core/motion)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/oscarabcorona/hex-core/blob/main/LICENSE)
+
 UI animation primitives + a lightweight scene/timeline composer for Hex Core.
 
 - **Zero-dep core** — CSS variables + Web Animations API (`element.animate`).
