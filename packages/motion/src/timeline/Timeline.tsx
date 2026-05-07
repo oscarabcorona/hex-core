@@ -88,6 +88,15 @@ export function Timeline({
 		[cancelAll, motion.driver, reduce],
 	);
 
+	// Live ref over closure values the effects below read. The play loop
+	// re-fires on play/pause/duration/loop changes only — driver / clock /
+	// onTick swaps mid-flight read through this ref so the loop's `tick`
+	// closure stays valid without forcing re-fires that would break rAF
+	// scheduling. The mount effect reads issueClips/isPlaying via the
+	// same ref so its deps array stays empty.
+	const liveRef = useRef({ issueClips, motionClock: motion.clock, onTick, isPlaying });
+	liveRef.current = { issueClips, motionClock: motion.clock, onTick, isPlaying };
+
 	useEffect(() => {
 		if (!isPlaying) {
 			for (const anim of runningRef.current.values()) anim.pause();
@@ -95,7 +104,8 @@ export function Timeline({
 		}
 		for (const anim of runningRef.current.values()) anim.play();
 		let cancelled = false;
-		const start = motion.clock.now();
+		const motionClock = liveRef.current.motionClock;
+		const start = motionClock.now();
 		const startT = tRef.current;
 		const tick = (now: number) => {
 			if (cancelled) return;
@@ -104,17 +114,17 @@ export function Timeline({
 			if (next >= duration) {
 				if (loop) {
 					next = next % duration;
-					issueClips(next, true);
+					liveRef.current.issueClips(next, true);
 				} else {
 					next = duration;
 					setPlaying(false);
 				}
 			}
 			setT(next);
-			onTick?.(next);
-			motion.clock.schedule(tick);
+			liveRef.current.onTick?.(next);
+			motionClock.schedule(tick);
 		};
-		const cancel = motion.clock.schedule(tick);
+		const cancel = motionClock.schedule(tick);
 		return () => {
 			cancelled = true;
 			cancel();
@@ -122,6 +132,7 @@ export function Timeline({
 	}, [isPlaying, duration, loop]);
 
 	useEffect(() => {
+		const { issueClips, isPlaying } = liveRef.current;
 		issueClips(tRef.current, isPlaying);
 	}, []);
 

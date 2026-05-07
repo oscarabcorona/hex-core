@@ -7,6 +7,7 @@ import {
 	useImperativeHandle,
 	useLayoutEffect,
 	useRef,
+	useState,
 	type ComponentType,
 	type CSSProperties,
 	type HTMLAttributes,
@@ -138,26 +139,43 @@ function makeMotionComponent<T extends keyof HTMLElementTagNameMap>(
 			const animateState = resolve(animate, variants);
 
 			// Cache the last AnimateProps we ran against and bump a numeric
-			// version when a structural diff is detected. The version is what
-			// `useEffect` depends on — primitive-comparable, no per-render
-			// JSON.stringify, no allocation when `animate` is referentially
-			// stable (the common case after memoization upstream).
+			// version (state, not ref) when a structural diff is detected.
+			// State is what makes the effect below reactive — refs alone
+			// wouldn't trigger a re-render, so exhaustive-deps would warn
+			// (correctly: mutating a ref doesn't queue a render).
 			const prevAnimateRef = useRef<AnimateProps | undefined>(undefined);
-			const animateVersionRef = useRef(0);
+			const [animateVersion, setAnimateVersion] = useState(0);
 			if (animateState !== prevAnimateRef.current) {
-				if (
+				const changed =
 					!prevAnimateRef.current ||
 					!animateState ||
-					!shallowEqualAnimate(prevAnimateRef.current, animateState)
-				) {
-					animateVersionRef.current += 1;
-					prevAnimateRef.current = animateState;
-				}
+					!shallowEqualAnimate(prevAnimateRef.current, animateState);
+				prevAnimateRef.current = animateState;
+				if (changed) setAnimateVersion((v) => v + 1);
 			}
 			const firstMountRef = useRef(true);
 
+			// Live closure-values bag. Updated every render so effects below
+			// can read the latest `run`/`animateState` without listing every
+			// upstream dep (which would defeat their mount-only and
+			// version-keyed semantics). exhaustive-deps treats refs as exempt,
+			// so the empty / single-value dep arrays stay valid.
+			const liveRef = useRef({
+				run,
+				initialState,
+				animateState,
+				dataAttrRaw: rest["data-hex-motion"],
+			});
+			liveRef.current = {
+				run,
+				initialState,
+				animateState,
+				dataAttrRaw: rest["data-hex-motion"],
+			};
+
 			useLayoutEffect(() => {
-				const dataAttr = parseMotionDataAttr(rest["data-hex-motion"]);
+				const { run, initialState, animateState, dataAttrRaw } = liveRef.current;
+				const dataAttr = parseMotionDataAttr(dataAttrRaw);
 				if (dataAttr) {
 					run(dataAttr.from, dataAttr.to, dataAttr.transition);
 					return;
@@ -168,15 +186,17 @@ function makeMotionComponent<T extends keyof HTMLElementTagNameMap>(
 
 			// The mount layout-effect already issued the initial → animate
 			// pair. Skip the first run of this effect so we don't double-
-			// fire on mount; subsequent renders that bump animateVersionRef
-			// re-issue the animation against the new target.
+			// fire on mount; subsequent renders that bump `animateVersion`
+			// re-issue the animation against the new target. `animateVersion`
+			// is state, so it satisfies exhaustive-deps and triggers re-renders.
 			useEffect(() => {
 				if (firstMountRef.current) {
 					firstMountRef.current = false;
 					return;
 				}
+				const { run, animateState } = liveRef.current;
 				if (animateState) run(undefined, animateState, undefined);
-			}, [animateVersionRef.current]);
+			}, [animateVersion]);
 
 			const initialStyle: CSSProperties | undefined = (() => {
 				if (!initialState) return style;

@@ -41,9 +41,23 @@ export function Clip(props: ClipProps) {
 	propsRef.current = props;
 	const contextTrackRef = useRef(trackFromContext);
 	contextTrackRef.current = trackFromContext;
+	// Stabilize the Timeline context — `useTimeline` returns a useMemo'd
+	// value that re-creates whenever t/isPlaying change. Reading from the
+	// ref inside the effect keeps the deps array minimal so we re-register
+	// only on real clip changes, not every timeline tick.
+	const tlRef = useRef(tl);
+	tlRef.current = tl;
+
+	// Hoisted structural fingerprints — exhaustive-deps doesn't accept
+	// `JSON.stringify(...)` directly inside the deps array (rightly so),
+	// but the same expression as a local `const` is allowed and identifies
+	// any structural change to `from`/`to`.
+	const fromKey = JSON.stringify(props.from);
+	const toKey = JSON.stringify(props.to);
 
 	useEffect(() => {
 		const cur = propsRef.current;
+		const tl = tlRef.current;
 		const t0 = scene.t0 + (cur.start ?? 0);
 		const explicitDuration = cur.duration;
 		const sceneDuration = scene.duration === Infinity ? tl.duration : scene.duration;
@@ -67,15 +81,14 @@ export function Clip(props: ClipProps) {
 		id,
 		scene.t0,
 		scene.duration,
-		tl.duration,
+		fromKey,
+		toKey,
 		props.target,
 		props.start,
 		props.duration,
 		props.track,
 		trackFromContext,
 		props.easing,
-		JSON.stringify(props.from),
-		JSON.stringify(props.to),
 	]);
 
 	return null;

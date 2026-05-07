@@ -75,8 +75,17 @@ export function Presence({ children }: { children?: ReactNode }) {
 	const [tracked, setTracked] = useState<TrackedChild[]>([]);
 	const trackedRef = useRef(tracked);
 	trackedRef.current = tracked;
+	// Live ref for the motion context. Reading from a ref inside the
+	// children-keyed effect lets us pull the latest driver/defaults/reduced
+	// without depending on `ctx` directly — depending on the whole context
+	// would re-fire every transition mid-flight on theme/config changes,
+	// which is the wrong behavior. The ref captures the values valid at the
+	// moment children change.
+	const ctxRef = useRef(ctx);
+	ctxRef.current = ctx;
 
 	useEffect(() => {
+		const ctx = ctxRef.current;
 		const incoming: TrackedChild[] = [];
 		Children.forEach(children, (child) => {
 			if (!isValidElement(child) || child.key == null) return;
