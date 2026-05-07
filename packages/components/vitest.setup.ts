@@ -34,6 +34,18 @@ if (
 	Element.prototype.scrollIntoView = function scrollIntoView(): void {};
 }
 
+/*
+ * jsdom doesn't implement document.elementFromPoint; input-otp uses it for
+ * caret-position handling and crashes inside a setTimeout if absent. A no-op
+ * shim is sufficient — tests assert wiring + state, not pointer behavior.
+ */
+if (
+	typeof document !== "undefined" &&
+	typeof document.elementFromPoint !== "function"
+) {
+	document.elementFromPoint = (): null => null;
+}
+
 // Avoid leaked DOM between tests — each test gets a clean slate.
 afterEach(() => {
 	cleanup();

@@ -20,6 +20,15 @@ describe("rewriteRegistryImports", () => {
 		expect(out).toBe(`import { Button } from "@/components/ui/button";\n`);
 	});
 
+	it("rewrites cross-tree components/<name>/<name> imports (used by blocks)", () => {
+		// A block at packages/components/src/blocks/<slug>/<slug>.tsx reaches up
+		// twice to import a molecule. The legacy regex only matched primitives/
+		// at that depth — blocks need the components/ arm too.
+		const src = `import { Alert } from "../../components/alert/alert.js";\n`;
+		const out = rewriteRegistryImports(src);
+		expect(out).toBe(`import { Alert } from "@/components/ui/alert";\n`);
+	});
+
 	it("rewrites _shared internal modules", () => {
 		const src = `import { gapVariants } from "../_shared/layout-variants.js";\n`;
 		const out = rewriteRegistryImports(src);

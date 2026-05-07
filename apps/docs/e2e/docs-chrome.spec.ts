@@ -4,12 +4,18 @@ test.describe("docs chrome", () => {
 	test("/docs index renders the populated category sections", async ({ page }) => {
 		await page.goto("/docs");
 		await expect(page.getByRole("heading", { name: "Components", level: 1 })).toBeVisible();
-		// Registry currently ships 4 populated categories (Primitives + AI +
-		// Motion + Components); Blocks/Hooks are declared but unpopulated so
-		// their sections don't render. Assert exact names + order so a silent
+		// Registry currently ships 5 populated categories (Primitives + AI +
+		// Motion + Components + Blocks); Hooks is declared but unpopulated so
+		// its section doesn't render. Assert exact names + order so a silent
 		// drop or reorder is caught.
 		const categories = page.locator("main h2");
-		await expect(categories).toHaveText(["Primitives", "AI", "Motion", "Components"]);
+		await expect(categories).toHaveText([
+			"Primitives",
+			"AI",
+			"Motion",
+			"Components",
+			"Blocks",
+		]);
 	});
 
 	test("sidebar navigation + active highlight", async ({ page }) => {

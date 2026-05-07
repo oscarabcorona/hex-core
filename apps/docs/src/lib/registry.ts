@@ -69,6 +69,11 @@ export function listComponents(): RegistryIndexItem[] {
 	return index.items;
 }
 
+/** Subset of registry items whose `category` is `"block"` — page-level compositions. */
+export function listBlocks(): RegistryIndexItem[] {
+	return index.items.filter((item) => item.category === "block");
+}
+
 /** Display labels for the `category` field on each registry item. */
 export const CATEGORY_LABELS: Record<string, string> = {
 	primitive: "Primitives",

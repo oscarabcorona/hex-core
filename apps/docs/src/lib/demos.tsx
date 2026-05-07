@@ -1,5 +1,11 @@
 import type { ComponentType } from "react";
 import { AccordionDemo } from "../app/demos/accordion-demo";
+import { AuthForgotPasswordDemo } from "../app/demos/auth-forgot-password-demo";
+import { AuthResetPasswordDemo } from "../app/demos/auth-reset-password-demo";
+import { AuthSignInSplitDemo } from "../app/demos/auth-sign-in-split-demo";
+import { AuthSignUpCardDemo } from "../app/demos/auth-sign-up-card-demo";
+import { AuthVerifyEmailDemo } from "../app/demos/auth-verify-email-demo";
+import { AuthVerifyOtpDemo } from "../app/demos/auth-verify-otp-demo";
 import { AlertDemo } from "../app/demos/alert-demo";
 import { AlertDialogDemo } from "../app/demos/alert-dialog-demo";
 import { AspectRatioDemo } from "../app/demos/aspect-ratio-demo";
@@ -230,6 +236,12 @@ export const demos: Record<string, ComponentType> = {
 	"compare-table": CompareTableDemo,
 	deck: DeckDemo,
 	"spaced-repetition": SpacedRepetitionDemo,
+	"auth-sign-in-split": AuthSignInSplitDemo,
+	"auth-sign-up-card": AuthSignUpCardDemo,
+	"auth-forgot-password": AuthForgotPasswordDemo,
+	"auth-reset-password": AuthResetPasswordDemo,
+	"auth-verify-email": AuthVerifyEmailDemo,
+	"auth-verify-otp": AuthVerifyOtpDemo,
 	motion: MotionDemo,
 	presence: PresenceDemo,
 	"use-animate": UseAnimateDemo,

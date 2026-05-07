@@ -416,6 +416,31 @@ export {
 	type SrsRating,
 } from "./artifacts/spaced-repetition/spaced-repetition.js";
 
+// Blocks — page-level compositions (auth flows, landing sections, app shells).
+export type {
+	AuthAdapter,
+	AuthAdapterResult,
+	AuthForgotPasswordProps,
+	AuthOtpIntent,
+	AuthResetPasswordProps,
+	AuthSignInSocialProvider,
+	AuthSignInSplitProps,
+	AuthSignUpCardProps,
+	AuthSignUpCardSocialProvider,
+	AuthSocialProvider,
+	AuthVerifyEmailProps,
+	AuthVerifyOtpProps,
+} from "./blocks/index.js";
+export {
+	AuthForgotPassword,
+	AuthResetPassword,
+	AuthSignInSplit,
+	AuthSignUpCard,
+	AuthVerifyEmail,
+	AuthVerifyOtp,
+	mockAuthAdapter,
+} from "./blocks/index.js";
+
 // Schemas live in `@hex-core/components/schemas` (1.4.0+) so the runtime
 // barrel doesn't pull in the `@hex-core/registry` type at the consumer's
 // declaration boundary. Tooling that needs the manifest imports from

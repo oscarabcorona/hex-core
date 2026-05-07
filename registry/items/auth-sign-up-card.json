@@ -1,0 +1,177 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "auth-sign-up-card",
+  "displayName": "AuthSignUpCard",
+  "description": "Centered-card sign-up page. Email + password (with confirm) + optional name + terms checkbox + optional social providers. Routes account creation through a consumer-supplied AuthAdapter.",
+  "category": "block",
+  "subcategory": "auth",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "adapter",
+      "type": "object",
+      "required": true,
+      "description": "AuthAdapter implementation. The block calls adapter.signUpWithPassword for the form submit and (if socialProviders are passed) adapter.signInWithSocial."
+    },
+    {
+      "name": "socialProviders",
+      "type": "object",
+      "required": false,
+      "description": "ReadonlyArray<{ provider: AuthSocialProvider; label: string; icon?: ReactNode }>. Optional list of social-signup buttons rendered above the email field. Pass an empty array or omit to hide the social section + 'or sign up with email' divider."
+    },
+    {
+      "name": "signInHref",
+      "type": "string",
+      "required": false,
+      "default": "/sign-in",
+      "description": "Href for the 'Sign in' link rendered in the card footer."
+    },
+    {
+      "name": "termsHref",
+      "type": "string",
+      "required": false,
+      "default": "/terms",
+      "description": "Href for the 'Terms of Service' link inside the consent checkbox label."
+    },
+    {
+      "name": "privacyHref",
+      "type": "string",
+      "required": false,
+      "default": "/privacy",
+      "description": "Href for the 'Privacy Policy' link inside the consent checkbox label."
+    },
+    {
+      "name": "passwordMinLength",
+      "type": "number",
+      "required": false,
+      "default": 8,
+      "description": "Minimum password length used by client-side validation and the helper text below the password field."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional classes applied to the outer flex wrapper."
+    },
+    {
+      "name": "onSuccess",
+      "type": "function",
+      "required": false,
+      "description": "Called after a successful sign-up with the adapter's redirect target: (redirect: string | undefined) => void. The block does not navigate by itself — the consumer's onSuccess handler is what actually navigates."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/auth-sign-up-card.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Alert, AlertDescription, AlertTitle } from \"../../components/alert/alert.js\";\nimport {\n\tCard,\n\tCardContent,\n\tCardDescription,\n\tCardFooter,\n\tCardHeader,\n\tCardTitle,\n} from \"../../components/card/card.js\";\nimport { Button } from \"../../primitives/button/button.js\";\nimport { Checkbox } from \"../../primitives/checkbox/checkbox.js\";\nimport { Input } from \"../../primitives/input/input.js\";\nimport { Label } from \"../../primitives/label/label.js\";\nimport { Separator } from \"../../primitives/separator/separator.js\";\nimport { cn } from \"../../lib/utils.js\";\nimport type { AuthAdapter, AuthSocialProvider } from \"../_shared/auth-adapter.js\";\n\nexport interface AuthSignUpCardSocialProvider {\n\tprovider: AuthSocialProvider;\n\tlabel: string;\n\ticon?: React.ReactNode;\n}\n\nexport interface AuthSignUpCardProps {\n\tadapter: AuthAdapter;\n\tsocialProviders?: ReadonlyArray<AuthSignUpCardSocialProvider>;\n\tsignInHref?: string;\n\ttermsHref?: string;\n\tprivacyHref?: string;\n\tpasswordMinLength?: number;\n\tclassName?: string;\n\tonSuccess?: (redirect: string | undefined) => void;\n}\n\ntype Submitting = null | \"password\" | AuthSocialProvider;\n\nconst EMAIL_REGEX = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n\n/** Centered-card sign-up page. Composes Card + form fields + optional social. */\nexport function AuthSignUpCard({\n\tadapter,\n\tsocialProviders,\n\tsignInHref = \"/sign-in\",\n\ttermsHref = \"/terms\",\n\tprivacyHref = \"/privacy\",\n\tpasswordMinLength = 8,\n\tclassName,\n\tonSuccess,\n}: AuthSignUpCardProps) {\n\tconst [name, setName] = React.useState(\"\");\n\tconst [email, setEmail] = React.useState(\"\");\n\tconst [password, setPassword] = React.useState(\"\");\n\tconst [confirmPassword, setConfirmPassword] = React.useState(\"\");\n\tconst [acceptTerms, setAcceptTerms] = React.useState(false);\n\tconst [submitting, setSubmitting] = React.useState<Submitting>(null);\n\tconst [error, setError] = React.useState<{ code: string; message: string } | null>(null);\n\n\tconst isBusy = submitting !== null;\n\n\tfunction validate(): { code: string; message: string } | null {\n\t\tif (!EMAIL_REGEX.test(email)) {\n\t\t\treturn { code: \"invalid_email\", message: \"Enter a valid email address.\" };\n\t\t}\n\t\tif (password.length < passwordMinLength) {\n\t\t\treturn {\n\t\t\t\tcode: \"password_too_short\",\n\t\t\t\tmessage: `Password must be at least ${passwordMinLength} characters.`,\n\t\t\t};\n\t\t}\n\t\tif (password !== confirmPassword) {\n\t\t\treturn { code: \"password_mismatch\", message: \"Passwords don't match.\" };\n\t\t}\n\t\tif (!acceptTerms) {\n\t\t\treturn {\n\t\t\t\tcode: \"terms_required\",\n\t\t\t\tmessage: \"Please accept the terms of service to continue.\",\n\t\t\t};\n\t\t}\n\t\treturn null;\n\t}\n\n\tasync function handleSubmit(e: React.FormEvent<HTMLFormElement>) {\n\t\te.preventDefault();\n\t\tconst validation = validate();\n\t\tif (validation) {\n\t\t\tsetError(validation);\n\t\t\treturn;\n\t\t}\n\t\tif (!adapter.signUpWithPassword) {\n\t\t\tconsole.warn(\n\t\t\t\t\"[AuthSignUpCard] adapter.signUpWithPassword is not implemented — wire it up before exposing the form.\",\n\t\t\t);\n\t\t\tsetError({\n\t\t\t\tcode: \"unimplemented\",\n\t\t\t\tmessage: \"Sign-up is currently unavailable. Please try again later.\",\n\t\t\t});\n\t\t\treturn;\n\t\t}\n\t\tsetError(null);\n\t\tsetSubmitting(\"password\");\n\t\ttry {\n\t\t\tconst result = await adapter.signUpWithPassword({\n\t\t\t\temail,\n\t\t\t\tpassword,\n\t\t\t\tname: name.trim().length > 0 ? name.trim() : undefined,\n\t\t\t});\n\t\t\tif (!result.ok) {\n\t\t\t\tsetError(result.error ?? { code: \"unknown\", message: \"Sign-up failed.\" });\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tonSuccess?.(result.redirect);\n\t\t} finally {\n\t\t\tsetSubmitting(null);\n\t\t}\n\t}\n\n\tasync function handleSocial(provider: AuthSocialProvider) {\n\t\tif (!adapter.signInWithSocial) {\n\t\t\tconsole.warn(\n\t\t\t\t`[AuthSignUpCard] adapter.signInWithSocial is not implemented but a ${provider} button is rendered — drop the entry from socialProviders or wire the method.`,\n\t\t\t);\n\t\t\tsetError({\n\t\t\t\tcode: \"unimplemented\",\n\t\t\t\tmessage: \"This sign-up option is currently unavailable. Please try a different method.\",\n\t\t\t});\n\t\t\treturn;\n\t\t}\n\t\tsetError(null);\n\t\tsetSubmitting(provider);\n\t\ttry {\n\t\t\tconst result = await adapter.signInWithSocial({ provider });\n\t\t\tif (!result.ok) {\n\t\t\t\tsetError(result.error ?? { code: \"social-failed\", message: \"Sign-up failed.\" });\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tonSuccess?.(result.redirect);\n\t\t} finally {\n\t\t\tsetSubmitting(null);\n\t\t}\n\t}\n\n\treturn (\n\t\t<div className={cn(\"flex min-h-svh items-center justify-center p-6 sm:p-10\", className)}>\n\t\t\t<Card className=\"w-full max-w-md\">\n\t\t\t\t<CardHeader className=\"space-y-2 text-center\">\n\t\t\t\t\t<CardTitle className=\"text-2xl\">Create your account</CardTitle>\n\t\t\t\t\t<CardDescription>Get started in seconds — no credit card required.</CardDescription>\n\t\t\t\t</CardHeader>\n\t\t\t\t<CardContent className=\"space-y-6\">\n\t\t\t\t\t{error ? (\n\t\t\t\t\t\t<Alert variant=\"destructive\">\n\t\t\t\t\t\t\t<AlertTitle>Couldn&rsquo;t create account</AlertTitle>\n\t\t\t\t\t\t\t<AlertDescription>{error.message}</AlertDescription>\n\t\t\t\t\t\t</Alert>\n\t\t\t\t\t) : null}\n\n\t\t\t\t\t{socialProviders && socialProviders.length > 0 ? (\n\t\t\t\t\t\t<>\n\t\t\t\t\t\t\t<div className=\"grid gap-2\">\n\t\t\t\t\t\t\t\t{socialProviders.map((p) => (\n\t\t\t\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\t\t\t\tkey={p.provider}\n\t\t\t\t\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\t\t\t\t\tvariant=\"outline\"\n\t\t\t\t\t\t\t\t\t\tonClick={() => handleSocial(p.provider)}\n\t\t\t\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\t\t\t\tloading={submitting === p.provider}\n\t\t\t\t\t\t\t\t\t\tclassName=\"w-full justify-center gap-2\"\n\t\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t\t{p.icon}\n\t\t\t\t\t\t\t\t\t\t<span>Continue with {p.label}</span>\n\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div className=\"relative\">\n\t\t\t\t\t\t\t\t<Separator />\n\t\t\t\t\t\t\t\t<span className=\"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs uppercase text-muted-foreground\">\n\t\t\t\t\t\t\t\t\tor sign up with email\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</>\n\t\t\t\t\t) : null}\n\n\t\t\t\t\t<form onSubmit={handleSubmit} className=\"space-y-4\" noValidate>\n\t\t\t\t\t\t<div className=\"space-y-2\">\n\t\t\t\t\t\t\t<Label htmlFor=\"auth-sign-up-name\">\n\t\t\t\t\t\t\t\tFull name <span className=\"text-muted-foreground\">(optional)</span>\n\t\t\t\t\t\t\t</Label>\n\t\t\t\t\t\t\t<Input\n\t\t\t\t\t\t\t\tid=\"auth-sign-up-name\"\n\t\t\t\t\t\t\t\ttype=\"text\"\n\t\t\t\t\t\t\t\tautoComplete=\"name\"\n\t\t\t\t\t\t\t\tvalue={name}\n\t\t\t\t\t\t\t\tonChange={(e) => setName(e.target.value)}\n\t\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div className=\"space-y-2\">\n\t\t\t\t\t\t\t<Label htmlFor=\"auth-sign-up-email\">Email</Label>\n\t\t\t\t\t\t\t<Input\n\t\t\t\t\t\t\t\tid=\"auth-sign-up-email\"\n\t\t\t\t\t\t\t\ttype=\"email\"\n\t\t\t\t\t\t\t\tautoComplete=\"email\"\n\t\t\t\t\t\t\t\trequired\n\t\t\t\t\t\t\t\tvalue={email}\n\t\t\t\t\t\t\t\tonChange={(e) => setEmail(e.target.value)}\n\t\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div className=\"space-y-2\">\n\t\t\t\t\t\t\t<Label htmlFor=\"auth-sign-up-password\">Password</Label>\n\t\t\t\t\t\t\t<Input\n\t\t\t\t\t\t\t\tid=\"auth-sign-up-password\"\n\t\t\t\t\t\t\t\ttype=\"password\"\n\t\t\t\t\t\t\t\tautoComplete=\"new-password\"\n\t\t\t\t\t\t\t\trequired\n\t\t\t\t\t\t\t\tminLength={passwordMinLength}\n\t\t\t\t\t\t\t\tvalue={password}\n\t\t\t\t\t\t\t\tonChange={(e) => setPassword(e.target.value)}\n\t\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\t\taria-describedby=\"auth-sign-up-password-hint\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<p\n\t\t\t\t\t\t\t\tid=\"auth-sign-up-password-hint\"\n\t\t\t\t\t\t\t\tclassName=\"text-xs text-muted-foreground\"\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\tAt least {passwordMinLength} characters.\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div className=\"space-y-2\">\n\t\t\t\t\t\t\t<Label htmlFor=\"auth-sign-up-confirm\">Confirm password</Label>\n\t\t\t\t\t\t\t<Input\n\t\t\t\t\t\t\t\tid=\"auth-sign-up-confirm\"\n\t\t\t\t\t\t\t\ttype=\"password\"\n\t\t\t\t\t\t\t\tautoComplete=\"new-password\"\n\t\t\t\t\t\t\t\trequired\n\t\t\t\t\t\t\t\tvalue={confirmPassword}\n\t\t\t\t\t\t\t\tonChange={(e) => setConfirmPassword(e.target.value)}\n\t\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div className=\"flex items-start gap-2\">\n\t\t\t\t\t\t\t<Checkbox\n\t\t\t\t\t\t\t\tid=\"auth-sign-up-terms\"\n\t\t\t\t\t\t\t\tchecked={acceptTerms}\n\t\t\t\t\t\t\t\tonCheckedChange={(v) => setAcceptTerms(v === true)}\n\t\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\t\tclassName=\"mt-0.5\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<Label\n\t\t\t\t\t\t\t\thtmlFor=\"auth-sign-up-terms\"\n\t\t\t\t\t\t\t\tclassName=\"text-sm font-normal leading-snug\"\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\tI agree to the{\" \"}\n\t\t\t\t\t\t\t\t<a\n\t\t\t\t\t\t\t\t\thref={termsHref}\n\t\t\t\t\t\t\t\t\tclassName=\"font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded\"\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\tTerms of Service\n\t\t\t\t\t\t\t\t</a>{\" \"}\n\t\t\t\t\t\t\t\tand{\" \"}\n\t\t\t\t\t\t\t\t<a\n\t\t\t\t\t\t\t\t\thref={privacyHref}\n\t\t\t\t\t\t\t\t\tclassName=\"font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded\"\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\tPrivacy Policy\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t.\n\t\t\t\t\t\t\t</Label>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\ttype=\"submit\"\n\t\t\t\t\t\t\tclassName=\"w-full\"\n\t\t\t\t\t\t\tdisabled={isBusy}\n\t\t\t\t\t\t\tloading={submitting === \"password\"}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{submitting === \"password\" ? \"Creating account\" : \"Create account\"}\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t</form>\n\t\t\t\t</CardContent>\n\t\t\t\t<CardFooter className=\"justify-center text-sm text-muted-foreground\">\n\t\t\t\t\tAlready have an account?{\" \"}\n\t\t\t\t\t<a\n\t\t\t\t\t\thref={signInHref}\n\t\t\t\t\t\tclassName=\"ml-1 font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded\"\n\t\t\t\t\t>\n\t\t\t\t\t\tSign in\n\t\t\t\t\t</a>\n\t\t\t\t</CardFooter>\n\t\t\t</Card>\n\t\t</div>\n\t);\n}\n",
+      "type": "component"
+    },
+    {
+      "path": "components/_shared/auth-adapter.tsx",
+      "content": "/**\n * The contract every Hex Core auth block consumes via its `adapter` prop.\n *\n * Hex Core does not ship session management — auth blocks are presentation-\n * only and delegate every credential, OTP, and OAuth handoff to whatever\n * the consumer wires up (better-auth, Clerk, NextAuth, Supabase Auth, a\n * custom server, …). The adapter is the single seam.\n *\n * Every method is **optional**. A block that needs `signInWithPassword` but\n * not passkeys passes an adapter implementing only the methods it needs;\n * the block surfaces a runtime error if the user hits a code path the\n * adapter doesn't implement, rather than failing to render. This lets a\n * consumer ship password-only on day one and add passkeys later without\n * forking the block source.\n *\n * A reference {@link mockAuthAdapter} lives below — used by the docs\n * showcase routes and unit tests; never ship it in production.\n */\nexport interface AuthAdapterResult {\n\tok: boolean;\n\terror?: { code: string; message: string };\n\tredirect?: string;\n}\n\nexport type AuthSocialProvider = \"github\" | \"google\" | \"microsoft\" | (string & {});\n\nexport type AuthOtpIntent = \"sign-in\" | \"verify-email\" | \"mfa\";\n\nexport interface AuthAdapter {\n\tsignInWithPassword?(p: {\n\t\temail: string;\n\t\tpassword: string;\n\t\tremember: boolean;\n\t}): Promise<AuthAdapterResult>;\n\tsignUpWithPassword?(p: {\n\t\temail: string;\n\t\tpassword: string;\n\t\tname?: string;\n\t}): Promise<AuthAdapterResult>;\n\tsignInWithSocial?(p: { provider: AuthSocialProvider }): Promise<AuthAdapterResult>;\n\tsendMagicLink?(p: { email: string }): Promise<AuthAdapterResult>;\n\tverifyOtp?(p: { code: string; intent: AuthOtpIntent }): Promise<AuthAdapterResult>;\n\trequestPasswordReset?(p: { email: string }): Promise<AuthAdapterResult>;\n\tresetPassword?(p: { token: string; password: string }): Promise<AuthAdapterResult>;\n\tregisterPasskey?(): Promise<AuthAdapterResult>;\n\tsignInWithPasskey?(): Promise<AuthAdapterResult>;\n\t/**\n\t * Re-send a magic link to the same address. Distinct from {@link sendMagicLink}\n\t * so consumers can throttle resends and surface different analytics / error\n\t * copy for the second-and-onward attempt. Used by the verify-email block.\n\t */\n\tresendMagicLink?(p: { email: string }): Promise<AuthAdapterResult>;\n\t/**\n\t * Re-send a one-time code for the given intent. Distinct from the initial\n\t * code dispatch so consumers can throttle and log resends separately. Used\n\t * by the verify-otp block.\n\t */\n\tresendOtp?(p: { intent: AuthOtpIntent }): Promise<AuthAdapterResult>;\n}\n\nconst wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));\n\n/**\n * In-memory mock adapter for docs showcase + tests. Every method delays\n * 400ms to simulate a network round-trip and resolves `{ ok: true }`. Do\n * not use in production — there is no validation, no persistence, and no\n * security.\n */\nexport const mockAuthAdapter: Required<AuthAdapter> = {\n\tasync signInWithPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n\tasync signUpWithPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/verify-email\" };\n\t},\n\tasync signInWithSocial({ provider }) {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: `/oauth/${provider}/callback` };\n\t},\n\tasync sendMagicLink() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync verifyOtp() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n\tasync requestPasswordReset() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync resetPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/sign-in\" };\n\t},\n\tasync registerPasskey() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync signInWithPasskey() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n\tasync resendMagicLink() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync resendOtp() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n};\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-checkbox",
+      "@radix-ui/react-label",
+      "@radix-ui/react-separator",
+      "@radix-ui/react-slot",
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "components/alert/alert",
+      "components/card/card",
+      "primitives/button/button",
+      "primitives/checkbox/checkbox",
+      "primitives/input/input",
+      "primitives/label/label",
+      "primitives/separator/separator"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "background",
+    "foreground",
+    "card",
+    "card-foreground",
+    "muted",
+    "muted-foreground",
+    "primary",
+    "primary-foreground",
+    "destructive",
+    "destructive-foreground",
+    "border",
+    "input",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Mock adapter (showcase / tests)",
+      "description": "Demo with the in-memory mock adapter — every method resolves ok:true after 400ms.",
+      "code": "import { AuthSignUpCard, mockAuthAdapter } from \"@hex-core/components\";\n\n<AuthSignUpCard\n  adapter={mockAuthAdapter}\n  socialProviders={[\n    { provider: \"github\", label: \"GitHub\" },\n    { provider: \"google\", label: \"Google\" },\n  ]}\n  signInHref=\"/sign-in\"\n  termsHref=\"/terms\"\n  privacyHref=\"/privacy\"\n/>",
+      "composition": [
+        "auth",
+        "sign-up",
+        "form",
+        "card"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use as the default sign-up page when a centered card layout fits your marketing posture. Pairs naturally with auth-sign-in-split: split-screen at sign-in (room for marketing), centered card at sign-up (focus on the form).",
+    "whenNotToUse": "Don't use for in-app account creation modals (use a Dialog with form fields instead). Don't use when you need server-side multi-step onboarding (use an onboarding wizard block — future).",
+    "commonMistakes": [
+      "Forgetting to pass the AuthAdapter — the block has no built-in fallback and surfaces an 'unimplemented' error on submit.",
+      "Skipping onSuccess and relying on adapter.redirect alone — the redirect is informational; the consumer's onSuccess handler is what actually navigates.",
+      "Wiring auth state inside the adapter methods instead of returning { ok, error } — the block reads result.error.message into the Alert; throwing inside the adapter loses the structured payload.",
+      "Setting termsHref / privacyHref to absolute URLs when in-app routes exist — they're plain anchor hrefs; prefer relative paths so the consumer's router handles navigation.",
+      "Forgetting that name is optional — passing required={true} on the name field would lock out users who don't want to share it; the block already treats name as optional and trims whitespace before forwarding."
+    ],
+    "relatedComponents": [
+      "auth-sign-in-split",
+      "card",
+      "form",
+      "input",
+      "label",
+      "checkbox",
+      "button",
+      "alert",
+      "separator"
+    ],
+    "accessibilityNotes": "All inputs have explicit Label htmlFor pairing, autoComplete='email' / 'new-password', and required attributes where relevant. The password helper text is wired via aria-describedby. Submit button uses the canonical loading prop (sets aria-busy + disabled). Errors render in an Alert with role='alert' so they're announced. Terms checkbox label is clickable and the legal links remain reachable by keyboard.",
+    "tokenBudget": 2200
+  },
+  "tags": [
+    "block",
+    "auth",
+    "sign-up",
+    "register",
+    "form",
+    "card"
+  ]
+}

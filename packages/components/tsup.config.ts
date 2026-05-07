@@ -30,6 +30,7 @@ const entryFiles = fg.sync(
 		"src/components/*/*.tsx",
 		"src/ai/*/*.tsx",
 		"src/artifacts/*/*.tsx",
+		"src/blocks/*/*.tsx",
 	],
 	{
 		ignore: ["**/*.test.tsx", "**/*.schema.ts", "**/_shared/**"],

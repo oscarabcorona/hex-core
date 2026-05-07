@@ -1,0 +1,190 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "auth-verify-otp",
+  "title": "Auth verify OTP",
+  "summary": "6-digit (configurable) one-time-code verification page. Composes the auth-verify-otp block which auto-submits when the code is full and routes verification through adapter.verifyOtp({ code, intent }).",
+  "tags": [
+    "auth",
+    "verify-otp",
+    "otp",
+    "mfa",
+    "totp",
+    "block"
+  ],
+  "brief": "Build an OTP entry page for sign-in via email/SMS code, post-signup email verification, or TOTP MFA challenge. Drive the heading + adapter routing from the `intent` prop.",
+  "steps": [
+    {
+      "component": "auth-verify-otp",
+      "reason": "The page-level block — manages the InputOTP value, auto-submit when full, error reset on failure, and resend cooldown.",
+      "role": "primary"
+    },
+    {
+      "component": "input-otp",
+      "reason": "Slot-based OTP input",
+      "role": "supporting"
+    },
+    {
+      "component": "button",
+      "reason": "Resend CTA with cooldown",
+      "role": "supporting"
+    },
+    {
+      "component": "alert",
+      "reason": "Inline error surface",
+      "role": "supporting"
+    }
+  ],
+  "checklist": [
+    {
+      "id": "auth-adapter-wired",
+      "check": "Pass an AuthAdapter via the `adapter` prop with `verifyOtp` implemented. The block surfaces an 'unimplemented' error after the user types the full code.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "intent-matches-backend-route",
+      "check": "`intent` is forwarded verbatim to both verifyOtp and resendOtp. Make sure your adapter routes each intent value to the correct backend endpoint.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "length-matches-template",
+      "check": "`length` (default 6) must match the digit count your email / SMS template generates. Mismatched lengths leave the form unsubmittable.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "no-extra-submit-button",
+      "check": "Don't render a manual Submit button — the block auto-submits when the code reaches `length`. A second button confuses users and creates a double-call risk.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "resend-cooldown-not-too-low",
+      "check": "Keep `resendCooldownSeconds` ≥ 10 — lower invites accidental double-sends.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "auth-verify-otp-submitting-the-form-yourself-the-block-already-a",
+      "check": "[AuthVerifyOtp] Avoid: Submitting the form yourself — the block already auto-submits when the code reaches `length`. Don't render an extra submit button.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-verify-otp-hard-coding-length-6-when-the-backend-expects-a-",
+      "check": "[AuthVerifyOtp] Avoid: Hard-coding length=6 when the backend expects a different number — drive `length` from the same constant the email/SMS template uses.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-verify-otp-mismatching-intent-between-verifyotp-and-resendo",
+      "check": "[AuthVerifyOtp] Avoid: Mismatching intent between verifyOtp and resendOtp — the block forwards the same intent to both. If the consumer's adapter routes them differently, that's a bug to fix in the adapter, not the block.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-verify-otp-showing-the-resend-button-when-adapter-resendotp",
+      "check": "[AuthVerifyOtp] Avoid: Showing the resend button when adapter.resendOtp isn't implemented — the block already hides it; don't re-implement that gate.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-verify-otp-setting-resendcooldownseconds-too-low-10s-invite",
+      "check": "[AuthVerifyOtp] Avoid: Setting resendCooldownSeconds too low (< 10s) — invites accidental double-sends and tripping rate-limit responses.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-verify-otp-a11y",
+      "check": "[AuthVerifyOtp] A11y: InputOTP is labeled via aria-label='One-time code' so screen readers know what's being entered. Resend button uses the canonical loading prop (sets aria-busy + disabled). Cooldown countdown is reflected in the visible button label. Errors render in an Alert with role='alert'. The OTP value clears on error so users can re-enter without manually deleting digits.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "input-otp-forgetting-to-render-maxlength-slots-the-underly",
+      "check": "[Input OTP] Avoid: Forgetting to render maxLength slots — the underlying input's maxLength won't match the visible UI",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "input-otp-using-pattern-without-importing-one-of-the-regex",
+      "check": "[Input OTP] Avoid: Using pattern without importing one of the REGEXP_ONLY_* constants from 'input-otp'",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "input-otp-wrapping-the-whole-thing-in-a-form-without-a-sub",
+      "check": "[Input OTP] Avoid: Wrapping the whole thing in a <form> without a submit handler — onComplete is often a better auto-submit hook",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "input-otp-overriding-slot-classname-in-a-way-that-removes-",
+      "check": "[Input OTP] Avoid: Overriding slot className in a way that removes the first/last border-radius rules",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "input-otp-a11y",
+      "check": "[Input OTP] A11y: input-otp manages a single hidden <input> so screen readers hear one field of N characters. Each slot is a visual representation. The active slot gets a focus ring via the ring token.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "button-nesting-interactive-elements-inside-aschild-butt",
+      "check": "[Button] Avoid: Nesting interactive elements inside asChild button",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-with-plain-onclick-for-navigation-i",
+      "check": "[Button] Avoid: Using <Button> with plain onClick for navigation instead of <Button asChild><a href=...></a></Button> — breaks middle-click, cmd-click, and right-click → 'open in new tab', and skips the browser history entry",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-variant-destructive-for-recoverable",
+      "check": "[Button] Avoid: Using <Button variant='destructive'> for recoverable actions like 'Reset filters' — reserve destructive for delete/archive/leave; use 'secondary' or 'ghost' for resets",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-size-icon-without-an-aria-label-scr",
+      "check": "[Button] Avoid: Using <Button size='icon'> without an aria-label — screen readers have nothing to announce; always pair icon-only buttons with aria-label or visible text",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-a11y",
+      "check": "[Button] A11y: Automatically handles focus ring, disabled state, and aria attributes. Icon-only buttons MUST have aria-label. Loading state automatically sets disabled.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "alert-using-destructive-for-non-error-messages",
+      "check": "[Alert] Avoid: Using destructive for non-error messages",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "alert-missing-alerttitle-reduces-scannability",
+      "check": "[Alert] Avoid: Missing AlertTitle (reduces scannability)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "alert-stacking-multiple-alerts-on-the-same-page-instea",
+      "check": "[Alert] Avoid: Stacking multiple Alerts on the same page instead of grouping",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "alert-a11y",
+      "check": "[Alert] A11y: Root renders role='alert' so screen readers announce it. For non-urgent info banners consider role='status' or aria-live='polite' via className overrides.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 1300
+}

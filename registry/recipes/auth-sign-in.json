@@ -1,0 +1,293 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "auth-sign-in",
+  "title": "Auth sign-in (split-screen)",
+  "summary": "Production-grade sign-in page with optional social providers, remember-me, forgot-password link, and pluggable AuthAdapter for credential routing.",
+  "tags": [
+    "auth",
+    "sign-in",
+    "login",
+    "block",
+    "split-screen"
+  ],
+  "brief": "Ship a sign-in page wired to my auth library — email + password with remember-me, optional GitHub/Google social buttons, forgot-password link, and a real error surface for failed sign-ins.",
+  "steps": [
+    {
+      "component": "auth-sign-in-split",
+      "reason": "The page-level block — wires the form state, social handoff, error display, and pending state. Routes every credential call through the supplied AuthAdapter.",
+      "role": "primary"
+    },
+    {
+      "component": "form",
+      "reason": "Field validation + a11y wiring (FormItem / FormControl)",
+      "role": "supporting"
+    },
+    {
+      "component": "label",
+      "reason": "Accessible labels for email + password + remember-me",
+      "role": "supporting"
+    },
+    {
+      "component": "input",
+      "reason": "Email + password fields",
+      "role": "supporting"
+    },
+    {
+      "component": "checkbox",
+      "reason": "Remember-me toggle",
+      "role": "supporting"
+    },
+    {
+      "component": "button",
+      "reason": "Submit + social CTAs (loading prop drives the busy state)",
+      "role": "primary"
+    },
+    {
+      "component": "alert",
+      "reason": "Inline error surface for failed sign-in",
+      "role": "supporting"
+    },
+    {
+      "component": "separator",
+      "reason": "Visual divider between social and credential sections",
+      "role": "optional"
+    }
+  ],
+  "checklist": [
+    {
+      "id": "auth-adapter-wired",
+      "check": "Pass an AuthAdapter via the `adapter` prop. The block surfaces an 'unimplemented' error if the user submits without one — there is no built-in fallback.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "on-success-handler",
+      "check": "Provide an `onSuccess` handler that navigates the user. The adapter's `redirect` field is informational; the block does not navigate by itself.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "structured-error-payload",
+      "check": "Adapter methods must return `{ ok: false, error: { code, message } }` on failure (never throw). The block reads `error.message` into the Alert; thrown errors lose the structured payload.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "social-providers-shape",
+      "check": "socialProviders entries must be `{ provider, label, icon? }`. `provider` is forwarded verbatim to `adapter.signInWithSocial({ provider })`.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "marketing-aside-is-decorative",
+      "check": "The left marketing panel is `aria-hidden` so SR users skip directly to the form. Don't put critical info there — duplicate any required text inside the form area.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "auth-sign-in-split-forgetting-to-pass-the-authadapter-the-block-has",
+      "check": "[AuthSignInSplit] Avoid: Forgetting to pass the AuthAdapter — the block has no built-in fallback and will surface 'unimplemented' errors when the user submits.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-sign-in-split-hard-coding-signuphref-forgotpasswordhref-to-abs",
+      "check": "[AuthSignInSplit] Avoid: Hard-coding signUpHref / forgotPasswordHref to absolute URLs — they're plain anchor hrefs, prefer in-app relative paths so the consumer's router handles navigation.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-sign-in-split-skipping-onsuccess-and-relying-on-adapter-redire",
+      "check": "[AuthSignInSplit] Avoid: Skipping onSuccess and relying on adapter.redirect alone — the redirect is informational; the consumer's onSuccess handler is what actually navigates.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-sign-in-split-wiring-auth-state-inside-the-adapter-methods-ins",
+      "check": "[AuthSignInSplit] Avoid: Wiring auth state inside the adapter methods instead of returning { ok, error } — the block reads the result and shows the error Alert; throwing inside the adapter loses the structured error payload.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "auth-sign-in-split-a11y",
+      "check": "[AuthSignInSplit] A11y: Form inputs have explicit Label htmlFor pairing, autoComplete='email' / 'current-password', and required attributes. Submit button uses the canonical loading prop (sets aria-busy + disabled). Errors render in an Alert with role='alert' so they're announced. Marketing aside is aria-hidden so screen-reader users don't traverse decorative copy before reaching the form.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "form-forgetting-to-spread-field-into-the-form-control",
+      "check": "[Form] Avoid: Forgetting to spread {...field} into the form control (connects value/onChange)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "form-putting-formlabel-outside-formitem-loses-htmlfor",
+      "check": "[Form] Avoid: Putting FormLabel outside FormItem (loses htmlFor wiring)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "form-using-useform-without-a-resolver-when-zod-valida",
+      "check": "[Form] Avoid: Using useForm without a resolver when zod validation is desired",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "form-calling-form-handlesubmit-without-a-callback",
+      "check": "[Form] Avoid: Calling form.handleSubmit without a callback",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "form-a11y",
+      "check": "[Form] A11y: FormControl automatically wires id, aria-describedby, and aria-invalid. FormLabel uses htmlFor matching the control id. Errors are announced via FormMessage with matching aria-describedby.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "label-forgetting-to-set-htmlfor-matching-the-input-s-i",
+      "check": "[Label] Avoid: Forgetting to set htmlFor matching the input's id",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "label-using-label-for-non-form-text-content",
+      "check": "[Label] Avoid: Using Label for non-form text content",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "label-nesting-interactive-elements-inside-label",
+      "check": "[Label] Avoid: Nesting interactive elements inside Label",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "label-a11y",
+      "check": "[Label] A11y: Clicking the label focuses the associated control. Automatically communicates the label to screen readers. Use htmlFor/id pairing, not nesting.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "input-missing-associated-label-element-for-accessibili",
+      "check": "[Input] Avoid: Missing associated Label element for accessibility",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "input-using-type-number-without-min-max-constraints",
+      "check": "[Input] Avoid: Using type='number' without min/max constraints",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "input-not-providing-placeholder-text-for-context",
+      "check": "[Input] Avoid: Not providing placeholder text for context",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "input-a11y",
+      "check": "[Input] A11y: Always pair with a Label using htmlFor/id. Consider aria-describedby for helper text or error messages.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "checkbox-missing-label-pairing",
+      "check": "[Checkbox] Avoid: Missing Label pairing",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "checkbox-using-onchange-instead-of-oncheckedchange",
+      "check": "[Checkbox] Avoid: Using onChange instead of onCheckedChange",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "checkbox-forgetting-that-oncheckedchange-can-receive-inde",
+      "check": "[Checkbox] Avoid: Forgetting that onCheckedChange can receive 'indeterminate' as well as boolean",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "checkbox-a11y",
+      "check": "[Checkbox] A11y: Always pair with Label via htmlFor/id. Radix handles aria-checked automatically.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "button-nesting-interactive-elements-inside-aschild-butt",
+      "check": "[Button] Avoid: Nesting interactive elements inside asChild button",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-with-plain-onclick-for-navigation-i",
+      "check": "[Button] Avoid: Using <Button> with plain onClick for navigation instead of <Button asChild><a href=...></a></Button> — breaks middle-click, cmd-click, and right-click → 'open in new tab', and skips the browser history entry",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-variant-destructive-for-recoverable",
+      "check": "[Button] Avoid: Using <Button variant='destructive'> for recoverable actions like 'Reset filters' — reserve destructive for delete/archive/leave; use 'secondary' or 'ghost' for resets",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-using-button-size-icon-without-an-aria-label-scr",
+      "check": "[Button] Avoid: Using <Button size='icon'> without an aria-label — screen readers have nothing to announce; always pair icon-only buttons with aria-label or visible text",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "button-a11y",
+      "check": "[Button] A11y: Automatically handles focus ring, disabled state, and aria attributes. Icon-only buttons MUST have aria-label. Loading state automatically sets disabled.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "alert-using-destructive-for-non-error-messages",
+      "check": "[Alert] Avoid: Using destructive for non-error messages",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "alert-missing-alerttitle-reduces-scannability",
+      "check": "[Alert] Avoid: Missing AlertTitle (reduces scannability)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "alert-stacking-multiple-alerts-on-the-same-page-instea",
+      "check": "[Alert] Avoid: Stacking multiple Alerts on the same page instead of grouping",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "alert-a11y",
+      "check": "[Alert] A11y: Root renders role='alert' so screen readers announce it. For non-urgent info banners consider role='status' or aria-live='polite' via className overrides.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "separator-using-as-spacing-instead-of-semantic-separation",
+      "check": "[Separator] Avoid: Using as spacing instead of semantic separation",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "separator-forgetting-orientation-vertical-needs-parent-hei",
+      "check": "[Separator] Avoid: Forgetting orientation='vertical' needs parent height",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "separator-a11y",
+      "check": "[Separator] A11y: Set decorative=false if the separator conveys semantic meaning. Radix handles role='separator'.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 1800
+}

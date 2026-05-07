@@ -1,0 +1,150 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "auth-verify-email",
+  "displayName": "AuthVerifyEmail",
+  "description": "Transactional 'verify your email' page composed from the Empty primitive. Optional resend button calls adapter.resendMagicLink with a client-side cooldown timer; resend hides automatically when the adapter doesn't implement the method.",
+  "category": "block",
+  "subcategory": "auth",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "adapter",
+      "type": "object",
+      "required": true,
+      "description": "AuthAdapter implementation. The block calls adapter.resendMagicLink({ email }) when the resend button is clicked. Both the method and the email prop must be present for the resend button to render."
+    },
+    {
+      "name": "email",
+      "type": "string",
+      "required": false,
+      "description": "Email address shown in the description copy ('we sent a link to <email>') and forwarded to adapter.resendMagicLink. Omit when the address isn't known on the client; the description copy then falls back to a generic line and the resend button is hidden."
+    },
+    {
+      "name": "resendCooldownSeconds",
+      "type": "number",
+      "required": false,
+      "default": 30,
+      "description": "Seconds the resend button stays disabled after each successful resend. Counter ticks down every second while > 0."
+    },
+    {
+      "name": "signInHref",
+      "type": "string",
+      "required": false,
+      "default": "/sign-in",
+      "description": "Href for the 'Back to sign in' link rendered next to the resend button."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional classes applied to the outer flex wrapper."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/auth-verify-email.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Alert, AlertDescription, AlertTitle } from \"../../components/alert/alert.js\";\nimport { Empty } from \"../../primitives/empty/empty.js\";\nimport { Button } from \"../../primitives/button/button.js\";\nimport { cn } from \"../../lib/utils.js\";\nimport type { AuthAdapter } from \"../_shared/auth-adapter.js\";\n\nexport interface AuthVerifyEmailProps {\n\tadapter: AuthAdapter;\n\t/** Optional address shown in the description (\"we sent a link to <email>\"). */\n\temail?: string;\n\t/** Seconds to disable the resend button after each successful resend. */\n\tresendCooldownSeconds?: number;\n\t/** Href for the \"Back to sign in\" affordance. */\n\tsignInHref?: string;\n\tclassName?: string;\n}\n\nconst MailIcon = () => (\n\t<svg\n\t\txmlns=\"http://www.w3.org/2000/svg\"\n\t\tviewBox=\"0 0 24 24\"\n\t\tfill=\"none\"\n\t\tstroke=\"currentColor\"\n\t\tstrokeWidth={2}\n\t\tstrokeLinecap=\"round\"\n\t\tstrokeLinejoin=\"round\"\n\t\taria-hidden=\"true\"\n\t>\n\t\t<rect width={20} height={16} x={2} y={4} rx={2} />\n\t\t<path d=\"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7\" />\n\t</svg>\n);\n\n/**\n * Transactional \"verify your email\" page. Mostly visual — composes the\n * `Empty` primitive with a mail icon plus an optional resend button. The\n * resend button is hidden when `adapter.resendMagicLink` is absent. Rate-\n * limit pressure handled client-side via a cooldown timer.\n */\nexport function AuthVerifyEmail({\n\tadapter,\n\temail,\n\tresendCooldownSeconds = 30,\n\tsignInHref = \"/sign-in\",\n\tclassName,\n}: AuthVerifyEmailProps) {\n\tconst [resending, setResending] = React.useState(false);\n\tconst [cooldownLeft, setCooldownLeft] = React.useState(0);\n\tconst [error, setError] = React.useState<{ code: string; message: string } | null>(null);\n\tconst [confirmation, setConfirmation] = React.useState<string | null>(null);\n\n\tReact.useEffect(() => {\n\t\tif (cooldownLeft <= 0) return;\n\t\tconst timer = setTimeout(() => setCooldownLeft((s) => s - 1), 1000);\n\t\treturn () => clearTimeout(timer);\n\t}, [cooldownLeft]);\n\n\tconst canResend = Boolean(adapter.resendMagicLink) && Boolean(email);\n\n\tasync function handleResend() {\n\t\tif (!email) return;\n\t\tif (!adapter.resendMagicLink) {\n\t\t\tconsole.warn(\n\t\t\t\t\"[AuthVerifyEmail] adapter.resendMagicLink is not implemented — hide the resend button or wire the method.\",\n\t\t\t);\n\t\t\tsetError({\n\t\t\t\tcode: \"unimplemented\",\n\t\t\t\tmessage: \"Resending is currently unavailable. Please try again later.\",\n\t\t\t});\n\t\t\treturn;\n\t\t}\n\t\tsetError(null);\n\t\tsetConfirmation(null);\n\t\tsetResending(true);\n\t\ttry {\n\t\t\tconst result = await adapter.resendMagicLink({ email });\n\t\t\tif (!result.ok) {\n\t\t\t\tsetError(result.error ?? { code: \"unknown\", message: \"Couldn't resend the link.\" });\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tsetConfirmation(\"We sent another link. It may take a minute to arrive.\");\n\t\t\tsetCooldownLeft(resendCooldownSeconds);\n\t\t} finally {\n\t\t\tsetResending(false);\n\t\t}\n\t}\n\n\tconst description: React.ReactNode = email ? (\n\t\t<>\n\t\t\tWe sent a verification link to{\" \"}\n\t\t\t<strong className=\"text-foreground\">{email}</strong>. Click the link to activate your\n\t\t\taccount. Links expire in 60 minutes.\n\t\t</>\n\t) : (\n\t\t<>\n\t\t\tClick the link in the verification email we just sent to activate your account. Links\n\t\t\texpire in 60 minutes.\n\t\t</>\n\t);\n\n\tconst cooldownLabel =\n\t\tcooldownLeft > 0 ? `Resend available in ${cooldownLeft}s` : \"Resend email\";\n\n\treturn (\n\t\t<div className={cn(\"flex min-h-svh items-center justify-center p-6 sm:p-10\", className)}>\n\t\t\t<div className=\"w-full max-w-sm space-y-4\">\n\t\t\t\t{error ? (\n\t\t\t\t\t<Alert variant=\"destructive\">\n\t\t\t\t\t\t<AlertTitle>Couldn&rsquo;t resend the link</AlertTitle>\n\t\t\t\t\t\t<AlertDescription>{error.message}</AlertDescription>\n\t\t\t\t\t</Alert>\n\t\t\t\t) : null}\n\t\t\t\t{confirmation ? (\n\t\t\t\t\t<Alert>\n\t\t\t\t\t\t<AlertTitle>Link resent</AlertTitle>\n\t\t\t\t\t\t<AlertDescription>{confirmation}</AlertDescription>\n\t\t\t\t\t</Alert>\n\t\t\t\t) : null}\n\n\t\t\t\t<Empty\n\t\t\t\t\ticon={<MailIcon />}\n\t\t\t\t\ttitle=\"Check your inbox\"\n\t\t\t\t\tdescription={description}\n\t\t\t\t\taction={\n\t\t\t\t\t\t<div className=\"flex flex-wrap items-center justify-center gap-2\">\n\t\t\t\t\t\t\t{canResend ? (\n\t\t\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\t\t\t\tvariant=\"outline\"\n\t\t\t\t\t\t\t\t\tonClick={handleResend}\n\t\t\t\t\t\t\t\t\tdisabled={resending || cooldownLeft > 0}\n\t\t\t\t\t\t\t\t\tloading={resending}\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{cooldownLabel}\n\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t\t<Button variant=\"ghost\" asChild>\n\t\t\t\t\t\t\t\t<a href={signInHref}>Back to sign in</a>\n\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t}\n\t\t\t\t/>\n\t\t\t</div>\n\t\t</div>\n\t);\n}\n",
+      "type": "component"
+    },
+    {
+      "path": "components/_shared/auth-adapter.tsx",
+      "content": "/**\n * The contract every Hex Core auth block consumes via its `adapter` prop.\n *\n * Hex Core does not ship session management — auth blocks are presentation-\n * only and delegate every credential, OTP, and OAuth handoff to whatever\n * the consumer wires up (better-auth, Clerk, NextAuth, Supabase Auth, a\n * custom server, …). The adapter is the single seam.\n *\n * Every method is **optional**. A block that needs `signInWithPassword` but\n * not passkeys passes an adapter implementing only the methods it needs;\n * the block surfaces a runtime error if the user hits a code path the\n * adapter doesn't implement, rather than failing to render. This lets a\n * consumer ship password-only on day one and add passkeys later without\n * forking the block source.\n *\n * A reference {@link mockAuthAdapter} lives below — used by the docs\n * showcase routes and unit tests; never ship it in production.\n */\nexport interface AuthAdapterResult {\n\tok: boolean;\n\terror?: { code: string; message: string };\n\tredirect?: string;\n}\n\nexport type AuthSocialProvider = \"github\" | \"google\" | \"microsoft\" | (string & {});\n\nexport type AuthOtpIntent = \"sign-in\" | \"verify-email\" | \"mfa\";\n\nexport interface AuthAdapter {\n\tsignInWithPassword?(p: {\n\t\temail: string;\n\t\tpassword: string;\n\t\tremember: boolean;\n\t}): Promise<AuthAdapterResult>;\n\tsignUpWithPassword?(p: {\n\t\temail: string;\n\t\tpassword: string;\n\t\tname?: string;\n\t}): Promise<AuthAdapterResult>;\n\tsignInWithSocial?(p: { provider: AuthSocialProvider }): Promise<AuthAdapterResult>;\n\tsendMagicLink?(p: { email: string }): Promise<AuthAdapterResult>;\n\tverifyOtp?(p: { code: string; intent: AuthOtpIntent }): Promise<AuthAdapterResult>;\n\trequestPasswordReset?(p: { email: string }): Promise<AuthAdapterResult>;\n\tresetPassword?(p: { token: string; password: string }): Promise<AuthAdapterResult>;\n\tregisterPasskey?(): Promise<AuthAdapterResult>;\n\tsignInWithPasskey?(): Promise<AuthAdapterResult>;\n\t/**\n\t * Re-send a magic link to the same address. Distinct from {@link sendMagicLink}\n\t * so consumers can throttle resends and surface different analytics / error\n\t * copy for the second-and-onward attempt. Used by the verify-email block.\n\t */\n\tresendMagicLink?(p: { email: string }): Promise<AuthAdapterResult>;\n\t/**\n\t * Re-send a one-time code for the given intent. Distinct from the initial\n\t * code dispatch so consumers can throttle and log resends separately. Used\n\t * by the verify-otp block.\n\t */\n\tresendOtp?(p: { intent: AuthOtpIntent }): Promise<AuthAdapterResult>;\n}\n\nconst wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));\n\n/**\n * In-memory mock adapter for docs showcase + tests. Every method delays\n * 400ms to simulate a network round-trip and resolves `{ ok: true }`. Do\n * not use in production — there is no validation, no persistence, and no\n * security.\n */\nexport const mockAuthAdapter: Required<AuthAdapter> = {\n\tasync signInWithPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n\tasync signUpWithPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/verify-email\" };\n\t},\n\tasync signInWithSocial({ provider }) {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: `/oauth/${provider}/callback` };\n\t},\n\tasync sendMagicLink() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync verifyOtp() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n\tasync requestPasswordReset() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync resetPassword() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/sign-in\" };\n\t},\n\tasync registerPasskey() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync signInWithPasskey() {\n\t\tawait wait(400);\n\t\treturn { ok: true, redirect: \"/app\" };\n\t},\n\tasync resendMagicLink() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n\tasync resendOtp() {\n\t\tawait wait(400);\n\t\treturn { ok: true };\n\t},\n};\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-slot",
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "components/alert/alert",
+      "primitives/button/button",
+      "primitives/empty/empty"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "background",
+    "foreground",
+    "muted",
+    "muted-foreground",
+    "primary",
+    "primary-foreground",
+    "destructive",
+    "destructive-foreground",
+    "border",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Mock adapter with resend",
+      "description": "Demo with the in-memory mock adapter — the resend button is shown because both `email` and `adapter.resendMagicLink` are available.",
+      "code": "import { AuthVerifyEmail, mockAuthAdapter } from \"@hex-core/components\";\n\n<AuthVerifyEmail adapter={mockAuthAdapter} email=\"ada@example.com\" />",
+      "composition": [
+        "auth",
+        "verify-email",
+        "transactional"
+      ]
+    },
+    {
+      "title": "Without resend (unknown email)",
+      "description": "Resend button hidden when no email is passed.",
+      "code": "<AuthVerifyEmail adapter={mockAuthAdapter} />",
+      "composition": [
+        "auth",
+        "verify-email",
+        "transactional"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use right after sign-up when account activation requires an email link. Pair with an email-template the consumer owns — Hex Core only renders the waiting page, never the email itself.",
+    "whenNotToUse": "Don't use for OTP-style verification (use auth-verify-otp instead). Don't use as a generic 'check your inbox' message after forgot-password — that's already built into auth-forgot-password's success state.",
+    "commonMistakes": [
+      "Showing the resend button when adapter.resendMagicLink isn't implemented — the block already hides it automatically; don't re-implement that gate.",
+      "Treating resendMagicLink and the initial sendMagicLink as interchangeable — the dedicated resend method exists so consumers can throttle resends differently and surface different analytics.",
+      "Setting resendCooldownSeconds too low (< 10s) — invites accidental double-sends and tripping rate-limit responses on the consumer's auth backend.",
+      "Hard-coding email when it's unknown to the route — pass undefined instead so the description falls back to a generic line and the resend button hides."
+    ],
+    "relatedComponents": [
+      "auth-sign-up-card",
+      "auth-verify-otp",
+      "empty",
+      "button",
+      "alert"
+    ],
+    "accessibilityNotes": "The Empty primitive provides a region landmark with aria-labelledby pointing at the title — screen readers announce 'Check your inbox' as the section heading. Resend button uses the canonical loading prop (sets aria-busy + disabled). The cooldown countdown is reflected in the visible button label, so SR users hear 'Resend available in 28s' as the timer ticks.",
+    "tokenBudget": 1100
+  },
+  "tags": [
+    "block",
+    "auth",
+    "verify-email",
+    "transactional",
+    "empty-state"
+  ]
+}

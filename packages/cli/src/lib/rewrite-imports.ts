@@ -48,12 +48,17 @@ export function rewriteRegistryImports(content: string, aliases: AliasConfig = D
 		(_, q) => `${q}${aliases.lib}/utils${q}`,
 	);
 
-	// 2. Sibling-component-directory imports: "../<name>/<name>[.js]" or
-	//    "../../primitives/<name>/<name>[.js]" → components/ui/<name>. The
+	// 2. Sibling-component-directory imports: "../<name>/<name>[.js]",
+	//    "../../primitives/<name>/<name>[.js]", or
+	//    "../../components/<name>/<name>[.js]" → components/ui/<name>. The
+	//    `components/` arm is what blocks need: a block at
+	//    `blocks/<slug>/<slug>.tsx` importing a molecule lives two segments
+	//    deep, so its specifier resolves to `../../components/alert/alert`
+	//    rather than the single-`..` sibling shape primitives use. The
 	//    capture forces the directory and file slug to match (registry
 	//    convention — guards against rewriting unrelated paths).
 	out = out.replace(
-		/(["'])(?:\.\.\/)+(?:primitives\/)?([a-z][a-z0-9-]*)\/\2(?:\.js)?\1/g,
+		/(["'])(?:\.\.\/)+(?:primitives\/|components\/)?([a-z][a-z0-9-]*)\/\2(?:\.js)?\1/g,
 		(_, q, name) => `${q}${aliases.components}/ui/${name}${q}`,
 	);
 
