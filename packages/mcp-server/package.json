@@ -1,6 +1,6 @@
 {
 	"name": "@hex-core/mcp",
-	"version": "0.5.0",
+	"version": "0.5.1",
 	"description": "Universal MCP server for Hex Core — runs on Claude Code, Cursor, Continue, Gemini CLI, ChatGPT Desktop, and Zed. 13 tools over the component registry. Thin transport shell — pure-function builders live in @hex-core/payload.",
 	"keywords": [
 		"hex-core",
