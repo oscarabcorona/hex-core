@@ -9,6 +9,11 @@ export interface SceneContextValue {
 
 export const SceneContext = createContext<SceneContextValue>({ t0: 0, duration: Infinity });
 
+/**
+ * Read the active Scene context (start time + duration) from React context.
+ * Defaults to `{ t0: 0, duration: Infinity }` when no `<Scene>` ancestor exists.
+ * @returns The current Scene's `t0` and `duration`.
+ */
 export function useSceneContext(): SceneContextValue {
 	return useContext(SceneContext);
 }
@@ -23,6 +28,11 @@ export interface SceneProps {
  * Defines an absolute time window inside a Timeline. Clip `start` props
  * are interpreted relative to the enclosing Scene's `start`. Scenes
  * don't render anything themselves — their job is to push a context.
+ * @param props - Scene window descriptor + children.
+ * @param props.start - Time in ms from the parent Scene's `t0` (or Timeline 0).
+ * @param props.duration - Length of the Scene window in ms.
+ * @param props.children - Clips (and optionally nested Scenes) to schedule.
+ * @returns A `SceneContext.Provider` wrapping `children`.
  */
 export function Scene({ start, duration, children }: SceneProps) {
 	const parent = useSceneContext();

@@ -29,6 +29,8 @@ export interface ClipProps {
  * the first mount before the second registers, so the descriptor map
  * holds at most one entry per `useId` at any time. Verified by the
  * timeline determinism snapshot test.
+ * @param props - Clip target + (from/to) state + scheduling overrides.
+ * @returns Always `null` — Clip is pure metadata; the Timeline renders.
  */
 export function Clip(props: ClipProps) {
 	const tl = useTimeline();
@@ -61,7 +63,6 @@ export function Clip(props: ClipProps) {
 				easing: cur.easing,
 			},
 		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		id,
 		scene.t0,

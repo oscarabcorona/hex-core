@@ -32,6 +32,9 @@ interface TrackedChild {
  * Merge refs from a forwardRef'd child with our own callback ref so
  * cloneElement doesn't drop the consumer-supplied ref. The list is
  * applied left-to-right; nulls are tolerated.
+ * @param refs - Refs to fan an element out to. Can be callback refs or
+ *               object refs; `undefined` entries are skipped.
+ * @returns A single callback ref that mirrors the value to every input.
  */
 function mergeRefs<T>(...refs: Array<Ref<T> | undefined>): (value: T | null) => void {
 	return (value) => {
@@ -62,6 +65,10 @@ function mergeRefs<T>(...refs: Array<Ref<T> | undefined>): (value: T | null) => 
  * A safety timer (2× the requested duration, min 1s) covers the case
  * where the child renders no DOM (returns null) — without it the leaver
  * would never unmount.
+ * @param props - React children. Each must carry a `key` and may supply
+ *                its own `exit` / `transition` props.
+ * @param props.children - The keyed React subtree to track for exits.
+ * @returns The transformed subtree with leavers held until they animate out.
  */
 export function Presence({ children }: { children?: ReactNode }) {
 	const ctx = useMotionContext();
@@ -103,8 +110,7 @@ export function Presence({ children }: { children?: ReactNode }) {
 				queueMicrotask(remove);
 				continue;
 			}
-			const exitState: AnimateProps | undefined =
-				typeof exit === "string" ? undefined : exit;
+			const exitState: AnimateProps | undefined = typeof exit === "string" ? undefined : exit;
 			if (!exitState) {
 				// Variant strings would need the variants map; we don't have
 				// access here. Treat string-keyed exits as "unmount cleanly"
@@ -114,8 +120,22 @@ export function Presence({ children }: { children?: ReactNode }) {
 			}
 			const merged: Transition = { ...ctx.defaults, ...txn };
 			const expectedDur = (merged.duration ?? 200) + (merged.delay ?? 0);
-			let safety: ReturnType<typeof setTimeout> | undefined;
 			let finished = false;
+			// Safety: if the child renders nothing (null) or the driver never
+			// resolves (e.g. WAAPI shim missing in a non-browser env), force
+			// unmount after a generous timeout. 2× expected with a 1s floor
+			// keeps real animations safe but never strands a leaver.
+			// Started here (before callbackRef) so `safety` can stay `const`
+			// — the timer fires after ≥1s anyway, which is far longer than
+			// the synchronous setup that follows.
+			const safety = setTimeout(
+				() => {
+					if (finished) return;
+					finished = true;
+					remove();
+				},
+				Math.max(1000, expectedDur * 2),
+			);
 			const callbackRef = (el: HTMLElement | null) => {
 				if (!el || finished) return;
 				const anim = ctx.driver.animate(el, {}, exitState, merged, { reduce });
@@ -123,7 +143,7 @@ export function Presence({ children }: { children?: ReactNode }) {
 					.then(() => {
 						if (finished) return;
 						finished = true;
-						if (safety) clearTimeout(safety);
+						clearTimeout(safety);
 						remove();
 					})
 					.catch(() => {
@@ -140,21 +160,7 @@ export function Presence({ children }: { children?: ReactNode }) {
 				ref: mergeRefs(originalRef, callbackRef),
 			} as Partial<MotionLikeProps>);
 			next.push({ ...prev, element: exitClone, leaving: true });
-			// Safety: if the child renders nothing (null) or the driver never
-			// resolves (e.g. WAAPI shim missing in a non-browser env), force
-			// unmount after a generous timeout. 2× expected with a 1s floor
-			// keeps real animations safe but never strands a leaver.
-			safety = setTimeout(
-				() => {
-					if (finished) return;
-					finished = true;
-					remove();
-				},
-				Math.max(1000, expectedDur * 2),
-			);
-			cleanups.push(() => {
-				if (safety) clearTimeout(safety);
-			});
+			cleanups.push(() => clearTimeout(safety));
 		}
 
 		for (const t of incoming) {
@@ -166,7 +172,6 @@ export function Presence({ children }: { children?: ReactNode }) {
 		return () => {
 			for (const c of cleanups) c();
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [children]);
 
 	return (
@@ -178,6 +183,15 @@ export function Presence({ children }: { children?: ReactNode }) {
 	);
 }
 
+/**
+ * Identity wrapper used to give every `Presence` child a stable React fiber
+ * keyed by the child's own `key`. Without this thin component the list
+ * would re-key the underlying element on every remount cycle and lose
+ * exit animation state mid-flight.
+ * @param props - Single React element child.
+ * @param props.children - The element to forward through unchanged.
+ * @returns The child verbatim.
+ */
 function Item({ children }: { children: ReactElement }) {
 	return children;
 }

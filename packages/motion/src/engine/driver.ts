@@ -31,6 +31,8 @@ export interface Driver {
 /**
  * Wrap a raw WAAPI Animation in our control surface. We expose `seek` so
  * the timeline composer can drive multiple clips off a shared clock.
+ * @param anim - Native `Animation` returned by `Element.animate(...)`.
+ * @returns A `RunningAnimation` exposing the same lifecycle in our shape.
  */
 function fromAnimation(anim: Animation): RunningAnimation {
 	const finished: Promise<void> = (anim.finished as Promise<unknown>).then(() => undefined);

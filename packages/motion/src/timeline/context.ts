@@ -28,6 +28,14 @@ export interface TimelineContextValue {
 
 export const TimelineContext = createContext<TimelineContextValue | null>(null);
 
+/**
+ * Read the active Timeline context. Throws when called outside a
+ * `<Timeline>` provider — Clips and Scenes need a parent Timeline to
+ * register against, so silent `null` would surface as a confusing
+ * "nothing animates" symptom downstream.
+ * @returns The current `TimelineContextValue` exposing play/pause/seek/register.
+ * @throws {Error} When called outside a `<Timeline>` ancestor.
+ */
 export function useTimeline(): TimelineContextValue {
 	const ctx = useContext(TimelineContext);
 	if (!ctx) {

@@ -41,6 +41,13 @@ const KEY_ALIASES: Record<string, keyof Transition> = {
 	fill: "fill",
 };
 
+/**
+ * Parse a `data-hex-motion` attribute value into a `(from, to, transition)`
+ * triple ready to feed the engine. Returns `null` for unknown presets
+ * (i.e. anything not in `PRESETS`) so callers can no-op gracefully.
+ * @param input - Raw attribute value, e.g. `"slide-up; dur:240; ease:standard"`.
+ * @returns Parsed motion descriptor, or `null` when the preset is unknown.
+ */
 export function parseMotionDataAttr(input: string | null | undefined): ParsedMotion | null {
 	if (!input) return null;
 	const segments = input

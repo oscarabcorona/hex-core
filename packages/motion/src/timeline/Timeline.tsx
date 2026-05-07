@@ -27,6 +27,13 @@ export interface TimelineProps {
  * animations on each clip's target with `delay = clip.t0 - currentT`,
  * so a fresh play and a play-then-seek both render identically at any
  * given t.
+ * @param props - Timeline window + child clips.
+ * @param props.duration - Total length of the timeline in ms.
+ * @param props.autoPlay - Start playing on mount. Defaults to `false`.
+ * @param props.loop - Restart at 0 after reaching `duration`. Defaults to `false`.
+ * @param props.onTick - Called with the current time on every clock tick.
+ * @param props.children - `Scene`s, `Track`s, and `Clip`s scheduled in this timeline.
+ * @returns A `TimelineContext.Provider` exposing play/pause/seek/register.
  */
 export function Timeline({
 	duration,
@@ -112,12 +119,10 @@ export function Timeline({
 			cancelled = true;
 			cancel();
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isPlaying, duration, loop]);
 
 	useEffect(() => {
 		issueClips(tRef.current, isPlaying);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	const value = useMemo<TimelineContextValue>(

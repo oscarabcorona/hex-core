@@ -23,6 +23,11 @@ export interface TimelineNode {
  * parent's `t0`); Clip `start` is relative to its enclosing Scene.
  * Missing values default to 0 so a bare `<Clip target="#x" to={...}/>`
  * runs immediately for the timeline's full duration.
+ * @param node - Root TimelineNode (typically the `<Timeline>` itself,
+ *               but recursive descendants pass child nodes here).
+ * @param parentT0 - Absolute start time inherited from the parent.
+ *                   Defaults to 0 for the root call.
+ * @returns Flattened list of `ClipDescriptor`s ready to drive the engine.
  */
 export function composeTimeline(node: TimelineNode, parentT0 = 0): ClipDescriptor[] {
 	const t0 = parentT0 + (node.start ?? 0);

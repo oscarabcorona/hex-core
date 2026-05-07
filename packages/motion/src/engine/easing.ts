@@ -20,7 +20,12 @@ const TOKEN_EASINGS: Record<EasingName, string> = {
 	bounce: "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
 };
 
-/** Resolve an easing token name (or pass through a CSS easing string). */
+/**
+ * Resolve an easing token name (or pass through a CSS easing string).
+ * @param easing - One of the named tokens or a raw CSS easing string.
+ *                 `undefined` falls back to the `standard` token.
+ * @returns A CSS `transition-timing-function` value.
+ */
 export function tokenEasing(easing: EasingName | string | undefined): string {
 	if (!easing) return TOKEN_EASINGS.standard;
 	if (easing in TOKEN_EASINGS) return TOKEN_EASINGS[easing as EasingName];
@@ -31,6 +36,10 @@ export function tokenEasing(easing: EasingName | string | undefined): string {
  * Approximate a critically-damped spring as a cubic-bezier. Useful when
  * the WAAPI driver is in play (no spring physics) but the consumer wants
  * a spring-feel transition. Faithful enough for UI; not for physics demos.
+ * @param opts - Spring tuning. Defaults: stiffness 170, damping 26.
+ * @param opts.stiffness - Spring stiffness (higher = snappier).
+ * @param opts.damping - Spring damping (higher = less overshoot).
+ * @returns A CSS `cubic-bezier(...)` expression.
  */
 export function springToBezier(opts?: { stiffness?: number; damping?: number }): string {
 	const stiffness = opts?.stiffness ?? 170;

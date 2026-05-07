@@ -16,6 +16,9 @@ export type AnimateFn = (
  * Imperative animate hook. Returns a `[scope, animate]` tuple — `scope`
  * is a ref you attach to a wrapper, `animate` runs an animation against
  * any element under that scope (or any element passed by reference).
+ * @returns A `[scopeRef, animate]` pair: attach `scopeRef` to a wrapper,
+ *          then call `animate(target, to, transition)` with either a
+ *          specific element or `null` to use the scope element itself.
  */
 export function useAnimate<T extends Element = HTMLElement>(): [
 	React.RefObject<T | null>,

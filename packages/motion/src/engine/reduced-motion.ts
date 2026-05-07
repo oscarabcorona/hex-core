@@ -11,6 +11,12 @@
  */
 export type ReducedMotionMode = "user" | "always" | "never";
 
+/**
+ * Resolve whether motion should be suppressed for the active mode.
+ * @param mode - Decision policy. `"user"` consults the media query;
+ *               `"always"`/`"never"` short-circuit. Defaults to `"user"`.
+ * @returns `true` when the engine should collapse to the final-state frame.
+ */
 export function shouldReduceMotion(mode: ReducedMotionMode = "user"): boolean {
 	if (mode === "always") return true;
 	if (mode === "never") return false;

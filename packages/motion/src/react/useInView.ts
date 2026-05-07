@@ -13,6 +13,10 @@ export interface UseInViewOptions {
  * Tiny IntersectionObserver wrapper. Returns `[ref, inView]`. When
  * `once: true` the observer disconnects after the first intersection,
  * which is what most "animate-in on scroll" UX wants.
+ * @param options - Forwarded to `IntersectionObserver`. `once` is the
+ *                  one extra knob: disconnect after the first hit.
+ * @returns A `[ref, inView]` tuple: attach the ref to the element you
+ *          want to observe; `inView` flips to `true` on intersection.
  */
 export function useInView<T extends Element = HTMLElement>(
 	options?: UseInViewOptions,

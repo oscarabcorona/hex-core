@@ -31,8 +31,10 @@ export interface MotionExtraProps {
 	"data-hex-motion"?: string;
 }
 
-export type MotionComponentProps<T extends keyof HTMLElementTagNameMap> =
-	HTMLAttributes<HTMLElementTagNameMap[T]> & MotionExtraProps;
+export type MotionComponentProps<T extends keyof HTMLElementTagNameMap> = HTMLAttributes<
+	HTMLElementTagNameMap[T]
+> &
+	MotionExtraProps;
 
 const ANIMATE_KEYS: ReadonlyArray<keyof AnimateProps> = [
 	"x",
@@ -50,12 +52,23 @@ const ANIMATE_KEYS: ReadonlyArray<keyof AnimateProps> = [
  * between renders, so the effect that re-runs the animation only fires
  * on real structural changes — not on every re-render that happened to
  * reconstruct an equivalent object literal.
+ * @param a - One animate-prop snapshot.
+ * @param b - The other animate-prop snapshot.
+ * @returns `true` when every closed key compares equal under `===`.
  */
 function shallowEqualAnimate(a: AnimateProps, b: AnimateProps): boolean {
 	for (const k of ANIMATE_KEYS) if (a[k] !== b[k]) return false;
 	return true;
 }
 
+/**
+ * Coerce one of the polymorphic animate-state inputs to a plain
+ * `AnimateProps` object. Strings are looked up against the variants map;
+ * `false`/`undefined` short-circuit to undefined (no animation).
+ * @param state - The raw `initial` / `animate` / `whileX` value.
+ * @param variants - Optional variants map for string-keyed states.
+ * @returns Resolved props, or undefined when no animation should run.
+ */
 function resolve(
 	state: AnimateProps | string | false | undefined,
 	variants: Variants | undefined,
@@ -78,6 +91,10 @@ function resolve(
  * `useLayoutEffect` schedules mount animations after commit so React
  * concurrent transitions that get discarded never leak a stray
  * `el.animate()` call. Cleanups cancel the running animation.
+ * @param tag - HTML tag name (e.g. `"div"`, `"button"`) the produced
+ *              component renders. The output forwards refs to the
+ *              corresponding `HTMLElementTagNameMap[T]` element.
+ * @returns A `forwardRef` component bound to that tag with motion props.
  */
 function makeMotionComponent<T extends keyof HTMLElementTagNameMap>(
 	tag: T,
@@ -147,7 +164,6 @@ function makeMotionComponent<T extends keyof HTMLElementTagNameMap>(
 				}
 				if (animateState) run(initialState, animateState, undefined);
 				return () => currentAnim.current?.cancel();
-				// eslint-disable-next-line react-hooks/exhaustive-deps
 			}, []);
 
 			// The mount layout-effect already issued the initial → animate
@@ -160,7 +176,6 @@ function makeMotionComponent<T extends keyof HTMLElementTagNameMap>(
 					return;
 				}
 				if (animateState) run(undefined, animateState, undefined);
-				// eslint-disable-next-line react-hooks/exhaustive-deps
 			}, [animateVersionRef.current]);
 
 			const initialStyle: CSSProperties | undefined = (() => {

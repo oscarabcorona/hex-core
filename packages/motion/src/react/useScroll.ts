@@ -13,6 +13,8 @@ export interface UseScrollResult {
  * downstream components can either drive imperative animations off them
  * (no re-render storm) or `useMotionValueRender` to read the current
  * value during render.
+ * @returns `{ scrollY, scrollYProgress }` motion values tracking the
+ *          window's vertical scroll. Both update on scroll + resize.
  */
 export function useScroll(): UseScrollResult {
 	const scrollY = useMotionValue(0);

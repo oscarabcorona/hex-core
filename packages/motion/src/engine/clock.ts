@@ -21,6 +21,14 @@ export interface ManualClock extends Clock {
 	set(t: number): void;
 }
 
+/**
+ * Test-friendly `Clock` whose time is advanced explicitly via `advance(ms)`
+ * or `set(t)`. Animations driven by it never depend on `requestAnimationFrame`,
+ * so a single `advance(16)` reliably fires the callbacks the runtime version
+ * would only fire on the next paint.
+ * @param initial - Starting `now()` value. Defaults to 0.
+ * @returns Manual clock with deterministic advance/set hooks.
+ */
 export function manualClock(initial = 0): ManualClock {
 	let t = initial;
 	const callbacks = new Set<(t: number) => void>();

@@ -27,12 +27,23 @@ export interface Transition {
 
 const TRANSFORM_KEYS: ReadonlyArray<keyof AnimateProps> = ["x", "y", "scale", "rotate"];
 
+/**
+ * Coerce a number to `<n><unit>` while passing strings through unchanged.
+ * @param v - The numeric value or pre-formatted string.
+ * @param unit - CSS unit suffix to append when `v` is numeric.
+ * @returns The formatted CSS string, or `undefined` when `v` is missing.
+ */
 function asUnit(v: number | string | undefined, unit: string): string | undefined {
 	if (v === undefined) return undefined;
 	if (typeof v === "string") return v;
 	return `${v}${unit}`;
 }
 
+/**
+ * Compose the CSS `transform` value from translate/scale/rotate inputs.
+ * @param props - Animate-prop subset that may contain x/y/scale/rotate.
+ * @returns A `transform` value, or `undefined` when none of the keys are set.
+ */
 function buildTransform(props: AnimateProps): string | undefined {
 	const parts: string[] = [];
 	const tx = asUnit(props.x, "px");
@@ -46,6 +57,11 @@ function buildTransform(props: AnimateProps): string | undefined {
 	return parts.length ? parts.join(" ") : undefined;
 }
 
+/**
+ * Translate `AnimateProps` to a single WAAPI `Keyframe`.
+ * @param props - Animate state to serialize.
+ * @returns The `Keyframe` ready to feed `Element.animate(...)`.
+ */
 function frameFromProps(props: AnimateProps): Keyframe {
 	const frame: Keyframe = {};
 	const transform = buildTransform(props);
@@ -60,6 +76,10 @@ function frameFromProps(props: AnimateProps): Keyframe {
  * Detect whether a key in `to` materially differs from `from`. Used by
  * the engine to skip animations that are no-ops; also lets the timeline
  * composer keep its descriptor list stable across re-renders.
+ * @param from - Starting prop set.
+ * @param to - Target prop set.
+ * @returns `true` when at least one key differs (after default-to-0 for
+ *          transform keys); otherwise `false`.
  */
 export function hasAnimatableDiff(from: AnimateProps, to: AnimateProps): boolean {
 	const keys = new Set<keyof AnimateProps>([
@@ -86,6 +106,11 @@ export interface BuiltKeyframes {
  * collapse to `[to, to]` and duration drops to 0 — visually instant but
  * still semantically a one-shot animation, so `finished` resolves and
  * any `onFinish` handlers still fire.
+ * @param from - Starting state.
+ * @param to - Target state.
+ * @param transition - Duration / delay / easing / iterations / fill.
+ * @param reduce - When true, collapses to `[to, to]` for prefers-reduced-motion.
+ * @returns The keyframes and `KeyframeAnimationOptions` ready to pass to WAAPI.
  */
 export function buildKeyframes(
 	from: AnimateProps,

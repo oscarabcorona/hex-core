@@ -22,6 +22,12 @@ const DEFAULT_CTX: MotionContextValue = {
 
 const MotionContext = createContext<MotionContextValue>(DEFAULT_CTX);
 
+/**
+ * Read the active motion configuration from React context.
+ * Falls back to the default (realtime clock + WAAPI driver + 200ms standard
+ * easing) when no `<MotionConfig>` ancestor is present.
+ * @returns The currently-active `MotionContextValue`.
+ */
 export function useMotionContext(): MotionContextValue {
 	return useContext(MotionContext);
 }
@@ -34,6 +40,18 @@ export interface MotionConfigProps {
 	children?: ReactNode;
 }
 
+/**
+ * Provider that overrides `MotionContext` for its subtree. Any field left
+ * undefined inherits from the nearest ancestor `MotionConfig` (or the
+ * package default at the root).
+ * @param props - Per-field overrides plus children.
+ * @param props.clock - Time source for animations + timeline scheduling.
+ * @param props.driver - Animation backend (WAAPI by default; cssVarDriver mirrors).
+ * @param props.reducedMotion - Reduced-motion policy: user/always/never.
+ * @param props.defaults - Default transition merged into every animation.
+ * @param props.children - React subtree that will read this config.
+ * @returns A `MotionContext.Provider` wrapping the children.
+ */
 export function MotionConfig({
 	clock,
 	driver,
