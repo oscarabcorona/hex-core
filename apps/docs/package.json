@@ -17,6 +17,7 @@
     "@headlessui/react": "^2.2.10",
     "@hex-core/components": "workspace:^",
     "@hex-core/mcp": "workspace:^",
+    "@hex-core/motion": "workspace:^",
     "@hex-core/registry": "workspace:^",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",

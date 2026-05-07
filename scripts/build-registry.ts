@@ -25,7 +25,8 @@ interface SchemaFile {
 	category: string;
 	name: string;
 	schemaPath: string;
-	componentPath: string;
+	/** `null` for schema-only roots whose runtime ships from a sibling npm package. */
+	componentPath: string | null;
 }
 
 /**
@@ -33,10 +34,10 @@ interface SchemaFile {
  * @returns An array of schema file descriptors with category, name, and file paths
  */
 /**
- * Filesystem-directory → category-key map. Explicit so future additions
- * (`hooks`, `libs`, `themes`) don't get silently mangled by a `replace(/s$/)`
- * heuristic — `"libs"` would map to `"lib"` correctly, but `"docs"` would
- * become `"doc"`. Add new entries here when adding new top-level dirs.
+ * Filesystem-directory → category-key map for the components package
+ * (each entry is a per-component subdirectory containing `<name>.schema.ts`
+ * and `<name>.tsx`). Explicit so future additions (`hooks`, `libs`,
+ * `themes`) don't get silently mangled by a `replace(/s$/)` heuristic.
  */
 const CATEGORY_DIR_TO_KEY = {
 	primitives: "primitive",
@@ -46,9 +47,24 @@ const CATEGORY_DIR_TO_KEY = {
 	artifacts: "artifact",
 } as const;
 
+/**
+ * Schema-only roots — packages that ship their runtime as a publishable
+ * npm package and only contribute registry **metadata** (no per-component
+ * `.tsx` source to copy into consumers' projects). Each entry maps a flat
+ * directory of `<name>.schema.ts` files to a registry category.
+ *
+ * The motion package is the first one of these: `<Motion.div>` is real
+ * code in `@hex-core/motion`, but `npx hex add motion` doesn't copy
+ * source — it installs the npm package via `dependencies.npm`.
+ */
+const SCHEMA_ONLY_ROOTS: Array<{ dir: string; category: string }> = [
+	{ dir: path.join(ROOT, "packages/motion/src/schemas"), category: "motion" },
+];
+
 function findSchemaFiles(): SchemaFile[] {
 	const results: SchemaFile[] = [];
 
+	// Component roots — each schema has a sibling .tsx the registry copies.
 	for (const [dirName, categoryKey] of Object.entries(CATEGORY_DIR_TO_KEY)) {
 		const categoryDir = path.join(COMPONENTS_SRC, dirName);
 		if (!fs.existsSync(categoryDir)) continue;
@@ -68,6 +84,21 @@ function findSchemaFiles(): SchemaFile[] {
 					componentPath: componentFile,
 				});
 			}
+		}
+	}
+
+	// Schema-only roots — flat directories of `<name>.schema.ts` files.
+	for (const root of SCHEMA_ONLY_ROOTS) {
+		if (!fs.existsSync(root.dir)) continue;
+		for (const file of fs.readdirSync(root.dir)) {
+			if (!file.endsWith(".schema.ts")) continue;
+			const name = file.replace(/\.schema\.ts$/, "");
+			results.push({
+				category: root.category,
+				name,
+				schemaPath: path.join(root.dir, file),
+				componentPath: null,
+			});
 		}
 	}
 
@@ -320,8 +351,29 @@ for (const sf of schemaFiles) {
 	}
 	const schema: ComponentSchemaDefinition = parsed.data;
 
-	const componentSource = readComponentSource(sf.componentPath);
-	const dependencyFiles = discoverDependencies(sf.componentPath, componentSource, sf.name);
+	// Schema-only items (motion) ship no source files — the runtime lives in
+	// a sibling npm package declared via `dependencies.npm`. Component-source
+	// items copy their `.tsx` plus discovered dependency files plus libs.
+	const itemFiles =
+		sf.componentPath === null
+			? []
+			: (() => {
+					const componentSource = readComponentSource(sf.componentPath);
+					const dependencyFiles = discoverDependencies(
+						sf.componentPath,
+						componentSource,
+						sf.name,
+					);
+					return [
+						{
+							path: `components/ui/${sf.name}.tsx`,
+							content: componentSource,
+							type: "component",
+						},
+						...dependencyFiles,
+						...libFiles,
+					];
+				})();
 
 	// Build the registry item
 	const registryItem = {
@@ -336,15 +388,7 @@ for (const sf of schemaFiles) {
 		props: schema.props,
 		variants: schema.variants,
 		slots: schema.slots,
-		files: [
-			{
-				path: `components/ui/${sf.name}.tsx`,
-				content: componentSource,
-				type: "component",
-			},
-			...dependencyFiles,
-			...libFiles,
-		],
+		files: itemFiles,
 		dependencies: schema.dependencies,
 		tokensUsed: schema.tokensUsed,
 		examples: schema.examples,

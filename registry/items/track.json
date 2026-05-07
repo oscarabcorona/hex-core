@@ -1,0 +1,69 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "track",
+  "displayName": "Track",
+  "description": "Optional grouping for parallel clips on a named track (e.g. `<Track name=\"opacity\">`). Tracks are a labeling/inspection convenience; they don't affect playback ordering.",
+  "category": "motion",
+  "subcategory": "timeline",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "required": true,
+      "description": "Track name. Surfaced in dev tools and on registered ClipDescriptors."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "children",
+      "description": "Clips that share the track label.",
+      "required": true,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [],
+  "dependencies": {
+    "npm": [
+      "@hex-core/motion"
+    ],
+    "internal": [
+      "motion-timeline"
+    ],
+    "peer": [
+      "react"
+    ]
+  },
+  "tokensUsed": [],
+  "examples": [
+    {
+      "title": "Grouped clips",
+      "description": "Two clips share an `opacity` track for clarity.",
+      "code": "<Track name=\"opacity\">\n  <Clip target=\"#a\" to={{ opacity: 1 }} />\n  <Clip target=\"#b\" to={{ opacity: 1 }} start={200} />\n</Track>"
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use to label parallel clips that share an intent (`opacity`, `transform`) for readability and tooling.",
+    "whenNotToUse": "Don't expect tracks to enforce playback exclusivity — they're metadata, not constraints.",
+    "commonMistakes": [
+      "Treating tracks like timeline lanes — overlapping clips on the same track will still both play."
+    ],
+    "relatedComponents": [
+      "motion-timeline",
+      "scene",
+      "clip"
+    ],
+    "accessibilityNotes": "No direct accessibility implications.",
+    "tokenBudget": 150
+  },
+  "tags": [
+    "motion",
+    "timeline",
+    "track",
+    "composer"
+  ]
+}

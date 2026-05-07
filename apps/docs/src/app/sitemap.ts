@@ -13,6 +13,7 @@ const STATIC_ROUTES: readonly { path: string; priority: number }[] = [
 	{ path: "/docs/installation", priority: 0.8 },
 	{ path: "/docs/theming", priority: 0.8 },
 	{ path: "/docs/mcp", priority: 0.8 },
+	{ path: "/docs/motion", priority: 0.8 },
 	{ path: "/docs/faq", priority: 0.7 },
 ] as const;
 

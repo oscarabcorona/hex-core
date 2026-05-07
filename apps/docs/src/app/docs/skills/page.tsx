@@ -6,13 +6,13 @@ import { DocsPage } from "../../../components/docs-page";
 export const metadata = {
 	title: "Skills",
 	description:
-		"Agent skills for Hex Core — eight SKILL.md packs that give Claude Code prose context alongside the 11 MCP tools.",
+		"Agent skills for Hex Core — nine SKILL.md packs that give Claude Code prose context alongside the 11 MCP tools.",
 };
 
 const SECTIONS = [
 	{ id: "why", title: "Why skills" },
 	{ id: "install", title: "Install" },
-	{ id: "shipped", title: "The eight shipped" },
+	{ id: "shipped", title: "The nine shipped" },
 	{ id: "authoring", title: "Authoring your own" },
 ];
 
@@ -63,15 +63,21 @@ const SKILLS = [
 		title: "Registry authoring",
 		summary: "Writing your own components, recipes, or third-party registry.",
 	},
+	{
+		slug: "hex-core-motion",
+		title: "Motion",
+		summary:
+			"Decision tree for @hex-core/motion — Motion vs MotionPro vs Timeline + token easings.",
+	},
 ];
 
-/** Skills page — what agent skills are, the 8 shipped, install + author. */
+/** Skills page — what agent skills are, the 9 shipped, install + author. */
 export default function SkillsPage() {
 	return (
 		<DocsPage
 			pathname="/docs/skills"
 			title="Skills"
-			description="Prose context packs for Claude Code. Eight SKILL.md files that complement the 11 structured MCP tools."
+			description="Prose context packs for Claude Code. Nine SKILL.md files that complement the 11 structured MCP tools."
 			sections={SECTIONS}
 			editPath="apps/docs/src/app/docs/skills/page.tsx"
 		>
@@ -83,7 +89,7 @@ export default function SkillsPage() {
 					<InlineCode>Switch</InlineCode> beats <InlineCode>Checkbox</InlineCode> for
 					instant settings, what a good recipe-selection heuristic looks like. Agents
 					load skills lazily based on the trigger keywords in their frontmatter, so the
-					eight packs cost ~800 tokens of system prompt total, not 8 × 5k.
+					nine packs cost ~900 tokens of system prompt total, not 9 × 5k.
 				</p>
 				<p className="text-sm leading-6">
 					Hex Core follows{" "}
@@ -102,7 +108,7 @@ export default function SkillsPage() {
 
 			<DocSection id="install" title="Install">
 				<p className="text-sm leading-6">
-					The CLI copies the eight bundled skills into{" "}
+					The CLI copies the nine bundled skills into{" "}
 					<InlineCode>.claude/skills/</InlineCode> in your project (or{" "}
 					<InlineCode>--target</InlineCode> if you want a custom location).
 				</p>
@@ -114,7 +120,7 @@ export default function SkillsPage() {
 				</p>
 			</DocSection>
 
-			<DocSection id="shipped" title="The eight shipped">
+			<DocSection id="shipped" title="The nine shipped">
 				<ul className="list-disc space-y-1 pl-6 text-sm text-muted-foreground">
 					{SKILLS.map((s) => (
 						<li key={s.slug}>

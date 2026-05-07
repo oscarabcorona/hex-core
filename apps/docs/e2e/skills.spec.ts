@@ -8,7 +8,7 @@ test.describe("skills page", () => {
 		const sectionTitles = [
 			"Why skills",
 			"Install",
-			"The eight shipped",
+			"The nine shipped",
 			"Authoring your own",
 		];
 		for (const title of sectionTitles) {
@@ -16,7 +16,7 @@ test.describe("skills page", () => {
 		}
 	});
 
-	test("lists all eight shipped skills by slug", async ({ page }) => {
+	test("lists all nine shipped skills by slug", async ({ page }) => {
 		await page.goto("/docs/skills");
 		const shippedSection = page.locator("#shipped");
 		const slugs = [
@@ -28,6 +28,7 @@ test.describe("skills page", () => {
 			"hex-core-accessibility",
 			"hex-core-anti-patterns",
 			"hex-core-registry-authoring",
+			"hex-core-motion",
 		];
 		for (const slug of slugs) {
 			await expect(shippedSection.getByText(slug, { exact: true })).toBeVisible();

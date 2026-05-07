@@ -1,0 +1,48 @@
+import type { ComponentSchemaDefinition } from "@hex-core/registry";
+
+export const variantsSchema: ComponentSchemaDefinition = {
+	name: "variants",
+	displayName: "Variants",
+	description:
+		"Named-state map for orchestrating multi-state animations. Pass strings to Motion.* `initial`/`animate` to switch between states declaratively.",
+	category: "motion",
+	subcategory: "primitives",
+	props: [
+		{
+			name: "states",
+			type: "object",
+			required: true,
+			description:
+				"Object whose keys are state names and values are `AnimateProps` (with optional per-state `transition`).",
+		},
+	],
+	variants: [],
+	slots: [],
+	dependencies: {
+		npm: ["@hex-core/motion"],
+		internal: [],
+		peer: ["react"],
+	},
+	tokensUsed: [],
+	examples: [
+		{
+			title: "Open/closed dialog",
+			description: "A two-state map for a dialog overlay.",
+			code: 'const dialog = variants({\n  closed: { opacity: 0, scale: 0.96 },\n  open: { opacity: 1, scale: 1 },\n});\n<Motion.div variants={dialog} initial="closed" animate={isOpen ? "open" : "closed"} />',
+		},
+	],
+	ai: {
+		whenToUse:
+			"Use whenever a component switches between two or more discrete states (open/closed, enabled/disabled, expanded/collapsed). Lets the JSX read as state transitions, not raw transforms.",
+		whenNotToUse:
+			"Don't use for one-shot animations — passing the AnimateProps object inline to `animate` is simpler.",
+		commonMistakes: [
+			"Defining variants inline in render — each render creates a new map and re-runs every animation. Hoist or memoize.",
+			"Using state names that don't match a key in the variants map — the engine silently no-ops.",
+		],
+		relatedComponents: ["motion", "transition"],
+		accessibilityNotes: "No accessibility implications beyond the underlying Motion element.",
+		tokenBudget: 200,
+	},
+	tags: ["motion", "variants", "state-machine", "animation"],
+};

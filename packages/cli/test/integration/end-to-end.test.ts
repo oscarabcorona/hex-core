@@ -185,4 +185,50 @@ describe("CLI binary end-to-end (built dist/index.js)", () => {
 		expect(add.stdout).toContain("<Toaster />");
 		expect(add.stdout).toContain("@/components/ui/sonner");
 	});
+
+	it("hex add motion succeeds for a schema-only registry item (no source copy, npm dep recorded)", () => {
+		// Motion items declare `dependencies.npm: ["@hex-core/motion"]` and ship
+		// an empty `files: []`. The CLI must not crash on the empty-files path
+		// and must surface the npm dep so the consumer's package manager
+		// installs it. We pass --no-install to keep the test offline.
+		writePkg({ tailwindcss: "^4", react: "^19" });
+		fs.writeFileSync(
+			path.join(tmpDir, "hex.config.json"),
+			JSON.stringify({ aliases: { components: "@/components", lib: "@/lib" } }),
+		);
+		const add = runCli(["add", "motion", "--no-install", "--no-deps"]);
+		expect(add.status).toBe(0);
+		expect(add.stderr).not.toContain("Could not find registry");
+		expect(add.stderr).not.toContain("Error");
+		// No file writes for a schema-only item
+		expect(add.stdout).not.toContain("Write: components/ui/motion.tsx");
+		// CLI prints the install hint for the npm peer
+		expect(add.stdout).toContain("@hex-core/motion");
+	});
+
+	it("hex recipe list surfaces intro-sequence with its motion steps", () => {
+		// `recipe add` always shells out to the consumer's package manager
+		// (no --no-install flag), so an integration test that runs it would
+		// require a real pnpm install in tmpdir. `recipe list` exercises the
+		// same registry-resolution path and proves intro-sequence's steps
+		// (motion-timeline, scene, clip, transition + container/stack/button)
+		// all resolve to known registry slugs without error.
+		const list = runCli(["recipe", "list"]);
+		expect(list.status).toBe(0);
+		expect(list.stderr).not.toContain("references unknown components");
+		expect(list.stdout).toContain("intro-sequence");
+		expect(list.stdout).toContain("Intro sequence");
+		// Every step slug from the recipe must appear in the printed component list.
+		for (const slug of [
+			"container",
+			"stack",
+			"button",
+			"motion-timeline",
+			"scene",
+			"clip",
+			"transition",
+		]) {
+			expect(list.stdout).toContain(slug);
+		}
+	});
 });
