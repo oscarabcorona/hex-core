@@ -1,5 +1,14 @@
 # @hex-core/payload
 
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies [398bc7d]
+  - @hex-core/registry@0.4.0
+  - @hex-core/themes@0.2.1
+  - @hex-core/tokens@1.3.4
+
 ## 0.2.3
 
 ### Patch Changes

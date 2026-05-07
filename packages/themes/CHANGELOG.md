@@ -1,5 +1,13 @@
 # @hex-core/themes
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [398bc7d]
+  - @hex-core/registry@0.4.0
+  - @hex-core/tokens@1.3.4
+
 ## 0.2.0
 
 ### Minor Changes
