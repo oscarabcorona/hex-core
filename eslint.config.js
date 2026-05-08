@@ -17,7 +17,14 @@ export default tseslint.config(
 	},
 	prettier,
 	{
-		ignores: ["**/dist/**", "**/node_modules/**", "**/.tsup/**", "registry/**", "apps/**"],
+		ignores: [
+			"**/dist/**",
+			"**/node_modules/**",
+			"**/.tsup/**",
+			"registry/**",
+			"apps/**",
+			"tests/regression/src/fixtures/**",
+		],
 	},
 	{
 		rules: {
@@ -52,7 +59,12 @@ export default tseslint.config(
 		},
 	},
 	{
-		files: ["packages/cli/**/*.ts", "scripts/**/*.ts", "packages/*/scripts/**/*.{js,mjs}"],
+		files: [
+			"packages/cli/**/*.ts",
+			"scripts/**/*.ts",
+			"packages/*/scripts/**/*.{js,mjs}",
+			"tests/regression/scripts/**/*.ts",
+		],
 		languageOptions: {
 			globals: {
 				console: "readonly",
