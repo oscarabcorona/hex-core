@@ -10,6 +10,8 @@
 		"import:themes": "tsx scripts/import-voltagent.ts",
 		"a11y-audit": "tsx scripts/a11y-audit.ts",
 		"regression": "pnpm build && pnpm run build:registry && pnpm a11y-audit && pnpm --filter docs test:visual",
+		"regression:use-cases": "pnpm --filter @hex-core/regression run",
+		"regression:full": "pnpm regression && pnpm regression:use-cases",
 		"validate": "turbo validate",
 		"test": "turbo test",
 		"lint": "eslint . && turbo lint",

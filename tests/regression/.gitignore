@@ -1,0 +1,7 @@
+# Per-run vitest JSON reporter output. Consumed by scripts/run.ts to emit
+# the findings markdown, then the markdown becomes the artifact of record
+# (under .claude/findings/, also gitignored). The JSON itself is ephemeral.
+test-results.json
+
+# Vitest cache.
+.vitest-cache/

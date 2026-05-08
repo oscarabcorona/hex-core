@@ -1,0 +1,22 @@
+{
+	"name": "@hex-core/regression",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"description": "Post-publish use-case regression suite — bootstraps fresh consumer projects from npm and exercises canonical CLI/MCP flows",
+	"scripts": {
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"run": "tsx scripts/run.ts"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.12.0",
+		"execa": "^9.5.2",
+		"vitest": "^4.1.5"
+	},
+	"devDependencies": {
+		"@types/node": "^25.6.0",
+		"tsx": "^4.19.0",
+		"typescript": "^6.0.3"
+	}
+}
