@@ -5,9 +5,9 @@
 	"type": "module",
 	"description": "Post-publish use-case regression suite — bootstraps fresh consumer projects from npm and exercises canonical CLI/MCP flows",
 	"scripts": {
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"run": "tsx scripts/run.ts"
+		"test:use-cases": "vitest run",
+		"test:use-cases:watch": "vitest",
+		"regression": "tsx scripts/run.ts"
 	},
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "^1.12.0",

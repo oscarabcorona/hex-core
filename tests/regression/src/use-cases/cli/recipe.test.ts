@@ -53,7 +53,11 @@ describe("cli/recipe", () => {
 		{ slug: "command-palette", samplePath: "src/components/ui/command.tsx" },
 		{ slug: "confirm-destructive", samplePath: "src/components/ui/alert-dialog.tsx" },
 		{ slug: "data-table-view", samplePath: "src/components/ui/data-table.tsx" },
-		{ slug: "intro-sequence", samplePath: "src/components/ui/motion.tsx" },
+		// intro-sequence schedules motion-* components (motion-timeline / scene /
+		// clip / transition) which are package-only registry items (`files: []` —
+		// installed via `\@hex-core/motion`, not file-copy). The on-disk sentinel
+		// is the supporting `button` primitive the recipe also pulls in.
+		{ slug: "intro-sequence", samplePath: "src/components/ui/button.tsx" },
 		{ slug: "pricing-table", samplePath: "src/components/ui/card.tsx" },
 		{ slug: "settings-page", samplePath: "src/components/ui/card.tsx" },
 	];

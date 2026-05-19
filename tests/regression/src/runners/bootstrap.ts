@@ -51,7 +51,15 @@ export async function bootstrapHost(kind: HostKind, tmpDir: string): Promise<Boo
 	// the opposite of what this suite tests.
 	mkdirSync(join(tmpDir, "node_modules"), { recursive: true });
 
-	await execa("npm", ["install", "--no-audit", "--no-fund", "--silent"], {
+	// CRA's react-scripts@5 has long-known peer-dep conflicts with React 18.3
+	// + TypeScript 5.7 + the postcss/autoprefixer pins. npm 10 enforces strict
+	// peers by default, so the bootstrap needs --legacy-peer-deps to mirror
+	// what every CRA consumer in 2026 still passes. Other hosts get a clean
+	// install without it.
+	const npmArgs = ["install", "--no-audit", "--no-fund", "--silent"];
+	if (kind === "cra") npmArgs.push("--legacy-peer-deps");
+
+	await execa("npm", npmArgs, {
 		cwd: tmpDir,
 		env: { ...process.env, npm_config_audit: "false", npm_config_fund: "false" },
 		timeout: 180_000,
