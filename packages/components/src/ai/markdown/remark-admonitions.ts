@@ -1,6 +1,8 @@
 import type { Blockquote, Paragraph, Root, Text } from "mdast";
 import { visit } from "unist-util-visit";
 
+const SUPPORTED = new Set(["think"]);
+
 /**
  * Tag blockquotes that start with `[!think]` as admonitions of type
  * `think`. Strips the marker text from the rendered content and writes
@@ -32,8 +34,6 @@ export function remarkAdmonitions() {
 		});
 	};
 }
-
-const SUPPORTED = new Set(["think"]);
 
 interface MarkerHit {
 	type: string;

@@ -59,7 +59,7 @@ const SANITIZE_SCHEMA = {
 		"tool-call": ["name", "state", "args", "result"],
 		blockquote: [
 			...((defaultSchema.attributes ?? {}).blockquote ?? []),
-			["dataAdmonition"],
+			"dataAdmonition",
 		],
 	},
 };
@@ -203,7 +203,15 @@ interface CodeBlockSlotProps extends React.HTMLAttributes<HTMLElement> {
  */
 function CodeBlockSlot({ className, children, node: _node, ...rest }: CodeBlockSlotProps) {
 	const langMatch = /language-([a-zA-Z0-9-]+)/.exec(className ?? "");
-	const isFenced = Boolean(langMatch) || String(children ?? "").includes("\n");
+	// Fence detection. Prefer the className signal; fall back to the
+	// children shape. `Array.isArray && length > 1` guards the case where
+	// a downstream plugin replaces the string child with a React subtree
+	// (then `String(children) === "[object Object]"` would falsely flip
+	// fenced → inline).
+	const isFenced =
+		Boolean(langMatch) ||
+		(Array.isArray(children) && children.length > 1) ||
+		String(children ?? "").includes("\n");
 
 	if (!isFenced) {
 		return (

@@ -39,8 +39,10 @@ export function closeUnterminated(input: string): string {
 	}
 
 	// Mask all CLOSED fenced regions for step 5–8 — the content inside
-	// closed fences is not subject to inline-token rules either.
-	const masked = maskClosedFences(working);
+	// closed fences is not subject to inline-token rules either. Then mask
+	// CommonMark backslash-escapes (`\*`, `` \` ``, `\_`, etc.) so the
+	// inline counters don't treat escaped delimiters as openers.
+	const masked = maskEscapes(maskClosedFences(working));
 
 	// 2a. HTML comment at any position with no `-->` close — the comment
 	//     would otherwise consume the rest of the stream as comment body.
@@ -177,6 +179,39 @@ function maskClosedFences(input: string): string {
 function countOutsideMaskedFences(masked: string, re: RegExp): number {
 	const matches = masked.match(re);
 	return matches?.length ?? 0;
+}
+
+/**
+ * CommonMark-escapable characters. A backslash followed by any of these
+ * produces the literal character in the rendered output and the
+ * delimiter loses its syntactic role — so the inline counters must not
+ * see it as a token opener.
+ */
+const ESCAPABLE = "\\`*_~[](){}<>#+-.!|";
+
+/**
+ * Mask `\<escapable>` pairs as two-space runs. Length-preserving so the
+ * masked view stays index-compatible with the original input. `\\`
+ * (literal backslash) consumes both backslashes; `\n` (non-escapable
+ * letter) is left intact.
+ * @param input - The (already fence-masked) markdown view.
+ * @returns The same view with escape sequences neutralized.
+ */
+function maskEscapes(input: string): string {
+	let out = "";
+	let i = 0;
+	while (i < input.length) {
+		// `?? ""` satisfies `noUncheckedIndexedAccess`; the bounds check
+		// already proves `input[i + 1]` is a string.
+		if (input[i] === "\\" && i + 1 < input.length && ESCAPABLE.includes(input[i + 1] ?? "")) {
+			out += "  ";
+			i += 2;
+			continue;
+		}
+		out += input[i];
+		i++;
+	}
+	return out;
 }
 
 /**

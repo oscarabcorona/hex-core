@@ -180,6 +180,46 @@ describe("closeUnterminated — idempotence", () => {
 	});
 });
 
+describe("closeUnterminated — escapes and unicode", () => {
+	it("does not close an escaped asterisk italic (`\\*not italic`)", () => {
+		const md = "foo \\*not italic";
+		expect(closeUnterminated(md)).toBe(md);
+	});
+
+	it("does not close an escaped inline backtick (\\`code)", () => {
+		const md = "foo \\`code";
+		expect(closeUnterminated(md)).toBe(md);
+	});
+
+	it("does not close an escaped underscore italic (`\\_under`)", () => {
+		const md = "foo \\_under";
+		expect(closeUnterminated(md)).toBe(md);
+	});
+
+	it("closes only the real italic when mixed with an escaped marker", () => {
+		expect(closeUnterminated("foo \\* and *real")).toBe("foo \\* and *real*");
+	});
+
+	it("treats `_中文_` as a closed underscore pair (Unicode word boundary)", () => {
+		const md = "前 _中文_ 后";
+		expect(closeUnterminated(md)).toBe(md);
+	});
+
+	it("closes a CRLF-line-ended fenced code block", () => {
+		const md = "```ts\r\nconst x =";
+		expect(closeUnterminated(md)).toBe("```ts\r\nconst x =\n```\n");
+	});
+
+	it("detects a fence opener on a later line even when an earlier line has balanced inline code", () => {
+		const md = "foo `bar` baz\n```ts\nconst x =";
+		const out = closeUnterminated(md);
+		expect(out.startsWith(md)).toBe(true);
+		expect(out.endsWith("\n```\n")).toBe(true);
+		// The backtick counter must NOT also add a stray `\`` — inline code on line 1 is balanced.
+		expect(out.endsWith("`")).toBe(false);
+	});
+});
+
 describe("closeUnterminated — combined real-world streams", () => {
 	it("closes multiple opens in one pass (fence + link)", () => {
 		const md = "see [docs](https://x.com\n```ts\nconst y =";

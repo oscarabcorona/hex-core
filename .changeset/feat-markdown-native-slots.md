@@ -32,7 +32,9 @@ directly when they need server-side Shiki highlighting.
 to append synthetic closers for tokens left open at end-of-input —
 unclosed `` ``` ``, `**`, `_`, `~~`, `` ` ``, `[…](…`, `[…`, `<tag` —
 so partial chunks during streaming render gracefully instead of as raw
-text. ~150 lines, fully tested via a 24-case truth table.
+text. ~150 lines, fully tested via a 39-case truth table covering
+escaped delimiters, CRLF line endings, and Unicode word boundaries on
+underscore italics in addition to the canonical token shapes.
 
 **New: `remark-admonitions` plugin**
 
@@ -53,14 +55,17 @@ runtime deps. Adds `react-markdown`, `remark-gfm`, `rehype-raw`,
   text-primary` pair was 4.45:1 in dark mode (just under WCAG AA's 4.5
   threshold for ≤14pt text). Switched to `bg-muted text-primary` —
   neutral-bg + brand-text, AA-safe by design. Visual diff is minimal
-  (the chip stays subtle).
+  (the chip stays subtle). Verified on the default theme; themes where
+  `--muted` and `--primary` collapse to similar values need a separate
+  multi-theme audit before relying on the chip's affordance.
 - **`<SpeechRecognition>` visual baselines.** The component shipped in
   1.6.0 without `e2e/visual.spec.ts-snapshots/speech-recognition-{light,dark}.png`;
   added them so `pnpm regression` passes from a fresh checkout.
 
 **Tests**
 
-- 24 truth-table tests for `closeUnterminated` (pass-through, fences,
-  links, brackets, backticks, strike, bold, italic, combined streams).
+- 39 truth-table tests for `closeUnterminated` (pass-through, fences,
+  links, brackets, backticks, strike, bold, italic, combined streams,
+  escapes, Unicode word boundaries, CRLF fences).
 - 12 functional tests for `<Markdown>` covering each slot, plain-markdown
   semantics, and streaming recovery.
