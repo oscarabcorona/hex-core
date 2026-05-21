@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { SLUG_REGEX } from "@hex-core/registry";
+import { printSkillsHint } from "../lib/post-install.js";
 import { findRegistryDir } from "../lib/registry-dir.js";
 import { addComponents } from "./add.js";
 
@@ -110,5 +111,6 @@ export async function addRecipe(
 			console.log(`  ${prefix} ${item.check}`);
 		}
 	}
+	printSkillsHint(process.cwd());
 	console.log();
 }

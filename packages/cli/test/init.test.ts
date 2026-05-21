@@ -221,4 +221,74 @@ describe("init", () => {
 			);
 		});
 	});
+
+	describe("AI-onboarding surface", () => {
+		it("writes the studio URL into hex.config.json so agents discover it", async () => {
+			writePkg({ tailwindcss: "^4" });
+			fs.mkdirSync(path.join(tmpDir, "app"));
+			await initProject({ theme: "default", install: false });
+			const cfg = JSON.parse(fs.readFileSync(path.join(tmpDir, "hex.config.json"), "utf-8")) as {
+				studio?: string;
+			};
+			expect(cfg.studio).toBe("https://hex-core.dev/studio");
+		});
+
+		it("prints the studio tip in the post-init output", async () => {
+			writePkg({ tailwindcss: "^4" });
+			fs.mkdirSync(path.join(tmpDir, "app"));
+			await initProject({ theme: "default", install: false });
+			const stdout = logSpy.mock.calls.flat().join("\n");
+			expect(stdout).toMatch(/hex-core\.dev\/studio/);
+		});
+
+		it("does NOT wire @hex-core/mcp by default (opt-in only)", async () => {
+			writePkg({ tailwindcss: "^4" });
+			fs.mkdirSync(path.join(tmpDir, "app"));
+			await initProject({ theme: "default", install: false });
+			expect(fs.existsSync(path.join(tmpDir, ".mcp.json"))).toBe(false);
+			const stdout = logSpy.mock.calls.flat().join("\n");
+			// Prints the opt-in tip pointing at --mcp + the docs URL.
+			expect(stdout).toMatch(/--mcp/);
+			expect(stdout).toMatch(/hex-core\.dev\/mcp/);
+		});
+
+		it("writes .mcp.json at repo root when --mcp is passed and no MCP config exists yet", async () => {
+			writePkg({ tailwindcss: "^4" });
+			fs.mkdirSync(path.join(tmpDir, "app"));
+			await initProject({ theme: "default", install: false, mcp: true });
+			const cfgPath = path.join(tmpDir, ".mcp.json");
+			expect(fs.existsSync(cfgPath)).toBe(true);
+			const cfg = JSON.parse(fs.readFileSync(cfgPath, "utf-8")) as {
+				mcpServers?: Record<string, unknown>;
+			};
+			expect("hex-core" in (cfg.mcpServers ?? {})).toBe(true);
+		});
+
+		it("merges into an existing .mcp.json instead of clobbering it", async () => {
+			writePkg({ tailwindcss: "^4" });
+			fs.mkdirSync(path.join(tmpDir, "app"));
+			fs.writeFileSync(
+				path.join(tmpDir, ".mcp.json"),
+				JSON.stringify({ mcpServers: { other: { command: "node" } } }),
+			);
+			await initProject({ theme: "default", install: false, mcp: true });
+			const cfg = JSON.parse(fs.readFileSync(path.join(tmpDir, ".mcp.json"), "utf-8")) as {
+				mcpServers?: Record<string, unknown>;
+			};
+			const servers = cfg.mcpServers ?? {};
+			expect("other" in servers).toBe(true);
+			expect("hex-core" in servers).toBe(true);
+		});
+
+		it("surfaces the file path when an existing .mcp.json is malformed JSON", async () => {
+			writePkg({ tailwindcss: "^4" });
+			fs.mkdirSync(path.join(tmpDir, "app"));
+			fs.writeFileSync(path.join(tmpDir, ".mcp.json"), "{ broken");
+			await initProject({ theme: "default", install: false, mcp: true });
+			const stdout = logSpy.mock.calls.flat().join("\n");
+			expect(stdout).toMatch(/\.mcp\.json isn't valid JSON/);
+			// The file must be left exactly as the user wrote it.
+			expect(fs.readFileSync(path.join(tmpDir, ".mcp.json"), "utf-8")).toBe("{ broken");
+		});
+	});
 });

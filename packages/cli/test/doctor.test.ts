@@ -184,3 +184,83 @@ describe("doctor", () => {
 		expect(findCheck(checks, /@radix-ui\/react-popover/)?.status).toBe("pass");
 	});
 });
+
+describe("doctor --layout", () => {
+	function v4Pkg(): void {
+		writePkg({
+			dependencies: {
+				tailwindcss: "^4",
+				clsx: "^2",
+				"tailwind-merge": "^2",
+				"class-variance-authority": "^0.7",
+				"tw-animate-css": "^1",
+			},
+		});
+		writeFile("hex.config.json", "{}");
+		writeFile("app/globals.css", `@import "tailwindcss";\n`);
+	}
+
+	it("is silent (no layout findings) when --layout is not passed", async () => {
+		v4Pkg();
+		writeFile(
+			"src/app/page.tsx",
+			"export default function Page(){return <div className='space-y-8'><p>a</p><p className='space-y-8'>b</p><p className='space-y-8'>c</p></div>}",
+		);
+		const checks = await runDoctor(tmpDir);
+		expect(checks.find((c) => c.status === "info" && /space-y/.test(c.name))).toBeUndefined();
+	});
+
+	it("flags installed-but-unused components when no source imports them", async () => {
+		v4Pkg();
+		writeFile("components/ui/card.tsx", "export function Card(){return null}");
+		writeFile("src/app/page.tsx", "export default function Page(){return <div/>}");
+		const checks = await runDoctor(tmpDir, { layout: true });
+		const unused = checks.find((c) => c.status === "info" && /installed but unused: card/.test(c.name));
+		expect(unused).toBeDefined();
+		expect(unused?.hint).toMatch(/<Card>/);
+	});
+
+	it("does NOT flag installed-but-unused when a JSX usage is found", async () => {
+		v4Pkg();
+		writeFile("components/ui/card.tsx", "export function Card(){return null}");
+		writeFile("src/app/page.tsx", "import {Card} from '@/components/ui/card';export default function Page(){return <Card/>}");
+		const checks = await runDoctor(tmpDir, { layout: true });
+		expect(checks.find((c) => /installed but unused: card/.test(c.name))).toBeUndefined();
+	});
+
+	it("emits a hand-rolled finding for space-y-* repeated 3+ times in a file", async () => {
+		v4Pkg();
+		writeFile(
+			"src/app/page.tsx",
+			`export default function Page(){\n  return <div className="space-y-8"><p className="space-y-4"/><p className="space-y-2"/></div>\n}`,
+		);
+		const checks = await runDoctor(tmpDir, { layout: true });
+		const stack = checks.find((c) => c.status === "info" && /space-y/.test(c.name));
+		expect(stack).toBeDefined();
+		expect(stack?.hint).toMatch(/<Stack/);
+	});
+
+	it("emits a hand-rolled finding for breakpoint grid-cols-* variants", async () => {
+		v4Pkg();
+		writeFile(
+			"src/app/page.tsx",
+			`export default function Page(){return <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3"/>}`,
+		);
+		const checks = await runDoctor(tmpDir, { layout: true });
+		const grid = checks.find((c) => c.status === "info" && /grid/.test(c.name));
+		expect(grid).toBeDefined();
+		expect(grid?.hint).toMatch(/<Grid/);
+	});
+
+	it("emits a hand-rolled finding for dashed empty-state divs", async () => {
+		v4Pkg();
+		writeFile(
+			"src/app/empty.tsx",
+			`export default function E(){return <div className="border-dashed flex flex-col"/>}`,
+		);
+		const checks = await runDoctor(tmpDir, { layout: true });
+		const empty = checks.find((c) => c.status === "info" && /dashed empty/.test(c.name));
+		expect(empty).toBeDefined();
+		expect(empty?.hint).toMatch(/<Empty>/);
+	});
+});

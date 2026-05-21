@@ -3,9 +3,14 @@ import * as path from "node:path";
 import pc from "picocolors";
 import { detectTailwind, type TailwindVersion } from "../lib/detect-tailwind.js";
 import { emitTailwindV3Config } from "../lib/emit-tailwind-config.js";
+import { writeMcpEntry } from "../lib/mcp-config.js";
+import { printSkillsHint } from "../lib/post-install.js";
 import { detectSrcLayout } from "../lib/resolve-alias.js";
 import { runInstall } from "../lib/run-install.js";
 import { runDoctor } from "./doctor.js";
+
+/** URL of the live Hex Core token-tweaking studio. Surfaced in hex.config.json + post-init output so agents discover it. */
+const STUDIO_URL = "https://hex-core.dev/studio";
 
 /** Per-target overwrite set. `--overwrite` (no value) → "all". */
 export type OverwriteTargets = Set<"globals.css" | "tailwind.config.ts" | "all">;
@@ -21,7 +26,21 @@ export interface InitOptions {
 	install?: boolean;
 	/** When true, skip writes and exit non-zero if alias drift is detected. CI use. */
 	check?: boolean;
+	/**
+	 * When true, write the @hex-core/mcp server entry into the consumer's
+	 * MCP config (creates `.mcp.json` at repo root if no file exists yet;
+	 * otherwise merges into `.cursor/mcp.json` / `.continue/config.json`).
+	 *
+	 * Defaults to false: `.mcp.json` is commit-tracked and auto-loaded by
+	 * Claude Code, so `hex init` requires explicit opt-in (`--mcp`) before
+	 * adding a server entry. Sensitive-surface writes don't happen by
+	 * accident.
+	 */
+	mcp?: boolean;
 }
+
+/** URL of the @hex-core/mcp manual-install docs. Surfaced when --mcp is off. */
+const MCP_DOCS_URL = "https://hex-core.dev/mcp";
 
 function shouldOverwrite(
 	value: boolean | OverwriteTargets | undefined,
@@ -115,6 +134,7 @@ export async function initProject(options: InitOptions) {
 		peerDeps,
 		installed: installResult,
 		srcLayout,
+		mcp: options.mcp,
 	});
 }
 
@@ -155,6 +175,9 @@ function writeHexConfig(configPath: string, theme: string): boolean {
 			components: "@/components",
 			lib: "@/lib",
 		},
+		// Surfaces the live token-tweaking studio in the file an agent
+		// reads first. Pairs with the post-init `Theme tweaking:` line.
+		studio: STUDIO_URL,
 	};
 	fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 	return true;
@@ -229,6 +252,12 @@ interface SummaryParams {
 	peerDeps: string[];
 	installed: MaybeInstallResult;
 	srcLayout: boolean;
+	/**
+	 * When false, skip the MCP-server config write. Threaded through from
+	 * `InitOptions.mcp` so the summary can honor `--no-mcp` without re-reading
+	 * the caller's options shape.
+	 */
+	mcp?: boolean;
 }
 
 function printSummary(p: SummaryParams) {
@@ -261,5 +290,27 @@ function printSummary(p: SummaryParams) {
 		console.log(`Run yourself: ${p.installed.manager} ${p.installed.manager === "npm" ? "install" : "add"} ${p.installed.installed.join(" ")}`);
 	}
 
+	// Wire @hex-core/mcp into the consumer's AI-tool config (Claude Code
+	// `.mcp.json` / Cursor / Continue) so list_themes / get_theme /
+	// customize_component are reachable from the agent that just installed
+	// the registry. Opt-in only: `.mcp.json` is commit-tracked and
+	// auto-loaded, so `hex init` doesn't write it without `--mcp`.
+	if (p.mcp === true) {
+		const result = writeMcpEntry(process.cwd());
+		if (result.wrote) {
+			console.log(`\nWrote @hex-core/mcp entry to ${result.target}.`);
+			console.log(`  Restart your AI session to pick it up.`);
+		} else if (result.alreadyConfigured) {
+			console.log(`\n@hex-core/mcp already configured in ${result.target} — skipping.`);
+		} else if (result.malformed) {
+			console.log(`\nWarning: ${result.target} isn't valid JSON — skipping MCP wiring.`);
+			console.log(`  Fix the file and re-run \`hex init --mcp\`.`);
+		}
+	} else {
+		console.log(`\nTip: pass --mcp to wire @hex-core/mcp into your AI tool, or see ${MCP_DOCS_URL}`);
+	}
+
 	console.log("\nNext: hex add button input label");
+	console.log(`Theme tweaking: ${STUDIO_URL} — copy the payload back into your AI session.`);
+	printSkillsHint(process.cwd());
 }

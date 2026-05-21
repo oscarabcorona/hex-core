@@ -9,11 +9,113 @@ import {
 	type PendingHeavyPeer,
 } from "../lib/heavy-peer-prompt.js";
 import { detectPackageManager } from "../lib/package-manager.js";
+import { printSkillsHint } from "../lib/post-install.js";
 import { resolveAlias } from "../lib/resolve-alias.js";
 import { type AliasConfig, DEFAULT_ALIASES, rewriteRegistryImports } from "../lib/rewrite-imports.js";
 import { findRegistryDir } from "../lib/registry-dir.js";
 import { runInstall } from "../lib/run-install.js";
 import { withSpinner } from "../lib/spinner.js";
+
+/**
+ * Layout primitives covered by `hex add --pack layout` and used by the post-install nudge to detect whether the consumer has at least one composition primitive installed. Strict subset of the `app-shell` recipe (`packages/registry/src/recipes/app-shell.recipe.ts`) — six primitives most projects need, while the recipe is the wider 12-primitive blueprint. Kept inline (not a registry field) so the CLI can decide its UX surface independently of any one schema.
+ */
+const LAYOUT_PACK = ["container", "stack", "cluster", "grid", "spacer", "empty"] as const;
+
+/**
+ * Slugs already on disk under the consumer's `components/ui/` alias.
+ * Pure read — used by both the related-primitives nudge and the
+ * layout-pack nudge to filter out things the user already has.
+ * @param ctx - Shared add context with resolved aliases.
+ * @returns The set of slugs the consumer has installed locally.
+ */
+function listInstalledSlugs(ctx: Context): Set<string> {
+	const dir = resolveAlias(ctx.cwd, ctx.aliases.components);
+	const ui = path.join(dir, "ui");
+	if (!fs.existsSync(ui)) return new Set();
+	const out = new Set<string>();
+	for (const entry of fs.readdirSync(ui)) {
+		const match = /^([a-z][a-z0-9-]*)\.tsx?$/.exec(entry);
+		const slug = match?.[1];
+		if (slug) out.add(slug);
+	}
+	return out;
+}
+
+/**
+ * Print the "Related primitives you might want next" line, aggregating
+ * the `ai.relatedComponents` from every slug installed in this run.
+ * Filters out things already on disk + the freshly-installed slugs.
+ * Capped at 8 suggestions, alphabetized, single line for copy-paste.
+ *
+ * Closes the AI-onboarding gap where `hex add card` never nudged the
+ * agent toward separator / button / container / stack.
+ */
+function printRelatedPrimitivesHint(ctx: Context, runSlugs: Iterable<string>): void {
+	const registryDir = ctx.registryDir;
+	const itemsDir = path.join(registryDir, "items");
+	const suggestions = new Set<string>();
+	const runSet = new Set(runSlugs);
+	for (const slug of runSet) {
+		const itemPath = path.join(itemsDir, `${slug}.json`);
+		if (!fs.existsSync(itemPath)) continue;
+		try {
+			const raw = JSON.parse(fs.readFileSync(itemPath, "utf-8")) as {
+				ai?: { relatedComponents?: unknown };
+			};
+			const related = raw.ai?.relatedComponents;
+			if (!Array.isArray(related)) continue;
+			for (const candidate of related) {
+				if (typeof candidate !== "string" || candidate.length === 0) continue;
+				// Validate the candidate is a real registry slug. A schema typo
+				// would otherwise reach the user as `hex add stacks` and error
+				// on the very next command they run.
+				if (!fs.existsSync(path.join(itemsDir, `${candidate}.json`))) continue;
+				suggestions.add(candidate);
+			}
+		} catch {
+			// Malformed registry item — skip, don't crash the post-install path.
+		}
+	}
+	const onDisk = listInstalledSlugs(ctx);
+	for (const slug of runSet) suggestions.delete(slug);
+	for (const slug of onDisk) suggestions.delete(slug);
+	if (suggestions.size === 0) return;
+	const ordered = [...suggestions].sort();
+	const capped = ordered.slice(0, 8);
+	const overflow = ordered.length - capped.length;
+	console.log(`\nRelated primitives you might want next:`);
+	console.log(`  hex add ${capped.join(" ")}${overflow > 0 ? ` (+${overflow} more)` : ""}`);
+}
+
+/**
+ * Print the layout-pack nudge when the user installed several interactive
+ * primitives without any layout primitives on hand. The "without layout"
+ * test counts both this-run slugs AND what's already on disk — once the
+ * project has stack/grid/container, the nudge stays quiet forever.
+ */
+function printLayoutPackNudge(ctx: Context, runSlugs: Iterable<string>): void {
+	const runSet = new Set(runSlugs);
+	const onDisk = listInstalledSlugs(ctx);
+	const haveLayout = LAYOUT_PACK.some((slug) => runSet.has(slug) || onDisk.has(slug));
+	if (haveLayout) return;
+	// Only nudge when the user added a meaningful interactive batch.
+	// Pulling lib/utils or a single primitive shouldn't trip it.
+	if (runSet.size < 3) return;
+	console.log(`\nYou added ${runSet.size} primitives but no layout primitives.`);
+	console.log(`Most apps compose them together — try:`);
+	console.log(`  hex add --pack layout`);
+}
+
+/**
+ * Expand the `--pack layout` shortcut into the canonical layout-primitive
+ * slug list. Exported for the CLI entry point so `program.command("add")`
+ * can splice the names into argv before the normal queue walker runs.
+ *
+ * @returns The list of layout-primitive slugs.
+ */
+export function layoutPack(): readonly string[] {
+	return LAYOUT_PACK;
+}
 
 export interface AddOptions {
 	yes: boolean;
@@ -314,6 +416,11 @@ export async function addComponents(components: string[], options: AddOptions): 
 		process.exit(1);
 	}
 	const queue: string[] = options.from ? readManifest(cwd, options.from) : [...components];
+	// Snapshot of the direct asks for post-install nudges. Transitive deps
+	// arrive via the queue walker and end up in `ctx.visited`, but the
+	// "Related primitives" + layout-pack hints should reflect what the
+	// user typed (or the manifest declared), not the dep graph.
+	const directAsks = new Set(queue);
 
 	const ctx: Context = {
 		registryDir,
@@ -424,6 +531,15 @@ export async function addComponents(components: string[], options: AddOptions): 
 			console.log(`\n${hint}`);
 		}
 	}
+
+	// Surface the schema-declared related primitives + the layout-pack
+	// nudge + the bundled-skill discovery tip. Quiet by default — each
+	// helper only prints when its condition holds (related slugs not
+	// already on disk; no layout primitives present; hex-core-* skills
+	// installed under .claude/skills/).
+	printRelatedPrimitivesHint(ctx, directAsks);
+	printLayoutPackNudge(ctx, directAsks);
+	printSkillsHint(cwd);
 
 	if (options.dryRun) {
 		console.log(`\n${pc.cyan(`Dry-run summary:`)} ${ctx.plannedWrites.length} file${ctx.plannedWrites.length === 1 ? "" : "s"} would be written, ${ctx.pendingNpmDeps.size} dep${ctx.pendingNpmDeps.size === 1 ? "" : "s"} would be installed.`);

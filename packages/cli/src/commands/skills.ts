@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { printSkillsHint } from "../lib/post-install.js";
 import { findSkillsDir } from "../lib/skills-dir.js";
 
 export interface SkillsInstallOptions {
@@ -89,6 +90,10 @@ export async function installSkills(options: SkillsInstallOptions): Promise<void
 			console.log(`  - ${name}`);
 		}
 	}
+
+	// Always print — the skills were just copied here, so the hint is
+	// guaranteed to be accurate.
+	printSkillsHint(cwd, { always: true });
 
 	console.log();
 }

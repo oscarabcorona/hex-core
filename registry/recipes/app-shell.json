@@ -1,0 +1,402 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "app-shell",
+  "title": "App shell — layout primitives starter",
+  "summary": "Twelve foundational layout + atom primitives an agent typically needs when scaffolding a real app. Install once, then compose rather than hand-rolling `space-y-*` chains, `grid sm:grid-cols-*` breakpoints, dashed empty-state divs, or `rounded-full border` badge spans.",
+  "tags": [
+    "layout",
+    "shell",
+    "starter",
+    "foundation"
+  ],
+  "brief": "Drop in the layout primitives an agent forgets — container width, vertical stack, responsive grid, breadcrumb back-links, timeline, empty state — so composition wins over hand-rolled utility chains.",
+  "steps": [
+    {
+      "component": "container",
+      "reason": "Constrain page width — replaces hand-rolled `mx-auto max-w-*`",
+      "role": "primary"
+    },
+    {
+      "component": "stack",
+      "reason": "Vertical rhythm — replaces `space-y-*` utility chains",
+      "role": "primary"
+    },
+    {
+      "component": "cluster",
+      "reason": "Horizontal wrap with gap — replaces `flex flex-wrap gap-*`",
+      "role": "primary"
+    },
+    {
+      "component": "grid",
+      "reason": "Responsive grid — `cols='auto-fit'` replaces breakpoint variants",
+      "role": "primary"
+    },
+    {
+      "component": "spacer",
+      "reason": "Explicit vertical gap when stack/cluster don't fit",
+      "role": "supporting"
+    },
+    {
+      "component": "empty",
+      "reason": "Empty-state UI — replaces dashed `border-dashed` divs",
+      "role": "primary"
+    },
+    {
+      "component": "card",
+      "reason": "Standard card surface — never roll `rounded-lg border bg-card` by hand",
+      "role": "primary"
+    },
+    {
+      "component": "separator",
+      "reason": "Visual divider tied to `--border` token",
+      "role": "supporting"
+    },
+    {
+      "component": "badge",
+      "reason": "Status chip — replaces `rounded-full border text-xs` spans",
+      "role": "supporting"
+    },
+    {
+      "component": "tag",
+      "reason": "Filter / topic chip variant of badge",
+      "role": "supporting"
+    },
+    {
+      "component": "timeline",
+      "reason": "Chronological list — replaces hand-rolled `<ol>` + absolute dots",
+      "role": "supporting"
+    },
+    {
+      "component": "breadcrumb",
+      "reason": "Back-link nav — replaces ad-hoc `←` anchors",
+      "role": "supporting"
+    }
+  ],
+  "checklist": [
+    {
+      "id": "use-container-width",
+      "check": "Use `<Container size='md'>` for page-width constraints instead of `mx-auto max-w-*`.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "use-grid-auto-fit",
+      "check": "Use `<Grid cols='auto-fit' minColWidth='280px'>` for responsive card grids — no more `sm:grid-cols-2 md:grid-cols-3` breakpoint chains.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "use-stack-not-space-y",
+      "check": "Use `<Stack gap='…'>` for vertical rhythm instead of `space-y-*` utility chains.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "use-empty-not-dashed-div",
+      "check": "Use `<Empty>` for empty states instead of dashed-border divs.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "use-breadcrumb-not-anchor",
+      "check": "Use `<Breadcrumb>` for back-links instead of hand-rolled `←` anchors.",
+      "severity": "nit",
+      "source": "author"
+    },
+    {
+      "id": "use-timeline-not-ol",
+      "check": "Use `<Timeline>` for chronological listings instead of `<ol>` + absolute-positioned dots.",
+      "severity": "nit",
+      "source": "author"
+    },
+    {
+      "id": "container-wrapping-a-container-in-another-container-and-ge",
+      "check": "[Container] Avoid: Wrapping a `Container` in another `Container` and getting an unexpectedly narrow column",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "container-using-padding-none-and-forgetting-that-children-",
+      "check": "[Container] Avoid: Using `padding=\"none\"` and forgetting that children still need their own gutter — the parent contributes nothing",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "container-treating-lg-as-the-largest-size-xl-66rem-and-ful",
+      "check": "[Container] Avoid: Treating `lg` as the largest size — `xl` (66rem) and `full` are bigger",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "container-a11y",
+      "check": "[Container] A11y: Container is presentational. Wrap in a semantic landmark (`<main>`, `<section>`, `<article>`) when the page structure needs it; Container itself renders a plain `<div>`.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "stack-setting-gap-md-then-adding-mt-space-y-on-individ",
+      "check": "[Stack] Avoid: Setting `gap=\"md\"` then adding `mt-*` / `space-y-*` on individual children — pick one spacing system",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "stack-using-align-center-and-wondering-why-children-ex",
+      "check": "[Stack] Avoid: Using `align=\"center\"` and wondering why children expand to full width — that's the `stretch` default for cross-axis",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "stack-nesting-stack-inside-stack-with-the-same-gap-whe",
+      "check": "[Stack] Avoid: Nesting Stack inside Stack with the same gap when one Stack with two children would suffice",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "stack-a11y",
+      "check": "[Stack] A11y: Stack is presentational. Wrap stacked navigation links in a `<nav>`, stacked form fields in a `<form>`, etc. — Stack does not contribute landmark semantics.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "cluster-forgetting-that-cluster-wraps-adding-flex-nowrap",
+      "check": "[Cluster] Avoid: Forgetting that `Cluster` wraps — adding `flex-nowrap` defeats the purpose; if you don't want wrap, use a flex row or `Stack` rotated",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "cluster-setting-align-baseline-for-icon-text-rows-where-",
+      "check": "[Cluster] Avoid: Setting `align=\"baseline\"` for icon+text rows where the icon's bbox doesn't have a baseline — use `center` instead",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "cluster-reaching-for-cluster-for-tabular-alignment-use-g",
+      "check": "[Cluster] Avoid: Reaching for `Cluster` for tabular alignment — use `Grid` or a real `<table>` when columns must line up",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "cluster-a11y",
+      "check": "[Cluster] A11y: Cluster is presentational. Lists of navigational items should be wrapped in `<nav>` (and ideally `<ul>` / `<li>`). Lists of tags can use a list element for screen-reader semantics; the visual wrap is independent.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "grid-setting-cols-5-and-getting-nothing-the-preset-on",
+      "check": "[Grid] Avoid: Setting `cols={5}` and getting nothing — the preset only supports 1/2/3/4/6 (deliberate, to avoid odd visual rhythms); use `cols=\"auto-fit\"` for arbitrary counts",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "grid-passing-cols-auto-fit-without-mincolwidth-the-de",
+      "check": "[Grid] Avoid: Passing `cols=\"auto-fit\"` without `minColWidth` — the default `16rem` may not match your design intent",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "grid-using-grid-for-two-children-when-cluster-or-stac",
+      "check": "[Grid] Avoid: Using `Grid` for two children when `Cluster` or `Stack` would communicate intent better",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "grid-a11y",
+      "check": "[Grid] A11y: Grid is presentational. If the grid renders a list of similar items, wrap in `<ul>`/`<li>` for screen-reader semantics — Grid only handles visual layout.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "spacer-using-spacer-between-every-child-in-a-stack-just",
+      "check": "[Spacer] Avoid: Using `<Spacer />` between every child in a Stack — just set the Stack's `gap` instead",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "spacer-using-axis-both-and-getting-a-square-block-where",
+      "check": "[Spacer] Avoid: Using `axis=\"both\"` and getting a square block where you wanted a line — `both` is rare, usually you want vertical or horizontal",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "spacer-setting-size-lg-on-a-horizontal-spacer-and-getti",
+      "check": "[Spacer] Avoid: Setting size=\"lg\" on a horizontal spacer and getting nothing visible because the parent isn't a flex row — Spacer reserves space, it doesn't push siblings on its own",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "spacer-a11y",
+      "check": "[Spacer] A11y: Spacer is `aria-hidden=\"true\"` — screen readers skip it. Don't use a Spacer where a `Separator` would convey meaning (a thematic break should be `Separator`, not `Spacer`).",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "empty-using-empty-without-an-action-leaves-the-user-st",
+      "check": "[Empty] Avoid: Using Empty without an action — leaves the user stuck",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "empty-long-descriptions-keep-to-one-sentence-this-is-a",
+      "check": "[Empty] Avoid: Long descriptions — keep to one sentence; this is a state surface, not documentation",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "empty-forgetting-titleas-when-the-page-already-has-an-",
+      "check": "[Empty] Avoid: Forgetting titleAs when the page already has an h2 above (heading hierarchy break)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "empty-a11y",
+      "check": "[Empty] A11y: Wrapped in a region landmark labeled by the title (aria-labelledby + auto-generated id). Icon is decorative (aria-hidden). Pair the action with a Button that has a visible label.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "card-nesting-cards",
+      "check": "[Card] Avoid: Nesting cards",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "card-using-card-when-a-simple-div-with-border-would-s",
+      "check": "[Card] Avoid: Using Card when a simple div with border would suffice",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "card-forgetting-cardcontent-padding-when-placing-form",
+      "check": "[Card] Avoid: Forgetting CardContent padding when placing forms inside",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "card-a11y",
+      "check": "[Card] A11y: Card is a div by default. Add role='region' and aria-labelledby (pointing to CardTitle's id) for landmark cards. CardTitle renders h3 — ensure heading hierarchy is correct on the page.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "separator-using-as-spacing-instead-of-semantic-separation",
+      "check": "[Separator] Avoid: Using as spacing instead of semantic separation",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "separator-forgetting-orientation-vertical-needs-parent-hei",
+      "check": "[Separator] Avoid: Forgetting orientation='vertical' needs parent height",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "separator-a11y",
+      "check": "[Separator] A11y: Set decorative=false if the separator conveys semantic meaning. Radix handles role='separator'.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "badge-using-destructive-variant-for-non-error-states",
+      "check": "[Badge] Avoid: Using destructive variant for non-error states",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "badge-badge-text-too-long",
+      "check": "[Badge] Avoid: Badge text too long",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "badge-a11y",
+      "check": "[Badge] A11y: Purely decorative by default. Add role='status' for dynamic status badges.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "tag-forgetting-onremove-on-a-tag-the-user-can-dismis",
+      "check": "[Tag] Avoid: Forgetting onRemove on a tag the user CAN dismiss — leaves the affordance invisible",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "tag-calling-it-tag-but-rendering-inside-a-list-of-st",
+      "check": "[Tag] Avoid: Calling it Tag but rendering inside a list of static labels — confuses Tag (interactive) vs Badge (decorative) semantics",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "tag-wrapping-the-tag-itself-in-a-button-the-dismiss-",
+      "check": "[Tag] Avoid: Wrapping the tag itself in a <button> — the dismiss button already handles its own click; double-button breaks accessibility",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "tag-a11y",
+      "check": "[Tag] A11y: Close button gets aria-label derived from children when they're a string ('Remove Urgent'). Override via removeLabel. Tag itself is a span — wrap in a list (`role='list'` + `role='listitem'`) when rendering N tags as a collection.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "timeline-forgetting-aria-label-the-ol-needs-an-accessible",
+      "check": "[Timeline] Avoid: Forgetting aria-label — the <ol> needs an accessible name to be understood as a feed",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "timeline-using-duplicate-event-ids-breaks-react-keys-and-",
+      "check": "[Timeline] Avoid: Using duplicate event ids — breaks React keys and event reconciliation on re-render",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "timeline-stuffing-the-description-with-rich-layouts-that-",
+      "check": "[Timeline] Avoid: Stuffing the description with rich layouts that overflow the timeline rail — keep it short or move to a Card",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "timeline-setting-status-error-on-every-event-for-emphasis",
+      "check": "[Timeline] Avoid: Setting status='error' on every event for emphasis — color loses meaning when overused",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "timeline-mixing-controlled-timestamps-as-date-objects-wit",
+      "check": "[Timeline] Avoid: Mixing controlled timestamps as Date objects without formatting — Timeline accepts ReactNode, so format upstream (date-fns) before passing in",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "timeline-a11y",
+      "check": "[Timeline] A11y: Renders <ol> with the provided aria-label. The status-colored indicator and connector line are aria-hidden — meaning is carried entirely by the title/timestamp/description text. No aria-current; events are historical, not navigational. For >50 events consider a windowing solution outside Timeline.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "breadcrumb-making-the-current-page-a-link-use-breadcrumbpag",
+      "check": "[Breadcrumb] Avoid: Making the current page a link (use BreadcrumbPage)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "breadcrumb-showing-just-one-item-defeats-the-purpose",
+      "check": "[Breadcrumb] Avoid: Showing just one item (defeats the purpose)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "breadcrumb-using-plain-text-separators-without-aria-hidden",
+      "check": "[Breadcrumb] Avoid: Using plain text separators without aria-hidden",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "breadcrumb-a11y",
+      "check": "[Breadcrumb] A11y: Root <nav aria-label='breadcrumb'> creates a landmark. BreadcrumbPage has aria-current='page'. Separators are aria-hidden (decorative). BreadcrumbEllipsis is decorative (SVG aria-hidden) with a sr-only 'More pages' label.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 3200
+}
