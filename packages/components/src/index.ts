@@ -353,6 +353,18 @@ export { Sources, type SourcesProps, type SourceRef } from "./ai/sources/sources
 export { InlineCitation, type InlineCitationProps } from "./ai/inline-citation/inline-citation.js";
 export { Task, type TaskProps, type TaskStep } from "./ai/task/task.js";
 export { Shimmer, type ShimmerProps } from "./ai/shimmer/shimmer.js";
+export { Branch, type BranchProps } from "./ai/branch/branch.js";
+export { Plan, type PlanProps, type PlanStep } from "./ai/plan/plan.js";
+export {
+	Conversation,
+	type ConversationProps,
+	type ConversationMessage,
+} from "./ai/conversation/conversation.js";
+export {
+	ChainOfThought,
+	type ChainOfThoughtProps,
+	type ChainOfThoughtStep,
+} from "./ai/chain-of-thought/chain-of-thought.js";
 
 // Artifacts — typed React diagram primitives.
 // Hierarchy family heavy peers (d3-hierarchy, d3-shape) and Flow-family

@@ -51,6 +51,22 @@ export const CLIENT_PATTERNS = [
 	// extra "use client" directive per misidentified file, vs the
 	// false-negative cost which is a runtime crash.
 	/\bon[A-Z]\w*\s*=\s*[{(]/,
+	// Explicit author opt-in. Honors a `"use client"` directive even when
+	// the file itself contains no client-only API or handler — the canonical
+	// case is a composition wrapper (e.g. ChainOfThought wraps Reasoning,
+	// inheriting client-only state) that doesn't itself import Radix or
+	// reach for a hook. Placed last so the more frequently-matching import +
+	// hook + handler patterns short-circuit `Array.some()` first; this rule
+	// only runs for the small fraction of files that don't trip any other
+	// signal but still declare client.
+	//
+	// Known false-positive direction (acceptable, same as other patterns):
+	// a multiline template literal whose start-of-line is `"use client"`
+	// will trip this. Files under `packages/components/src/` are very
+	// unlikely to embed a string with that exact shape, and a false
+	// positive only over-classifies as client (perf miss), never the
+	// other way around (which would be a runtime crash).
+	/^\s*("use client"|'use client')\s*;?/m,
 ];
 
 /**

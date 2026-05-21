@@ -1,0 +1,148 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "branch",
+  "displayName": "Branch",
+  "description": "Headless alternate-response navigator. Renders one active branch with a prev/next control chip beneath it. Stateless — consumer owns `current` and `total`.",
+  "category": "ai",
+  "subcategory": "agent",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "current",
+      "type": "number",
+      "required": true,
+      "description": "Zero-indexed active branch."
+    },
+    {
+      "name": "total",
+      "type": "number",
+      "required": true,
+      "description": "Total number of branches."
+    },
+    {
+      "name": "onCurrentChange",
+      "type": "function",
+      "required": false,
+      "description": "Called with the next index when the user steps prev/next. Omit to render the controls disabled (read-only)."
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "required": true,
+      "description": "The active branch's content — typically a `<Message>` wrapping `<Markdown>`."
+    },
+    {
+      "name": "aria-label",
+      "type": "string",
+      "required": false,
+      "default": "Response branches",
+      "description": "Accessible name for the navigator landmark."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the root."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "children",
+      "description": "The active branch's content. Render any node — typically `<Message>` + `<Markdown>`.",
+      "required": true,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/branch.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Headless alternate-response navigator. Renders the active branch\n * (`children`) with a prev/next control chip beneath it. Stateless —\n * the consumer owns `current` (zero-indexed) and `total`.\n *\n * Keyboard: ArrowLeft / ArrowRight step through branches when focus\n * lives anywhere inside the group (the wrapper itself is not focusable;\n * the prev/next buttons or any focusable descendant carry the keys).\n * Read-only when `onCurrentChange` is omitted.\n *\n * @example\n * <Branch current={index} total={alternatives.length} onCurrentChange={setIndex}>\n *   <Message role=\"assistant\">\n *     <Markdown>{alternatives[index]}</Markdown>\n *   </Message>\n * </Branch>\n */\nexport interface BranchProps {\n\t/** Zero-indexed active branch. */\n\tcurrent: number;\n\t/** Total number of branches. */\n\ttotal: number;\n\t/** Optional change handler — when omitted, the controls render disabled. */\n\tonCurrentChange?: (next: number) => void;\n\t/** The active branch content (typically a `<Message>` or `<Markdown>`). */\n\tchildren: React.ReactNode;\n\t/** Override the accessible label for the navigator landmark. */\n\t\"aria-label\"?: string;\n\tclassName?: string;\n}\n\n/**\n * Render a single-active-branch navigator with prev/next controls.\n * @param props - current/total + change handler + body\n * @returns A nav landmark wrapping the active branch and a control chip\n */\nfunction Branch({\n\tcurrent,\n\ttotal,\n\tonCurrentChange,\n\tchildren,\n\t\"aria-label\": ariaLabel = \"Response branches\",\n\tclassName,\n}: BranchProps) {\n\t// `total === 0` is a nonsense state (no branches to navigate) — render\n\t// nothing so the chip never reads \"1 of 0\". Consumers should guard\n\t// upstream, but a defensive return beats nonsensical UI.\n\tif (total <= 0) return null;\n\tconst interactive = typeof onCurrentChange === \"function\";\n\tconst atFirst = current <= 0;\n\tconst atLast = current >= total - 1;\n\n\tfunction go(delta: number) {\n\t\tif (!interactive) return;\n\t\tconst next = current + delta;\n\t\tif (next < 0 || next > total - 1) return;\n\t\tonCurrentChange(next);\n\t}\n\n\tfunction handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {\n\t\tif (!interactive) return;\n\t\tif (event.key === \"ArrowLeft\") {\n\t\t\tevent.preventDefault();\n\t\t\tgo(-1);\n\t\t} else if (event.key === \"ArrowRight\") {\n\t\t\tevent.preventDefault();\n\t\t\tgo(1);\n\t\t}\n\t}\n\n\treturn (\n\t\t<div\n\t\t\trole=\"group\"\n\t\t\taria-label={ariaLabel}\n\t\t\tonKeyDown={handleKeyDown}\n\t\t\tclassName={cn(\"flex flex-col gap-2\", className)}\n\t\t>\n\t\t\t<div>{children}</div>\n\t\t\t<div className=\"flex items-center justify-end gap-1\">\n\t\t\t\t<button\n\t\t\t\t\ttype=\"button\"\n\t\t\t\t\taria-label=\"Previous response\"\n\t\t\t\t\tdisabled={!interactive || atFirst}\n\t\t\t\t\tonClick={() => go(-1)}\n\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\"inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground\",\n\t\t\t\t\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\t\t\"hover:bg-muted hover:text-foreground\",\n\t\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t\t\t\"disabled:pointer-events-none disabled:opacity-40\",\n\t\t\t\t\t)}\n\t\t\t\t>\n\t\t\t\t\t<ChevronLeft />\n\t\t\t\t</button>\n\t\t\t\t<span\n\t\t\t\t\t/*\n\t\t\t\t\t * Live-region only when the consumer wired up navigation —\n\t\t\t\t\t * read-only branches don't change, so announcing every\n\t\t\t\t\t * mount would be noise in a chat surface with many\n\t\t\t\t\t * <Branch> blocks. aria-atomic ensures the chip reads as\n\t\t\t\t\t * one unit (\"2 of 3\") rather than two diff'd numbers.\n\t\t\t\t\t */\n\t\t\t\t\taria-live={interactive ? \"polite\" : undefined}\n\t\t\t\t\taria-atomic={interactive ? \"true\" : undefined}\n\t\t\t\t\tclassName=\"select-none px-1 text-xs tabular-nums text-muted-foreground\"\n\t\t\t\t>\n\t\t\t\t\t{current + 1} of {total}\n\t\t\t\t</span>\n\t\t\t\t<button\n\t\t\t\t\ttype=\"button\"\n\t\t\t\t\taria-label=\"Next response\"\n\t\t\t\t\tdisabled={!interactive || atLast}\n\t\t\t\t\tonClick={() => go(1)}\n\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\"inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground\",\n\t\t\t\t\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\t\t\"hover:bg-muted hover:text-foreground\",\n\t\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t\t\t\"disabled:pointer-events-none disabled:opacity-40\",\n\t\t\t\t\t)}\n\t\t\t\t>\n\t\t\t\t\t<ChevronRight />\n\t\t\t\t</button>\n\t\t\t</div>\n\t\t</div>\n\t);\n}\n\nfunction ChevronLeft() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"14\"\n\t\t\theight=\"14\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.75\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t>\n\t\t\t<path d=\"M10 4l-4 4 4 4\" />\n\t\t</svg>\n\t);\n}\n\nfunction ChevronRight() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"14\"\n\t\t\theight=\"14\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.75\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t>\n\t\t\t<path d=\"M6 4l4 4-4 4\" />\n\t\t</svg>\n\t);\n}\n\nexport { Branch };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n\nconst SAFE_URL_SCHEMES = [\"http:\", \"https:\", \"mailto:\"] as const;\n\n/**\n * Allowlist a URL for use as an `<a href>` against untrusted input.\n *\n * Returns the raw string when it's `http(s):` / `mailto:` / a relative\n * URL (no scheme); returns `undefined` otherwise. Defends against\n * `javascript:` / `data:` / `vbscript:` injection from streamed model\n * output or third-party JSON payloads that flow into citation chips.\n *\n * Inside a Markdown render path, `rehype-sanitize` already strips\n * `javascript:` from inline-link hrefs — but it does NOT introspect\n * JSON nested inside attribute values (e.g. `<sources data='[…]'/>`),\n * so the components that consume that data must guard themselves.\n *\n * @param raw - The candidate URL, or `undefined` when none was supplied.\n * @returns The URL when safe to render, otherwise `undefined`.\n */\nexport function safeUrl(raw: string | undefined): string | undefined {\n\tif (raw === undefined || raw === \"\") return undefined;\n\t// Relative URLs have no scheme — `new URL(relative)` throws without a base,\n\t// so a thrown URL means either malformed input OR a relative path. Treat\n\t// \"throws + does not contain a colon\" as a relative path (safe).\n\tlet parsed: URL;\n\ttry {\n\t\tparsed = new URL(raw);\n\t} catch {\n\t\treturn raw.includes(\":\") ? undefined : raw;\n\t}\n\treturn SAFE_URL_SCHEMES.some((scheme) => scheme === parsed.protocol) ? raw : undefined;\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "muted",
+    "muted-foreground",
+    "foreground",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Switch between alternate model responses",
+      "description": "Three response candidates; arrow keys + chip step through them.",
+      "code": "const [i, setI] = useState(0);\n<Branch current={i} total={alternatives.length} onCurrentChange={setI}>\n  <Message role=\"assistant\"><Markdown>{alternatives[i]}</Markdown></Message>\n</Branch>",
+      "composition": [
+        "chat",
+        "branch",
+        "alternates"
+      ]
+    },
+    {
+      "title": "Read-only single-branch view",
+      "description": "Omit `onCurrentChange` to render the chip disabled — for archived conversations or when the model only produced one response.",
+      "code": "<Branch current={0} total={1}>\n  <Message role=\"assistant\"><Markdown>{response}</Markdown></Message>\n</Branch>",
+      "composition": [
+        "chat",
+        "branch",
+        "read-only"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "When a model returns multiple alternate responses (regenerate, n>1, ensemble) and the user should be able to navigate between them. Pair with `<Message>` + `<Markdown>` for the body and let the consumer own the active index.",
+    "whenNotToUse": "Don't use for sequential chat history (use `<MessageList>`). Don't use for unrelated tabs (use `<Tabs>`). Don't use to gate streaming — render the in-flight response directly.",
+    "commonMistakes": [
+      "Passing `current` outside `[0, total - 1]` — the prev/next controls disable at the boundaries; out-of-range values render the controls but show the wrong index in the chip",
+      "Treating Branch as stateful — it's headless, the consumer must keep `current` in their own state and react to `onCurrentChange`",
+      "Rendering all branches inside `children` — Branch shows ONE branch at a time; the consumer slices to the active branch before passing in",
+      "Using Branch for tabs or steppers — they're separate primitives with different semantics (Tabs = labeled regions, Stepper = ordered progress)"
+    ],
+    "relatedComponents": [
+      "pagination",
+      "tabs",
+      "message",
+      "markdown"
+    ],
+    "accessibilityNotes": "Wraps the body in a `role=\"group\"` with a labelled landmark. Prev/next are real `<button>`s with aria-labels (\"Previous response\" / \"Next response\") and disabled state at boundaries. The N-of-M chip is `aria-live=\"polite\"` + `aria-atomic=\"true\"` only when interactive (so AT announces the new position as one unit when the user steps); read-only branches drop the live-region to avoid initial-mount noise on chat surfaces with many `<Branch>` blocks. Arrow keys (Left/Right) step through branches when focus is anywhere inside the group; the wrapper itself is not focusable, so the prev/next buttons or any focusable descendant carry the keys.",
+    "tokenBudget": 220
+  },
+  "tags": [
+    "ai",
+    "agent",
+    "branch",
+    "navigation",
+    "alternates"
+  ]
+}
