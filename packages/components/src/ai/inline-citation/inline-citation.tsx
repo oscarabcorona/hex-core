@@ -2,7 +2,7 @@
 
 import * as HoverCardPrimitive from "@radix-ui/react-hover-card";
 import * as React from "react";
-import { cn } from "../../lib/utils.js";
+import { cn, safeUrl } from "../../lib/utils.js";
 
 /**
  * Inline footnote-style reference with a hover-preview popover.
@@ -42,11 +42,15 @@ export interface InlineCitationProps {
 function InlineCitation({
 	index,
 	title,
-	url,
+	url: rawUrl,
 	excerpt,
 	openDelay = 200,
 	className,
 }: InlineCitationProps) {
+	// Gate the URL against `javascript:` / `data:` / `vbscript:` schemes
+	// before it reaches an `<a href>`. Markdown-path callers already pass
+	// rehype-sanitized hrefs, but direct-JSX consumers can hand us anything.
+	const url = safeUrl(rawUrl);
 	const triggerClasses = cn(
 		"inline-flex select-none items-center justify-center rounded-sm bg-primary/10 px-1 py-0.5 text-[0.7em] font-mono font-semibold text-primary leading-none",
 		"transition-all duration-[var(--duration-normal,200ms)] ease-out",

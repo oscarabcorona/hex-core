@@ -44,6 +44,18 @@ describe("InlineCitation — rendering", () => {
 		expect(link).toHaveAttribute("aria-label", "Source 3: OAuth 2.1 spec");
 	});
 
+	it("drops a javascript: url and falls back to the no-url <button> trigger", () => {
+		const { container } = render(
+			<InlineCitation index={4} title="Hostile" url="javascript:alert(1)" />,
+		);
+		const sup = container.querySelector("sup");
+		// No anchor rendered — safeUrl returned undefined so the no-url branch kicked in.
+		expect(sup?.querySelector("a")).toBeNull();
+		const button = sup?.querySelector("button");
+		expect(button).not.toBeNull();
+		expect(button?.getAttribute("type")).toBe("button");
+	});
+
 	it("doesn't render preview content in the DOM until hover (Radix HoverCard portal)", () => {
 		const { container } = render(
 			<InlineCitation

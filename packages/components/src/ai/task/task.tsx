@@ -11,6 +11,9 @@ import { cn } from "../../lib/utils.js";
  * task`) ships a self-contained file. ToolCall has the same enum
  * imported from `../types.js` for backwards-compat with its earlier
  * shape; new consumers should treat the two unions as one vocabulary.
+ *
+ * KEEP IN SYNC with `../types.js`'s `ToolCallState` enum. Drift is
+ * locked down by an `expectTypeOf` assertion in `task.test.tsx`.
  */
 type ToolCallState = "pending" | "running" | "result" | "error";
 

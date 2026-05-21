@@ -1,7 +1,18 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
-import { Task } from "./task.js";
+import { describe, expect, expectTypeOf, it } from "vitest";
+import { Task, type TaskStep } from "./task.js";
+import type { ToolCallState } from "../types.js";
+
+describe("Task — step state vocabulary", () => {
+	it("step.state is identical to ../types.js's ToolCallState (drift guard)", () => {
+		// Type-only assertion; this is a test file, not part of the
+		// registry CLI distribution, so importing `../types.js` here is
+		// safe. If the inline `ToolCallState` in `task.tsx` drifts from
+		// the canonical enum, this assertion fails at compile time.
+		expectTypeOf<TaskStep["state"]>().toEqualTypeOf<ToolCallState>();
+	});
+});
 
 const STEPS_RUNNING = [
 	{ id: "a", label: "Plan", state: "result" as const },

@@ -87,10 +87,31 @@ describe("Markdown — <sources> element routes to Sources", () => {
 			{ title: "OAuth 2.1 spec", url: "https://oauth.net/2.1" },
 		];
 		const md = `<sources data='${JSON.stringify(sources).replace(/'/g, "&apos;")}' />`;
-		render(<Markdown>{md}</Markdown>);
+		const { container } = render(<Markdown>{md}</Markdown>);
 		expect(screen.getByRole("button", { name: /2 sources/i })).toBeInTheDocument();
 		expect(screen.getByText(/auth research/i)).toBeInTheDocument();
 		expect(screen.getByText(/oauth 2\.1 spec/i)).toBeInTheDocument();
+		// The raw <sources> element is replaced by the slot's React tree —
+		// it must not survive into the live DOM (otherwise the 100KB data
+		// attr would inflate the live DOM size on every streaming token).
+		expect(container.querySelector("sources")).toBeNull();
+	});
+
+	it("drops dangerous URL schemes from <sources data> payload before they reach an <a href>", () => {
+		const sources = [
+			{ title: "JS", url: "javascript:alert(1)" },
+			{ title: "Data", url: "data:text/html,<script>alert(1)</script>" },
+			{ title: "VB", url: "vbscript:msgbox(1)" },
+			{ title: "Good", url: "https://example.com/ok" },
+		];
+		const md = `<sources data='${JSON.stringify(sources).replace(/'/g, "&apos;")}' />`;
+		const { container } = render(<Markdown>{md}</Markdown>);
+		// All four rows render (bad ones as non-link spans); panel still mounts.
+		expect(screen.getByRole("button", { name: /4 sources/i })).toBeInTheDocument();
+		// No anchor carries a dangerous-scheme URL.
+		const hrefs = Array.from(container.querySelectorAll("a"))
+			.map((a) => (a.getAttribute("href") ?? "").trim().toLowerCase());
+		expect(hrefs.some((h) => /^(javascript|data|vbscript):/.test(h))).toBe(false);
 	});
 
 	it("falls back to passthrough when <sources data> is malformed JSON", () => {
@@ -144,14 +165,14 @@ describe("Markdown — sanitize-schema XSS regressions", () => {
 		}
 	});
 
-	it("strips javascript: hrefs from markdown links", () => {
+	it("strips dangerous-scheme hrefs from markdown links", () => {
 		const { container } = render(
 			<Markdown>{"[click](javascript:alert(1))"}</Markdown>,
 		);
 		const link = container.querySelector("a");
 		// rehype-sanitize either drops the href entirely or leaves the link without one.
-		const href = link?.getAttribute("href") ?? "";
-		expect(href.startsWith("javascript:")).toBe(false);
+		const href = (link?.getAttribute("href") ?? "").trim().toLowerCase();
+		expect(/^(javascript|data|vbscript):/.test(href)).toBe(false);
 	});
 
 	it("strips raw <iframe> tags", () => {

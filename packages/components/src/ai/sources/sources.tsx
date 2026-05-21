@@ -2,7 +2,7 @@
 
 import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
 import * as React from "react";
-import { cn } from "../../lib/utils.js";
+import { cn, safeUrl } from "../../lib/utils.js";
 import { Citation } from "../citation/citation.js";
 
 /**
@@ -79,7 +79,10 @@ function Sources({ sources, defaultOpen = true, className }: SourcesProps) {
 						<Citation
 							key={`${s.url ?? s.title}-${i}`}
 							title={s.title}
-							url={s.url}
+							// Gate the URL even though markdown-path callers already
+							// route through `safeUrl` — direct-JSX consumers can hand
+							// us anything.
+							url={safeUrl(s.url)}
 							page={s.page}
 							index={s.index ?? i + 1}
 						/>

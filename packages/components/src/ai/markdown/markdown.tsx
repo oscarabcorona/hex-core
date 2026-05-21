@@ -10,7 +10,7 @@ import { Reasoning } from "../reasoning/reasoning.js";
 import { Sources, type SourceRef } from "../sources/sources.js";
 import { ToolCall } from "../tool-call/tool-call.js";
 import type { ToolCallState } from "../types.js";
-import { cn } from "../../lib/utils.js";
+import { cn, safeUrl } from "../../lib/utils.js";
 import { closeUnterminated } from "./close-unterminated.js";
 import { remarkAdmonitions } from "./remark-admonitions.js";
 
@@ -390,7 +390,10 @@ function parseSources(raw: string | undefined): SourceRef[] | null {
 		// so the typeof guards below narrow without an `as` cast.
 		if (!("title" in item) || typeof item.title !== "string") continue;
 		const ref: SourceRef = { title: item.title };
-		if ("url" in item && typeof item.url === "string") ref.url = item.url;
+		if ("url" in item && typeof item.url === "string") {
+			const url = safeUrl(item.url);
+			if (url !== undefined) ref.url = url;
+		}
 		if ("page" in item && typeof item.page === "number") ref.page = item.page;
 		if ("index" in item && typeof item.index === "number") ref.index = item.index;
 		result.push(ref);
