@@ -4,6 +4,7 @@ import pc from "picocolors";
 import { detectTailwind } from "../lib/detect-tailwind.js";
 import { detectSrcLayout, resolveAlias } from "../lib/resolve-alias.js";
 import { type AliasConfig, DEFAULT_ALIASES } from "../lib/rewrite-imports.js";
+import { walkSourceFiles } from "../lib/walk-sources.js";
 
 export type CheckStatus = "pass" | "fail" | "warn" | "info";
 
@@ -34,7 +35,21 @@ interface DoctorContext {
  * stamp out a tmpdir, run `runDoctor`, and assert on the result without
  * mocks.
  */
-export async function runDoctor(cwd: string = process.cwd()): Promise<Check[]> {
+export interface DoctorOptions {
+	/**
+	 * When true, also run the layout-pattern scans:
+	 *   - components installed in `components/ui/` but never imported
+	 *   - hand-rolled layout markup that a composition primitive would replace
+	 * Quiet by default — only runs when `--layout` is passed because the
+	 * scans walk the entire `src/` (or `app/` + `components/`) tree.
+	 */
+	layout?: boolean;
+}
+
+export async function runDoctor(
+	cwd: string = process.cwd(),
+	options: DoctorOptions = {},
+): Promise<Check[]> {
 	const ctx = buildContext(cwd);
 	const checks: Check[] = [];
 	checks.push(checkHexConfig(ctx));
@@ -46,6 +61,9 @@ export async function runDoctor(cwd: string = process.cwd()): Promise<Check[]> {
 	if (ctx.tailwindVersion === "v3") checks.push(checkTailwindConfig(ctx));
 	checks.push(...checkRadixDeps(ctx));
 	checks.push(checkShadcnArtifacts(ctx));
+	if (options.layout) {
+		checks.push(...checkLayoutPatterns(ctx));
+	}
 	return checks;
 }
 
@@ -302,6 +320,156 @@ function checkRadixDeps(ctx: DoctorContext): Check[] {
 function depPresent(pkg: PackageJson | undefined, name: string): boolean {
 	if (!pkg) return false;
 	return Boolean(pkg.dependencies?.[name] ?? pkg.devDependencies?.[name]);
+}
+
+/**
+ * Find the consumer's source-file root. Prefer `src/` when present (Next.js
+ * `--src-dir` convention); otherwise walk both `app/` and `components/`.
+ * Returns the roots that exist, so `walkSourceFiles` skips missing paths.
+ */
+function sourceRoots(ctx: DoctorContext): string[] {
+	const candidates = [
+		path.join(ctx.cwd, "src"),
+		path.join(ctx.cwd, "app"),
+		path.join(ctx.cwd, "components"),
+	];
+	return candidates.filter((p) => fs.existsSync(p));
+}
+
+/**
+ * Hand-rolled layout patterns that the registry already has a primitive
+ * for. Each rule lists the file-level signal an agent typically writes
+ * when reaching for ad-hoc Tailwind utilities instead of composition.
+ * Severity is always `info` — the goal is to nudge, never to gate CI.
+ */
+const HAND_ROLLED_PATTERNS: ReadonlyArray<{
+	name: string;
+	test: (content: string) => boolean;
+	suggestion: string;
+}> = [
+	{
+		name: "space-y-* utility chain",
+		test: (s) => (s.match(/space-y-/g) ?? []).length >= 3,
+		suggestion: "Consider `<Stack gap='…'>` from @hex-core/components.",
+	},
+	{
+		name: "responsive grid via breakpoint variants",
+		test: (s) =>
+			/grid-cols-/.test(s) && /\b(sm|md|lg|xl):grid-cols-/.test(s),
+		suggestion: "Consider `<Grid cols='auto-fit' minColWidth='…'>` — replaces the breakpoint variants.",
+	},
+	{
+		name: "dashed empty-state div",
+		test: (s) => /border-dashed/.test(s) && /flex-col/.test(s),
+		suggestion: "Consider the `<Empty>` primitive.",
+	},
+	{
+		name: "hand-rolled timeline",
+		test: (s) => /<ol\b/.test(s) && /absolute/.test(s) && /rounded-full/.test(s),
+		suggestion: "Consider the `<Timeline>` block.",
+	},
+	{
+		name: "rounded-full badge span",
+		// All three classes present, order-independent — covers
+		// `rounded-full border text-xs`, `text-xs rounded-full border`,
+		// `border rounded-full text-xs px-2`, etc.
+		test: (s) => /rounded-full/.test(s) && /\bborder\b/.test(s) && /\btext-xs\b/.test(s),
+		suggestion: "Consider `<Badge>` or `<Tag>`.",
+	},
+];
+
+/**
+ * Pascal-case a component slug for symbol-name grepping. `code-block` → `CodeBlock`. Used to detect whether an installed component is rendered anywhere in the consumer's source tree. Note: renamed imports (`import { Card as Surface } from "@/components/ui/card"; <Surface/>`) won't match the JSX-symbol regex, but the companion import-path regex `from "…/<slug>"` still flags the file as a user — so the "installed but unused" check stays correct for the renamed case via the import-path signal, not this symbol signal.
+ */
+function slugToSymbol(slug: string): string {
+	return slug
+		.split("-")
+		.map((p) => (p.length === 0 ? "" : p[0]?.toUpperCase() + p.slice(1)))
+		.join("");
+}
+
+/**
+ * Layout scans surfaced by `hex doctor --layout`.
+ *
+ * Scan A — installed-but-unused: for every component on disk under
+ *   `components/ui/`, grep the consumer's source tree for at least one
+ *   `<Symbol` JSX usage or `from "<…components alias…>/<slug>"` import.
+ *   Emits an `info` finding for each component the user installed but
+ *   never composed — the canonical case the real-session feedback hit
+ *   (added `card` + `badge`, rolled raw `<div>`s anyway).
+ *
+ * Scan B — hand-rolled patterns: per-file regex pass for the five
+ *   utility chains that a Hex Core primitive replaces (`space-y-*`,
+ *   breakpoint `grid-cols-*`, dashed empty divs, ad-hoc timelines,
+ *   `rounded-full border` badge spans). One `info` finding per file
+ *   that triggers each rule.
+ *
+ * @param ctx - Doctor context (cwd + resolved components dir).
+ * @returns Up to N `info` findings; never `fail`.
+ */
+function checkLayoutPatterns(ctx: DoctorContext): Check[] {
+	const checks: Check[] = [];
+	const roots = sourceRoots(ctx);
+	if (roots.length === 0) return checks;
+
+	const sourceFiles: string[] = [];
+	for (const root of roots) {
+		sourceFiles.push(...walkSourceFiles(root, [".ts", ".tsx", ".js", ".jsx"]));
+	}
+	// Read each file once — Scan B's per-pattern probes share the buffer.
+	const sourceContents = new Map<string, string>();
+	for (const file of sourceFiles) {
+		try {
+			sourceContents.set(file, fs.readFileSync(file, "utf-8"));
+		} catch {
+			// File disappeared between walk and read — skip.
+		}
+	}
+
+	// Scan A: installed-but-unused components.
+	if (fs.existsSync(ctx.componentsDir)) {
+		const installed = fs
+			.readdirSync(ctx.componentsDir)
+			.filter((f) => /\.tsx?$/.test(f))
+			.map((f) => f.replace(/\.tsx?$/, ""));
+		for (const slug of installed) {
+			const symbol = slugToSymbol(slug);
+			// JSX usage: `<Symbol` or `<Symbol.` (compound components).
+			const symbolRe = new RegExp(`<${symbol}\\b|<${symbol}\\.`);
+			// Import: any path that ends in `/${slug}`. Tighter than `slug` alone
+			// so we don't false-match a variable that happens to share the name.
+			const importRe = new RegExp(`from\\s+["'][^"']*\\/${slug}["']`);
+			let used = false;
+			for (const [, content] of sourceContents) {
+				if (symbolRe.test(content) || importRe.test(content)) {
+					used = true;
+					break;
+				}
+			}
+			if (used) continue;
+			checks.push({
+				name: `installed but unused: ${slug}`,
+				status: "info",
+				hint: `<${symbol}> is in components/ui/ but no source file imports or renders it. Migrate ad-hoc markup to <${symbol}> or remove the component.`,
+			});
+		}
+	}
+
+	// Scan B: hand-rolled layout patterns.
+	for (const [file, content] of sourceContents) {
+		const rel = path.relative(ctx.cwd, file);
+		for (const rule of HAND_ROLLED_PATTERNS) {
+			if (rule.test(content)) {
+				checks.push({
+					name: `${rel}: ${rule.name}`,
+					status: "info",
+					hint: rule.suggestion,
+				});
+			}
+		}
+	}
+
+	return checks;
 }
 
 /**

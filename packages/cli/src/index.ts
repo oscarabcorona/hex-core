@@ -29,7 +29,7 @@ program
 program
 	.command("add")
 	.description("Add a component to your project")
-	.argument("[components...]", "Component names to add (omit when using --from)")
+	.argument("[components...]", "Component names to add (omit when using --from or --pack)")
 	.option("-y, --yes", "Skip confirmation prompts", false)
 	.option("-o, --overwrite", "Overwrite existing files", false)
 	.option("--no-deps", "Don't install internal component dependencies recursively")
@@ -38,6 +38,10 @@ program
 	.option(
 		"--from <manifest>",
 		"Install every slug from a `hex.components.json`-style manifest instead of positional args",
+	)
+	.option(
+		"--pack <name>",
+		"Install a curated pack instead of positional args. Currently: `layout` (container, stack, cluster, grid, spacer, empty)",
 	)
 	.action(
 		async (
@@ -49,14 +53,23 @@ program
 				install: boolean;
 				dryRun?: boolean;
 				from?: string;
+				pack?: string;
 			},
 		) => {
-			if (components.length === 0 && !options.from) {
-				console.error("Pass at least one component name, or --from <manifest>.");
+			const { addComponents, layoutPack } = await import("./commands/add.js");
+			let queue = components;
+			if (options.pack !== undefined) {
+				if (options.pack !== "layout") {
+					console.error(`Unknown --pack value: ${options.pack}. Known packs: layout.`);
+					process.exit(1);
+				}
+				queue = [...components, ...layoutPack()];
+			}
+			if (queue.length === 0 && !options.from) {
+				console.error("Pass at least one component name, --from <manifest>, or --pack <name>.");
 				process.exit(1);
 			}
-			const { addComponents } = await import("./commands/add.js");
-			await addComponents(components, options);
+			await addComponents(queue, options);
 		},
 	);
 
@@ -69,12 +82,14 @@ program
 		"Replace existing files. Pass a comma list (globals.css,tailwind.config.ts) or omit the value for everything.",
 	)
 	.option("--no-install", "Don't auto-install peer dependencies — only print the install line")
+	.option("--mcp", "Wire @hex-core/mcp into your AI tool (creates .mcp.json at repo root, or merges into .cursor/mcp.json / .continue/config.json)", false)
 	.option("--check", "Verify alias/Tailwind drift and exit non-zero if anything's wrong (CI mode)", false)
 	.action(
 		async (options: {
 			theme: string;
 			overwrite?: string | boolean;
 			install: boolean;
+			mcp: boolean;
 			check?: boolean;
 		}) => {
 			const { initProject, parseOverwriteFlag } = await import("./commands/init.js");
@@ -82,6 +97,7 @@ program
 				theme: options.theme,
 				overwrite: parseOverwriteFlag(options.overwrite),
 				install: options.install,
+				mcp: options.mcp,
 				check: options.check,
 			});
 		},
@@ -256,9 +272,14 @@ program
 program
 	.command("doctor")
 	.description("Diagnose your Hex Core install and report what's missing")
-	.action(async () => {
+	.option(
+		"--layout",
+		"Additionally scan source for installed-but-unused components + hand-rolled layout patterns that primitives would replace",
+		false,
+	)
+	.action(async (options: { layout: boolean }) => {
 		const { runDoctor, reportDoctor } = await import("./commands/doctor.js");
-		const checks = await runDoctor();
+		const checks = await runDoctor(process.cwd(), { layout: options.layout });
 		const code = reportDoctor(checks);
 		if (code !== 0) process.exit(code);
 	});

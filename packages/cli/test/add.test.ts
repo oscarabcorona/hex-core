@@ -149,6 +149,55 @@ describe("addComponents — heavy peer aggregation", () => {
 	});
 });
 
+describe("addComponents — onboarding nudges", () => {
+	it("prints the `Related primitives` line for `hex add card`", async () => {
+		await addComponents(["card"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).toContain("Related primitives you might want next:");
+		// `card`'s schema lists button/separator/container/stack — at least one must surface.
+		expect(stdout).toMatch(/hex add .*\b(button|separator|container|stack)\b/);
+	});
+
+	it("does NOT include slugs that are already in this run", async () => {
+		await addComponents(["card", "button", "separator"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		const line = stdout.split("\n").find((l) => l.startsWith("  hex add "));
+		// Even if the related line prints, button/separator are this-run — must not echo back.
+		if (line) {
+			expect(line).not.toMatch(/\bbutton\b/);
+			expect(line).not.toMatch(/\bseparator\b/);
+		}
+	});
+
+	it("prints the layout-pack nudge when ≥3 primitives install without any layout primitive", async () => {
+		await addComponents(["button", "input", "label"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).toMatch(/no layout primitives/);
+		expect(stdout).toContain("hex add --pack layout");
+	});
+
+	it("does NOT print the layout-pack nudge when at least one layout primitive is in the run", async () => {
+		await addComponents(["button", "input", "stack"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).not.toContain("hex add --pack layout");
+	});
+
+	it("does NOT print the layout-pack nudge when a layout primitive is already on disk", async () => {
+		// Pre-stage a stack.tsx so the consumer "has layout" before this run.
+		fs.mkdirSync(path.join(tmpDir, "components/ui"), { recursive: true });
+		fs.writeFileSync(path.join(tmpDir, "components/ui/stack.tsx"), "export const Stack = null;");
+		await addComponents(["button", "input", "label"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).not.toContain("hex add --pack layout");
+	});
+
+	it("does NOT print the layout-pack nudge for a single-component run (< 3 primitives)", async () => {
+		await addComponents(["button"], { yes: false, overwrite: false, deps: false, install: false });
+		const stdout = logSpy.mock.calls.flat().join("\n");
+		expect(stdout).not.toContain("hex add --pack layout");
+	});
+});
+
 /**
  * Alias-aware write-path resolution. The @hex-core/cli@0.4.0 reviewer
  * found components landing in `<cwd>/components/ui/` regardless of

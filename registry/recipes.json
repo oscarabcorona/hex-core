@@ -4,6 +4,32 @@
   "version": "0.1.0",
   "items": [
     {
+      "slug": "app-shell",
+      "title": "App shell — layout primitives starter",
+      "summary": "Twelve foundational layout + atom primitives an agent typically needs when scaffolding a real app. Install once, then compose rather than hand-rolling `space-y-*` chains, `grid sm:grid-cols-*` breakpoints, dashed empty-state divs, or `rounded-full border` badge spans.",
+      "tags": [
+        "layout",
+        "shell",
+        "starter",
+        "foundation"
+      ],
+      "components": [
+        "container",
+        "stack",
+        "cluster",
+        "grid",
+        "spacer",
+        "empty",
+        "card",
+        "separator",
+        "badge",
+        "tag",
+        "timeline",
+        "breadcrumb"
+      ],
+      "tokenBudget": 3200
+    },
+    {
       "slug": "auth-forgot-password",
       "title": "Auth forgot password",
       "summary": "Single-field 'forgot password' page composing the auth-forgot-password block. Dispatches a reset link via adapter.requestPasswordReset and swaps to a 'check your inbox' state on success.",
