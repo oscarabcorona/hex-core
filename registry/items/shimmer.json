@@ -1,0 +1,133 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "shimmer",
+  "displayName": "Shimmer",
+  "description": "Single-line streaming placeholder. Used during the dead-time between user submission and first stream token. Renders a motion-safe pulsing bar (Tailwind animate-pulse) that gates on `prefers-reduced-motion`.",
+  "category": "ai",
+  "subcategory": "feedback",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "width",
+      "type": "string",
+      "required": false,
+      "default": "100%",
+      "description": "CSS width — accepts any width value."
+    },
+    {
+      "name": "height",
+      "type": "string",
+      "required": false,
+      "default": "1.5rem",
+      "description": "CSS height — defaults to a single line."
+    },
+    {
+      "name": "durationMs",
+      "type": "number",
+      "required": false,
+      "default": 1500,
+      "description": "Sweep cycle duration in milliseconds."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "required": false,
+      "default": "Loading…",
+      "description": "Accessible label announced to screen readers."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the root."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/shimmer.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Single-line streaming placeholder. Used during the dead-time between\n * a user submitting a prompt and the first stream token arriving — a\n * gradient sweep across a flat bar that signals \"the model is thinking\n * but hasn't started speaking yet.\"\n *\n * Wider than `<Loading>` (which is a multi-row skeleton) and narrower\n * than `<Skeleton>` (which is a sized placeholder block); use Shimmer\n * for the conversation pane, Loading for whole-screen states, Skeleton\n * for arbitrary placeholder shapes.\n *\n * @example\n * {isStreaming && <Shimmer width=\"80%\" />}\n */\nexport interface ShimmerProps {\n\t/** CSS width — accepts any width value (e.g. `\"60%\"`, `\"24rem\"`). Defaults to full width. */\n\twidth?: string;\n\t/** Override the default 1.5rem height for taller streaming bars. */\n\theight?: string;\n\t/** Sweep duration in ms. Defaults to 1500. */\n\tdurationMs?: number;\n\t/** Accessible label announced to screen readers. */\n\tlabel?: string;\n\tclassName?: string;\n}\n\n/**\n * Render a streaming placeholder bar.\n *\n * Uses Tailwind's `animate-pulse` for the loading effect — same\n * approach as `<Skeleton>` so consumers don't need extra global CSS or\n * keyframes. The `durationMs` prop scales the pulse cycle via a CSS\n * variable so the animation stays in pulse's vertical-opacity family\n * rather than introducing a custom sweep keyframe (which would\n * conflict with React 19's stricter style-tag handling).\n *\n * @param props - Optional sizing + duration + label overrides.\n * @returns A pulsing placeholder bar.\n */\nfunction Shimmer({\n\twidth = \"100%\",\n\theight = \"1.5rem\",\n\tdurationMs = 1500,\n\tlabel = \"Loading…\",\n\tclassName,\n}: ShimmerProps) {\n\treturn (\n\t\t<div\n\t\t\trole=\"status\"\n\t\t\taria-label={label}\n\t\t\taria-live=\"polite\"\n\t\t\tclassName={cn(\n\t\t\t\t// `motion-safe:` gates the pulse on `prefers-reduced-motion: no-preference` —\n\t\t\t\t// users with reduce-motion get a static bar.\n\t\t\t\t\"motion-safe:animate-pulse rounded-md border border-foreground/[0.06] bg-muted\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t\tstyle={{\n\t\t\t\twidth,\n\t\t\t\theight,\n\t\t\t\tanimationDuration: `${durationMs}ms`,\n\t\t\t}}\n\t\t/>\n\t);\n}\n\nexport { Shimmer };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n\nconst SAFE_URL_SCHEMES = [\"http:\", \"https:\", \"mailto:\"] as const;\n\n/**\n * Allowlist a URL for use as an `<a href>` against untrusted input.\n *\n * Returns the raw string when it's `http(s):` / `mailto:` / a relative\n * URL (no scheme); returns `undefined` otherwise. Defends against\n * `javascript:` / `data:` / `vbscript:` injection from streamed model\n * output or third-party JSON payloads that flow into citation chips.\n *\n * Inside a Markdown render path, `rehype-sanitize` already strips\n * `javascript:` from inline-link hrefs — but it does NOT introspect\n * JSON nested inside attribute values (e.g. `<sources data='[…]'/>`),\n * so the components that consume that data must guard themselves.\n *\n * @param raw - The candidate URL, or `undefined` when none was supplied.\n * @returns The URL when safe to render, otherwise `undefined`.\n */\nexport function safeUrl(raw: string | undefined): string | undefined {\n\tif (raw === undefined || raw === \"\") return undefined;\n\t// Relative URLs have no scheme — `new URL(relative)` throws without a base,\n\t// so a thrown URL means either malformed input OR a relative path. Treat\n\t// \"throws + does not contain a colon\" as a relative path (safe).\n\tlet parsed: URL;\n\ttry {\n\t\tparsed = new URL(raw);\n\t} catch {\n\t\treturn raw.includes(\":\") ? undefined : raw;\n\t}\n\treturn SAFE_URL_SCHEMES.some((scheme) => scheme === parsed.protocol) ? raw : undefined;\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "muted",
+    "foreground"
+  ],
+  "examples": [
+    {
+      "title": "Streaming placeholder before first token",
+      "description": "Shows up between user submit and first model token; replaces with the streaming Markdown once tokens arrive.",
+      "code": "{isStreaming && firstTokenAt === null ? <Shimmer width=\"80%\" /> : null}",
+      "composition": [
+        "chat",
+        "streaming",
+        "loading"
+      ]
+    },
+    {
+      "title": "Compose with MessageList for the assistant placeholder row",
+      "description": "Render a Shimmer inside a Message while waiting for the first chunk.",
+      "code": "<MessageList>\n  {messages.map((m) => <Message key={m.id} role={m.role}>{m.content}</Message>)}\n  {isStreaming ? (\n    <Message role=\"assistant\"><Shimmer width=\"60%\" /></Message>\n  ) : null}\n</MessageList>",
+      "composition": [
+        "chat",
+        "streaming"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "In the conversation pane during the dead-time between a user prompt submission and the first streaming token. Pair with Message so the placeholder occupies the same visual slot the streamed content will land in.",
+    "whenNotToUse": "Don't use for whole-screen loading (use Loading). Don't use for arbitrary skeleton shapes (use Skeleton). Don't use after the first token has arrived — once the model is streaming, render the partial content directly.",
+    "commonMistakes": [
+      "Showing Shimmer through the entire response — once the first token arrives, swap to a Markdown render of the partial buffer",
+      "Sizing the bar too short (width < 30%) — the sweep cycle becomes visually jittery; keep at ~60–80% of message-row width",
+      "Using Shimmer for a whole-card placeholder (use Skeleton or Loading)",
+      "Setting `durationMs` < 800 — feels nervous; the 1500ms default matches a calm waiting cadence"
+    ],
+    "relatedComponents": [
+      "loading",
+      "loading-indicator",
+      "skeleton",
+      "message"
+    ],
+    "accessibilityNotes": "Renders with `role=\"status\"` and `aria-live=\"polite\"`, so screen readers announce the loading label without preempting other content. The pulse animation is gated on `motion-safe:` — users with `prefers-reduced-motion: reduce` see a static bar rather than the pulsing one.",
+    "tokenBudget": 160
+  },
+  "tags": [
+    "ai",
+    "loading",
+    "streaming",
+    "placeholder",
+    "feedback"
+  ]
+}

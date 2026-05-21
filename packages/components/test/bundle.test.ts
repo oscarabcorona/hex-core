@@ -85,18 +85,29 @@ describe("dist bundle shape", () => {
 		expect(schemasDts).toMatch(/dialogSchema/);
 	});
 
-	it("per-component bundles stay under 24KB raw", () => {
-		// 24KB sits comfortably above primitives + components (~12KB max for
-		// combobox/command) AND blocks (auth-sign-up-card composes Card +
-		// 4 form fields + terms + social section, ships ~22KB). The cap
-		// catches accidental imports of large transitive libs (d3, mermaid,
-		// xterm), not inherent composition size.
+	it("per-component bundles stay under 24KB raw (with markdown exception)", () => {
+		// 24KB default cap — sits comfortably above primitives + components
+		// (~12KB max for combobox/command) AND blocks (auth-sign-up-card
+		// composes Card + 4 form fields + terms + social section, ships
+		// ~22KB). Catches accidental imports of large transitive libs
+		// (d3, mermaid, xterm), not inherent composition size.
+		//
+		// 32KB markdown exception — markdown.js inlines closeUnterminated +
+		// remarkAdmonitions + 5 slot renderers (InlineCitation/Sources/
+		// ToolCall/Reasoning routing + the inline-code path) into a single
+		// self-contained file so the registry CLI distribution path ships
+		// one file. If a 6th slot lands, prefer extracting the slots into a
+		// `slots/` subdir + restoring the 24KB default rather than bumping
+		// this further.
+		const PER_COMPONENT_LIMIT = 24 * 1024;
+		const MARKDOWN_LIMIT = 32 * 1024;
 		const all = fs
 			.readdirSync(distDir)
 			.filter((f) => f.endsWith(".js") && f !== "index.js" && f !== "schemas.js");
 		for (const file of all) {
 			const size = fs.statSync(path.join(distDir, file)).size;
-			expect(size, `${file} grew past 24KB raw (${size} bytes)`).toBeLessThan(24 * 1024);
+			const limit = file === "markdown.js" ? MARKDOWN_LIMIT : PER_COMPONENT_LIMIT;
+			expect(size, `${file} grew past ${limit / 1024}KB raw (${size} bytes)`).toBeLessThan(limit);
 		}
 	});
 

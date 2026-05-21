@@ -1,0 +1,150 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "task",
+  "displayName": "Task",
+  "description": "Multi-step task progress card. Each step's state re-uses the canonical ToolCallState vocabulary; the header tracks aggregate progress.",
+  "category": "ai",
+  "subcategory": "agent",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "required": false,
+      "description": "Optional title shown above the step list."
+    },
+    {
+      "name": "steps",
+      "type": "object",
+      "required": true,
+      "description": "Array of `TaskStep` objects ({ id: string; label: string; state: ToolCallState; detail?: string }). State enum matches ToolCall: pending / running / result / error."
+    },
+    {
+      "name": "durationMs",
+      "type": "number",
+      "required": false,
+      "description": "Total time spent on the task. Renders 'Done in X.Xs' when all steps complete."
+    },
+    {
+      "name": "defaultOpen",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Whether the step list is expanded by default."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the root."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [
+    {
+      "path": "components/ui/task.tsx",
+      "content": "\"use client\";\n\nimport * as CollapsiblePrimitive from \"@radix-ui/react-collapsible\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Lifecycle of a Task step. Mirrors `@hex-core/components`'\n * `ToolCallState` exactly — kept inline (rather than imported from\n * `../types.js`) so the registry CLI distribution path (`npx hex add\n * task`) ships a self-contained file. ToolCall has the same enum\n * imported from `../types.js` for backwards-compat with its earlier\n * shape; new consumers should treat the two unions as one vocabulary.\n *\n * KEEP IN SYNC with `../types.js`'s `ToolCallState` enum. Drift is\n * locked down by an `expectTypeOf` assertion in `task.test.tsx`.\n */\ntype ToolCallState = \"pending\" | \"running\" | \"result\" | \"error\";\n\n/**\n * Multi-step task progress for an AI workflow.\n *\n * Each step's `state` re-uses the canonical `ToolCallState` enum\n * (`pending` / `running` / `result` / `error`) so the vocabulary stays\n * consistent across the AI surface. The header tracks aggregate\n * progress (\"3 of 5 steps\", or \"Done in X.Xs\" once `durationMs` is\n * set).\n *\n * Composes well with `<Reasoning>` for in-step thinking traces and\n * `<ToolCall>` for individual tool invocations.\n *\n * @example\n * <Task\n *   label=\"Refactoring auth\"\n *   steps={[\n *     { id: \"read\", label: \"Read existing auth\", state: \"result\" },\n *     { id: \"write\", label: \"Apply changes\", state: \"running\" },\n *     { id: \"test\", label: \"Run tests\", state: \"pending\" },\n *   ]}\n *   durationMs={12_400}\n * />\n */\nexport interface TaskProps {\n\t/** Optional title shown above the step list. Skipped if absent. */\n\tlabel?: string;\n\t/** Ordered list of steps. Each carries an id, label, and state. */\n\tsteps: TaskStep[];\n\t/** Time spent on the task in milliseconds. Renders \"Done in X.Xs\" when set. */\n\tdurationMs?: number;\n\t/** Whether the step list is expanded by default. */\n\tdefaultOpen?: boolean;\n\tclassName?: string;\n}\n\n/** A single row in a Task. */\nexport interface TaskStep {\n\t/** Stable identifier — used for the React key and any consumer tracking. */\n\tid: string;\n\t/** Human-readable step label. */\n\tlabel: string;\n\t/** Lifecycle status — same vocabulary as `<ToolCall>`'s `state`. */\n\tstate: ToolCallState;\n\t/** Optional detail line shown beneath the label. */\n\tdetail?: string;\n}\n\n/**\n * Render a multi-step task progress card.\n * @param props - The task label, steps, and optional duration.\n * @returns A Collapsible wrapping a step list.\n */\nfunction Task({ label, steps, durationMs, defaultOpen = true, className }: TaskProps) {\n\tconst summary = summarize(steps, durationMs);\n\n\treturn (\n\t\t<CollapsiblePrimitive.Root\n\t\t\tdefaultOpen={defaultOpen}\n\t\t\tclassName={cn(\n\t\t\t\t\"overflow-hidden rounded-md border border-border bg-card text-card-foreground\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t>\n\t\t\t<CollapsiblePrimitive.Trigger\n\t\t\t\tclassName={cn(\n\t\t\t\t\t\"group flex w-full items-center gap-2 px-3 py-2 text-left\",\n\t\t\t\t\t\"transition-all duration-[var(--duration-normal,200ms)] ease-out\",\n\t\t\t\t\t\"hover:bg-muted/30\",\n\t\t\t\t\t\"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n\t\t\t\t)}\n\t\t\t>\n\t\t\t\t<div className=\"flex min-w-0 flex-col gap-0.5\">\n\t\t\t\t\t{label ? (\n\t\t\t\t\t\t<span className=\"text-sm font-medium text-foreground\">{label}</span>\n\t\t\t\t\t) : null}\n\t\t\t\t\t<span className=\"text-xs text-muted-foreground\">{summary}</span>\n\t\t\t\t</div>\n\t\t\t\t<Chevron />\n\t\t\t</CollapsiblePrimitive.Trigger>\n\t\t\t<CollapsiblePrimitive.Content className=\"overflow-hidden border-t border-foreground/[0.06]\">\n\t\t\t\t<ol className=\"my-0 ml-0 flex list-none flex-col pl-0\">\n\t\t\t\t\t{steps.map((step) => (\n\t\t\t\t\t\t<li\n\t\t\t\t\t\t\tkey={step.id}\n\t\t\t\t\t\t\tclassName=\"flex items-start gap-3 px-3 py-2 text-sm before:content-none last:pb-3\"\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t<StepIcon state={step.state} />\n\t\t\t\t\t\t\t<div className=\"flex min-w-0 flex-col gap-0.5\">\n\t\t\t\t\t\t\t\t<span\n\t\t\t\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\t\t\t\"leading-snug\",\n\t\t\t\t\t\t\t\t\t\tstep.state === \"result\" && \"text-muted-foreground line-through decoration-muted-foreground/50\",\n\t\t\t\t\t\t\t\t\t\tstep.state === \"running\" && \"text-foreground font-medium\",\n\t\t\t\t\t\t\t\t\t\tstep.state === \"error\" && \"text-destructive\",\n\t\t\t\t\t\t\t\t\t\tstep.state === \"pending\" && \"text-muted-foreground\",\n\t\t\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{step.label}\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t{step.detail ? (\n\t\t\t\t\t\t\t\t\t<span className=\"text-xs text-muted-foreground\">{step.detail}</span>\n\t\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t))}\n\t\t\t\t</ol>\n\t\t\t</CollapsiblePrimitive.Content>\n\t\t</CollapsiblePrimitive.Root>\n\t);\n}\n\nfunction summarize(steps: TaskStep[], durationMs: number | undefined): string {\n\tconst total = steps.length;\n\tconst done = steps.filter((s) => s.state === \"result\").length;\n\tconst running = steps.some((s) => s.state === \"running\");\n\tconst errored = steps.some((s) => s.state === \"error\");\n\tif (errored) return `${done} of ${total} steps · failed`;\n\tif (running) return `${done} of ${total} steps`;\n\tif (done === total && total > 0 && typeof durationMs === \"number\") {\n\t\treturn `Done in ${formatDuration(durationMs)}`;\n\t}\n\tif (done === total && total > 0) return \"Done\";\n\treturn `${done} of ${total} steps`;\n}\n\nfunction formatDuration(ms: number): string {\n\tif (ms < 1000) return `${ms}ms`;\n\tconst seconds = ms / 1000;\n\tconst formatted = seconds >= 10 ? Math.round(seconds).toString() : seconds.toFixed(1);\n\treturn `${formatted}s`;\n}\n\nfunction StepIcon({ state }: { state: ToolCallState }) {\n\tconst cls = \"mt-0.5 shrink-0\";\n\tif (state === \"result\") {\n\t\treturn (\n\t\t\t<svg\n\t\t\t\taria-label=\"Done\"\n\t\t\t\trole=\"img\"\n\t\t\t\tviewBox=\"0 0 16 16\"\n\t\t\t\twidth=\"14\"\n\t\t\t\theight=\"14\"\n\t\t\t\tfill=\"none\"\n\t\t\t\tstroke=\"currentColor\"\n\t\t\t\tstrokeWidth=\"2\"\n\t\t\t\tstrokeLinecap=\"round\"\n\t\t\t\tstrokeLinejoin=\"round\"\n\t\t\t\tclassName={cn(cls, \"text-emerald-500\")}\n\t\t\t>\n\t\t\t\t<circle cx=\"8\" cy=\"8\" r=\"6\" />\n\t\t\t\t<path d=\"M5 8.25l2.25 2.25L11 6\" />\n\t\t\t</svg>\n\t\t);\n\t}\n\tif (state === \"running\") {\n\t\treturn (\n\t\t\t<svg\n\t\t\t\taria-label=\"Running\"\n\t\t\t\trole=\"img\"\n\t\t\t\tviewBox=\"0 0 16 16\"\n\t\t\t\twidth=\"14\"\n\t\t\t\theight=\"14\"\n\t\t\t\tfill=\"none\"\n\t\t\t\tstroke=\"currentColor\"\n\t\t\t\tstrokeWidth=\"2\"\n\t\t\t\tstrokeLinecap=\"round\"\n\t\t\t\tclassName={cn(cls, \"text-primary motion-safe:animate-spin\")}\n\t\t\t>\n\t\t\t\t<path d=\"M8 1.5a6.5 6.5 0 1 1-6.5 6.5\" />\n\t\t\t</svg>\n\t\t);\n\t}\n\tif (state === \"error\") {\n\t\treturn (\n\t\t\t<svg\n\t\t\t\taria-label=\"Error\"\n\t\t\t\trole=\"img\"\n\t\t\t\tviewBox=\"0 0 16 16\"\n\t\t\t\twidth=\"14\"\n\t\t\t\theight=\"14\"\n\t\t\t\tfill=\"none\"\n\t\t\t\tstroke=\"currentColor\"\n\t\t\t\tstrokeWidth=\"2\"\n\t\t\t\tstrokeLinecap=\"round\"\n\t\t\t\tstrokeLinejoin=\"round\"\n\t\t\t\tclassName={cn(cls, \"text-destructive\")}\n\t\t\t>\n\t\t\t\t<circle cx=\"8\" cy=\"8\" r=\"6\" />\n\t\t\t\t<path d=\"M5 5l6 6M11 5l-6 6\" />\n\t\t\t</svg>\n\t\t);\n\t}\n\t// pending\n\treturn (\n\t\t<svg\n\t\t\taria-label=\"Pending\"\n\t\t\trole=\"img\"\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"14\"\n\t\t\theight=\"14\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"2\"\n\t\t\tclassName={cn(cls, \"text-muted-foreground\")}\n\t\t>\n\t\t\t<circle cx=\"8\" cy=\"8\" r=\"6\" strokeDasharray=\"2 2\" />\n\t\t</svg>\n\t);\n}\n\nfunction Chevron() {\n\treturn (\n\t\t<svg\n\t\t\taria-hidden\n\t\t\tviewBox=\"0 0 16 16\"\n\t\t\twidth=\"12\"\n\t\t\theight=\"12\"\n\t\t\tfill=\"none\"\n\t\t\tstroke=\"currentColor\"\n\t\t\tstrokeWidth=\"1.5\"\n\t\t\tstrokeLinecap=\"round\"\n\t\t\tstrokeLinejoin=\"round\"\n\t\t\tclassName=\"ml-auto shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180\"\n\t\t>\n\t\t\t<path d=\"M4 6l4 4 4-4\" />\n\t\t</svg>\n\t);\n}\n\nexport { Task };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n\nconst SAFE_URL_SCHEMES = [\"http:\", \"https:\", \"mailto:\"] as const;\n\n/**\n * Allowlist a URL for use as an `<a href>` against untrusted input.\n *\n * Returns the raw string when it's `http(s):` / `mailto:` / a relative\n * URL (no scheme); returns `undefined` otherwise. Defends against\n * `javascript:` / `data:` / `vbscript:` injection from streamed model\n * output or third-party JSON payloads that flow into citation chips.\n *\n * Inside a Markdown render path, `rehype-sanitize` already strips\n * `javascript:` from inline-link hrefs — but it does NOT introspect\n * JSON nested inside attribute values (e.g. `<sources data='[…]'/>`),\n * so the components that consume that data must guard themselves.\n *\n * @param raw - The candidate URL, or `undefined` when none was supplied.\n * @returns The URL when safe to render, otherwise `undefined`.\n */\nexport function safeUrl(raw: string | undefined): string | undefined {\n\tif (raw === undefined || raw === \"\") return undefined;\n\t// Relative URLs have no scheme — `new URL(relative)` throws without a base,\n\t// so a thrown URL means either malformed input OR a relative path. Treat\n\t// \"throws + does not contain a colon\" as a relative path (safe).\n\tlet parsed: URL;\n\ttry {\n\t\tparsed = new URL(raw);\n\t} catch {\n\t\treturn raw.includes(\":\") ? undefined : raw;\n\t}\n\treturn SAFE_URL_SCHEMES.some((scheme) => scheme === parsed.protocol) ? raw : undefined;\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "@radix-ui/react-collapsible",
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "card",
+    "card-foreground",
+    "border",
+    "muted",
+    "muted-foreground",
+    "foreground",
+    "primary",
+    "destructive",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Refactor task in progress",
+      "description": "Three steps — first is done, second is running, third is pending.",
+      "code": "const steps = [\n  { id: \"read\", label: \"Read existing auth\", state: \"result\" },\n  { id: \"write\", label: \"Apply changes\", state: \"running\" },\n  { id: \"test\", label: \"Run tests\", state: \"pending\" },\n];\n<Task label=\"Refactoring auth\" steps={steps} />",
+      "composition": [
+        "agent",
+        "task",
+        "progress"
+      ]
+    },
+    {
+      "title": "Completed task with duration",
+      "description": "All steps done; header shows total time.",
+      "code": "const steps = [\n  { id: \"a\", label: \"Plan\", state: \"result\" },\n  { id: \"b\", label: \"Apply\", state: \"result\" },\n  { id: \"c\", label: \"Verify\", state: \"result\" },\n];\n<Task label=\"Migrate users table\" steps={steps} durationMs={12_400} />",
+      "composition": [
+        "agent",
+        "task",
+        "complete"
+      ]
+    },
+    {
+      "title": "Compose with Reasoning per step",
+      "description": "Wrap a step's detail prop with Reasoning when the model wants to expose a thinking trace inline.",
+      "code": "const steps = [\n  { id: \"plan\", label: \"Plan migration\", state: \"result\", detail: \"Identified 4 tables, 2 with existing indexes.\" },\n];\n<Task steps={steps} />",
+      "composition": [
+        "agent",
+        "task",
+        "reasoning"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "To show an agent's multi-step plan execution. Each step should map to a discrete unit of work the model claims it's doing — read, write, run, verify. Pair with ToolCall when a step actually invokes a tool, and Reasoning when the step exposes thinking.",
+    "whenNotToUse": "Don't use for a flat list of facts (use a real list). Don't use for a single-step operation (just render the result directly). Don't use as a navigation surface — it's a status display, not an interactive component.",
+    "commonMistakes": [
+      "Mixing `state` strings — use the canonical `ToolCallState` (`pending` / `running` / `result` / `error`); novel states like 'in-progress' or 'finished' will render with the pending icon",
+      "Setting all steps to `pending` upfront and never updating — the component is a status display, not a planner; consumers must update step state as the agent progresses",
+      "Using `Task` for stateful wizard flows (use `Stepper` instead — Stepper is interactive, Task is read-only)",
+      "Putting agent reasoning in `step.label` — keep labels short; put thinking in `step.detail` or compose Reasoning separately"
+    ],
+    "relatedComponents": [
+      "tool-call",
+      "reasoning",
+      "stepper",
+      "message"
+    ],
+    "accessibilityNotes": "Wraps Radix Collapsible — trigger is a real <button> with aria-expanded; content gets aria-hidden when closed. Each step icon carries an aria-label so screen readers announce status (e.g. 'Done', 'Running', 'Error', 'Pending'). The 'running' spinner is gated on `motion-safe:` — users with `prefers-reduced-motion: reduce` see a static circle.",
+    "tokenBudget": 280
+  },
+  "tags": [
+    "ai",
+    "agent",
+    "task",
+    "progress",
+    "collapsible",
+    "tool-use"
+  ]
+}

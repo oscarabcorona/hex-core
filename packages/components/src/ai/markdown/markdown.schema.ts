@@ -31,8 +31,14 @@ export const markdownSchema: ComponentSchemaDefinition = {
 		},
 	],
 	dependencies: {
-		npm: ["react-markdown", "remark-gfm", "rehype-raw", "rehype-sanitize", "clsx", "tailwind-merge"],
-		internal: ["lib/utils", "ai/citation", "ai/tool-call", "ai/reasoning"],
+		npm: ["react-markdown", "remark-gfm", "rehype-raw", "rehype-sanitize", "unist-util-visit", "clsx", "tailwind-merge"],
+		internal: [
+			"lib/utils",
+			"components/inline-citation/inline-citation",
+			"components/sources/sources",
+			"components/tool-call/tool-call",
+			"components/reasoning/reasoning",
+		],
 		peer: ["react", "react-dom"],
 	},
 	tokensUsed: ["foreground", "primary", "muted", "muted-foreground", "border"],
@@ -79,7 +85,7 @@ export const markdownSchema: ComponentSchemaDefinition = {
 			"Reaching for an `overrides` / `components` prop — slot wiring is built in (fenced code, footnotes, <tool-call>, [!think]); compose those primitives instead of overriding renderers",
 			"Embedding JSON in <tool-call> attrs without quoting the value (use single-quoted args/result so embedded double quotes survive HTML parsing)",
 		],
-		relatedComponents: ["message", "code-block", "citation", "tool-call", "reasoning"],
+		relatedComponents: ["message", "code-block", "citation", "inline-citation", "sources", "tool-call", "reasoning"],
 		accessibilityNotes:
 			"Renders real semantic HTML (headings, lists, links, blockquotes). Verify Tailwind Typography (`prose`) is enabled in your CSS. Slot wiring preserves a11y semantics: Reasoning ships its own collapsible disclosure, Citation ships an inline link with a labeled index, ToolCall ships a labeled status region.",
 		tokenBudget: 320,
