@@ -36,15 +36,19 @@ Detects whether your project uses Tailwind **v3** or **v4** by reading `package.
 - Writes `app/globals.css` (or `src/app/globals.css`) — `@import "tailwindcss"` + `@theme` for v4, `@tailwind base/components/utilities` + `@layer base` for v3
 - For v3 only: writes `tailwind.config.ts` with the `tailwindcss-animate` plugin and the design-token bindings
 - Auto-installs the version-correct peer deps via your detected package manager (pnpm, yarn, bun, or npm)
+- Records a `studio` link (`hex-core.dev/studio`) in `hex.config.json` and prints it — tweak theme tokens against a live preview, then paste the payload back into your AI session
 
 ```bash
 hex init                  # default theme, auto-install peer deps
 hex init --no-install     # print the install line instead of running it
 hex init --overwrite      # replace existing globals.css / tailwind.config.ts
 hex init --theme midnight # alternate preset (default, midnight, ember)
+hex init --mcp            # also wire @hex-core/mcp into your AI tool
 ```
 
 If `tailwindcss` isn't installed yet the command prints the right install line and exits — install Tailwind first, then re-run.
+
+**`--mcp` (opt-in):** wires the `@hex-core/mcp` server into your AI tool so it can call `list_themes` / `get_theme` / `customize_component` directly. Creates `.mcp.json` at the repo root (Claude Code's project-scope convention) or merges into an existing `.cursor/mcp.json` / `.continue/config.json`. Read–merge–write — never clobbers your other MCP servers. Off by default because `.mcp.json` is commit-tracked and auto-loaded.
 
 ### `hex add <slug> [...more]`
 
@@ -54,7 +58,10 @@ Copies one or more components (and their internal dependencies) into `components
 hex add button input dialog
 hex add combobox --no-deps      # only the named slug; print the missing deps
 hex add dialog --no-install     # write files but don't run pnpm/npm/yarn add
+hex add --pack layout           # install the layout primitives in one shot
 ```
+
+After an install, `hex add` prints a **"Related primitives you might want next"** line (driven by each component's schema metadata) and — if you added several interactive primitives without any layout primitive — nudges you toward `hex add --pack layout` (`container`, `stack`, `cluster`, `grid`, `spacer`, `empty`). It also points you at the bundled `hex-core-*` skills when they're installed.
 
 ### `hex doctor`
 
@@ -62,7 +69,10 @@ Diagnose your install in one pass. Reports `pass` / `fail` / `warn` for: `hex.co
 
 ```bash
 hex doctor
+hex doctor --layout   # also scan source for composition opportunities
 ```
+
+**`--layout`:** adds two `info`-only scans over your source tree — components you installed but never imported (you wrote raw `<div>`s instead of composing), and hand-rolled layout patterns a primitive would replace (`space-y-*` chains → `<Stack>`, breakpoint `grid-cols-*` → `<Grid>`, dashed empty divs → `<Empty>`, ad-hoc timelines/badges). These never fail the gate.
 
 ### `hex list`
 
@@ -70,7 +80,7 @@ Prints every component in the registry grouped by category.
 
 ### `hex recipe list`
 
-Lists every available spec-driven recipe (auth form, settings page, pricing table, data table view, destructive confirm, command palette) with summary and component list.
+Lists every available spec-driven recipe (auth flows, settings page, pricing table, data table view, destructive confirm, command palette, and the `app-shell` layout starter) with summary and component list. `hex recipe add app-shell` drops in the 12 foundation primitives most apps compose from.
 
 ### `hex recipe add <slug>`
 
@@ -82,7 +92,7 @@ hex recipe add settings-page
 
 ### `hex skills install`
 
-Copies the eight bundled Hex Core skills into `.claude/skills/` (or a custom `--target`). Skills are SKILL.md prose packs that Claude Code loads on demand via trigger keywords.
+Copies the nine bundled Hex Core skills into `.claude/skills/` (or a custom `--target`), then points you at `hex-core-overview` for next steps. Skills are SKILL.md prose packs that Claude Code loads on demand via trigger keywords.
 
 ```bash
 hex skills install                         # default target: .claude/skills/

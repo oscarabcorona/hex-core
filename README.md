@@ -8,7 +8,7 @@
 
 **The component layer for spec-driven UI development.**
 
-Hex Core turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 12 MCP tools over a catalog of 83 components.
+Hex Core turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 16 MCP tools over a catalog of 131 components.
 
 ## Why Hex Core?
 
@@ -16,8 +16,8 @@ shadcn/ui is built for humans browsing docs. Hex Core is built for **AI agents**
 
 - **Machine-readable component specs** — Zod schemas with props, variants, slots, and constraints
 - **AI hints** — `whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes` per component
-- **Recipes** — six spec-driven blueprints (auth form, settings page, pricing table, data table, confirm-destructive, command palette) with ordered install steps and post-install checklists
-- **MCP server** — 12 tools for component discovery, installation, theming, scaffolding, spec resolution, and emitting paste-into-LLM app context
+- **Recipes** — spec-driven blueprints (auth flows, settings page, pricing table, data table, confirm-destructive, command palette, and the `app-shell` layout starter) with ordered install steps and post-install checklists
+- **MCP server** — 16 tools for component discovery, installation, theming, scaffolding, spec resolution, and emitting paste-into-LLM app context
 - **Token budgets** — each component declares its token cost for efficient LLM context usage
 
 > [!WARNING]
@@ -66,10 +66,14 @@ npx @hex-core/cli doctor                  # diagnose what's missing if anything 
 | Tool | Purpose |
 |------|---------|
 | `search_components` | Discover components by query, category, or tags |
+| `search_compositions` | Find component examples by composition tags (`destructive`, `confirm`, `form-action`, …) |
 | `get_component` | Get full source code + metadata for installation |
 | `get_component_schema` | Get props/variants/AI hints (token-efficient) |
+| `describe_intent` | Intent-first payload: per-variant `useWhen`, structured anti-patterns, token intents — call before generating JSX |
 | `get_theme` | Get theme in CSS, JSON, or Tailwind format |
 | `list_themes` | List available themes |
+| `search_themes` | Search the theme catalog by category, tags, or free-text |
+| `emit_figma_tokens` | Render a theme as a Figma Variables REST POST payload |
 | `scaffold_project` | Generate complete project setup |
 | `customize_component` | Apply CSS overrides to components |
 | `list_recipes` | Catalog of spec-driven blueprints |
