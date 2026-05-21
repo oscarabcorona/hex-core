@@ -14,7 +14,11 @@ const STATE_LABEL: Record<ToolCallState, string> = {
 
 const STATE_CLASSES: Record<ToolCallState, string> = {
 	pending: "bg-muted text-muted-foreground",
-	running: "bg-muted text-primary animate-pulse",
+	// `text-foreground` (12:1) survives axe's mid-pulse capture; the
+	// previous `text-primary` (`#7081a8` on dark `--muted`, 4.28:1) was
+	// intermittently flagged below AA 4.5:1 at the 10px badge size when
+	// `animate-pulse` caught the scan during a low-opacity frame.
+	running: "bg-muted text-foreground font-medium animate-pulse",
 	result: "bg-accent/30 text-accent-foreground",
 	error: "bg-destructive/15 text-destructive",
 };

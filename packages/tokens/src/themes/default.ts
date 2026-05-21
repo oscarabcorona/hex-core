@@ -51,7 +51,9 @@ export const defaultTheme: Theme = {
 			secondary: { value: "222 8% 12%", type: "color" },
 			muted: { value: "222 8% 12%", type: "color" },
 			accent: { value: "222 8% 12%", type: "color" },
-			destructive: { value: "0 48.8% 58%", type: "color" },
+			// Lightness lifted from L=58% to L=68% so `text-destructive` on
+			// the dark `--card` (L=14%) clears WCAG AA 4.5:1 contrast (was 4.02:1).
+			destructive: { value: "0 48.8% 68%", type: "color" },
 			// Border lifted from L=14% → L=24% so SVG outlines (chord arcs,
 			// sankey segments, gantt grid) have actual definition.
 			border: { value: "222 12% 24%", type: "color" },

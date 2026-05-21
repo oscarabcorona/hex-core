@@ -102,7 +102,7 @@ interface RowProps {
 function Row({ term, value }: RowProps) {
 	return (
 		<div className="flex gap-2">
-			<span className="shrink-0 text-xs font-medium uppercase tracking-wide text-muted-foreground/80">
+			<span className="shrink-0 text-xs font-medium uppercase tracking-wide text-muted-foreground">
 				{term}
 			</span>
 			<span className="min-w-0 flex-1 text-foreground">{value}</span>

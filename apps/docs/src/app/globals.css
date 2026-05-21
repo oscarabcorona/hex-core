@@ -69,7 +69,7 @@
 	--muted-foreground: 222 8% 65%;
 	--accent: 222 8% 12%;
 	--accent-foreground: 222 22.5% 89%;
-	--destructive: 0 48.8% 58%;
+	--destructive: 0 48.8% 68%;
 	--destructive-foreground: 0 0% 8%;
 	/* Border bumped from L=14% → L=24% in dark mode — at L=14% the stroke
 	 * was visually identical to --card on SVG renderings (no chrome to
@@ -192,7 +192,7 @@
 	--color-muted-foreground: hsl(222 8% 65%);
 	--color-accent: hsl(222 8% 12%);
 	--color-accent-foreground: hsl(222 22.5% 89%);
-	--color-destructive: hsl(0 48.8% 58%);
+	--color-destructive: hsl(0 48.8% 68%);
 	--color-destructive-foreground: hsl(0 0% 8%);
 	--color-border: hsl(222 12% 24%);
 	--color-input: hsl(222 12% 24%);
