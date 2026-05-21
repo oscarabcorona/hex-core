@@ -1,5 +1,261 @@
 # @hex-core/components
 
+## 1.10.0
+
+### Minor Changes
+
+- dbed294: feat(ai): 4 new AI Elements — Sources, InlineCitation, Task, Shimmer
+
+  Continues the AI Elements parity sweep with a chatbot-category batch
+  that rounds out the RAG-style chat surface. All 4 compose with
+  existing primitives — no orphan components, no new runtime deps.
+
+  **`<Sources>`** — bordered card listing 1–N citation chips for a RAG
+  response. Re-uses `<Citation>` per row inside a Radix Collapsible.
+  Default open so the user can scan provenance without expanding.
+
+  ```tsx
+  <Sources sources={[{ title: "Auth research", url: "...", page: 3 }, …]} />
+  ```
+
+  **`<InlineCitation>`** — inline `<sup>[N]</sup>` with a hover-preview
+  popover (Radix HoverCard). Pairs with `<Sources>` for the
+  bottom-of-card list. Replaces the old block `<Citation>` slot in
+  `<Markdown>` so footnote-style `[N](url)` shapes now route to the
+  inline variant — block Citation stays importable for the Sources panel.
+
+  ```tsx
+  <InlineCitation index={1} title="Auth research" url="https://..." />
+  ```
+
+  **`<Task>`** — multi-step task progress card. Each step's `state`
+  re-uses the canonical `ToolCallState` enum (`pending`/`running`/
+  `result`/`error`) so the vocabulary stays consistent across the AI
+  surface. Header tracks aggregate progress ("3 of 5 steps", or
+  "Done in X.Xs" once `durationMs` is set). Animated icons signal
+  running state; strikethrough signals completed.
+
+  ```tsx
+  <Task
+  	label="Refactoring auth"
+  	steps={[
+  		{ id: "read", label: "Read existing auth", state: "result" },
+  		{ id: "apply", label: "Apply changes", state: "running" },
+  		{ id: "test", label: "Run tests", state: "pending" },
+  	]}
+  />
+  ```
+
+  **`<Shimmer>`** — single-line streaming placeholder. Used during the
+  dead-time between user submission and first stream token. Uses
+  Tailwind's `animate-pulse` (matching `<Skeleton>`) so consumers don't
+  need extra global CSS or keyframes.
+
+  ```tsx
+  {
+  	isStreaming && firstTokenAt === null ? <Shimmer width="80%" /> : null;
+  }
+  ```
+
+  **Markdown slot extensions:**
+  - `<sources data='[…]' />` HTML element in markdown now routes to
+    `<Sources>` (sanitize schema gains `sources` tag + `data` attr).
+  - Footnote-style `[N](url)` links now route to `<InlineCitation>`
+    (was block `<Citation>` — the block chip stays usable inside
+    `<Sources>`).
+
+  **Bundled cleanups:**
+  - **Terminal contrast fix.** `<Terminal>` (shipped in #120) used
+    `bg-background` for its outer container, which inherited the page's
+    light/dark and produced 1.2:1 contrast against xterm's locked
+    foreground in light mode. Locked the surface to match the inner
+    xterm theme; hid the offscreen `<textarea>` and char-measurer
+    helpers from axe via `text-transparent`.
+  - **Missing visual baselines for PR #120's heavy AI components**
+    (audio-player, audio-waveform, canvas, diagram, terminal). Same
+    pattern as the markdown PR's speech-recognition baselines.
+  - **Build-script `internalDepToSlug` fix in CLI bundle.** The CLI
+    was using a stale dist that didn't recognize `components/<slug>/<slug>`
+    cross-component deps; rebuilding picked up the fix and lets
+    Markdown's transitive deps (Sources, InlineCitation, Reasoning,
+    ToolCall) install via `npx hex add markdown`.
+
+  **Tests:** 26 new component tests (Sources 8 + InlineCitation 4 +
+  Task 8 + Shimmer 6) + 7 new Markdown slot tests (`<sources>` routing,
+  InlineCitation upgrade, JSX-escape regression, and 4 sanitize-schema
+  XSS tests covering `<script>`, inline event handlers, `javascript:`
+  hrefs, and `<iframe>` stripping). Total components-package
+  tests: 421 → ~452.
+
+- 2bc2488: feat(ai): 4 new AI Elements — Branch, Plan, Conversation, ChainOfThought
+
+  Continues the AI Elements parity sweep with a chatbot-category batch
+  that ships agent-steering primitives and the off-the-shelf chat shell.
+  All 4 compose with existing primitives — no orphan components, no new
+  runtime deps.
+
+  **`<Branch>`** — headless alternate-response navigator. Renders one
+  active branch with a prev/next chip beneath. Stateless: consumer owns
+  `current` (zero-indexed) and `total`. Arrow-key navigation when
+  interactive; controls render disabled in read-only mode.
+
+  ```tsx
+  <Branch current={i} total={alternatives.length} onCurrentChange={setI}>
+  	<Message role="assistant">
+  		<Markdown>{alternatives[i]}</Markdown>
+  	</Message>
+  </Branch>
+  ```
+
+  **`<Plan>`** — pre-execution multi-step plan card. Body lists the
+  proposed steps; an optional `onApprove` / `onCancel` footer renders
+  an approval gate. Distinct from `<Task>` — Task is during/post-
+  execution status (steps carry lifecycle state), Plan is pre-execution
+  intent (steps are just labels). Typical flow renders `<Plan>`, then
+  swaps it for `<Task>` once the user approves.
+
+  ```tsx
+  <Plan
+  	label="Refactor auth"
+  	steps={[
+  		{ id: "read", label: "Read existing auth" },
+  		{ id: "apply", label: "Apply changes" },
+  		{ id: "test", label: "Run tests" },
+  	]}
+  	onApprove={() => execute()}
+  	onCancel={() => discard()}
+  />
+  ```
+
+  **`<Conversation>`** — high-level chat shell. Composes `<MessageList>`
+  over a messages array, an optional `<Sources>` panel beneath the
+  stream, an optional `<Shimmer>` placeholder for the in-flight
+  assistant turn, and a `<Composer>` row at the bottom. The
+  "compose-once" entry point that wraps the four primitives every chat
+  app rebuilds. Internal composer state is managed for the consumer.
+
+  ```tsx
+  <Conversation
+  	messages={messages}
+  	onSubmit={handleSubmit}
+  	isStreaming={waitingForFirstToken}
+  	sources={lastResponse?.sources}
+  	placeholder="Ask anything…"
+  />
+  ```
+
+  **`<ChainOfThought>`** — structured ReAct-shape reasoning trace. Each
+  step has a `thought`, optional `action`, and optional `observation`.
+  Final answer renders below the trace. Distinct from `<Reasoning>`
+  (unstructured prose) — ChainOfThought enforces the per-step ReAct
+  shape agents emit when doing tool-augmented reasoning. Internally
+  composes `<Reasoning>` for the collapsible shell.
+
+  ```tsx
+  <ChainOfThought
+  	steps={[
+  		{
+  			thought: "Need to look up the auth module",
+  			action: "read auth.ts",
+  			observation: "200 lines, uses bcrypt + jwt",
+  		},
+  		{ thought: "The bug is on line 42." },
+  	]}
+  	finalAnswer={<Markdown>{finalText}</Markdown>}
+  />
+  ```
+
+  **Bundled cleanups:**
+  - **Postbuild client classifier honors `"use client"` directives.**
+    `_client-patterns.mjs` now treats an explicit author-side
+    `"use client"` directive as a positive client signal, not just
+    the indirect ones (Radix import, hook call, JSX handler). Caught
+    via the bundle test's Radix-leak guard: `<ChainOfThought>`
+    composes `<Reasoning>` (which uses Radix Collapsible) but the
+    classifier missed it because the wrapper itself doesn't import
+    Radix or call a hook. Honoring the directive at classification
+    time fixes that and any future composition wrapper.
+
+  **Tests:** 26 new component tests (Branch 7 + Plan 7 + Conversation
+  8 + ChainOfThought 4). Total components-package tests: 437 → 463.
+  8 new visual baselines (4 components × light/dark).
+
+- 8a0d04d: feat(ai): drop streamdown wrapper, native streaming-safe Markdown with AI-aware slots
+
+  Phase 2 of the AI Kit roadmap (per `.claude/research/ROADMAP.md` Theme H).
+  Replaces the `streamdown` wrapper in `<Markdown>` with a native pipeline
+  built on `react-markdown` + `remark-gfm` + `rehype-raw` + `rehype-sanitize`,
+  plus a small streaming-safe pre-processor and four AI-aware slot renderers.
+
+  **Public API unchanged.** `<Markdown>{string}</Markdown>` with the same
+  `children: string` + optional `className`. No breaking change.
+
+  **New: AI-aware slot wiring**
+
+  | Markdown                                               | Routes to                                                                |
+  | ------------------------------------------------------ | ------------------------------------------------------------------------ |
+  | ` ```lang\n…\n``` `                                    | `<pre><code class="language-*">` (client-safe; consumers post-highlight) |
+  | `[1](url)` (numeric link text)                         | `<Citation index={1} url={url} title={hostname}>`                        |
+  | `<tool-call name="…" state="…" args="…" result="…" />` | `<ToolCall>`                                                             |
+  | `> [!think]\n> body`                                   | `<Reasoning>`                                                            |
+
+  The fenced-code slot doesn't route to the in-house `<CodeBlock>` because
+  CodeBlock is an async Server Component and Markdown runs client-side
+  (streaming context). Consumers in an RSC tree can compose `<CodeBlock>`
+  directly when they need server-side Shiki highlighting.
+
+  **New: streaming-safe pre-processor**
+
+  `closeUnterminated()` is a pure function that pre-processes raw markdown
+  to append synthetic closers for tokens left open at end-of-input —
+  unclosed ` ``` `, `**`, `_`, `~~`, `` ` ``, `[…](…`, `[…`, `<tag` —
+  so partial chunks during streaming render gracefully instead of as raw
+  text. ~150 lines, fully tested via a 39-case truth table covering
+  escaped delimiters, CRLF line endings, and Unicode word boundaries on
+  underscore italics in addition to the canonical token shapes.
+
+  **New: `remark-admonitions` plugin**
+
+  Detects `[!think]` blockquotes in `mdast` and tags them so the
+  `<blockquote>` slot renderer can route to `<Reasoning>`. Only `[!think]`
+  ships in Phase 2; other admonitions (`[!warn]`/`[!info]`/`[!error]`)
+  are obvious extensions but expand the surface without a use case yet.
+
+  **Bundle**
+
+  Removes `streamdown@2.5.0` (Shiki + Mermaid + remend, ~68 KB) from
+  runtime deps. Adds `react-markdown`, `remark-gfm`, `rehype-raw`,
+  `rehype-sanitize` (smaller combined surface, no Shiki/Mermaid by default).
+
+  **Bundled cleanup**
+  - **`<ToolCall>` `running` state contrast fix.** The `bg-primary/15
+text-primary` pair was 4.45:1 in dark mode (just under WCAG AA's 4.5
+    threshold for ≤14pt text). Switched to `bg-muted text-primary` —
+    neutral-bg + brand-text, AA-safe by design. Visual diff is minimal
+    (the chip stays subtle). Verified on the default theme; themes where
+    `--muted` and `--primary` collapse to similar values need a separate
+    multi-theme audit before relying on the chip's affordance.
+  - **`<SpeechRecognition>` visual baselines.** The component shipped in
+    1.6.0 without `e2e/visual.spec.ts-snapshots/speech-recognition-{light,dark}.png`;
+    added them so `pnpm regression` passes from a fresh checkout.
+
+  **Tests**
+  - 39 truth-table tests for `closeUnterminated` (pass-through, fences,
+    links, brackets, backticks, strike, bold, italic, combined streams,
+    escapes, Unicode word boundaries, CRLF fences).
+  - 12 functional tests for `<Markdown>` covering each slot, plain-markdown
+    semantics, and streaming recovery.
+
+### Patch Changes
+
+- c7bb59e: fix(a11y): clear 2 WCAG AA contrast violations from the regression gate
+  - Dark `--destructive` token lifted from `0 48.8% 58%` → `0 48.8% 68%` so
+    `text-destructive` on the dark `--card` (L=14%) clears AA 4.5:1
+    (was 4.02:1 — caught by `<Task>`'s error-step label).
+  - `<ChainOfThought>` row labels drop the `/80` opacity modifier on
+    `text-muted-foreground` — at 80% opacity the small uppercase labels
+    measured 3.85:1 on the light card (now ~4.7:1).
+
 ## 1.9.0
 
 ### Minor Changes
