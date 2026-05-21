@@ -116,4 +116,37 @@ describe("dist bundle shape", () => {
 		const barrelDts = read("index.d.ts");
 		expect(barrelDts).not.toContain("@hex-core/registry");
 	});
+
+	it("no component directory contains both <name>.tsx and index.{ts,tsx} (rule-4 invariant)", () => {
+		// `scripts/build-registry.ts` `discoverDependencies()` rule 4 ships
+		// every direct same-dir sibling of the entry file. If a component
+		// dir gains an `index.ts(x)`, the CLI distribution would write
+		// `components/ui/index.ts` and clobber a consumer's barrel. Keep
+		// the invariant — anyone tempted to add an index needs to rework
+		// rule 4 first.
+		const roots = [
+			path.join(srcDir, "ai"),
+			path.join(srcDir, "components"),
+			path.join(srcDir, "primitives"),
+		];
+		const offenders: string[] = [];
+		for (const root of roots) {
+			if (!fs.existsSync(root)) continue;
+			for (const entry of fs.readdirSync(root)) {
+				const subdir = path.join(root, entry);
+				if (!fs.statSync(subdir).isDirectory()) continue;
+				const hasNamedTsx = fs.existsSync(path.join(subdir, `${entry}.tsx`));
+				const hasIndex =
+					fs.existsSync(path.join(subdir, "index.ts")) ||
+					fs.existsSync(path.join(subdir, "index.tsx"));
+				if (hasNamedTsx && hasIndex) {
+					offenders.push(`${path.basename(root)}/${entry}`);
+				}
+			}
+		}
+		expect(
+			offenders,
+			`component dirs with both <name>.tsx and index.{ts,tsx} (CLI distribution would overwrite consumer barrels): ${offenders.join(", ")}`,
+		).toEqual([]);
+	});
 });
