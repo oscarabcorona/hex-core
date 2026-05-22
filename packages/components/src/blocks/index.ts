@@ -71,3 +71,19 @@ export {
 	type MarketingFooterLink,
 	type MarketingFooterProps,
 } from "./marketing-footer/marketing-footer.js";
+
+// Application section blocks — composable pieces of an authenticated app.
+export { AppShell, type AppShellProps } from "./app-shell/app-shell.js";
+export {
+	AppSidebarNav,
+	type AppNavGroup,
+	type AppNavItem,
+	type AppSidebarNavProps,
+} from "./app-sidebar-nav/app-sidebar-nav.js";
+export { AppStats, type AppStat, type AppStatsProps } from "./app-stats/app-stats.js";
+export {
+	AppSettings,
+	type AppSettingsGroup,
+	type AppSettingsProps,
+} from "./app-settings/app-settings.js";
+export { AppDataTable, type AppDataTableProps } from "./app-data-table/app-data-table.js";

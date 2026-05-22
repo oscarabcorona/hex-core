@@ -1,0 +1,143 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "app-shell",
+  "displayName": "AppShell",
+  "description": "Application layout frame: a fixed left sidebar on ≥lg, a sticky top bar, and a scrollable main region. On mobile the sidebar collapses behind a menu button and slides in as an overlay drawer. Client Component. Theme-driven.",
+  "category": "block",
+  "subcategory": "app",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "sidebar",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Sidebar content — typically an <AppSidebarNav>. Fixed on ≥lg, a drawer on mobile."
+    },
+    {
+      "name": "header",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Top-bar content (breadcrumbs, search, account menu) shown right of the mobile menu button."
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Main page content."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional classes applied to the root wrapper."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "sidebar",
+      "description": "Sidebar nav content.",
+      "required": true,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    },
+    {
+      "name": "header",
+      "description": "Top-bar content.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    },
+    {
+      "name": "children",
+      "description": "Main content region.",
+      "required": true,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/app-shell.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/** Props for {@link AppShell}. */\nexport interface AppShellProps {\n\t/** Sidebar content — typically an `<AppSidebarNav>`. Fixed on ≥lg, a drawer on mobile. */\n\tsidebar: React.ReactNode;\n\t/** Top-bar content (breadcrumbs, search, account menu) shown right of the mobile menu button. */\n\theader?: React.ReactNode;\n\t/** Main page content. */\n\tchildren: React.ReactNode;\n\t/** Additional classes applied to the root wrapper. */\n\tclassName?: string;\n}\n\n/** Decorative hamburger / close glyphs. `aria-hidden` — the button carries the label. */\nfunction MenuGlyph({ open }: { open: boolean }) {\n\treturn (\n\t\t<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" strokeWidth=\"2\" aria-hidden=\"true\" className=\"size-5\">\n\t\t\t{open ? (\n\t\t\t\t<path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M6 6l12 12M18 6 6 18\" />\n\t\t\t) : (\n\t\t\t\t<path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M4 7h16M4 12h16M4 17h16\" />\n\t\t\t)}\n\t\t</svg>\n\t);\n}\n\n/**\n * Application layout frame: a fixed left sidebar on ≥lg, a sticky top bar, and\n * a scrollable main region. On mobile the sidebar collapses behind a menu\n * button and slides in as an overlay drawer. Client Component (owns the\n * drawer state). Theme-driven; pass your own nav and header content.\n */\nexport function AppShell({ sidebar, header, children, className }: AppShellProps) {\n\tconst [open, setOpen] = React.useState(false);\n\treturn (\n\t\t<div className={cn(\"min-h-screen bg-background\", className)}>\n\t\t\t{/* Mobile drawer */}\n\t\t\t{open ? (\n\t\t\t\t<div className=\"relative z-40 lg:hidden\">\n\t\t\t\t\t<button\n\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\taria-label=\"Close menu\"\n\t\t\t\t\t\tclassName=\"fixed inset-0 bg-foreground/40\"\n\t\t\t\t\t\tonClick={() => setOpen(false)}\n\t\t\t\t\t/>\n\t\t\t\t\t<aside className=\"fixed inset-y-0 left-0 flex w-64 flex-col border-r border-border bg-card\">\n\t\t\t\t\t\t{sidebar}\n\t\t\t\t\t</aside>\n\t\t\t\t</div>\n\t\t\t) : null}\n\n\t\t\t{/* Desktop sidebar */}\n\t\t\t<aside className=\"hidden border-r border-border bg-card lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col\">\n\t\t\t\t{sidebar}\n\t\t\t</aside>\n\n\t\t\t<div className=\"lg:pl-64\">\n\t\t\t\t<header className=\"sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6\">\n\t\t\t\t\t<button\n\t\t\t\t\t\ttype=\"button\"\n\t\t\t\t\t\tclassName=\"inline-flex items-center justify-center rounded-md p-2 text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 lg:hidden\"\n\t\t\t\t\t\taria-label=\"Open menu\"\n\t\t\t\t\t\taria-expanded={open}\n\t\t\t\t\t\tonClick={() => setOpen(true)}\n\t\t\t\t\t>\n\t\t\t\t\t\t<MenuGlyph open={false} />\n\t\t\t\t\t</button>\n\t\t\t\t\t<div className=\"flex flex-1 items-center justify-between gap-4\">{header}</div>\n\t\t\t\t</header>\n\t\t\t\t<main className=\"p-4 sm:p-6 lg:p-8\">{children}</main>\n\t\t\t</div>\n\t\t</div>\n\t);\n}\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n\nconst SAFE_URL_SCHEMES = [\"http:\", \"https:\", \"mailto:\"] as const;\n\n/**\n * Allowlist a URL for use as an `<a href>` against untrusted input.\n *\n * Returns the raw string when it's `http(s):` / `mailto:` / a relative\n * URL (no scheme); returns `undefined` otherwise. Defends against\n * `javascript:` / `data:` / `vbscript:` injection from streamed model\n * output or third-party JSON payloads that flow into citation chips.\n *\n * Inside a Markdown render path, `rehype-sanitize` already strips\n * `javascript:` from inline-link hrefs — but it does NOT introspect\n * JSON nested inside attribute values (e.g. `<sources data='[…]'/>`),\n * so the components that consume that data must guard themselves.\n *\n * @param raw - The candidate URL, or `undefined` when none was supplied.\n * @returns The URL when safe to render, otherwise `undefined`.\n */\nexport function safeUrl(raw: string | undefined): string | undefined {\n\tif (raw === undefined || raw === \"\") return undefined;\n\t// Relative URLs have no scheme — `new URL(relative)` throws without a base,\n\t// so a thrown URL means either malformed input OR a relative path. Treat\n\t// \"throws + does not contain a colon\" as a relative path (safe).\n\tlet parsed: URL;\n\ttry {\n\t\tparsed = new URL(raw);\n\t} catch {\n\t\treturn raw.includes(\":\") ? undefined : raw;\n\t}\n\treturn SAFE_URL_SCHEMES.some((scheme) => scheme === parsed.protocol) ? raw : undefined;\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "background",
+    "foreground",
+    "card",
+    "muted",
+    "border",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Shell with sidebar nav and content",
+      "description": "App frame wrapping a nav and a dashboard body.",
+      "code": "import { AppShell, AppSidebarNav, Button } from \"@hex-core/components\";\n\n<AppShell\n  sidebar={<AppSidebarNav brand={<span className=\"font-semibold\">Acme</span>} groups={[{ items: [{ label: \"Dashboard\", href: \"/app\", active: true }] }]} />}\n  header={<><h1 className=\"text-sm font-semibold\">Dashboard</h1><Button size=\"sm\">New</Button></>}\n>\n  <p>Main content here.</p>\n</AppShell>",
+      "composition": [
+        "app",
+        "shell",
+        "layout",
+        "dashboard"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use as the outer frame of an authenticated app: dashboards, settings, data views. Put an AppSidebarNav in the sidebar slot and page content in children.",
+    "whenNotToUse": "Don't use for marketing pages (use marketing-header + sections). Don't nest an AppShell inside another. Don't put the page <h1> in the shell — put it in the page content or header slot once.",
+    "commonMistakes": [
+      "Rendering the whole page as a Client Component because AppShell is one — keep page content in Server Components and pass it as children.",
+      "Duplicating navigation in both the sidebar and the header — the sidebar is the primary nav.",
+      "Forgetting to give the sidebar a scroll region when the nav is long — AppSidebarNav handles this; raw content may overflow."
+    ],
+    "relatedComponents": [
+      "app-sidebar-nav",
+      "app-stats",
+      "app-data-table",
+      "sidebar",
+      "breadcrumb"
+    ],
+    "accessibilityNotes": "The mobile menu button is a <button> with aria-expanded and an aria-label. The drawer backdrop is a labelled button so it's keyboard-dismissable. The sticky top bar stays above content via z-index without trapping focus.",
+    "tokenBudget": 750
+  },
+  "tags": [
+    "block",
+    "app",
+    "shell",
+    "layout",
+    "dashboard",
+    "sidebar"
+  ]
+}

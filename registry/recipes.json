@@ -4,29 +4,22 @@
   "version": "0.1.0",
   "items": [
     {
-      "slug": "app-shell",
-      "kind": "component",
-      "title": "App shell — layout primitives starter",
-      "summary": "Twelve foundational layout + atom primitives an agent typically needs when scaffolding a real app. Install once, then compose rather than hand-rolling `space-y-*` chains, `grid sm:grid-cols-*` breakpoints, dashed empty-state divs, or `rounded-full border` badge spans.",
+      "slug": "app-page",
+      "kind": "page",
+      "pageType": "app",
+      "title": "App page",
+      "summary": "An authenticated app dashboard composed from the app shell, sidebar navigation, KPI stats, and a data-table view.",
       "tags": [
-        "layout",
-        "shell",
-        "starter",
-        "foundation"
+        "app",
+        "dashboard",
+        "page",
+        "shell"
       ],
       "components": [
-        "container",
-        "stack",
-        "cluster",
-        "grid",
-        "spacer",
-        "empty",
-        "card",
-        "separator",
-        "badge",
-        "tag",
-        "timeline",
-        "breadcrumb"
+        "app-shell",
+        "app-sidebar-nav",
+        "app-stats",
+        "app-data-table"
       ],
       "tokenBudget": 3200
     },
@@ -290,6 +283,33 @@
         "marketing-footer"
       ],
       "tokenBudget": 4200
+    },
+    {
+      "slug": "layout-starter",
+      "kind": "component",
+      "title": "Layout starter — layout primitives bundle",
+      "summary": "Twelve foundational layout + atom primitives an agent typically needs when scaffolding a real app. Install once, then compose rather than hand-rolling `space-y-*` chains, `grid sm:grid-cols-*` breakpoints, dashed empty-state divs, or `rounded-full border` badge spans.",
+      "tags": [
+        "layout",
+        "starter",
+        "foundation",
+        "primitives"
+      ],
+      "components": [
+        "container",
+        "stack",
+        "cluster",
+        "grid",
+        "spacer",
+        "empty",
+        "card",
+        "separator",
+        "badge",
+        "tag",
+        "timeline",
+        "breadcrumb"
+      ],
+      "tokenBudget": 3200
     },
     {
       "slug": "pricing-table",

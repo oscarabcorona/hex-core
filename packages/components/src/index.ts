@@ -434,6 +434,15 @@ export {
 
 // Blocks — page-level compositions (auth flows, landing sections, app shells).
 export type {
+	AppDataTableProps,
+	AppNavGroup,
+	AppNavItem,
+	AppSettingsGroup,
+	AppSettingsProps,
+	AppShellProps,
+	AppSidebarNavProps,
+	AppStat,
+	AppStatsProps,
 	AuthAdapter,
 	AuthAdapterResult,
 	AuthForgotPasswordProps,
@@ -462,6 +471,11 @@ export type {
 	MarketingTestimonialProps,
 } from "./blocks/index.js";
 export {
+	AppDataTable,
+	AppSettings,
+	AppShell,
+	AppSidebarNav,
+	AppStats,
 	AuthForgotPassword,
 	AuthResetPassword,
 	AuthSignInSplit,

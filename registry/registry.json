@@ -1130,6 +1130,88 @@
       "tokenBudget": 700
     },
     {
+      "name": "app-data-table",
+      "displayName": "AppDataTable",
+      "description": "Page-level data-table view: a header row (title + description and a toolbar), a bordered table surface, and an optional footer for pagination. Layout only — supply the actual table as children. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "data-table",
+        "table",
+        "dashboard"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "app-settings",
+      "displayName": "AppSettings",
+      "description": "Settings page layout: a stack of groups, each pairing a title + description column with a card of form controls (two columns on ≥lg, stacked below). Presentational and theme-driven — pass your own fields and submit handling.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "settings",
+        "form",
+        "dashboard"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "app-shell",
+      "displayName": "AppShell",
+      "description": "Application layout frame: a fixed left sidebar on ≥lg, a sticky top bar, and a scrollable main region. On mobile the sidebar collapses behind a menu button and slides in as an overlay drawer. Client Component. Theme-driven.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "shell",
+        "layout",
+        "dashboard",
+        "sidebar"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 750
+    },
+    {
+      "name": "app-sidebar-nav",
+      "displayName": "AppSidebarNav",
+      "description": "Sidebar navigation for AppShell: a pinned brand, a scrollable list of grouped links with active states and aria-current, and a pinned footer (account / sign-out). Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "navigation",
+        "sidebar",
+        "dashboard"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "app-stats",
+      "displayName": "AppStats",
+      "description": "A row of KPI stat cards: label, value, and an optional colored delta with a directional caret (increase / decrease / neutral). Two, three, or four columns. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "stats",
+        "kpi",
+        "dashboard",
+        "metrics"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
       "name": "auth-forgot-password",
       "displayName": "AuthForgotPassword",
       "description": "Single-field 'forgot password' page. On submit, dispatches a reset link via adapter.requestPasswordReset and swaps to an Empty-based 'check your inbox' confirmation state.",
