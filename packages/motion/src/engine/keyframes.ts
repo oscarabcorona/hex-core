@@ -14,6 +14,8 @@ export interface AnimateProps {
 	opacity?: number;
 	backgroundColor?: string;
 	color?: string;
+	/** CSS `filter` value (e.g. `blur(8px)`), passed through verbatim — used by the blur-in catalog wrapper. */
+	filter?: string;
 }
 
 export interface Transition {
@@ -69,6 +71,7 @@ function frameFromProps(props: AnimateProps): Keyframe {
 	if (props.opacity !== undefined) frame.opacity = props.opacity;
 	if (props.backgroundColor !== undefined) frame.backgroundColor = props.backgroundColor;
 	if (props.color !== undefined) frame.color = props.color;
+	if (props.filter !== undefined) frame.filter = props.filter;
 	return frame;
 }
 

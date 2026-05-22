@@ -112,6 +112,7 @@ async function main(): Promise<void> {
 		// Pins the new `motion` category to the protocol surface so a regression
 		// in the schema enum or registry index reaches CI before publish.
 		const MOTION_SLUGS = [
+			// Phase 1 primitives (11)
 			"clip",
 			"motion",
 			"motion-pro",
@@ -123,6 +124,23 @@ async function main(): Promise<void> {
 			"use-animate",
 			"use-scroll",
 			"variants",
+			// Phase 2 popular-animation catalog (15) — `shine` is the sweep wrapper
+			// (renamed from `shimmer` to avoid colliding with the AI shimmer effect).
+			"blur-in",
+			"bounce",
+			"count-up",
+			"fade-in",
+			"marquee",
+			"page-transition",
+			"parallax",
+			"pulse",
+			"reveal-on-scroll",
+			"scale-in",
+			"shake",
+			"shine",
+			"slide-in",
+			"stagger",
+			"typewriter",
 		];
 		const motionResult = await client.callTool({
 			name: TOOL.SEARCH_COMPONENTS,

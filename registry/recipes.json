@@ -261,6 +261,31 @@
       "tokenBudget": 1800
     },
     {
+      "slug": "landing-hero",
+      "kind": "component",
+      "title": "Landing hero",
+      "summary": "Marketing-page hero that composes the Phase 2 motion catalog: FadeIn headline + SlideIn subhead + ScaleIn primary CTA + CountUp stat tiles. Demonstrates how the wrappers compose with the existing layout primitives without writing any timeline JSX.",
+      "tags": [
+        "motion",
+        "hero",
+        "landing",
+        "marketing",
+        "stats",
+        "intro"
+      ],
+      "components": [
+        "container",
+        "stack",
+        "button",
+        "fade-in",
+        "slide-in",
+        "scale-in",
+        "count-up",
+        "stagger"
+      ],
+      "tokenBudget": 2400
+    },
+    {
       "slug": "landing-page",
       "kind": "page",
       "pageType": "landing",

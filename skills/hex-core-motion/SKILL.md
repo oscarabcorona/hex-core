@@ -57,9 +57,34 @@ Durations are plain ms numbers. Token values from `@hex-core/tokens`: `duration-
 - Mixing `useAnimate` and `<Timeline>` on the same element — one driver should own a target.
 - Defining `variants` inline in render — every render re-runs animations. Hoist or memoize.
 
+## Catalog (Phase 2)
+
+15 popular-animation wrappers ship as registry items. Reach for these before hand-writing `<Motion.div initial animate>` for the Nth time:
+
+| Slug | Use case |
+|---|---|
+| `fade-in` | Opacity 0 → 1, smallest possible Motion wrapper. |
+| `slide-in` | Direction-aware slide (top/right/bottom/left). |
+| `scale-in` | Scale 0.95 → 1 + opacity. Modals, toasts, primary CTAs. |
+| `blur-in` | filter:blur(N) → blur(0). Cinematic hero focus-pull. |
+| `pulse` | Infinite scale pulse. Notification dots, hint buttons. |
+| `bounce` | Mount-time overshoot. Toasts, achievements. |
+| `shine` | Skeleton-loader gradient sweep. |
+| `stagger` | Cascade orchestrator — injects per-child `delay` prop. |
+| `reveal-on-scroll` | Fade + slide-up on first viewport intersection. |
+| `count-up` | Numeric tween with pluggable formatter. |
+| `typewriter` | Character-by-character text reveal. |
+| `marquee` | Infinite seamless scroller (logos, tickers). |
+| `shake` | Trigger-driven horizontal jitter for error feedback. |
+| `parallax` | Scroll-driven translate. |
+| `page-transition` | Keyed Presence + Motion for route changes. |
+
+Each accepts named easings, has `prefers-reduced-motion` baked in, and uses the same WAAPI engine as `<Motion>`. Compose Stagger + FadeIn for cascading list reveals; compose RevealOnScroll + Stagger for visibility-triggered cascades.
+
 ## Recipes
 
-- **`intro-sequence`** — hero + CTA reveal using Timeline + existing primitives. Lists in `npx @hex-core/cli recipe list`.
+- **`intro-sequence`** (Phase 1) — hero reveal via the timeline composer.
+- **`landing-hero`** (Phase 2) — uses the catalog: FadeIn headline + SlideIn subhead + ScaleIn CTA + CountUp stats. Lists in `npx @hex-core/cli recipe list`.
 
 ## Where to go next
 

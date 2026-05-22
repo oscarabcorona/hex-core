@@ -1,0 +1,116 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "reveal-on-scroll",
+  "displayName": "RevealOnScroll",
+  "description": "Animates children from a hidden state to a fully revealed one when they first enter the viewport. Built on useInView; defaults to fade + slide-up — the most common 'scroll reveal' pattern.",
+  "category": "motion",
+  "subcategory": "wrapper",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "once",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Animate only on first intersection."
+    },
+    {
+      "name": "threshold",
+      "type": "number",
+      "required": false,
+      "default": 0,
+      "description": "IntersectionObserver threshold (0..1)."
+    },
+    {
+      "name": "from",
+      "type": "object",
+      "required": false,
+      "description": "Initial AnimateProps. Defaults to { opacity: 0, y: 24 }."
+    },
+    {
+      "name": "duration",
+      "type": "number",
+      "required": false,
+      "description": "Reveal duration in ms."
+    },
+    {
+      "name": "easing",
+      "type": "enum",
+      "required": false,
+      "description": "Named easing or CSS easing string.",
+      "enumValues": [
+        "linear",
+        "standard",
+        "emphasized",
+        "decelerate",
+        "accelerate",
+        "bounce"
+      ]
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Element class name."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "children",
+      "description": "Content revealed when scrolled into view.",
+      "required": true,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [],
+  "dependencies": {
+    "npm": [
+      "@hex-core/motion"
+    ],
+    "internal": [
+      "motion",
+      "use-scroll"
+    ],
+    "peer": [
+      "react"
+    ]
+  },
+  "tokensUsed": [
+    "duration-normal",
+    "ease-emphasized"
+  ],
+  "examples": [
+    {
+      "title": "Feature card reveal",
+      "description": "Each feature card fades + slides up as the user scrolls past it.",
+      "code": "<RevealOnScroll><FeatureCard /></RevealOnScroll>"
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use to add subtle entrance animations to content below the fold. Standard for marketing landing pages.",
+    "whenNotToUse": "Don't use above the fold — those animations should fire on mount, not on scroll. Don't use for sticky elements.",
+    "commonMistakes": [
+      "Setting `once: false` on a long page makes the animation re-fire every scroll-back; users notice and dislike.",
+      "Forgetting the `from` is a starting AnimateProps, not a CSS class — it must use motion fields (opacity, x, y, scale)."
+    ],
+    "relatedComponents": [
+      "motion",
+      "use-scroll",
+      "stagger",
+      "fade-in"
+    ],
+    "accessibilityNotes": "IntersectionObserver disconnects on unmount. Reduced-motion mode skips the animation; content renders immediately at final state.",
+    "tokenBudget": 240
+  },
+  "tags": [
+    "motion",
+    "scroll",
+    "reveal",
+    "wrapper",
+    "intersection"
+  ]
+}
