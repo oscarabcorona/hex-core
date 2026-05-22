@@ -78,5 +78,5 @@ export const commerceCartSchema: ComponentSchemaDefinition = {
 			"Each line item name renders as an <h3>. The summary card is sticky on desktop so totals stay visible. Per-item controls you pass must carry accessible names (e.g. 'Remove Canvas Tote').",
 		tokenBudget: 700,
 	},
-	tags: ["block", "commerce", "cart", "checkout", "storefront"],
+	tags: ["block", "commerce", "cart", "checkout", "storefront", "store", "shop"],
 };

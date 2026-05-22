@@ -7,6 +7,8 @@
   "tags": [
     "ecommerce",
     "storefront",
+    "store",
+    "shop",
     "catalog",
     "page"
   ],
@@ -43,7 +45,7 @@
       "role": "primary"
     }
   ],
-  "layout": "Stack vertically in declared order inside a single page wrapper. Header first, footer last. The product grid is the body; drop the optional promo band when there's nothing to promote. Product cards (href set) navigate to commerce-product-detail; that page links onward to commerce-cart and commerce-checkout, which are separate routes rather than sections of this page.",
+  "layout": "Stack vertically in declared order inside a single page wrapper. Header first, footer last. The product grid is the body; drop the optional promo band when there's nothing to promote. Product cards (href set) navigate to commerce-product-detail; that page links onward to commerce-cart and commerce-checkout, which are separate routes rather than sections of this page. Each section installs as its own file — import a block from `@/components/ui/<section.block>` (e.g. import { CommerceProductGrid } from \"@/components/ui/commerce-product-grid\").",
   "checklist": [
     {
       "id": "marketing-header-passing-more-than-5-links-the-inline-row-gets-cr",

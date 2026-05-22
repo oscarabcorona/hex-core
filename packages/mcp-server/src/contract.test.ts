@@ -390,6 +390,56 @@ async function main(): Promise<void> {
 		}
 		pass(`search_components(category:"block") returns ${blocksParsed.length} block(s) including the password-auth journey`);
 
+		// ─── 10b. Page-recipe round-trip — get_recipe(kind:"page") ───
+		// Locks the page-recipe contract: a regression in the recipe schema or the
+		// get_recipe response (dropping sections/theme/layout/pageType, or emitting
+		// empty sections) would surface here before an agent tried to assemble a page.
+		const recipeResult = (await client.callTool({
+			name: TOOL.GET_RECIPE,
+			arguments: { slug: "landing-page" },
+		})) as { content?: Array<{ type: string; text?: string }> };
+		const recipeText = recipeResult.content?.[0]?.text ?? "";
+		let recipeParsed: {
+			kind?: string;
+			pageType?: string;
+			theme?: { preset?: string };
+			layout?: string;
+			sections?: Array<{ id: string; block: string; intent: string; role: string }>;
+			install?: { recipeCommand?: string };
+		};
+		try {
+			recipeParsed = JSON.parse(recipeText);
+		} catch {
+			fail(`get_recipe("landing-page") did not return JSON: ${recipeText.slice(0, 120)}`);
+		}
+		if (recipeParsed.kind !== "page") {
+			fail(`get_recipe("landing-page"): kind was ${recipeParsed.kind}, expected "page".`);
+		}
+		if (recipeParsed.pageType !== "landing") {
+			fail(`get_recipe("landing-page"): pageType was ${recipeParsed.pageType}, expected "landing".`);
+		}
+		if (!Array.isArray(recipeParsed.sections) || recipeParsed.sections.length === 0) {
+			fail("get_recipe(\"landing-page\"): sections missing or empty — page can't be assembled.");
+		}
+		const badSection = recipeParsed.sections.find((s) => !s.block || !s.intent);
+		if (badSection) {
+			fail(`get_recipe("landing-page"): a section is missing block/intent: ${JSON.stringify(badSection)}`);
+		}
+		if (!recipeParsed.theme?.preset) {
+			fail("get_recipe(\"landing-page\"): theme.preset missing — no token guidance for the page.");
+		}
+		if (!recipeParsed.layout || recipeParsed.layout.length === 0) {
+			fail("get_recipe(\"landing-page\"): layout brief missing — agent has no assembly guidance.");
+		}
+		if (recipeParsed.install?.recipeCommand !== "hex recipe add landing-page") {
+			fail(
+				`get_recipe("landing-page"): install.recipeCommand was ${recipeParsed.install?.recipeCommand}, expected "hex recipe add landing-page".`,
+			);
+		}
+		pass(
+			`get_recipe("landing-page") round-trips as kind:"page" with ${recipeParsed.sections.length} ordered sections + theme + layout`,
+		);
+
 		// Confirm the canonical first-shipped block (auth-sign-in-split) round-trips
 		// through get_component with its full spec — schema, files, AuthAdapter prop.
 		const blockResult = (await client.callTool({
@@ -426,7 +476,7 @@ async function main(): Promise<void> {
 		pass("client.close() disposed transport cleanly");
 	}
 
-	console.log("\nMCP contract test: all 13 assertions passed.");
+	console.log("\nMCP contract test: all 14 assertions passed.");
 }
 
 main().catch((err) => {

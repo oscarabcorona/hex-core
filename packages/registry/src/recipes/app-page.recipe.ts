@@ -18,6 +18,6 @@ export const appPageRecipe: RecipeDefinition = {
 		{ id: "table", block: "app-data-table", intent: "The primary list/table view below the stats.", role: "primary" },
 	],
 	layout:
-		"AppShell is the root. Put AppSidebarNav in its `sidebar` slot and page title + actions in its `header` slot. Inside `children`, stack AppStats first, then AppDataTable. For a settings screen, swap AppDataTable for app-settings. Each block manages its own spacing — separate stacked blocks with a gap on the main region.",
+		"AppShell is the root. Put AppSidebarNav in its `sidebar` slot and page title + actions in its `header` slot. Inside `children`, stack AppStats first, then AppDataTable. For a settings screen, swap AppDataTable for app-settings. Each block manages its own spacing — separate stacked blocks with a gap on the main region. Each section installs as its own file — import a block from `@/components/ui/<section.block>` (e.g. import { AppShell } from \"@/components/ui/app-shell\").",
 	tokenBudget: 3200,
 };

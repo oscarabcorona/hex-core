@@ -137,6 +137,8 @@
     "commerce",
     "cart",
     "checkout",
-    "storefront"
+    "storefront",
+    "store",
+    "shop"
   ]
 }

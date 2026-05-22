@@ -22,6 +22,6 @@ export const landingPageRecipe: RecipeDefinition = {
 		{ id: "footer", block: "marketing-footer", intent: "Site navigation, social links, and legal line.", role: "primary" },
 	],
 	layout:
-		"Stack the sections vertically in declared order inside a single page wrapper (no max-width on the page itself — each block manages its own container and padding). Header first, footer last; everything between scrolls. Drop the optional logos/testimonials sections when you lack real content rather than filling them with placeholders.",
+		"Stack the sections vertically in declared order inside a single page wrapper (no max-width on the page itself — each block manages its own container and padding). Header first, footer last; everything between scrolls. Drop the optional logos/testimonials sections when you lack real content rather than filling them with placeholders. Each section installs as its own file — import a block from `@/components/ui/<section.block>` (e.g. import { MarketingHero } from \"@/components/ui/marketing-hero\").",
 	tokenBudget: 4200,
 };

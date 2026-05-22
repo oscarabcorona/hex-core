@@ -74,5 +74,5 @@ export const commerceProductGridSchema: ComponentSchemaDefinition = {
 			"When href is set the whole card is a single anchor wrapping the image and text, so there's one focusable target per product with an accessible name from the product name. Product images require alt text.",
 		tokenBudget: 600,
 	},
-	tags: ["block", "commerce", "product-grid", "catalog", "storefront"],
+	tags: ["block", "commerce", "product-grid", "catalog", "storefront", "store", "shop"],
 };

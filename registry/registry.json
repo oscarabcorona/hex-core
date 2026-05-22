@@ -1356,7 +1356,9 @@
         "commerce",
         "cart",
         "checkout",
-        "storefront"
+        "storefront",
+        "store",
+        "shop"
       ],
       "internalDeps": [],
       "tokenBudget": 700
@@ -1372,7 +1374,9 @@
         "commerce",
         "checkout",
         "form",
-        "storefront"
+        "storefront",
+        "store",
+        "shop"
       ],
       "internalDeps": [],
       "tokenBudget": 650
@@ -1388,7 +1392,9 @@
         "commerce",
         "product-detail",
         "pdp",
-        "storefront"
+        "storefront",
+        "store",
+        "shop"
       ],
       "internalDeps": [],
       "tokenBudget": 700
@@ -1404,7 +1410,9 @@
         "commerce",
         "product-grid",
         "catalog",
-        "storefront"
+        "storefront",
+        "store",
+        "shop"
       ],
       "internalDeps": [],
       "tokenBudget": 600

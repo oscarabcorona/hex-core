@@ -175,6 +175,8 @@
     "commerce",
     "product-detail",
     "pdp",
-    "storefront"
+    "storefront",
+    "store",
+    "shop"
   ]
 }

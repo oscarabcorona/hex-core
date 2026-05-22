@@ -129,6 +129,8 @@
     "commerce",
     "checkout",
     "form",
-    "storefront"
+    "storefront",
+    "store",
+    "shop"
   ]
 }

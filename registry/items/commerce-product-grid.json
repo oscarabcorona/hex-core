@@ -137,6 +137,8 @@
     "commerce",
     "product-grid",
     "catalog",
-    "storefront"
+    "storefront",
+    "store",
+    "shop"
   ]
 }
