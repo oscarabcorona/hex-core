@@ -525,7 +525,7 @@ server.registerTool(
 	TOOL.LIST_RECIPES,
 	{
 		description:
-			"List all Hex Core recipes — spec-driven blueprints that map a UI goal (auth form, settings page, pricing table) to an ordered checklist of components. Use this to discover recipes before calling get_recipe.",
+			"List all Hex Core recipes — spec-driven blueprints that map a UI goal to an ordered set of components. Each entry carries `kind` (`component` = a bundle like auth-form/settings-page, `page` = a whole-page composition) and, for pages, `pageType` (`landing` | `app` | `ecommerce`). Filter by these to find the page recipe for 'build me a landing page / app / store'. Use this to discover recipes before calling get_recipe.",
 		inputSchema: z.object({}).strict(),
 	},
 	async () => {
@@ -547,7 +547,7 @@ server.registerTool(
 	TOOL.GET_RECIPE,
 	{
 		description:
-			"Get the full Hex Core recipe: ordered install steps, the union of npm peer dependencies across all components, a post-install checklist (author-written plus items derived from each component's commonMistakes / accessibilityNotes), and an optional JSX example. Use this after list_recipes or resolve_spec to execute a blueprint.",
+			"Get the full Hex Core recipe in one call. Component recipes return ordered install `steps`; page recipes (`kind: \"page\"`) additionally return `pageType`, a recommended `theme` (token preset + whole-page tokenBudget), an ordered `sections` list (each a section block with an `intent` for when to keep/drop it), and a `layout` brief describing the shell + responsive order — everything an LLM needs to assemble the page. Both kinds return the union of npm/peer/internal dependencies, install commands, and a post-install checklist (author-written plus items derived from each component's commonMistakes / accessibilityNotes). Use this after list_recipes or resolve_spec to execute a blueprint.",
 		inputSchema: z
 			.object({
 				slug: z.string().describe("Recipe slug (e.g. 'settings-page', 'auth-form')"),
@@ -567,16 +567,26 @@ server.registerTool(
 			};
 		}
 
+		// Slugs the recipe installs: flat `steps` for component recipes,
+		// ordered section `block`s for page recipes. Dependency union and the
+		// install command derive from this combined set so a page recipe
+		// resolves its section blocks' deps exactly like a component recipe.
+		const recipeSlugList = [
+			...recipe.steps.map((s) => s.component),
+			// `?? []` guards a pre-page-system registry snapshot whose recipe
+			// JSON has no `sections` key (component recipes that predate it).
+			...(recipe.sections ?? []).map((s) => s.block),
+		];
 		const npmDeps = new Set<string>();
 		const peerDeps = new Set<string>();
 		const internalDeps = new Set<string>();
 		const missingComponents: string[] = [];
-		const recipeSlugs = new Set(recipe.steps.map((s) => s.component));
+		const recipeSlugs = new Set(recipeSlugList);
 
-		for (const step of recipe.steps) {
-			const item = loadRegistryItem(step.component);
+		for (const slug of recipeSlugList) {
+			const item = loadRegistryItem(slug);
 			if (!item) {
-				missingComponents.push(step.component);
+				missingComponents.push(slug);
 				continue;
 			}
 			for (const dep of item.dependencies?.npm ?? []) npmDeps.add(dep);
@@ -589,23 +599,34 @@ server.registerTool(
 
 		const response = {
 			slug: recipe.slug,
+			kind: recipe.kind,
 			title: recipe.title,
 			summary: recipe.summary,
 			brief: recipe.brief,
 			tags: recipe.tags,
 			steps: recipe.steps,
+			// Page-recipe fields — present only for `kind: "page"`. `sections`
+			// is the ordered composition an LLM assembles; `theme`/`layout`
+			// give it the page-wide token preset and shell structure in one call.
+			pageType: recipe.pageType,
+			theme: recipe.theme,
+			sections: recipe.sections,
+			layout: recipe.layout,
 			checklist: recipe.checklist,
 			example: recipe.example,
 			tokenBudget: recipe.tokenBudget,
 			install: {
-				componentCommand: `hex add ${recipe.steps.map((s) => s.component).join(" ")}`,
+				// Page recipes install via `hex recipe add` (theme + ordered
+				// sections + transitive deps); component recipes can use either.
+				recipeCommand: `hex recipe add ${recipe.slug}`,
+				componentCommand: `hex add ${recipeSlugList.join(" ")}`,
 				npmDependencies: Array.from(npmDeps).sort(),
 				peerDependencies: Array.from(peerDeps).sort(),
 				internalDependencies: Array.from(internalDeps).sort(),
 			},
 			warnings:
 				missingComponents.length > 0
-					? [`Steps reference unknown components: ${missingComponents.join(", ")}`]
+					? [`Recipe references unknown components: ${missingComponents.join(", ")}`]
 					: [],
 		};
 

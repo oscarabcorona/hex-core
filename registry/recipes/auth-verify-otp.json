@@ -1,6 +1,7 @@
 {
   "$schema": "https://hex-core.dev/schema/recipe.json",
   "slug": "auth-verify-otp",
+  "kind": "component",
   "title": "Auth verify OTP",
   "summary": "6-digit (configurable) one-time-code verification page. Composes the auth-verify-otp block which auto-submits when the code is full and routes verification through adapter.verifyOtp({ code, intent }).",
   "tags": [
@@ -34,6 +35,7 @@
       "role": "supporting"
     }
   ],
+  "sections": [],
   "checklist": [
     {
       "id": "auth-adapter-wired",

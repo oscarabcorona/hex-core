@@ -1,6 +1,7 @@
 {
   "$schema": "https://hex-core.dev/schema/recipe.json",
   "slug": "auth-verify-email",
+  "kind": "component",
   "title": "Auth verify email (waiting page)",
   "summary": "Transactional 'check your inbox' page composed from the auth-verify-email block. Mostly visual — optional resend button calls adapter.resendMagicLink with a client-side cooldown timer.",
   "tags": [
@@ -32,6 +33,7 @@
       "role": "optional"
     }
   ],
+  "sections": [],
   "checklist": [
     {
       "id": "pass-email-when-known",

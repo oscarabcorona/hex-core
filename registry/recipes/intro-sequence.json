@@ -1,6 +1,7 @@
 {
   "$schema": "https://hex-core.dev/schema/recipe.json",
   "slug": "intro-sequence",
+  "kind": "component",
   "title": "Intro sequence",
   "summary": "Hero + subhead + CTA reveal orchestrated by the motion timeline. Demonstrates @hex-core/motion composing existing primitives into a deterministic, agent-authorable sequence.",
   "tags": [
@@ -49,6 +50,7 @@
       "role": "optional"
     }
   ],
+  "sections": [],
   "checklist": [
     {
       "id": "stable-target-ids",

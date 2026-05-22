@@ -29,3 +29,8 @@ apps/**/CLAUDE.md
 # Visual regression baselines must be committed — they ARE the source of
 # truth that CI diffs against. Override the broad *.png rule above.
 !apps/docs/e2e/visual.spec.ts-snapshots/*.png
+
+# Local UI reference material — structural inspiration only, not part of the
+# project source. Re-authored blocks live in packages/components; these
+# exemplars must not be committed.
+references/

@@ -1,6 +1,7 @@
 {
   "$schema": "https://hex-core.dev/schema/recipe.json",
   "slug": "auth-form",
+  "kind": "component",
   "title": "Auth form (deprecated — see auth-sign-in)",
   "summary": "[Superseded by auth-sign-in] Login or signup form with validated fields, remember-me, submit button, and error alert. Prefer the auth-sign-in recipe + auth-sign-in-split block for new work — it ships the page-level composition with adapter routing, social providers, and a forgot-password link out of the box.",
   "tags": [
@@ -43,6 +44,7 @@
       "role": "optional"
     }
   ],
+  "sections": [],
   "checklist": [
     {
       "id": "password-input-type",
