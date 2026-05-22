@@ -1264,6 +1264,135 @@
       "tokenBudget": 1300
     },
     {
+      "name": "marketing-cta",
+      "displayName": "MarketingCta",
+      "description": "A closing call-to-action band. 'simple' reads as centered copy on the page background; 'panel' lifts it into a primary-filled rounded card. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "cta",
+        "landing",
+        "conversion"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 550
+    },
+    {
+      "name": "marketing-feature-grid",
+      "displayName": "MarketingFeatureGrid",
+      "description": "A marketing feature grid: an optional heading block above a responsive grid of icon + title + description cells. Two- or three-column on desktop. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "features",
+        "landing",
+        "grid"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
+      "name": "marketing-footer",
+      "displayName": "MarketingFooter",
+      "description": "A marketing site footer: a brand block, several columns of links, and a bottom bar with social links and a copyright line. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "footer",
+        "navigation",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "marketing-header",
+      "displayName": "MarketingHeader",
+      "description": "A marketing site header: brand mark, inline primary nav on desktop, and a collapsible panel on mobile. Client Component (owns the open/close state). Theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "header",
+        "navigation",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
+      "name": "marketing-hero",
+      "displayName": "MarketingHero",
+      "description": "Top-of-page marketing hero. Eyebrow, headline, subcopy, CTA buttons, and an optional media slot. Centered single-column or split copy + media layout. Presentational and fully theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "hero",
+        "landing",
+        "header",
+        "cta"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "marketing-logo-cloud",
+      "displayName": "MarketingLogoCloud",
+      "description": "A row of customer / partner logos with an optional caption. Each logo is a caller-supplied ReactNode (img, inline SVG, or wordmark) — no image source is bundled. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "logos",
+        "social-proof",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 400
+    },
+    {
+      "name": "marketing-pricing",
+      "displayName": "MarketingPricing",
+      "description": "A pricing section: an optional heading block above a row of plan cards, with one tier highlightable as recommended. Each tier has a name, price, feature list, and a caller-supplied CTA. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "pricing",
+        "saas",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 750
+    },
+    {
+      "name": "marketing-testimonial",
+      "displayName": "MarketingTestimonial",
+      "description": "A testimonials section. 'single' features one large centered quote; 'grid' lays out several quote cards with author + avatar. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "testimonial",
+        "social-proof",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
       "name": "attachment",
       "displayName": "Attachment",
       "description": "File / image thumbnail with optional remove affordance + upload-progress overlay. Composes with the AI Composer for multimodal message drafts. Auto-detects image vs file variant from MIME type + preview URL.",

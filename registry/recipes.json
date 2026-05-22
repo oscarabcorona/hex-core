@@ -268,6 +268,30 @@
       "tokenBudget": 1800
     },
     {
+      "slug": "landing-page",
+      "kind": "page",
+      "pageType": "landing",
+      "title": "Landing page",
+      "summary": "A full marketing landing page composed from header, hero, logo cloud, features, pricing, testimonials, a closing CTA, and a footer.",
+      "tags": [
+        "landing",
+        "marketing",
+        "page",
+        "saas"
+      ],
+      "components": [
+        "marketing-header",
+        "marketing-hero",
+        "marketing-logo-cloud",
+        "marketing-feature-grid",
+        "marketing-pricing",
+        "marketing-testimonial",
+        "marketing-cta",
+        "marketing-footer"
+      ],
+      "tokenBudget": 4200
+    },
+    {
       "slug": "pricing-table",
       "kind": "component",
       "title": "Pricing table",
