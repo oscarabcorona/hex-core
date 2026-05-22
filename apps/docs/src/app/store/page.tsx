@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import {
-	Badge,
 	Button,
 	CommerceCart,
 	CommerceCheckout,

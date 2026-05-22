@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Parallax } from "@hex-core/motion";
 
 /**
  * Parallax reads the global window scroll. To make the demo observable
