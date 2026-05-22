@@ -87,3 +87,28 @@ export {
 	type AppSettingsProps,
 } from "./app-settings/app-settings.js";
 export { AppDataTable, type AppDataTableProps } from "./app-data-table/app-data-table.js";
+
+// Ecommerce section blocks — composable pieces of a storefront.
+export {
+	CommerceProductGrid,
+	type CommerceProduct,
+	type CommerceProductGridProps,
+} from "./commerce-product-grid/commerce-product-grid.js";
+export {
+	CommerceProductDetail,
+	type CommerceProductDetailProps,
+} from "./commerce-product-detail/commerce-product-detail.js";
+export {
+	CommerceReviews,
+	type CommerceReview,
+	type CommerceReviewsProps,
+} from "./commerce-reviews/commerce-reviews.js";
+export {
+	CommerceCart,
+	type CommerceCartItem,
+	type CommerceCartProps,
+} from "./commerce-cart/commerce-cart.js";
+export {
+	CommerceCheckout,
+	type CommerceCheckoutProps,
+} from "./commerce-checkout/commerce-checkout.js";

@@ -353,6 +353,26 @@
         "button"
       ],
       "tokenBudget": 3200
+    },
+    {
+      "slug": "storefront-page",
+      "kind": "page",
+      "pageType": "ecommerce",
+      "title": "Storefront page",
+      "summary": "An ecommerce storefront composed from a site header, a product grid, a promo band, and a footer — reusing the marketing header/footer for chrome.",
+      "tags": [
+        "ecommerce",
+        "storefront",
+        "catalog",
+        "page"
+      ],
+      "components": [
+        "marketing-header",
+        "commerce-product-grid",
+        "marketing-cta",
+        "marketing-footer"
+      ],
+      "tokenBudget": 3600
     }
   ]
 }

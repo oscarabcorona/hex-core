@@ -1346,6 +1346,86 @@
       "tokenBudget": 1300
     },
     {
+      "name": "commerce-cart",
+      "displayName": "CommerceCart",
+      "description": "Shopping cart layout: a list of line items on the left and a sticky order summary on the right (stacked on mobile). Presentational and theme-driven — pass quantity steppers / remove buttons as per-item controls and the totals as summary.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "cart",
+        "checkout",
+        "storefront"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
+      "name": "commerce-checkout",
+      "displayName": "CommerceCheckout",
+      "description": "Checkout layout: the form on the left and a sticky order summary on the right (stacked on mobile). Layout only — supply the form (contact, shipping, payment) as children and the order review as summary. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "checkout",
+        "form",
+        "storefront"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
+      "name": "commerce-product-detail",
+      "displayName": "CommerceProductDetail",
+      "description": "Product detail layout: imagery on the left, product info on the right (name, price, description, option controls, and add-to-cart actions), stacked on mobile. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "product-detail",
+        "pdp",
+        "storefront"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
+      "name": "commerce-product-grid",
+      "displayName": "CommerceProductGrid",
+      "description": "A responsive product grid: an optional heading above a grid of product cards (image, name, optional meta, price). Cards link to a detail page when href is set. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "product-grid",
+        "catalog",
+        "storefront"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "commerce-reviews",
+      "displayName": "CommerceReviews",
+      "description": "A product reviews section: a summary header (average rating + count) above a list of individual reviews, each with a star rating, author, optional date, and body. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "reviews",
+        "ratings",
+        "pdp"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
       "name": "marketing-cta",
       "displayName": "MarketingCta",
       "description": "A closing call-to-action band. 'simple' reads as centered copy on the page background; 'panel' lifts it into a primary-filled rounded card. Presentational and theme-driven.",
