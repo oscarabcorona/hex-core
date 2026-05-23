@@ -1,0 +1,146 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "app-page",
+  "kind": "page",
+  "title": "App page",
+  "summary": "An authenticated app dashboard composed from the app shell, sidebar navigation, KPI stats, and a data-table view.",
+  "tags": [
+    "app",
+    "dashboard",
+    "page",
+    "shell"
+  ],
+  "brief": "Build a logged-in app screen: an AppShell frame wrapping an AppSidebarNav in the sidebar slot, with the main region holding a row of AppStats KPIs above an AppDataTable list. Keep page content in Server Components and pass it as the shell's children; only the shell and any interactive controls are client-side. Use semantic tokens so the whole app restyles with the theme.",
+  "steps": [],
+  "pageType": "app",
+  "theme": {
+    "preset": "default",
+    "tokenBudget": 3200
+  },
+  "sections": [
+    {
+      "id": "shell",
+      "block": "app-shell",
+      "intent": "The outer frame — fixed sidebar, sticky top bar, scrollable main.",
+      "role": "primary"
+    },
+    {
+      "id": "nav",
+      "block": "app-sidebar-nav",
+      "intent": "Primary navigation inside the shell's sidebar slot.",
+      "role": "primary"
+    },
+    {
+      "id": "stats",
+      "block": "app-stats",
+      "intent": "Headline KPIs at the top of the main region.",
+      "role": "supporting"
+    },
+    {
+      "id": "table",
+      "block": "app-data-table",
+      "intent": "The primary list/table view below the stats.",
+      "role": "primary"
+    }
+  ],
+  "layout": "AppShell is the root. Put AppSidebarNav in its `sidebar` slot and page title + actions in its `header` slot. Inside `children`, stack AppStats first, then AppDataTable. For a settings screen, swap AppDataTable for app-settings. Each block manages its own spacing — separate stacked blocks with a gap on the main region. Each section installs as its own file — import a block from `@/components/ui/<section.block>` (e.g. import { AppShell } from \"@/components/ui/app-shell\").",
+  "checklist": [
+    {
+      "id": "app-shell-rendering-the-whole-page-as-a-client-component-b",
+      "check": "[AppShell] Avoid: Rendering the whole page as a Client Component because AppShell is one — keep page content in Server Components and pass it as children.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-shell-duplicating-navigation-in-both-the-sidebar-and-t",
+      "check": "[AppShell] Avoid: Duplicating navigation in both the sidebar and the header — the sidebar is the primary nav.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-shell-forgetting-to-give-the-sidebar-a-scroll-region-w",
+      "check": "[AppShell] Avoid: Forgetting to give the sidebar a scroll region when the nav is long — AppSidebarNav handles this; raw content may overflow.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-shell-a11y",
+      "check": "[AppShell] A11y: The mobile menu button is a <button> with aria-expanded and an aria-label. The drawer backdrop is a labelled button so it's keyboard-dismissable. The sticky top bar stays above content via z-index without trapping focus.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "app-sidebar-nav-marking-multiple-items-active-only-the-current-p",
+      "check": "[AppSidebarNav] Avoid: Marking multiple items active — only the current page should have active=true (it sets aria-current='page').",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-sidebar-nav-passing-an-img-as-an-item-icon-the-icon-slot-is-",
+      "check": "[AppSidebarNav] Avoid: Passing an <img> as an item icon — the icon slot is sized for a glyph (size-4); use an SVG.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-sidebar-nav-putting-more-than-3-groups-with-long-lists-witho",
+      "check": "[AppSidebarNav] Avoid: Putting more than ~3 groups with long lists without scannable titles — title each group.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-sidebar-nav-a11y",
+      "check": "[AppSidebarNav] A11y: Links are real anchors; the active link carries aria-current='page'. Icons are aria-hidden since the adjacent label conveys meaning. The nav region scrolls independently so the brand and footer stay visible.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "app-stats-relying-on-color-alone-for-increase-decrease-the",
+      "check": "[AppStats] Avoid: Relying on color alone for increase/decrease — the caret direction and the sign in the change text both encode it, so keep the sign (e.g. '-0.3%').",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-stats-setting-changetype-increase-for-a-metric-where-d",
+      "check": "[AppStats] Avoid: Setting changeType='increase' for a metric where down is good (e.g. churn) — pick the type by sentiment, not arithmetic.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-stats-mismatched-columns-and-stat-count-leaving-a-ragg",
+      "check": "[AppStats] Avoid: Mismatched columns and stat count, leaving a ragged row.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-stats-a11y",
+      "check": "[AppStats] A11y: Deltas don't rely on color alone: a directional caret plus the signed change text convey direction. Carets are aria-hidden. Values and labels are plain text, read in source order.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "app-data-table-expecting-sorting-filtering-from-this-block-it-s",
+      "check": "[AppDataTable] Avoid: Expecting sorting/filtering from this block — it's layout; that logic lives in the DataTable you pass as children.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-data-table-putting-the-page-h1-here-when-appshell-s-header-",
+      "check": "[AppDataTable] Avoid: Putting the page <h1> here when AppShell's header already has one — this title is a section <h2>.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-data-table-omitting-a-footer-with-pagination-on-long-tables",
+      "check": "[AppDataTable] Avoid: Omitting a footer with pagination on long tables, leaving no way to page.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "app-data-table-a11y",
+      "check": "[AppDataTable] A11y: The section title renders as an <h2>. The block doesn't add table semantics — those come from the Table/DataTable in children. Toolbar controls should carry their own labels (e.g. a search input with an accessible name).",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 3200
+}

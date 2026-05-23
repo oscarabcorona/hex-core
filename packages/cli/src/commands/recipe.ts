@@ -5,8 +5,13 @@ import { printSkillsHint } from "../lib/post-install.js";
 import { findRegistryDir } from "../lib/registry-dir.js";
 import { addComponents } from "./add.js";
 
+type RecipeKind = "component" | "page";
+type PageType = "landing" | "app" | "ecommerce";
+
 interface RecipeIndexItem {
 	slug: string;
+	kind?: RecipeKind;
+	pageType?: PageType;
 	title: string;
 	summary: string;
 	components: string[];
@@ -18,6 +23,18 @@ interface RecipeStep {
 	role: "primary" | "supporting" | "optional";
 }
 
+interface PageSection {
+	id: string;
+	block: string;
+	intent: string;
+	role: "primary" | "supporting" | "optional";
+}
+
+interface PageTheme {
+	preset: string;
+	tokenBudget?: number;
+}
+
 interface RecipeChecklistItem {
 	id: string;
 	check: string;
@@ -27,10 +44,15 @@ interface RecipeChecklistItem {
 
 interface Recipe {
 	slug: string;
+	kind?: RecipeKind;
 	title: string;
 	summary: string;
 	brief: string;
 	steps: RecipeStep[];
+	pageType?: PageType;
+	theme?: PageTheme;
+	sections?: PageSection[];
+	layout?: string;
 	checklist: RecipeChecklistItem[];
 	tokenBudget?: number;
 }
@@ -55,9 +77,13 @@ export async function listRecipes(): Promise<void> {
 
 	console.log("\nHex Core Recipes\n");
 	for (const recipe of index.items) {
-		console.log(`  ${recipe.slug.padEnd(22)} ${recipe.title}`);
+		// Tag page recipes with their archetype so `hex recipe list` makes the
+		// "landing/app/store" entry points obvious next to the component bundles.
+		const kindLabel = recipe.kind === "page" ? ` [page: ${recipe.pageType ?? "page"}]` : "";
+		console.log(`  ${recipe.slug.padEnd(22)} ${recipe.title}${kindLabel}`);
 		console.log(`  ${" ".repeat(22)} ${recipe.summary}`);
-		console.log(`  ${" ".repeat(22)} Components: ${recipe.components.join(", ")}`);
+		const memberLabel = recipe.kind === "page" ? "Sections" : "Components";
+		console.log(`  ${" ".repeat(22)} ${memberLabel}: ${recipe.components.join(", ")}`);
 		console.log();
 	}
 	console.log(`Total: ${index.items.length} recipes`);
@@ -95,13 +121,29 @@ export async function addRecipe(
 	}
 
 	const recipe: Recipe = JSON.parse(fs.readFileSync(recipePath, "utf-8"));
+	const isPage = recipe.kind === "page";
 
 	console.log(`\nAdding recipe: ${recipe.title}`);
 	console.log(`  ${recipe.summary}\n`);
 
-	const slugs = recipe.steps.map((s) => s.component);
-	// Recipes are blueprints that list top-level components; pass deps: true so
-	// transitive internal deps (e.g. combobox → command + popover) install too.
+	// Page recipes recommend a token preset they were designed against. We
+	// surface it rather than rewriting globals.css mid-install — applying a
+	// theme is `hex init --theme` / `hex theme`, and clobbering the consumer's
+	// tokens here would be destructive and surprising.
+	if (isPage && recipe.theme) {
+		console.log(`Recommended theme: ${recipe.theme.preset}`);
+		console.log(`  Apply with: hex theme use ${recipe.theme.preset}\n`);
+	}
+	if (isPage && recipe.layout) {
+		console.log(`Layout: ${recipe.layout}\n`);
+	}
+
+	// Install targets: ordered section blocks for a page recipe, flat step
+	// components otherwise. Both pass deps: true so transitive internal deps
+	// (e.g. combobox → command + popover) install too.
+	const slugs = isPage
+		? (recipe.sections ?? []).map((s) => s.block)
+		: recipe.steps.map((s) => s.component);
 	await addComponents(slugs, { ...options, deps: true, install: true });
 
 	if (recipe.checklist.length > 0) {

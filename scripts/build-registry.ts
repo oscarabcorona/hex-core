@@ -5,7 +5,7 @@ import {
 	componentSchemaDefinition,
 	recipeSchemaDefinition,
 	type ComponentSchemaDefinition,
-	type RecipeDefinition,
+	type RecipeChecklistItem,
 } from "@hex-core/registry";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -472,6 +472,8 @@ console.log(`  Index: ${path.relative(ROOT, indexPath)}`);
 
 interface RecipeIndexEntry {
 	slug: string;
+	kind: "component" | "page";
+	pageType?: "landing" | "app" | "ecommerce";
 	title: string;
 	summary: string;
 	tags: string[];
@@ -520,29 +522,35 @@ if (fs.existsSync(RECIPES_SRC)) {
 			console.error(`  ${parsed.error.message}`);
 			continue;
 		}
-		const recipe: RecipeDefinition = parsed.data;
+		const recipe = parsed.data;
 
-		// Validate every step references an existing component
-		const unknownSteps = recipe.steps.filter((s) => !componentsBySlug.has(s.component));
-		if (unknownSteps.length > 0) {
+		// Component slugs this recipe depends on: flat `steps` for component
+		// recipes, ordered section `block`s for page recipes. Both validate
+		// against the live catalog so a recipe can never reference a slug the
+		// registry doesn't ship — and both feed checklist derivation below.
+		const referencedSlugs = [
+			...recipe.steps.map((s) => s.component),
+			...recipe.sections.map((s) => s.block),
+		];
+		const unknownSlugs = referencedSlugs.filter((slug) => !componentsBySlug.has(slug));
+		if (unknownSlugs.length > 0) {
 			console.error(
-				`  ERROR: Recipe "${recipe.slug}" references unknown components: ${unknownSteps
-					.map((s) => s.component)
-					.join(", ")}`,
+				`  ERROR: Recipe "${recipe.slug}" references unknown components: ${unknownSlugs.join(", ")}`,
 			);
 			continue;
 		}
 
-		// Derive checklist items from each step's component metadata
+		// Derive checklist items from each referenced component's metadata
+		// (steps + section blocks), in declaration order, deduped by id.
 		const usedIds = new Set(recipe.checklist.map((c) => c.id));
-		const derived: RecipeDefinition["checklist"] = [];
+		const derived: RecipeChecklistItem[] = [];
 
-		for (const step of recipe.steps) {
-			const comp = componentsBySlug.get(step.component);
+		for (const slug of referencedSlugs) {
+			const comp = componentsBySlug.get(slug);
 			if (!comp) continue;
 
 			for (const mistake of comp.commonMistakes) {
-				const id = `${step.component}-${slugify(mistake)}`;
+				const id = `${slug}-${slugify(mistake)}`;
 				if (usedIds.has(id)) continue;
 				usedIds.add(id);
 				derived.push({
@@ -555,7 +563,7 @@ if (fs.existsSync(RECIPES_SRC)) {
 
 			const a11y = comp.accessibilityNotes;
 			if (a11y.trim().length > 0) {
-				const id = `${step.component}-a11y`;
+				const id = `${slug}-a11y`;
 				if (!usedIds.has(id)) {
 					usedIds.add(id);
 					derived.push({
@@ -571,11 +579,16 @@ if (fs.existsSync(RECIPES_SRC)) {
 		const compiled = {
 			$schema: "https://hex-core.dev/schema/recipe.json",
 			slug: recipe.slug,
+			kind: recipe.kind,
 			title: recipe.title,
 			summary: recipe.summary,
 			tags: recipe.tags,
 			brief: recipe.brief,
 			steps: recipe.steps,
+			pageType: recipe.pageType,
+			theme: recipe.theme,
+			sections: recipe.sections,
+			layout: recipe.layout,
 			checklist: [...recipe.checklist, ...derived],
 			example: recipe.example,
 			tokenBudget: recipe.tokenBudget,
@@ -587,10 +600,12 @@ if (fs.existsSync(RECIPES_SRC)) {
 
 		recipeIndex.push({
 			slug: recipe.slug,
+			kind: recipe.kind,
+			pageType: recipe.pageType,
 			title: recipe.title,
 			summary: recipe.summary,
 			tags: recipe.tags,
-			components: recipe.steps.map((s) => s.component),
+			components: referencedSlugs,
 			tokenBudget: recipe.tokenBudget,
 		});
 	}

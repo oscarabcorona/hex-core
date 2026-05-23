@@ -1,6 +1,7 @@
 {
   "$schema": "https://hex-core.dev/schema/recipe.json",
   "slug": "settings-page",
+  "kind": "component",
   "title": "Settings page",
   "summary": "Multi-section settings screen with grouped cards, labeled form fields, toggles, and a save action per section.",
   "tags": [
@@ -52,6 +53,7 @@
       "role": "primary"
     }
   ],
+  "sections": [],
   "checklist": [
     {
       "id": "per-section-dirty-state",

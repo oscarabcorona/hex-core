@@ -37,7 +37,33 @@ const registry = JSON.parse(fs.readFileSync(REGISTRY_PATH, "utf-8")) as Registry
  * screenshot target wouldn't exist. Skipping them here is intentional —
  * the items still get an axe-scan via the a11y audit.
  */
-const NO_VISUAL_DEMO = new Set(["motion-pro", "transition", "track"]);
+const NO_VISUAL_DEMO = new Set([
+	"motion-pro",
+	"transition",
+	"track",
+	// Composed page-section blocks: they need real content + sibling context to
+	// render meaningfully, so they ship no isolated /docs/components preview.
+	// They're visually pinned in-context by the showcase snapshots below
+	// (/landing, /app, /store) and a11y-scanned there.
+	"marketing-header",
+	"marketing-hero",
+	"marketing-logo-cloud",
+	"marketing-feature-grid",
+	"marketing-pricing",
+	"marketing-testimonial",
+	"marketing-cta",
+	"marketing-footer",
+	"app-shell",
+	"app-sidebar-nav",
+	"app-stats",
+	"app-settings",
+	"app-data-table",
+	"commerce-product-grid",
+	"commerce-product-detail",
+	"commerce-reviews",
+	"commerce-cart",
+	"commerce-checkout",
+]);
 
 const themes = [
 	{ name: "light", html: "" },
@@ -97,6 +123,46 @@ for (const { name: slug, displayName } of registry.items) {
 
 			// Echo a stable label so logs are greppable per slug.
 			test.info().annotations.push({ type: "component", description: `${displayName} (${theme.name})` });
+		});
+	}
+}
+
+/**
+ * Page-level showcase snapshots. The composed section blocks (excluded from
+ * the per-component loop above) are rendered in real context here — a full
+ * landing page, app dashboard, and storefront — so a visual diff catches any
+ * regression in how the blocks compose, not just how they render in isolation.
+ */
+const SHOWCASES = [
+	{ slug: "showcase-landing", route: "/landing" },
+	{ slug: "showcase-app", route: "/app" },
+	{ slug: "showcase-store", route: "/store" },
+] as const;
+
+for (const { slug, route } of SHOWCASES) {
+	for (const theme of themes) {
+		test(`${slug} (${theme.name})`, async ({ page }) => {
+			await page.addInitScript((themeClass) => {
+				try {
+					localStorage.setItem("theme", themeClass || "light");
+				} catch {
+					/* classList fallback below */
+				}
+			}, theme.html);
+
+			await page.goto(route, { waitUntil: "networkidle" });
+			await page.addStyleTag({ content: FREEZE_CSS });
+			await page.evaluate((cls) => {
+				const html = document.documentElement;
+				if (cls) html.classList.add(cls);
+				else html.classList.remove("dark");
+			}, theme.html);
+
+			await expect(page).toHaveScreenshot(`${slug}-${theme.name}.png`, {
+				fullPage: true,
+				maxDiffPixelRatio: 0.01,
+				animations: "disabled",
+			});
 		});
 	}
 }

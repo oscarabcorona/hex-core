@@ -1,13 +1,14 @@
 {
   "$schema": "https://hex-core.dev/schema/recipe.json",
-  "slug": "app-shell",
-  "title": "App shell — layout primitives starter",
+  "slug": "layout-starter",
+  "kind": "component",
+  "title": "Layout starter — layout primitives bundle",
   "summary": "Twelve foundational layout + atom primitives an agent typically needs when scaffolding a real app. Install once, then compose rather than hand-rolling `space-y-*` chains, `grid sm:grid-cols-*` breakpoints, dashed empty-state divs, or `rounded-full border` badge spans.",
   "tags": [
     "layout",
-    "shell",
     "starter",
-    "foundation"
+    "foundation",
+    "primitives"
   ],
   "brief": "Drop in the layout primitives an agent forgets — container width, vertical stack, responsive grid, breadcrumb back-links, timeline, empty state — so composition wins over hand-rolled utility chains.",
   "steps": [
@@ -72,6 +73,7 @@
       "role": "supporting"
     }
   ],
+  "sections": [],
   "checklist": [
     {
       "id": "use-container-width",

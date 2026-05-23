@@ -1,6 +1,7 @@
 {
   "$schema": "https://hex-core.dev/schema/recipe.json",
   "slug": "auth-sign-up",
+  "kind": "component",
   "title": "Auth sign-up (centered card)",
   "summary": "Production-grade sign-up page composing the auth-sign-up-card block. Email + password (with confirm) + optional name + terms checkbox + optional social providers, all routed through a pluggable AuthAdapter.",
   "tags": [
@@ -58,6 +59,7 @@
       "role": "optional"
     }
   ],
+  "sections": [],
   "checklist": [
     {
       "id": "auth-adapter-wired",

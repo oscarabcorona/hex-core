@@ -4,33 +4,28 @@
   "version": "0.1.0",
   "items": [
     {
-      "slug": "app-shell",
-      "title": "App shell — layout primitives starter",
-      "summary": "Twelve foundational layout + atom primitives an agent typically needs when scaffolding a real app. Install once, then compose rather than hand-rolling `space-y-*` chains, `grid sm:grid-cols-*` breakpoints, dashed empty-state divs, or `rounded-full border` badge spans.",
+      "slug": "app-page",
+      "kind": "page",
+      "pageType": "app",
+      "title": "App page",
+      "summary": "An authenticated app dashboard composed from the app shell, sidebar navigation, KPI stats, and a data-table view.",
       "tags": [
-        "layout",
-        "shell",
-        "starter",
-        "foundation"
+        "app",
+        "dashboard",
+        "page",
+        "shell"
       ],
       "components": [
-        "container",
-        "stack",
-        "cluster",
-        "grid",
-        "spacer",
-        "empty",
-        "card",
-        "separator",
-        "badge",
-        "tag",
-        "timeline",
-        "breadcrumb"
+        "app-shell",
+        "app-sidebar-nav",
+        "app-stats",
+        "app-data-table"
       ],
       "tokenBudget": 3200
     },
     {
       "slug": "auth-forgot-password",
+      "kind": "component",
       "title": "Auth forgot password",
       "summary": "Single-field 'forgot password' page composing the auth-forgot-password block. Dispatches a reset link via adapter.requestPasswordReset and swaps to a 'check your inbox' state on success.",
       "tags": [
@@ -52,6 +47,7 @@
     },
     {
       "slug": "auth-form",
+      "kind": "component",
       "title": "Auth form (deprecated — see auth-sign-in)",
       "summary": "[Superseded by auth-sign-in] Login or signup form with validated fields, remember-me, submit button, and error alert. Prefer the auth-sign-in recipe + auth-sign-in-split block for new work — it ships the page-level composition with adapter routing, social providers, and a forgot-password link out of the box.",
       "tags": [
@@ -73,6 +69,7 @@
     },
     {
       "slug": "auth-reset-password",
+      "kind": "component",
       "title": "Auth reset password",
       "summary": "'Set a new password' page paired with a reset link. Composes the auth-reset-password block; the opaque token (typically from a `?token=…` URL parameter) is forwarded verbatim to adapter.resetPassword.",
       "tags": [
@@ -92,6 +89,7 @@
     },
     {
       "slug": "auth-sign-in",
+      "kind": "component",
       "title": "Auth sign-in (split-screen)",
       "summary": "Production-grade sign-in page with optional social providers, remember-me, forgot-password link, and pluggable AuthAdapter for credential routing.",
       "tags": [
@@ -115,6 +113,7 @@
     },
     {
       "slug": "auth-sign-up",
+      "kind": "component",
       "title": "Auth sign-up (centered card)",
       "summary": "Production-grade sign-up page composing the auth-sign-up-card block. Email + password (with confirm) + optional name + terms checkbox + optional social providers, all routed through a pluggable AuthAdapter.",
       "tags": [
@@ -139,6 +138,7 @@
     },
     {
       "slug": "auth-verify-email",
+      "kind": "component",
       "title": "Auth verify email (waiting page)",
       "summary": "Transactional 'check your inbox' page composed from the auth-verify-email block. Mostly visual — optional resend button calls adapter.resendMagicLink with a client-side cooldown timer.",
       "tags": [
@@ -157,6 +157,7 @@
     },
     {
       "slug": "auth-verify-otp",
+      "kind": "component",
       "title": "Auth verify OTP",
       "summary": "6-digit (configurable) one-time-code verification page. Composes the auth-verify-otp block which auto-submits when the code is full and routes verification through adapter.verifyOtp({ code, intent }).",
       "tags": [
@@ -177,6 +178,7 @@
     },
     {
       "slug": "command-palette",
+      "kind": "component",
       "title": "Command palette",
       "summary": "Cmd-K quick-open palette with grouped actions, search, and keyboard-first navigation.",
       "tags": [
@@ -195,6 +197,7 @@
     },
     {
       "slug": "confirm-destructive",
+      "kind": "component",
       "title": "Destructive confirm",
       "summary": "Typed-name confirmation flow for irreversible actions (delete account, drop table).",
       "tags": [
@@ -213,6 +216,7 @@
     },
     {
       "slug": "data-table-view",
+      "kind": "component",
       "title": "Data table view",
       "summary": "Searchable, paginated data table with row actions menu, status badges, and empty state.",
       "tags": [
@@ -234,6 +238,7 @@
     },
     {
       "slug": "intro-sequence",
+      "kind": "component",
       "title": "Intro sequence",
       "summary": "Hero + subhead + CTA reveal orchestrated by the motion timeline. Demonstrates @hex-core/motion composing existing primitives into a deterministic, agent-authorable sequence.",
       "tags": [
@@ -256,7 +261,84 @@
       "tokenBudget": 1800
     },
     {
+      "slug": "landing-hero",
+      "kind": "component",
+      "title": "Landing hero",
+      "summary": "Marketing-page hero that composes the Phase 2 motion catalog: FadeIn headline + SlideIn subhead + ScaleIn primary CTA + CountUp stat tiles. Demonstrates how the wrappers compose with the existing layout primitives without writing any timeline JSX.",
+      "tags": [
+        "motion",
+        "hero",
+        "landing",
+        "marketing",
+        "stats",
+        "intro"
+      ],
+      "components": [
+        "container",
+        "stack",
+        "button",
+        "fade-in",
+        "slide-in",
+        "scale-in",
+        "count-up",
+        "stagger"
+      ],
+      "tokenBudget": 2400
+    },
+    {
+      "slug": "landing-page",
+      "kind": "page",
+      "pageType": "landing",
+      "title": "Landing page",
+      "summary": "A full marketing landing page composed from header, hero, logo cloud, features, pricing, testimonials, a closing CTA, and a footer.",
+      "tags": [
+        "landing",
+        "marketing",
+        "page",
+        "saas"
+      ],
+      "components": [
+        "marketing-header",
+        "marketing-hero",
+        "marketing-logo-cloud",
+        "marketing-feature-grid",
+        "marketing-pricing",
+        "marketing-testimonial",
+        "marketing-cta",
+        "marketing-footer"
+      ],
+      "tokenBudget": 4200
+    },
+    {
+      "slug": "layout-starter",
+      "kind": "component",
+      "title": "Layout starter — layout primitives bundle",
+      "summary": "Twelve foundational layout + atom primitives an agent typically needs when scaffolding a real app. Install once, then compose rather than hand-rolling `space-y-*` chains, `grid sm:grid-cols-*` breakpoints, dashed empty-state divs, or `rounded-full border` badge spans.",
+      "tags": [
+        "layout",
+        "starter",
+        "foundation",
+        "primitives"
+      ],
+      "components": [
+        "container",
+        "stack",
+        "cluster",
+        "grid",
+        "spacer",
+        "empty",
+        "card",
+        "separator",
+        "badge",
+        "tag",
+        "timeline",
+        "breadcrumb"
+      ],
+      "tokenBudget": 3200
+    },
+    {
       "slug": "pricing-table",
+      "kind": "component",
       "title": "Pricing table",
       "summary": "Three-tier pricing grid with a highlighted plan, feature list per tier, CTAs, and tooltips for advanced features.",
       "tags": [
@@ -276,6 +358,7 @@
     },
     {
       "slug": "settings-page",
+      "kind": "component",
       "title": "Settings page",
       "summary": "Multi-section settings screen with grouped cards, labeled form fields, toggles, and a save action per section.",
       "tags": [
@@ -295,6 +378,28 @@
         "button"
       ],
       "tokenBudget": 3200
+    },
+    {
+      "slug": "storefront-page",
+      "kind": "page",
+      "pageType": "ecommerce",
+      "title": "Storefront page",
+      "summary": "An ecommerce storefront composed from a site header, a product grid, a promo band, and a footer — reusing the marketing header/footer for chrome.",
+      "tags": [
+        "ecommerce",
+        "storefront",
+        "store",
+        "shop",
+        "catalog",
+        "page"
+      ],
+      "components": [
+        "marketing-header",
+        "commerce-product-grid",
+        "marketing-cta",
+        "marketing-footer"
+      ],
+      "tokenBudget": 3600
     }
   ]
 }

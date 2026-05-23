@@ -1,6 +1,7 @@
 {
   "$schema": "https://hex-core.dev/schema/recipe.json",
   "slug": "auth-sign-in",
+  "kind": "component",
   "title": "Auth sign-in (split-screen)",
   "summary": "Production-grade sign-in page with optional social providers, remember-me, forgot-password link, and pluggable AuthAdapter for credential routing.",
   "tags": [
@@ -53,6 +54,7 @@
       "role": "optional"
     }
   ],
+  "sections": [],
   "checklist": [
     {
       "id": "auth-adapter-wired",

@@ -1,0 +1,57 @@
+import type { ComponentSchemaDefinition } from "@hex-core/registry";
+
+export const scaleInSchema: ComponentSchemaDefinition = {
+	name: "scale-in",
+	displayName: "ScaleIn",
+	description:
+		"Mount-time scale-up wrapper. Default 0.95 → 1 with a synced opacity fade gives modals, toasts, and primary CTAs a deliberate landing.",
+	category: "motion",
+	subcategory: "wrapper",
+	props: [
+		{ name: "from", type: "number", required: false, default: 0.95, description: "Starting scale (1 = no scale)." },
+		{ name: "fade", type: "boolean", required: false, default: true, description: "Co-fade with the scale." },
+		{ name: "duration", type: "number", required: false, description: "Duration in ms." },
+		{ name: "delay", type: "number", required: false, description: "Delay in ms." },
+		{
+			name: "easing",
+			type: "enum",
+			required: false,
+			description: "Named easing or CSS easing string.",
+			enumValues: ["linear", "standard", "emphasized", "decelerate", "accelerate", "bounce"],
+		},
+		{ name: "as", type: "string", required: false, default: "div", description: "Host tag." },
+		{ name: "className", type: "string", required: false, description: "Element class name." },
+	],
+	variants: [],
+	slots: [
+		{ name: "children", description: "Content that scales in.", required: true, acceptedTypes: ["ReactNode"] },
+	],
+	dependencies: {
+		npm: ["@hex-core/motion"],
+		internal: ["motion"],
+		peer: ["react"],
+	},
+	tokensUsed: ["duration-normal", "ease-emphasized"],
+	examples: [
+		{
+			title: "Modal pop",
+			description: "Subtle pop on a modal mount.",
+			code: '<ScaleIn from={0.92} duration={250} easing="emphasized">{modalContent}</ScaleIn>',
+		},
+	],
+	ai: {
+		whenToUse:
+			"Use for modal/dialog entrance, toast pop, primary CTA landing — moments that benefit from a slight scale + fade.",
+		whenNotToUse:
+			"Don't use with `from` < 0.8 (looks like a zoom-blast); don't use for continuous attention (use <Pulse>).",
+		commonMistakes: [
+			"Disabling fade with `from` < 0.95 can look like a glitch — keep fade on for from < 0.95.",
+			"Pairing with <Bounce> double-animates the scale dimension.",
+		],
+		relatedComponents: ["motion", "bounce", "fade-in"],
+		accessibilityNotes:
+			"Reduced-motion collapses to instant final-state.",
+		tokenBudget: 200,
+	},
+	tags: ["motion", "scale", "wrapper", "entry", "modal"],
+};

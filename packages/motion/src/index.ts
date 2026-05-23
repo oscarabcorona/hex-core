@@ -36,3 +36,21 @@ export { useScroll, type UseScrollResult } from "./react/useScroll.js";
 export { useInView, type UseInViewOptions } from "./react/useInView.js";
 export { variants, resolveVariant, type Variants, type VariantState } from "./react/variants.js";
 export { parseMotionDataAttr, type ParsedMotion } from "./react/data-attr.js";
+export { useTween } from "./react/useTween.js";
+
+// Phase 2 — popular-animation catalog (15 wrappers).
+export { BlurIn, type BlurInProps } from "./components/blur-in/blur-in.js";
+export { Bounce, type BounceProps } from "./components/bounce/bounce.js";
+export { CountUp, type CountUpProps } from "./components/count-up/count-up.js";
+export { FadeIn, type FadeInProps } from "./components/fade-in/fade-in.js";
+export { Marquee, type MarqueeProps } from "./components/marquee/marquee.js";
+export { PageTransition, type PageTransitionProps } from "./components/page-transition/page-transition.js";
+export { Parallax, type ParallaxProps } from "./components/parallax/parallax.js";
+export { Pulse, type PulseProps } from "./components/pulse/pulse.js";
+export { RevealOnScroll, type RevealOnScrollProps } from "./components/reveal-on-scroll/reveal-on-scroll.js";
+export { ScaleIn, type ScaleInProps } from "./components/scale-in/scale-in.js";
+export { Shake, type ShakeProps } from "./components/shake/shake.js";
+export { Shine, type ShineProps } from "./components/shine/shine.js";
+export { SlideIn, type SlideInProps, type SlideDirection } from "./components/slide-in/slide-in.js";
+export { Stagger, type StaggerProps } from "./components/stagger/stagger.js";
+export { Typewriter, type TypewriterProps } from "./components/typewriter/typewriter.js";

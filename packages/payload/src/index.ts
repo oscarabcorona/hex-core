@@ -64,9 +64,13 @@ export {
 export {
 	loadRecipe,
 	loadRecipes,
+	type PageSection,
+	type PageTheme,
+	type PageType,
 	type Recipe,
 	type RecipeChecklistItem,
 	type RecipeIndex,
 	type RecipeIndexItem,
+	type RecipeKind,
 	type RecipeStep,
 } from "./loaders/recipe-loader.js";

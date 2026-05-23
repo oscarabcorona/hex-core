@@ -1,0 +1,145 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "app-stats",
+  "displayName": "AppStats",
+  "description": "A row of KPI stat cards: label, value, and an optional colored delta with a directional caret (increase / decrease / neutral). Two, three, or four columns. Presentational and theme-driven.",
+  "category": "block",
+  "subcategory": "app",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "stats",
+      "type": "object",
+      "required": true,
+      "description": "ReadonlyArray<{ label; value; change?; changeType?: 'increase'|'decrease'|'neutral'; icon? }>. The metric cards. changeType colors the delta and picks its caret."
+    },
+    {
+      "name": "columns",
+      "type": "enum",
+      "required": false,
+      "default": "four",
+      "description": "Card count per row on ≥lg: 'two', 'three', or 'four'."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional classes applied to the root grid."
+    }
+  ],
+  "variants": [
+    {
+      "name": "columns",
+      "description": "Cards per row on desktop.",
+      "values": [
+        {
+          "value": "four",
+          "description": "Four across.",
+          "useWhen": "Four headline KPIs on a wide dashboard."
+        },
+        {
+          "value": "three",
+          "description": "Three across.",
+          "useWhen": "Three primary metrics."
+        },
+        {
+          "value": "two",
+          "description": "Two across.",
+          "useWhen": "Two metrics, or a narrow content column."
+        }
+      ],
+      "default": "four"
+    }
+  ],
+  "slots": [
+    {
+      "name": "stats[].icon",
+      "description": "Per-stat leading icon.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/app-stats.tsx",
+      "content": "import * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/** A single metric in {@link AppStats}. */\nexport interface AppStat {\n\t/** Metric name, e.g. \"Active users\". */\n\tlabel: React.ReactNode;\n\t/** The headline value, e.g. \"12,480\". */\n\tvalue: React.ReactNode;\n\t/** Optional delta text, e.g. \"+12%\". */\n\tchange?: React.ReactNode;\n\t/** Direction of the delta — drives its color and arrow. Defaults to `neutral`. */\n\tchangeType?: \"increase\" | \"decrease\" | \"neutral\";\n\t/** Optional leading icon (a `ReactNode` — no icon set is bundled). */\n\ticon?: React.ReactNode;\n}\n\n/** Props for {@link AppStats}. */\nexport interface AppStatsProps {\n\t/** The metrics to render as cards. */\n\tstats: ReadonlyArray<AppStat>;\n\t/** Card count per row on ≥lg: `two`, `three`, or `four` (default). */\n\tcolumns?: \"two\" | \"three\" | \"four\";\n\t/** Additional classes applied to the root grid. */\n\tclassName?: string;\n}\n\nconst COLUMN_CLASS: Record<NonNullable<AppStatsProps[\"columns\"]>, string> = {\n\ttwo: \"sm:grid-cols-2\",\n\tthree: \"sm:grid-cols-2 lg:grid-cols-3\",\n\tfour: \"sm:grid-cols-2 lg:grid-cols-4\",\n};\n\nconst CHANGE_CLASS: Record<NonNullable<AppStat[\"changeType\"]>, string> = {\n\tincrease: \"text-primary\",\n\tdecrease: \"text-destructive\",\n\tneutral: \"text-muted-foreground\",\n};\n\n/** Directional caret for a stat delta. `aria-hidden` — the change text carries meaning. */\nfunction Caret({ type }: { type: NonNullable<AppStat[\"changeType\"]> }) {\n\tif (type === \"neutral\") return null;\n\treturn (\n\t\t<svg viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\" className=\"size-3.5\">\n\t\t\t{type === \"increase\" ? (\n\t\t\t\t<path d=\"M8 4l4 5H4l4-5z\" />\n\t\t\t) : (\n\t\t\t\t<path d=\"M8 12L4 7h8l-4 5z\" />\n\t\t\t)}\n\t\t</svg>\n\t);\n}\n\n/**\n * A row of KPI stat cards: label, value, and an optional colored delta with a\n * directional caret. Presentational and theme-driven — drop it at the top of a\n * dashboard body.\n */\nexport function AppStats({ stats, columns = \"four\", className }: AppStatsProps) {\n\treturn (\n\t\t<div className={cn(\"grid grid-cols-1 gap-4\", COLUMN_CLASS[columns], className)}>\n\t\t\t{stats.map((stat, index) => {\n\t\t\t\tconst changeType = stat.changeType ?? \"neutral\";\n\t\t\t\treturn (\n\t\t\t\t\t<div\n\t\t\t\t\t\tkey={index}\n\t\t\t\t\t\tclassName=\"flex flex-col gap-2 rounded-xl border border-border bg-card p-5 text-card-foreground shadow-sm\"\n\t\t\t\t\t>\n\t\t\t\t\t\t<div className=\"flex items-center justify-between gap-3\">\n\t\t\t\t\t\t\t<span className=\"text-sm font-medium text-muted-foreground\">{stat.label}</span>\n\t\t\t\t\t\t\t{stat.icon ? (\n\t\t\t\t\t\t\t\t<span className=\"text-muted-foreground [&_svg]:size-4\" aria-hidden=\"true\">\n\t\t\t\t\t\t\t\t\t{stat.icon}\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div className=\"flex items-baseline gap-2\">\n\t\t\t\t\t\t\t<span className=\"text-2xl font-semibold tracking-tight text-foreground\">\n\t\t\t\t\t\t\t\t{stat.value}\n\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t{stat.change ? (\n\t\t\t\t\t\t\t\t<span className={cn(\"flex items-center gap-0.5 text-sm font-medium\", CHANGE_CLASS[changeType])}>\n\t\t\t\t\t\t\t\t\t<Caret type={changeType} />\n\t\t\t\t\t\t\t\t\t{stat.change}\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t);\n\t\t\t})}\n\t\t</div>\n\t);\n}\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n\nconst SAFE_URL_SCHEMES = [\"http:\", \"https:\", \"mailto:\"] as const;\n\n/**\n * Allowlist a URL for use as an `<a href>` against untrusted input.\n *\n * Returns the raw string when it's `http(s):` / `mailto:` / a relative\n * URL (no scheme); returns `undefined` otherwise. Defends against\n * `javascript:` / `data:` / `vbscript:` injection from streamed model\n * output or third-party JSON payloads that flow into citation chips.\n *\n * Inside a Markdown render path, `rehype-sanitize` already strips\n * `javascript:` from inline-link hrefs — but it does NOT introspect\n * JSON nested inside attribute values (e.g. `<sources data='[…]'/>`),\n * so the components that consume that data must guard themselves.\n *\n * @param raw - The candidate URL, or `undefined` when none was supplied.\n * @returns The URL when safe to render, otherwise `undefined`.\n */\nexport function safeUrl(raw: string | undefined): string | undefined {\n\tif (raw === undefined || raw === \"\") return undefined;\n\t// Relative URLs have no scheme — `new URL(relative)` throws without a base,\n\t// so a thrown URL means either malformed input OR a relative path. Treat\n\t// \"throws + does not contain a colon\" as a relative path (safe).\n\tlet parsed: URL;\n\ttry {\n\t\tparsed = new URL(raw);\n\t} catch {\n\t\treturn raw.includes(\":\") ? undefined : raw;\n\t}\n\treturn SAFE_URL_SCHEMES.some((scheme) => scheme === parsed.protocol) ? raw : undefined;\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "foreground",
+    "muted-foreground",
+    "card",
+    "card-foreground",
+    "border",
+    "primary",
+    "destructive"
+  ],
+  "examples": [
+    {
+      "title": "Four KPI cards with deltas",
+      "description": "Headline metrics with colored change indicators.",
+      "code": "import { AppStats } from \"@hex-core/components\";\n\n<AppStats\n  stats={[\n    { label: \"Revenue\", value: \"$48.2k\", change: \"+12%\", changeType: \"increase\" },\n    { label: \"Active users\", value: \"12,480\", change: \"+4%\", changeType: \"increase\" },\n    { label: \"Churn\", value: \"1.8%\", change: \"-0.3%\", changeType: \"decrease\" },\n    { label: \"Open tickets\", value: \"37\", change: \"0%\", changeType: \"neutral\" },\n  ]}\n/>",
+      "composition": [
+        "app",
+        "stats",
+        "kpi",
+        "dashboard"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use at the top of a dashboard to surface headline KPIs. Match the columns count to the number of stats. Set changeType so deltas read as good/bad at a glance.",
+    "whenNotToUse": "Don't use for a single metric (use plain text) or for time-series data (use a chart artifact). Don't pack more than four cards per row.",
+    "commonMistakes": [
+      "Relying on color alone for increase/decrease — the caret direction and the sign in the change text both encode it, so keep the sign (e.g. '-0.3%').",
+      "Setting changeType='increase' for a metric where down is good (e.g. churn) — pick the type by sentiment, not arithmetic.",
+      "Mismatched columns and stat count, leaving a ragged row."
+    ],
+    "relatedComponents": [
+      "app-shell",
+      "card",
+      "app-data-table",
+      "funnel"
+    ],
+    "accessibilityNotes": "Deltas don't rely on color alone: a directional caret plus the signed change text convey direction. Carets are aria-hidden. Values and labels are plain text, read in source order.",
+    "tokenBudget": 650
+  },
+  "tags": [
+    "block",
+    "app",
+    "stats",
+    "kpi",
+    "dashboard",
+    "metrics"
+  ]
+}

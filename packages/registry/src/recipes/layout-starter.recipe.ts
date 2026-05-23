@@ -11,14 +11,18 @@ import type { RecipeDefinition } from "../recipe-schema.js";
  * using only interactive primitives and hand-rolled every layout, then
  * realized container/stack/grid/cluster/spacer/empty/timeline/tag/badge/
  * breadcrumb had been in the registry the whole time. This recipe surfaces
- * them all in one shot via `hex recipe add app-shell`.
+ * them all in one shot via `hex recipe add layout-starter`.
+ *
+ * Renamed from `app-shell` so the canonical `app-shell` slug belongs to the
+ * AppShell layout block — slug discovery (CLI / MCP) now maps "app shell" to
+ * the component, and this primitives bundle reads as what it is.
  */
-export const appShellRecipe: RecipeDefinition = {
-	slug: "app-shell",
-	title: "App shell — layout primitives starter",
+export const layoutStarterRecipe: RecipeDefinition = {
+	slug: "layout-starter",
+	title: "Layout starter — layout primitives bundle",
 	summary:
 		"Twelve foundational layout + atom primitives an agent typically needs when scaffolding a real app. Install once, then compose rather than hand-rolling `space-y-*` chains, `grid sm:grid-cols-*` breakpoints, dashed empty-state divs, or `rounded-full border` badge spans.",
-	tags: ["layout", "shell", "starter", "foundation"],
+	tags: ["layout", "starter", "foundation", "primitives"],
 	brief:
 		"Drop in the layout primitives an agent forgets — container width, vertical stack, responsive grid, breadcrumb back-links, timeline, empty state — so composition wins over hand-rolled utility chains.",
 	steps: [

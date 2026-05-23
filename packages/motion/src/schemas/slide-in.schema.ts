@@ -1,0 +1,77 @@
+import type { ComponentSchemaDefinition } from "@hex-core/registry";
+
+export const slideInSchema: ComponentSchemaDefinition = {
+	name: "slide-in",
+	displayName: "SlideIn",
+	description:
+		"Mount-time slide from a chosen edge with optional fade. Direction-aware Motion.div wrapper. Most popular pattern for hero subheadings and modal entrance.",
+	category: "motion",
+	subcategory: "wrapper",
+	props: [
+		{
+			name: "direction",
+			type: "enum",
+			required: false,
+			default: "bottom",
+			description: "Edge the element slides in from.",
+			enumValues: ["top", "right", "bottom", "left"],
+		},
+		{ name: "distance", type: "number", required: false, default: 24, description: "Travel in px." },
+		{ name: "duration", type: "number", required: false, description: "Duration in ms." },
+		{ name: "delay", type: "number", required: false, description: "Delay in ms." },
+		{
+			name: "easing",
+			type: "enum",
+			required: false,
+			description: "Named easing or CSS easing string.",
+			enumValues: ["linear", "standard", "emphasized", "decelerate", "accelerate", "bounce"],
+		},
+		{ name: "fade", type: "boolean", required: false, default: true, description: "Co-fade with the slide." },
+		{ name: "as", type: "string", required: false, default: "div", description: "Host tag." },
+		{ name: "className", type: "string", required: false, description: "Element class name." },
+	],
+	variants: [
+		{
+			name: "direction",
+			description: "Edge of origin",
+			default: "bottom",
+			values: [
+				{ value: "top", description: "Drops in from above the resting position." },
+				{ value: "right", description: "Slides in from the right.", useWhen: "Right-to-left reading flow." },
+				{ value: "bottom", description: "Rises into place from below.", useWhen: "Hero headlines and CTAs landing on the page." },
+				{ value: "left", description: "Slides in from the left." },
+			],
+		},
+	],
+	slots: [
+		{ name: "children", description: "Content that slides in.", required: true, acceptedTypes: ["ReactNode"] },
+	],
+	dependencies: {
+		npm: ["@hex-core/motion"],
+		internal: ["motion"],
+		peer: ["react"],
+	},
+	tokensUsed: ["duration-normal", "ease-emphasized"],
+	examples: [
+		{
+			title: "Subhead slide",
+			description: "Subhead rises into place after the headline.",
+			code: '<SlideIn direction="bottom" delay={120}><p>Built for AI agents</p></SlideIn>',
+		},
+	],
+	ai: {
+		whenToUse:
+			"Use for hero subheads, modal entrance, sidebar reveal — any element that should land into place from an edge.",
+		whenNotToUse:
+			"Don't use for continuous motion (reach for <Marquee>) or attention pulses (<Pulse>).",
+		commonMistakes: [
+			"Distance > 100px feels heavy on mobile; keep ≤ 32 for default subtlety.",
+			"Disabling fade while sliding in opacity-aware text can look abrupt — leave fade on unless choreographed.",
+		],
+		relatedComponents: ["motion", "stagger", "fade-in"],
+		accessibilityNotes:
+			"Reduced-motion collapses the slide to instant final-state, preserving content visibility for vestibular-sensitive users.",
+		tokenBudget: 220,
+	},
+	tags: ["motion", "slide", "wrapper", "entry", "translate"],
+};

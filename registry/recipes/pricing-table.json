@@ -1,6 +1,7 @@
 {
   "$schema": "https://hex-core.dev/schema/recipe.json",
   "slug": "pricing-table",
+  "kind": "component",
   "title": "Pricing table",
   "summary": "Three-tier pricing grid with a highlighted plan, feature list per tier, CTAs, and tooltips for advanced features.",
   "tags": [
@@ -37,6 +38,7 @@
       "role": "primary"
     }
   ],
+  "sections": [],
   "checklist": [
     {
       "id": "recommended-visual-emphasis",

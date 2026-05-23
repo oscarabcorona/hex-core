@@ -1,0 +1,47 @@
+import type { ComponentSchemaDefinition } from "@hex-core/registry";
+
+export const parallaxSchema: ComponentSchemaDefinition = {
+	name: "parallax",
+	displayName: "Parallax",
+	description:
+		"Translates its child with the page scroll position. Subscribes to useScroll().scrollYProgress so displacement scales between 0 and `offset` across the document height. Lighter than per-element parallax; covers the headline-on-hero use case.",
+	category: "motion",
+	subcategory: "wrapper",
+	props: [
+		{ name: "offset", type: "number", required: false, default: 50, description: "Max displacement in px (negative reverses direction)." },
+		{ name: "axis", type: "enum", required: false, default: "y", description: "Translation axis.", enumValues: ["x", "y"] },
+		{ name: "className", type: "string", required: false, description: "Element class name." },
+	],
+	variants: [],
+	slots: [
+		{ name: "children", description: "Element that translates with scroll.", required: true, acceptedTypes: ["ReactNode"] },
+	],
+	dependencies: {
+		npm: ["@hex-core/motion"],
+		internal: ["motion", "use-scroll"],
+		peer: ["react"],
+	},
+	tokensUsed: [],
+	examples: [
+		{
+			title: "Hero headline parallax",
+			description: "Headline drifts upward as the user scrolls past the hero.",
+			code: '<Parallax offset={-80}><h1>Spec-driven UI</h1></Parallax>',
+		},
+	],
+	ai: {
+		whenToUse:
+			"Use for hero text drift, decorative blob motion on scroll, layered marketing pages.",
+		whenNotToUse:
+			"Don't use for primary content that must stay readable (long-form copy) — the drift competes with reading. Don't pair with sticky positioning — they fight for the transform layer.",
+		commonMistakes: [
+			"Offset > 100px feels disorienting on short pages — keep ≤ 60 for most cases.",
+			"Wrapping a focusable element — the moving target frustrates keyboard users.",
+		],
+		relatedComponents: ["motion", "use-scroll", "reveal-on-scroll"],
+		accessibilityNotes:
+			"No reduced-motion guard yet (the hook reads scroll regardless). Consider gating the offset behind useReducedMotion until a v1.1 polish lands.",
+		tokenBudget: 220,
+	},
+	tags: ["motion", "parallax", "wrapper", "scroll", "translate"],
+};

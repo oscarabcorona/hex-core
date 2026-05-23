@@ -1,0 +1,272 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "landing-page",
+  "kind": "page",
+  "title": "Landing page",
+  "summary": "A full marketing landing page composed from header, hero, logo cloud, features, pricing, testimonials, a closing CTA, and a footer.",
+  "tags": [
+    "landing",
+    "marketing",
+    "page",
+    "saas"
+  ],
+  "brief": "Assemble a conversion-focused marketing page top to bottom: sticky-ish header with nav + CTA, a hero, social-proof logos, a feature grid, pricing tiers with one plan highlighted, testimonials, a closing CTA, and a footer. All sections are presentational and read from a single theme — keep colors on semantic tokens so the page restyles with the theme.",
+  "steps": [],
+  "pageType": "landing",
+  "theme": {
+    "preset": "default",
+    "tokenBudget": 4200
+  },
+  "sections": [
+    {
+      "id": "header",
+      "block": "marketing-header",
+      "intent": "Top nav with brand, links, and a primary CTA.",
+      "role": "primary"
+    },
+    {
+      "id": "hero",
+      "block": "marketing-hero",
+      "intent": "The headline pitch and primary call-to-action.",
+      "role": "primary"
+    },
+    {
+      "id": "logos",
+      "block": "marketing-logo-cloud",
+      "intent": "Social proof — customer or integration logos.",
+      "role": "optional"
+    },
+    {
+      "id": "features",
+      "block": "marketing-feature-grid",
+      "intent": "Explain the core product value in a grid.",
+      "role": "primary"
+    },
+    {
+      "id": "pricing",
+      "block": "marketing-pricing",
+      "intent": "Plan tiers with one recommended plan highlighted.",
+      "role": "supporting"
+    },
+    {
+      "id": "testimonials",
+      "block": "marketing-testimonial",
+      "intent": "Quotes that build trust before the close.",
+      "role": "optional"
+    },
+    {
+      "id": "cta",
+      "block": "marketing-cta",
+      "intent": "Final conversion push before the footer.",
+      "role": "primary"
+    },
+    {
+      "id": "footer",
+      "block": "marketing-footer",
+      "intent": "Site navigation, social links, and legal line.",
+      "role": "primary"
+    }
+  ],
+  "layout": "Stack the sections vertically in declared order inside a single page wrapper (no max-width on the page itself — each block manages its own container and padding). Header first, footer last; everything between scrolls. Drop the optional logos/testimonials sections when you lack real content rather than filling them with placeholders. Each section installs as its own file — import a block from `@/components/ui/<section.block>` (e.g. import { MarketingHero } from \"@/components/ui/marketing-hero\").",
+  "checklist": [
+    {
+      "id": "marketing-header-passing-more-than-5-links-the-inline-row-gets-cr",
+      "check": "[MarketingHeader] Avoid: Passing more than ~5 links — the inline row gets crowded; group secondary items under the CTA or a footer.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-putting-raw-a-tags-in-actions-instead-of-button-",
+      "check": "[MarketingHeader] Avoid: Putting raw <a> tags in actions instead of <Button asChild><a>…</a></Button>, losing button styling.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-forgetting-the-logo-links-to-wrap-the-logo-node-",
+      "check": "[MarketingHeader] Avoid: Forgetting the logo links to '/' — wrap the logo node in an anchor.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-a11y",
+      "check": "[MarketingHeader] A11y: The mobile toggle is a <button> with aria-expanded + aria-controls pointing at the panel and an aria-label that flips between 'Open menu' / 'Close menu'. Links are real anchors, keyboard-focusable, with visible focus rings.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-hero-passing-a-long-paragraph-as-the-title-keep-the-t",
+      "check": "[MarketingHero] Avoid: Passing a long paragraph as the title — keep the title to one line; move detail into description.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-putting-raw-a-tags-in-actions-instead-of-button-",
+      "check": "[MarketingHero] Avoid: Putting raw <a> tags in actions instead of <Button asChild><a>…</a></Button>, which loses the button styling and focus ring.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-using-layout-split-with-no-media-it-leaves-an-em",
+      "check": "[MarketingHero] Avoid: Using layout='split' with no media — it leaves an empty column; drop to 'centered'.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-hard-coding-colors-via-classname-instead-of-rely",
+      "check": "[MarketingHero] Avoid: Hard-coding colors via className instead of relying on the semantic tokens, which breaks theme switching.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-a11y",
+      "check": "[MarketingHero] A11y: Renders a single <h1> for the page — don't place another <h1> elsewhere. Decorative media should carry an empty alt or aria-hidden. CTA focus rings come from the Button primitive.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-logo-cloud-forgetting-alt-text-on-logo-img-s-so-the-brand-n",
+      "check": "[MarketingLogoCloud] Avoid: Forgetting alt text on logo <img>s, so the brand names aren't announced.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-logo-cloud-omitting-the-react-key-on-each-logo-node-causing",
+      "check": "[MarketingLogoCloud] Avoid: Omitting the React key on each logo node, causing reconciliation warnings.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-logo-cloud-passing-huge-images-the-grid-caps-height-at-2-5r",
+      "check": "[MarketingLogoCloud] Avoid: Passing huge images — the grid caps height at ~2.5rem; export trimmed logos.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-logo-cloud-a11y",
+      "check": "[MarketingLogoCloud] A11y: Logos are images — each <img> needs an alt of the brand name. The caption is a plain <p>, not a heading, so it doesn't disrupt heading order.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-feature-grid-passing-an-img-as-an-icon-the-icon-well-is-sized",
+      "check": "[MarketingFeatureGrid] Avoid: Passing an <img> as an icon — the icon well is sized for a glyph (size-5); use an SVG icon, not a photo.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-feature-grid-writing-a-paragraph-in-each-description-keep-cel",
+      "check": "[MarketingFeatureGrid] Avoid: Writing a paragraph in each description — keep cells scannable, one or two sentences.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-feature-grid-setting-columns-three-with-only-two-features-lea",
+      "check": "[MarketingFeatureGrid] Avoid: Setting columns='three' with only two features, leaving a gap — match columns to the count.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-feature-grid-a11y",
+      "check": "[MarketingFeatureGrid] A11y: Each cell title renders as an <h3> under the section <h2>, preserving heading order. Decorative icons are presentational; if an icon conveys meaning, give it an accessible label.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-pricing-highlighting-more-than-one-tier-the-emphasis-is-",
+      "check": "[MarketingPricing] Avoid: Highlighting more than one tier — the emphasis is meant to steer toward a single recommended plan.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-pricing-giving-the-highlighted-tier-a-generic-cta-label-",
+      "check": "[MarketingPricing] Avoid: Giving the highlighted tier a generic CTA label like 'Choose' — name the plan ('Choose Pro') for screen readers and analytics.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-pricing-passing-plain-text-as-cta-instead-of-a-button-yo",
+      "check": "[MarketingPricing] Avoid: Passing plain text as cta instead of a <Button> — you lose the full-width styling and focus ring.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-pricing-a11y",
+      "check": "[MarketingPricing] A11y: Each tier name renders as an <h3> under the section <h2>. Feature check glyphs are aria-hidden; the feature text conveys meaning. Give generic CTAs an aria-label naming the plan.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-testimonial-using-grid-layout-with-a-single-testimonial-leav",
+      "check": "[MarketingTestimonial] Avoid: Using 'grid' layout with a single testimonial — leaves a lopsided row; use 'single'.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-testimonial-putting-the-author-name-inside-the-quote-text-in",
+      "check": "[MarketingTestimonial] Avoid: Putting the author name inside the quote text instead of authorName, which breaks the figure/figcaption structure.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-testimonial-avatars-with-no-empty-alt-decorative-avatars-sho",
+      "check": "[MarketingTestimonial] Avoid: Avatars with no empty alt — decorative avatars should have alt=\"\" since the name is already in text.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-testimonial-a11y",
+      "check": "[MarketingTestimonial] A11y: Each testimonial is a <figure> with the attribution in <figcaption>, so the quote and its author are programmatically associated. Avatars are decorative (the name is text) and should carry empty alt.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-cta-on-variant-panel-passing-a-primary-button-it-dis",
+      "check": "[MarketingCta] Avoid: On variant='panel', passing a primary <Button> — it disappears against the primary background; use variant='secondary' or 'outline'.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-omitting-actions-entirely-a-cta-with-no-button-i",
+      "check": "[MarketingCta] Avoid: Omitting actions entirely — a CTA with no button is just a heading.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-stacking-multiple-panel-ctas-creating-competing-",
+      "check": "[MarketingCta] Avoid: Stacking multiple panel CTAs, creating competing focal points.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-a11y",
+      "check": "[MarketingCta] A11y: Renders an <h2>, keeping it below the hero's <h1>. On variant='panel', button contrast must clear WCAG against the primary fill — prefer secondary/outline buttons.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-footer-one-column-with-20-links-instead-of-a-few-groupe",
+      "check": "[MarketingFooter] Avoid: One column with 20 links instead of a few grouped columns — group by topic.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-omitting-the-copyright-line-which-most-footers-a",
+      "check": "[MarketingFooter] Avoid: Omitting the copyright line, which most footers are expected to carry.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-putting-social-icons-with-no-accessible-label-wr",
+      "check": "[MarketingFooter] Avoid: Putting social icons with no accessible label — wrap each in a link with an aria-label or sr-only text.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-a11y",
+      "check": "[MarketingFooter] A11y: Each column title renders as an <h3>. Links are real anchors with visible hover/focus states. Social icon links need an accessible name (aria-label or sr-only text) since the icon alone isn't announced.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 4200
+}

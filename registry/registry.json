@@ -1130,6 +1130,88 @@
       "tokenBudget": 700
     },
     {
+      "name": "app-data-table",
+      "displayName": "AppDataTable",
+      "description": "Page-level data-table view: a header row (title + description and a toolbar), a bordered table surface, and an optional footer for pagination. Layout only — supply the actual table as children. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "data-table",
+        "table",
+        "dashboard"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "app-settings",
+      "displayName": "AppSettings",
+      "description": "Settings page layout: a stack of groups, each pairing a title + description column with a card of form controls (two columns on ≥lg, stacked below). Presentational and theme-driven — pass your own fields and submit handling.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "settings",
+        "form",
+        "dashboard"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "app-shell",
+      "displayName": "AppShell",
+      "description": "Application layout frame: a fixed left sidebar on ≥lg, a sticky top bar, and a scrollable main region. On mobile the sidebar collapses behind a menu button and slides in as an overlay drawer. Client Component. Theme-driven.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "shell",
+        "layout",
+        "dashboard",
+        "sidebar"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 750
+    },
+    {
+      "name": "app-sidebar-nav",
+      "displayName": "AppSidebarNav",
+      "description": "Sidebar navigation for AppShell: a pinned brand, a scrollable list of grouped links with active states and aria-current, and a pinned footer (account / sign-out). Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "navigation",
+        "sidebar",
+        "dashboard"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "app-stats",
+      "displayName": "AppStats",
+      "description": "A row of KPI stat cards: label, value, and an optional colored delta with a directional caret (increase / decrease / neutral). Two, three, or four columns. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "stats",
+        "kpi",
+        "dashboard",
+        "metrics"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
       "name": "auth-forgot-password",
       "displayName": "AuthForgotPassword",
       "description": "Single-field 'forgot password' page. On submit, dispatches a reset link via adapter.requestPasswordReset and swaps to an Empty-based 'check your inbox' confirmation state.",
@@ -1262,6 +1344,223 @@
         "primitives/button/button"
       ],
       "tokenBudget": 1300
+    },
+    {
+      "name": "commerce-cart",
+      "displayName": "CommerceCart",
+      "description": "Shopping cart layout: a list of line items on the left and a sticky order summary on the right (stacked on mobile). Presentational and theme-driven — pass quantity steppers / remove buttons as per-item controls and the totals as summary.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "cart",
+        "checkout",
+        "storefront",
+        "store",
+        "shop"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
+      "name": "commerce-checkout",
+      "displayName": "CommerceCheckout",
+      "description": "Checkout layout: the form on the left and a sticky order summary on the right (stacked on mobile). Layout only — supply the form (contact, shipping, payment) as children and the order review as summary. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "checkout",
+        "form",
+        "storefront",
+        "store",
+        "shop"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
+      "name": "commerce-product-detail",
+      "displayName": "CommerceProductDetail",
+      "description": "Product detail layout: imagery on the left, product info on the right (name, price, description, option controls, and add-to-cart actions), stacked on mobile. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "product-detail",
+        "pdp",
+        "storefront",
+        "store",
+        "shop"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
+      "name": "commerce-product-grid",
+      "displayName": "CommerceProductGrid",
+      "description": "A responsive product grid: an optional heading above a grid of product cards (image, name, optional meta, price). Cards link to a detail page when href is set. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "product-grid",
+        "catalog",
+        "storefront",
+        "store",
+        "shop"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "commerce-reviews",
+      "displayName": "CommerceReviews",
+      "description": "A product reviews section: a summary header (average rating + count) above a list of individual reviews, each with a star rating, author, optional date, and body. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "reviews",
+        "ratings",
+        "pdp"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
+      "name": "marketing-cta",
+      "displayName": "MarketingCta",
+      "description": "A closing call-to-action band. 'simple' reads as centered copy on the page background; 'panel' lifts it into a primary-filled rounded card. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "cta",
+        "landing",
+        "conversion"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 550
+    },
+    {
+      "name": "marketing-feature-grid",
+      "displayName": "MarketingFeatureGrid",
+      "description": "A marketing feature grid: an optional heading block above a responsive grid of icon + title + description cells. Two- or three-column on desktop. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "features",
+        "landing",
+        "grid"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
+      "name": "marketing-footer",
+      "displayName": "MarketingFooter",
+      "description": "A marketing site footer: a brand block, several columns of links, and a bottom bar with social links and a copyright line. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "footer",
+        "navigation",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "marketing-header",
+      "displayName": "MarketingHeader",
+      "description": "A marketing site header: brand mark, inline primary nav on desktop, and a collapsible panel on mobile. Client Component (owns the open/close state). Theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "header",
+        "navigation",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
+      "name": "marketing-hero",
+      "displayName": "MarketingHero",
+      "description": "Top-of-page marketing hero. Eyebrow, headline, subcopy, CTA buttons, and an optional media slot. Centered single-column or split copy + media layout. Presentational and fully theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "hero",
+        "landing",
+        "header",
+        "cta"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "marketing-logo-cloud",
+      "displayName": "MarketingLogoCloud",
+      "description": "A row of customer / partner logos with an optional caption. Each logo is a caller-supplied ReactNode (img, inline SVG, or wordmark) — no image source is bundled. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "logos",
+        "social-proof",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 400
+    },
+    {
+      "name": "marketing-pricing",
+      "displayName": "MarketingPricing",
+      "description": "A pricing section: an optional heading block above a row of plan cards, with one tier highlightable as recommended. Each tier has a name, price, feature list, and a caller-supplied CTA. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "pricing",
+        "saas",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 750
+    },
+    {
+      "name": "marketing-testimonial",
+      "displayName": "MarketingTestimonial",
+      "description": "A testimonials section. 'single' features one large centered quote; 'grid' lays out several quote cards with author + avatar. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "testimonial",
+        "social-proof",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
     },
     {
       "name": "attachment",
@@ -2197,6 +2496,42 @@
       "tokenBudget": 280
     },
     {
+      "name": "blur-in",
+      "displayName": "BlurIn",
+      "description": "CSS filter:blur(N) → blur(0) wrapper. Adds a focus-pull aesthetic to entrance moments. Filter is the only non-compositor-friendly prop the engine animates by design — keep blur radii small (≤16px) to stay GPU-accelerated.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "blur",
+        "wrapper",
+        "entry",
+        "filter"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 200
+    },
+    {
+      "name": "bounce",
+      "displayName": "Bounce",
+      "description": "Mount-time overshoot bounce. Scale 0.7 → (1 + intensity) → 1 with synced opacity fade. Different from <Pulse> (continuous) and <ScaleIn> (no overshoot) — Bounce is for items landing into a layout with personality.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "bounce",
+        "wrapper",
+        "entry",
+        "overshoot"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 220
+    },
+    {
       "name": "clip",
       "displayName": "Clip",
       "description": "A single animation segment inside a Timeline/Scene. Targets a CSS selector and animates from `from` → `to` over `duration`. Renders nothing.",
@@ -2213,6 +2548,60 @@
         "scene"
       ],
       "tokenBudget": 220
+    },
+    {
+      "name": "count-up",
+      "displayName": "CountUp",
+      "description": "Numeric tween — animates a number from `from` to `to` over `duration` using the active MotionConfig clock. Pluggable formatter for currency, percent, compact units.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "count-up",
+        "wrapper",
+        "tween",
+        "numeric"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 240
+    },
+    {
+      "name": "fade-in",
+      "displayName": "FadeIn",
+      "description": "Mount-time opacity 0 → 1 wrapper. Thinnest possible Motion.div invocation; same engine, same prefers-reduced-motion behavior, same easing tokens. Use as a building block for any fade.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "fade",
+        "wrapper",
+        "entry",
+        "opacity"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 180
+    },
+    {
+      "name": "marquee",
+      "displayName": "Marquee",
+      "description": "Infinite-scrolling track with seamless wrap. Duplicates children once; translates the inner track so the seam stays invisible. Pauses on hover by default so users can read.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "marquee",
+        "wrapper",
+        "loop",
+        "scroll"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 260
     },
     {
       "name": "motion-pro",
@@ -2263,6 +2652,44 @@
       "tokenBudget": 350
     },
     {
+      "name": "page-transition",
+      "displayName": "PageTransition",
+      "description": "Wraps the current page tree in a keyed Motion.div inside Presence — adds enter/exit transitions for client-side route changes. Caller passes `pageKey` (typically the pathname) so React can tell old vs new routes apart.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "page-transition",
+        "wrapper",
+        "router",
+        "navigation"
+      ],
+      "internalDeps": [
+        "motion",
+        "presence"
+      ],
+      "tokenBudget": 260
+    },
+    {
+      "name": "parallax",
+      "displayName": "Parallax",
+      "description": "Translates its child with the page scroll position. Subscribes to useScroll().scrollYProgress so displacement scales between 0 and `offset` across the document height. Lighter than per-element parallax; covers the headline-on-hero use case.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "parallax",
+        "wrapper",
+        "scroll",
+        "translate"
+      ],
+      "internalDeps": [
+        "motion",
+        "use-scroll"
+      ],
+      "tokenBudget": 220
+    },
+    {
       "name": "presence",
       "displayName": "Presence",
       "description": "Defers child unmount until the child's `exit` animation completes. Tracks children by `key`; works with any Motion.* element.",
@@ -2281,6 +2708,61 @@
       "tokenBudget": 250
     },
     {
+      "name": "pulse",
+      "displayName": "Pulse",
+      "description": "Infinite scale pulse for attention-seeking UI: notification dots, hint buttons before first interaction, beating CTA hearts. Honors prefers-reduced-motion (animation never starts when reduce is active).",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "pulse",
+        "wrapper",
+        "loop",
+        "attention"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 220
+    },
+    {
+      "name": "reveal-on-scroll",
+      "displayName": "RevealOnScroll",
+      "description": "Animates children from a hidden state to a fully revealed one when they first enter the viewport. Built on useInView; defaults to fade + slide-up — the most common 'scroll reveal' pattern.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "scroll",
+        "reveal",
+        "wrapper",
+        "intersection"
+      ],
+      "internalDeps": [
+        "motion",
+        "use-scroll"
+      ],
+      "tokenBudget": 240
+    },
+    {
+      "name": "scale-in",
+      "displayName": "ScaleIn",
+      "description": "Mount-time scale-up wrapper. Default 0.95 → 1 with a synced opacity fade gives modals, toasts, and primary CTAs a deliberate landing.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "scale",
+        "wrapper",
+        "entry",
+        "modal"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 200
+    },
+    {
       "name": "scene",
       "displayName": "Scene",
       "description": "A time window inside a Timeline. Children's Clip `start` props are interpreted relative to this scene's `start`. Renders no DOM — purely defines the time context.",
@@ -2296,6 +2778,80 @@
         "motion-timeline"
       ],
       "tokenBudget": 180
+    },
+    {
+      "name": "shake",
+      "displayName": "Shake",
+      "description": "Shake-on-trigger primitive — typical use is form-error feedback. Pass a `trigger` value that bumps when you want the shake to fire (an error count, a timestamp). 5-keyframe horizontal jitter.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "shake",
+        "wrapper",
+        "feedback",
+        "error"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 220
+    },
+    {
+      "name": "shine",
+      "displayName": "Shine",
+      "description": "Skeleton loader gradient sweep. A translucent highlight band travels left to right across the host. Pair with <Skeleton> + bg-muted for the standard loading affordance. (Named `shine` to avoid colliding with the AI `shimmer` streaming-text effect.)",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "shine",
+        "wrapper",
+        "loop",
+        "loading",
+        "skeleton"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 200
+    },
+    {
+      "name": "slide-in",
+      "displayName": "SlideIn",
+      "description": "Mount-time slide from a chosen edge with optional fade. Direction-aware Motion.div wrapper. Most popular pattern for hero subheadings and modal entrance.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "slide",
+        "wrapper",
+        "entry",
+        "translate"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 220
+    },
+    {
+      "name": "stagger",
+      "displayName": "Stagger",
+      "description": "Cascades the delays of motion-aware children. Each child receives an injected `transition.delay = initialDelay + index * gap`. Existing per-child delays are preserved (consumer intent wins on top of the cascade).",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "stagger",
+        "wrapper",
+        "orchestration",
+        "cascade"
+      ],
+      "internalDeps": [
+        "motion",
+        "fade-in"
+      ],
+      "tokenBudget": 220
     },
     {
       "name": "track",
@@ -2329,6 +2885,24 @@
       ],
       "internalDeps": [],
       "tokenBudget": 180
+    },
+    {
+      "name": "typewriter",
+      "displayName": "Typewriter",
+      "description": "Reveals text character-by-character using the active MotionConfig clock. Doesn't go through the WAAPI driver (the animation is text content, not a CSS property). Optional blinking cursor while typing.",
+      "category": "motion",
+      "subcategory": "wrapper",
+      "tags": [
+        "motion",
+        "typewriter",
+        "wrapper",
+        "text",
+        "reveal"
+      ],
+      "internalDeps": [
+        "motion"
+      ],
+      "tokenBudget": 240
     },
     {
       "name": "use-animate",

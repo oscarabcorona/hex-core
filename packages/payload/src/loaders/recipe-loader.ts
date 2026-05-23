@@ -15,13 +15,36 @@ export interface RecipeChecklistItem {
 	source: "author" | "derived-mistake" | "derived-a11y";
 }
 
+export type RecipeKind = "component" | "page";
+export type PageType = "landing" | "app" | "ecommerce";
+
+/** One ordered section inside a `page` recipe. */
+export interface PageSection {
+	id: string;
+	block: string;
+	intent: string;
+	role: "primary" | "supporting" | "optional";
+}
+
+/** Recommended theme for a `page` recipe. */
+export interface PageTheme {
+	preset: string;
+	tokenBudget?: number;
+}
+
 export interface Recipe {
 	slug: string;
+	/** `component` (default) bundles `steps`; `page` composes `sections`. */
+	kind: RecipeKind;
 	title: string;
 	summary: string;
 	tags: string[];
 	brief: string;
 	steps: RecipeStep[];
+	pageType?: PageType;
+	theme?: PageTheme;
+	sections: PageSection[];
+	layout?: string;
 	checklist: RecipeChecklistItem[];
 	example?: string;
 	tokenBudget?: number;
@@ -29,6 +52,8 @@ export interface Recipe {
 
 export interface RecipeIndexItem {
 	slug: string;
+	kind: RecipeKind;
+	pageType?: PageType;
 	title: string;
 	summary: string;
 	tags: string[];
