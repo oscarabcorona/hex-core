@@ -59,7 +59,7 @@ import { Button, RadioGroup } from "@hex-core/components";
   eyebrow="Bags"
   description="A roomy everyday tote in heavyweight natural canvas."
   media={<img src="/tote.jpg" alt="Canvas tote bag, natural" />}
-  options={<RadioGroup /* size selector */ />}
+  options={<RadioGroup name="size" />}
   actions={<Button size="lg">Add to cart</Button>}
 />`,
 			composition: ["commerce", "product-detail", "pdp", "storefront"],

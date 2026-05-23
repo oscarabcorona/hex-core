@@ -115,7 +115,7 @@
     {
       "title": "Users table view",
       "description": "Title, a search + add toolbar, the table, and pagination.",
-      "code": "import { AppDataTable, Input, Button, Pagination } from \"@hex-core/components\";\n\n<AppDataTable\n  title=\"Users\"\n  description=\"Manage workspace members.\"\n  toolbar={<><Input placeholder=\"Search…\" className=\"w-56\" /><Button size=\"sm\">Add user</Button></>}\n  footer={<Pagination /* … */ />}\n>\n  {/* <DataTable columns={columns} data={rows} /> */}\n</AppDataTable>",
+      "code": "import { AppDataTable, Input, Button, Pagination } from \"@hex-core/components\";\n\n<AppDataTable\n  title=\"Users\"\n  description=\"Manage workspace members.\"\n  toolbar={<><Input placeholder=\"Search…\" className=\"w-56\" /><Button size=\"sm\">Add user</Button></>}\n  footer={<Pagination page={1} pageCount={4} />}\n>\n  <DataTable columns={columns} data={rows} />\n</AppDataTable>",
       "composition": [
         "app",
         "data-table",

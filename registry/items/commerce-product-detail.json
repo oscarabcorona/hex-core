@@ -142,7 +142,7 @@
     {
       "title": "Product detail with options and add-to-cart",
       "description": "Image, info, a size selector, and an add-to-cart button.",
-      "code": "import { CommerceProductDetail } from \"@hex-core/components\";\nimport { Button, RadioGroup } from \"@hex-core/components\";\n\n<CommerceProductDetail\n  name=\"Canvas Tote\"\n  price=\"$48\"\n  eyebrow=\"Bags\"\n  description=\"A roomy everyday tote in heavyweight natural canvas.\"\n  media={<img src=\"/tote.jpg\" alt=\"Canvas tote bag, natural\" />}\n  options={<RadioGroup /* size selector */ />}\n  actions={<Button size=\"lg\">Add to cart</Button>}\n/>",
+      "code": "import { CommerceProductDetail } from \"@hex-core/components\";\nimport { Button, RadioGroup } from \"@hex-core/components\";\n\n<CommerceProductDetail\n  name=\"Canvas Tote\"\n  price=\"$48\"\n  eyebrow=\"Bags\"\n  description=\"A roomy everyday tote in heavyweight natural canvas.\"\n  media={<img src=\"/tote.jpg\" alt=\"Canvas tote bag, natural\" />}\n  options={<RadioGroup name=\"size\" />}\n  actions={<Button size=\"lg\">Add to cart</Button>}\n/>",
       "composition": [
         "commerce",
         "product-detail",

@@ -42,9 +42,9 @@ export const appDataTableSchema: ComponentSchemaDefinition = {
   title="Users"
   description="Manage workspace members."
   toolbar={<><Input placeholder="Search…" className="w-56" /><Button size="sm">Add user</Button></>}
-  footer={<Pagination /* … */ />}
+  footer={<Pagination page={1} pageCount={4} />}
 >
-  {/* <DataTable columns={columns} data={rows} /> */}
+  <DataTable columns={columns} data={rows} />
 </AppDataTable>`,
 			composition: ["app", "data-table", "table", "dashboard"],
 		},
