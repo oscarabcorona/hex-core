@@ -1,5 +1,15 @@
 # @hex-core/tokens
 
+## 1.3.6
+
+### Patch Changes
+
+- Updated dependencies [b28f8ee]
+- Updated dependencies [b28f8ee]
+- Updated dependencies [b28f8ee]
+- Updated dependencies [b28f8ee]
+  - @hex-core/registry@0.5.0
+
 ## 1.3.5
 
 ### Patch Changes
