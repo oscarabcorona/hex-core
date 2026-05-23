@@ -1,5 +1,64 @@
 # @hex-core/components
 
+## 1.11.0
+
+### Minor Changes
+
+- b28f8ee: feat(blocks): application section blocks + app-page page-recipe
+
+  Adds five presentational, theme-driven application section blocks for building
+  authenticated app screens: `AppShell` (responsive sidebar + sticky top bar +
+  main region), `AppSidebarNav` (grouped nav with active states), `AppStats` (KPI
+  cards with directional deltas), `AppSettings` (two-column settings groups), and
+  `AppDataTable` (table-view frame with toolbar + pagination slots). Each ships
+  its machine-readable schema with `ai` guidance and a render test; content and
+  icons are passed as `ReactNode` so no icon set is bundled.
+
+  A new `app-page` page-recipe (kind `page`, pageType `app`) composes them — shell
+  wrapping the sidebar nav, with stats above a data-table view in the main region.
+
+- b28f8ee: feat(blocks): ecommerce section blocks + storefront-page page-recipe
+
+  Adds five presentational, theme-driven ecommerce section blocks:
+  `CommerceProductGrid` (catalog of linked product cards), `CommerceProductDetail`
+  (PDP layout with media + options + add-to-cart slots), `CommerceReviews` (star
+  summary + review list), `CommerceCart` (line items + sticky order summary), and
+  `CommerceCheckout` (form + order-summary layout). Each ships its machine-readable
+  schema with `ai` guidance and a render test; images, controls, and totals are
+  passed as `ReactNode` so no icon set or cart logic is bundled.
+
+  A new `storefront-page` page-recipe (kind `page`, pageType `ecommerce`) composes
+  the storefront — reusing the marketing header/footer for chrome around the
+  product grid and a promo band.
+
+- b28f8ee: feat(blocks): marketing section blocks + landing-page page-recipe
+
+  Adds eight presentational, theme-driven marketing section blocks that compose
+  into a landing page: `MarketingHeader`, `MarketingHero`, `MarketingLogoCloud`,
+  `MarketingFeatureGrid`, `MarketingPricing`, `MarketingTestimonial`,
+  `MarketingCta`, and `MarketingFooter`. Each ships its machine-readable schema
+  (with `ai` guidance) and a render test; content and icons are passed as
+  `ReactNode` so no icon set is bundled.
+
+  A new `landing-page` page-recipe (kind `page`, pageType `landing`) orders these
+  sections — header → hero → logo cloud → features → pricing → testimonials →
+  CTA → footer — so an LLM or `hex recipe add landing-page` can scaffold a full
+  marketing page in one call. Supersedes the older `pricing-table` recipe for new
+  work.
+
+### Patch Changes
+
+- b28f8ee: fix(recipes): ecommerce discoverability + page-recipe assembly guidance
+
+  Manual-QA follow-ups for the page-recipe system:
+  - `resolve_spec` now matches natural ecommerce phrasing — "online store", "store",
+    and "shop" surface `storefront-page` and the commerce blocks (added store/shop
+    synonyms to the storefront recipe and commerce block tags). Previously these
+    returned nothing.
+  - Each page recipe's `layout` brief now states the per-block import convention
+    (`@/components/ui/<section.block>`) so an agent/developer knows how to wire the
+    installed section files together.
+
 ## 1.10.0
 
 ### Minor Changes

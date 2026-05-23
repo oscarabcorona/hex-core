@@ -1,5 +1,83 @@
 # @hex-core/registry
 
+## 0.5.0
+
+### Minor Changes
+
+- b28f8ee: feat(recipes): page-recipe system foundation
+
+  Recipes can now describe whole pages, not just component bundles. A recipe
+  gains an optional `kind` (`component` — the default and every existing recipe,
+  or `page`), plus page-only fields: `pageType` (`landing` | `app` | `ecommerce`),
+  a recommended `theme` (token preset + whole-page token budget), an ordered
+  `sections` list (each a section block with an `intent`), and a `layout` brief.
+  - `build-registry` validates section blocks against the catalog and derives
+    checklist items from their `ai` metadata, same as component steps.
+  - MCP `get_recipe` returns the full page spec in one call; `list_recipes`
+    surfaces `kind`/`pageType` so an LLM can find the page recipe for a request.
+  - CLI `hex recipe add <page>` installs the section blocks in order and surfaces
+    the recommended theme + layout. `hex recipe list` tags page recipes.
+
+  Fully backward-compatible — every existing recipe still validates and installs
+  unchanged.
+
+- b28f8ee: refactor(recipes)!: rename the `app-shell` recipe to `layout-starter`
+
+  The new `app-shell` **block** (an application layout frame) takes the canonical
+  `app-shell` slug, so the legacy `app-shell` **recipe** — which is really a bundle
+  of twelve layout primitives — is renamed to `layout-starter`. This keeps slug
+  discovery (CLI `hex add` / `hex recipe add` and MCP `get_component` /
+  `get_recipe`) unambiguous: "app shell" now resolves to the component an agent
+  expects, and the primitives bundle reads as what it is.
+
+  Breaking: `hex recipe add app-shell` is now `hex recipe add layout-starter`.
+
+### Patch Changes
+
+- b28f8ee: feat(motion): Phase 2 popular-animation catalog — 15 wrappers + landing-hero recipe
+
+  Adds 15 opinionated wrapper components to `@hex-core/motion`, all built on the Phase 1 engine. Every wrapper is a registry item; consumers reach them via `npx @hex-core/cli add <slug>` (which records the npm peer) or by importing the named export directly.
+
+  **Wrappers**
+  - Entry/exit (5): `FadeIn`, `SlideIn`, `ScaleIn`, `BlurIn`, `Pulse`
+  - Composing (4): `Bounce`, `Shine`, `Stagger`, `RevealOnScroll`
+  - Clock-driven (3): `CountUp`, `Typewriter`, `Marquee`
+  - State-aware (3): `Shake`, `Parallax`, `PageTransition`
+
+  The skeleton-sweep wrapper is named `Shine` (slug `shine`) to avoid colliding with the
+  existing AI `shimmer` streaming-text component — both keep their own registry slug.
+
+  **Engine extensions**
+  - `AnimateProps.filter` for blur (and any other CSS filter) animations
+  - New `useTween(from, to, transition)` hook — numeric interpolator driven by the active `MotionConfig` clock; powers `<CountUp>` and is exported for consumers
+  - Wrappers ship through the package barrel — `import { FadeIn } from "@hex-core/motion"`
+
+  **Registry / MCP / CLI**
+  - 26 motion items total (11 Phase 1 + 15 Phase 2). MCP `search_components(category:"motion")` now lists all of them.
+  - Contract test pins every motion slug; renames or removals fail loudly in CI.
+  - CLI `add <slug>` works unchanged — schema-only items install the npm peer and print next-step hints.
+
+  **Recipe**
+  - `landing-hero` — composes FadeIn / SlideIn / ScaleIn / Stagger / CountUp around `<Container>` / `<Stack>` / `<Button>`. Demonstrates the catalog without any custom Motion JSX.
+
+  **Docs**
+  - New `Catalog` section on `/docs/motion` linking each wrapper to its component page.
+  - 15 live demos under `/docs/components/<slug>` — registered in `apps/docs/src/lib/demos.tsx`.
+  - `hex-core-motion` SKILL.md gains a Catalog table for AI agent decision making.
+
+  No breaking changes; Phase 1 surface (`Motion`, `Presence`, `<Timeline>`, `useAnimate`, etc.) is untouched.
+
+- b28f8ee: fix(recipes): ecommerce discoverability + page-recipe assembly guidance
+
+  Manual-QA follow-ups for the page-recipe system:
+  - `resolve_spec` now matches natural ecommerce phrasing — "online store", "store",
+    and "shop" surface `storefront-page` and the commerce blocks (added store/shop
+    synonyms to the storefront recipe and commerce block tags). Previously these
+    returned nothing.
+  - Each page recipe's `layout` brief now states the per-block import convention
+    (`@/components/ui/<section.block>`) so an agent/developer knows how to wire the
+    installed section files together.
+
 ## 0.4.1
 
 ### Patch Changes
