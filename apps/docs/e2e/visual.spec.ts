@@ -116,6 +116,24 @@ for (const { name: slug, displayName } of registry.items) {
 			const preview = page.getByTestId("component-preview").first();
 			await expect(preview).toBeVisible({ timeout: 30_000 });
 
+			// `toBeVisible` proves only that the TabsContent shell mounted —
+			// `min-h-[200px]` satisfies the visibility check even before the
+			// children paint. Anchor on an interactive descendant so Radix
+			// `asChild`/Slot clones have finished merging onto trigger buttons;
+			// otherwise dev-mode hydration races produce empty baselines (see
+			// the alert-dialog dark mid-hydration regression). Slot merge is
+			// sub-second on hydration — a tight 2s window is enough to bridge
+			// the race without blowing the per-test budget when a primitive
+			// has no interactive descendant (aspect-ratio, separator, etc.).
+			await preview
+				.locator("button, [role='button'], a, input, textarea, select, [tabindex]")
+				.first()
+				.waitFor({ state: "visible", timeout: 2_000 })
+				.catch(() => {
+					// Non-interactive primitives fall through; the outer
+					// toBeVisible already guards them.
+				});
+
 			await expect(preview).toHaveScreenshot(`${slug}-${theme.name}.png`, {
 				maxDiffPixelRatio: 0.01,
 				animations: "disabled",
@@ -157,6 +175,16 @@ for (const { slug, route } of SHOWCASES) {
 				if (cls) html.classList.add(cls);
 				else html.classList.remove("dark");
 			}, theme.html);
+
+			// Same hydration anchor as the per-component loop, same 2s budget.
+			await page
+				.locator("button, [role='button'], a")
+				.first()
+				.waitFor({ state: "visible", timeout: 2_000 })
+				.catch(() => {
+					// Showcases without any interactive surface fall through
+					// (none today, but keeps the guard backward-compatible).
+				});
 
 			await expect(page).toHaveScreenshot(`${slug}-${theme.name}.png`, {
 				fullPage: true,
