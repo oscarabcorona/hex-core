@@ -112,3 +112,29 @@ export {
 	CommerceCheckout,
 	type CommerceCheckoutProps,
 } from "./commerce-checkout/commerce-checkout.js";
+
+// Marketing backfill (round 2): stats, faq, team, newsletter, contact, content.
+export { MarketingStats, type MarketingStat, type MarketingStatsProps } from "./marketing-stats/marketing-stats.js";
+export {
+	MarketingFaq,
+	type MarketingFaqItem,
+	type MarketingFaqProps,
+} from "./marketing-faq/marketing-faq.js";
+export {
+	MarketingTeam,
+	type MarketingTeamMember,
+	type MarketingTeamProps,
+} from "./marketing-team/marketing-team.js";
+export {
+	MarketingNewsletter,
+	type MarketingNewsletterProps,
+} from "./marketing-newsletter/marketing-newsletter.js";
+export {
+	MarketingContact,
+	type MarketingContactProps,
+} from "./marketing-contact/marketing-contact.js";
+export {
+	MarketingContent,
+	type MarketingContentPost,
+	type MarketingContentProps,
+} from "./marketing-content/marketing-content.js";

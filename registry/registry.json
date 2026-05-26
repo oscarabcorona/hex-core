@@ -1434,6 +1434,38 @@
       "tokenBudget": 650
     },
     {
+      "name": "marketing-contact",
+      "displayName": "MarketingContact",
+      "description": "Contact section: heading + supporting copy + optional details column + caller-supplied form. 'split' (default) renders details left and form right on ≥lg; 'stacked' is single-column. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "contact",
+        "form",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
+      "name": "marketing-content",
+      "displayName": "MarketingContent",
+      "description": "A blog / content grid: an optional heading block above a responsive grid of content cards (preview image, meta, title, excerpt). Cards become a single linked surface when href is set. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "content",
+        "blog",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
       "name": "marketing-cta",
       "displayName": "MarketingCta",
       "description": "A closing call-to-action band. 'simple' reads as centered copy on the page background; 'panel' lifts it into a primary-filled rounded card. Presentational and theme-driven.",
@@ -1448,6 +1480,24 @@
       ],
       "internalDeps": [],
       "tokenBudget": 550
+    },
+    {
+      "name": "marketing-faq",
+      "displayName": "MarketingFaq",
+      "description": "FAQ section composing the Accordion primitive: an optional heading above a stack of question/answer pairs. Defaults to 'single' (one open at a time, collapsible); pass type='multiple' for parallel-open. Client Component.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "faq",
+        "accordion",
+        "landing"
+      ],
+      "internalDeps": [
+        "components/accordion/accordion"
+      ],
+      "tokenBudget": 600
     },
     {
       "name": "marketing-feature-grid",
@@ -1531,6 +1581,22 @@
       "tokenBudget": 400
     },
     {
+      "name": "marketing-newsletter",
+      "displayName": "MarketingNewsletter",
+      "description": "Newsletter signup band: heading + subcopy + a caller-supplied form (email Input + Button) and an optional disclaimer line. Centered single column (default) or copy-left + form-right on ≥lg. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "newsletter",
+        "signup",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
       "name": "marketing-pricing",
       "displayName": "MarketingPricing",
       "description": "A pricing section: an optional heading block above a row of plan cards, with one tier highlightable as recommended. Each tier has a name, price, feature list, and a caller-supplied CTA. Presentational and theme-driven.",
@@ -1545,6 +1611,39 @@
       ],
       "internalDeps": [],
       "tokenBudget": 750
+    },
+    {
+      "name": "marketing-stats",
+      "displayName": "MarketingStats",
+      "description": "A marketing stats band: an optional heading above a grid of big-number tiles (value, label, optional context). Distinct from app-stats — no change deltas, larger typography, designed for landing-page 'by the numbers' sections. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "stats",
+        "metrics",
+        "social-proof",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "marketing-team",
+      "displayName": "MarketingTeam",
+      "description": "A team section: an optional heading block above a grid of member cards (avatar, name, role, optional bio + social links). Avatars and social links are ReactNode slots — no icon set is bundled. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "team",
+        "about",
+        "landing"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
     },
     {
       "name": "marketing-testimonial",

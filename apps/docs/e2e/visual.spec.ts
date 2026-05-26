@@ -63,6 +63,13 @@ const NO_VISUAL_DEMO = new Set([
 	"commerce-reviews",
 	"commerce-cart",
 	"commerce-checkout",
+	// Marketing backfill (round 2) — same composed-page-section rationale.
+	"marketing-stats",
+	"marketing-faq",
+	"marketing-team",
+	"marketing-newsletter",
+	"marketing-contact",
+	"marketing-content",
 ]);
 
 const themes = [
