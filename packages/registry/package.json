@@ -1,6 +1,6 @@
 {
 	"name": "@hex-core/registry",
-	"version": "0.5.0",
+	"version": "0.5.1",
 	"description": "Zod schemas and types for the Hex Core component registry — shared between @hex-core/components, cli, and mcp.",
 	"keywords": [
 		"hex-core",
