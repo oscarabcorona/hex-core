@@ -1,5 +1,66 @@
 # @hex-core/components
 
+## 1.12.0
+
+### Minor Changes
+
+- 7a60fce: feat(blocks): catalog backfill — 13 sections + 4 page-recipes (closes strategy doc)
+
+  Final backfill round from the page-system strategy. Thirteen new presentational,
+  theme-driven section blocks — each with schema + render test, content via
+  `ReactNode` slots:
+
+  **Marketing (1)** — `MarketingBento`: asymmetric bento feature layout
+  (distinct from the symmetric `marketing-feature-grid`).
+
+  **App (3)** — closes the list family:
+  - `AppStackedList` — labeled item list (members, inbox) — distinct from `app-data-table`
+  - `AppGridList` — grid variant of stacked-list
+  - `AppFeed` — chronological activity timeline, grouped by day
+
+  **Commerce (9)**:
+  - `CommerceCategory` — category preview cards
+  - `CommerceCategoryFilters` — filter sidebar with native `<details>` collapse (no JS)
+  - `CommerceStoreNav` — storefront top nav with mobile menu (`"use client"`)
+  - `CommerceProductFeatures` — PDP feature spotlight (`alternating` / `grid` variants)
+  - `CommerceQuickview` — quickview body composable into Dialog/Sheet
+  - `CommerceIncentives` — value-prop band (free shipping, returns)
+  - `CommercePromo` — featured-deal banner (`image-left` / `image-right` / `overlay`)
+  - `CommerceOrderSummary` — read-only order detail card
+  - `CommerceOrderHistory` — customer order history table with empty state
+
+  Plus four new page-recipes (`kind: "page"`):
+  - `order-page` (ecommerce) — order confirmation page
+  - `checkout-page` (ecommerce) — checkout layout
+  - `pricing-page` (landing) — dedicated pricing page (hero + tiers + faq + cta)
+  - `product-page` (ecommerce) — PDP (detail + features + reviews)
+
+  **Catalog: 30 → 43 blocks** (6 auth + 15 marketing + 8 app + 14 commerce). Page-recipes
+  4 → 8. New blocks excluded from the per-component visual loop (composed page-sections —
+  same business-logic rationale as the prior 18). No breaking changes.
+
+- 09a1db3: feat(blocks): marketing backfill — 6 sections + about-page recipe
+
+  Backfill batch from the page-system strategy. Six new presentational,
+  theme-driven marketing sections — each with schema + render test, content via
+  `ReactNode` slots (no icon set bundled):
+  - `MarketingStats` — big-number tiles for "by the numbers" bands (distinct
+    from `app-stats`: no change deltas, larger typography)
+  - `MarketingFaq` — composed from Accordion (`single` or `multiple` open)
+  - `MarketingTeam` — team grid with avatar/name/role/bio/social slots
+  - `MarketingNewsletter` — heading + caller-supplied form + disclaimer, in
+    centered or split layout
+  - `MarketingContact` — heading + optional details column + caller-supplied
+    form, in split or stacked layout
+  - `MarketingContent` — blog/content card grid with optional href, image, meta
+
+  A new `about-page` page-recipe (kind `page`, pageType `landing`) composes
+  header → hero → team → stats → content → contact → footer so an LLM or
+  `hex recipe add about-page` scaffolds a credibility-first About page.
+
+  Brings the block catalog to **30 blocks total** (6 auth + 14 marketing + 5 app
+  - 5 commerce).
+
 ## 1.11.0
 
 ### Minor Changes

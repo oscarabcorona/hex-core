@@ -80,7 +80,7 @@ Prints every component in the registry grouped by category.
 
 ### `hex recipe list`
 
-Lists every available spec-driven recipe (auth flows, settings page, pricing table, data table view, destructive confirm, command palette, the `layout-starter` primitives bundle, and the `landing-page` / `app-page` page recipes) with summary and component list. `hex recipe add layout-starter` drops in the 12 foundation primitives most apps compose from.
+Lists every available spec-driven recipe (auth flows, settings page, pricing table, data table view, destructive confirm, command palette, the `layout-starter` primitives bundle, and the eight page recipes: `landing-page`, `app-page`, `storefront-page`, `about-page`, `order-page`, `checkout-page`, `pricing-page`, `product-page`) with summary and component list. `hex recipe add layout-starter` drops in the 12 foundation primitives most apps compose from.
 
 ### `hex recipe add <slug>`
 
