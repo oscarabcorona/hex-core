@@ -176,6 +176,11 @@ const SHOWCASES = [
 	{ slug: "showcase-landing", route: "/landing" },
 	{ slug: "showcase-app", route: "/app" },
 	{ slug: "showcase-store", route: "/store" },
+	{ slug: "showcase-about", route: "/about" },
+	{ slug: "showcase-order", route: "/order" },
+	{ slug: "showcase-checkout", route: "/checkout" },
+	{ slug: "showcase-pricing", route: "/pricing" },
+	{ slug: "showcase-product", route: "/product" },
 ] as const;
 
 for (const { slug, route } of SHOWCASES) {
