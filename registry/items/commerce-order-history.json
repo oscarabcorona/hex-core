@@ -1,0 +1,141 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "commerce-order-history",
+  "displayName": "CommerceOrderHistory",
+  "description": "Customer order history table: each row is an order with id, date, total, status, and an optional link to the order detail page. Renders an empty-state when orders is []. Distinct from commerce-order-summary (a single order's detail card). Presentational and theme-driven.",
+  "category": "block",
+  "subcategory": "commerce",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "orders",
+      "type": "object",
+      "required": true,
+      "description": "ReadonlyArray<{ id; date; total; status; href? }>. Orders newest-first by convention. Set href to make each row's 'View' link navigate to the order detail."
+    },
+    {
+      "name": "title",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional section heading."
+    },
+    {
+      "name": "description",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional subcopy under the heading."
+    },
+    {
+      "name": "emptyState",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional empty-state node, rendered when orders is empty."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional classes applied to the root wrapper."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "emptyState",
+      "description": "Custom empty-state node.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    },
+    {
+      "name": "orders[].status",
+      "description": "Per-order status badge / text.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/commerce-order-history.tsx",
+      "content": "import * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/** One order row in {@link CommerceOrderHistory}. */\nexport interface CommerceOrderRow {\n\t/** Order identifier. */\n\tid: React.ReactNode;\n\t/** Placed-on date. */\n\tdate: React.ReactNode;\n\t/** Order total. */\n\ttotal: React.ReactNode;\n\t/** Status badge / text. */\n\tstatus: React.ReactNode;\n\t/** Optional link to the order detail page. */\n\thref?: string;\n}\n\n/** Props for {@link CommerceOrderHistory}. */\nexport interface CommerceOrderHistoryProps {\n\t/** Orders to render. */\n\torders: ReadonlyArray<CommerceOrderRow>;\n\t/** Optional section heading. */\n\ttitle?: React.ReactNode;\n\t/** Optional subcopy under the heading. */\n\tdescription?: React.ReactNode;\n\t/** Optional empty-state node, rendered when `orders` is empty. */\n\temptyState?: React.ReactNode;\n\t/** Additional classes applied to the root wrapper. */\n\tclassName?: string;\n}\n\n/**\n * Customer order history table: each row is an order with id, date, total,\n * status, and an optional link to the order detail page. Distinct from\n * `commerce-order-summary` (a single order's detail card). Presentational and\n * theme-driven.\n */\nexport function CommerceOrderHistory({\n\torders,\n\ttitle,\n\tdescription,\n\temptyState,\n\tclassName,\n}: CommerceOrderHistoryProps) {\n\tconst hasHeading = Boolean(title || description);\n\treturn (\n\t\t<section className={cn(\"flex flex-col gap-4\", className)}>\n\t\t\t{hasHeading ? (\n\t\t\t\t<div className=\"flex flex-col gap-1\">\n\t\t\t\t\t{title ? <h2 className=\"text-lg font-semibold text-foreground\">{title}</h2> : null}\n\t\t\t\t\t{description ? <p className=\"text-sm text-muted-foreground\">{description}</p> : null}\n\t\t\t\t</div>\n\t\t\t) : null}\n\t\t\t{orders.length === 0 ? (\n\t\t\t\temptyState ?? (\n\t\t\t\t\t<div className=\"rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground\">\n\t\t\t\t\t\tNo orders yet.\n\t\t\t\t\t</div>\n\t\t\t\t)\n\t\t\t) : (\n\t\t\t\t<div className=\"overflow-hidden rounded-xl border border-border bg-card\">\n\t\t\t\t\t<table className=\"w-full text-sm text-card-foreground\">\n\t\t\t\t\t\t<thead className=\"border-b border-border bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground\">\n\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t<th scope=\"col\" className=\"px-4 py-3 text-left font-medium\">Order</th>\n\t\t\t\t\t\t\t\t<th scope=\"col\" className=\"px-4 py-3 text-left font-medium\">Date</th>\n\t\t\t\t\t\t\t\t<th scope=\"col\" className=\"px-4 py-3 text-left font-medium\">Total</th>\n\t\t\t\t\t\t\t\t<th scope=\"col\" className=\"px-4 py-3 text-left font-medium\">Status</th>\n\t\t\t\t\t\t\t\t<th scope=\"col\" className=\"px-4 py-3 text-right font-medium\">\n\t\t\t\t\t\t\t\t\t<span className=\"sr-only\">View</span>\n\t\t\t\t\t\t\t\t</th>\n\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t</thead>\n\t\t\t\t\t\t<tbody className=\"divide-y divide-border\">\n\t\t\t\t\t\t\t{orders.map((order, index) => (\n\t\t\t\t\t\t\t\t<tr key={index} className=\"hover:bg-muted/30\">\n\t\t\t\t\t\t\t\t\t<td className=\"px-4 py-3 font-medium text-foreground\">{order.id}</td>\n\t\t\t\t\t\t\t\t\t<td className=\"px-4 py-3 text-muted-foreground\">{order.date}</td>\n\t\t\t\t\t\t\t\t\t<td className=\"px-4 py-3 text-foreground\">{order.total}</td>\n\t\t\t\t\t\t\t\t\t<td className=\"px-4 py-3\">{order.status}</td>\n\t\t\t\t\t\t\t\t\t<td className=\"px-4 py-3 text-right\">\n\t\t\t\t\t\t\t\t\t\t{order.href ? (\n\t\t\t\t\t\t\t\t\t\t\t<a\n\t\t\t\t\t\t\t\t\t\t\t\thref={order.href}\n\t\t\t\t\t\t\t\t\t\t\t\tclassName=\"text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\"\n\t\t\t\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t\t\t\tView<span className=\"sr-only\"> order {order.id}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t\t\t\t</td>\n\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t</tbody>\n\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t)}\n\t\t</section>\n\t);\n}\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n\nconst SAFE_URL_SCHEMES = [\"http:\", \"https:\", \"mailto:\"] as const;\n\n/**\n * Allowlist a URL for use as an `<a href>` against untrusted input.\n *\n * Returns the raw string when it's `http(s):` / `mailto:` / a relative\n * URL (no scheme); returns `undefined` otherwise. Defends against\n * `javascript:` / `data:` / `vbscript:` injection from streamed model\n * output or third-party JSON payloads that flow into citation chips.\n *\n * Inside a Markdown render path, `rehype-sanitize` already strips\n * `javascript:` from inline-link hrefs — but it does NOT introspect\n * JSON nested inside attribute values (e.g. `<sources data='[…]'/>`),\n * so the components that consume that data must guard themselves.\n *\n * @param raw - The candidate URL, or `undefined` when none was supplied.\n * @returns The URL when safe to render, otherwise `undefined`.\n */\nexport function safeUrl(raw: string | undefined): string | undefined {\n\tif (raw === undefined || raw === \"\") return undefined;\n\t// Relative URLs have no scheme — `new URL(relative)` throws without a base,\n\t// so a thrown URL means either malformed input OR a relative path. Treat\n\t// \"throws + does not contain a colon\" as a relative path (safe).\n\tlet parsed: URL;\n\ttry {\n\t\tparsed = new URL(raw);\n\t} catch {\n\t\treturn raw.includes(\":\") ? undefined : raw;\n\t}\n\treturn SAFE_URL_SCHEMES.some((scheme) => scheme === parsed.protocol) ? raw : undefined;\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "foreground",
+    "muted",
+    "muted-foreground",
+    "card",
+    "card-foreground",
+    "border",
+    "primary",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Order history table",
+      "description": "Three past orders with status badges and links to detail.",
+      "code": "import { CommerceOrderHistory, Badge } from \"@hex-core/components\";\n\n<CommerceOrderHistory\n  title=\"Order history\"\n  orders={[\n    { id: \"#1042\", date: \"May 23, 2026\", total: \"$104\", status: <Badge>Confirmed</Badge>, href: \"/orders/1042\" },\n    { id: \"#1037\", date: \"May 12, 2026\", total: \"$76\", status: <Badge variant=\"secondary\">Delivered</Badge>, href: \"/orders/1037\" },\n  ]}\n/>",
+      "composition": [
+        "commerce",
+        "order-history",
+        "account",
+        "storefront"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use on a customer-account 'Order history' page. For a single order's detail, use commerce-order-summary. Sort orders newest-first; pair with pagination if the list is long.",
+    "whenNotToUse": "Don't use for admin order management (use app-data-table — needs sortable columns, filters). Don't show line items here — that's commerce-order-summary's job on the per-order page.",
+    "commonMistakes": [
+      "Putting line-item rows here — this is a list of orders, not a list of items.",
+      "Missing the View link's accessible name — the schema renders 'View' visually + 'order {id}' in sr-only text. Keep that pattern when customizing.",
+      "Forgetting an empty-state — first-time customers see this; either pass `emptyState` or rely on the default copy."
+    ],
+    "relatedComponents": [
+      "commerce-order-summary",
+      "app-data-table",
+      "badge",
+      "table"
+    ],
+    "accessibilityNotes": "Renders a semantic <table> with <thead>/<tbody>; column headers have scope='col'. The View link's accessible name includes 'order {id}' via sr-only text so screen-reader users can tell which row's link they're activating.",
+    "tokenBudget": 700
+  },
+  "tags": [
+    "block",
+    "commerce",
+    "order-history",
+    "account",
+    "storefront"
+  ]
+}

@@ -138,3 +138,70 @@ export {
 	type MarketingContentPost,
 	type MarketingContentProps,
 } from "./marketing-content/marketing-content.js";
+
+// Catalog backfill (round 3): closes the strategy doc.
+export {
+	MarketingBento,
+	type MarketingBentoProps,
+	type MarketingBentoTile,
+} from "./marketing-bento/marketing-bento.js";
+export {
+	AppStackedList,
+	type AppStackedListItem,
+	type AppStackedListProps,
+} from "./app-stacked-list/app-stacked-list.js";
+export {
+	AppGridList,
+	type AppGridListItem,
+	type AppGridListProps,
+} from "./app-grid-list/app-grid-list.js";
+export {
+	AppFeed,
+	type AppFeedEvent,
+	type AppFeedGroup,
+	type AppFeedProps,
+} from "./app-feed/app-feed.js";
+export {
+	CommerceCategory,
+	type CommerceCategoryItem,
+	type CommerceCategoryProps,
+} from "./commerce-category/commerce-category.js";
+export {
+	CommerceCategoryFilters,
+	type CommerceCategoryFiltersProps,
+	type CommerceFilterGroup,
+} from "./commerce-category-filters/commerce-category-filters.js";
+export {
+	CommerceStoreNav,
+	type CommerceStoreCategory,
+	type CommerceStoreNavProps,
+} from "./commerce-store-nav/commerce-store-nav.js";
+export {
+	CommerceProductFeatures,
+	type CommerceProductFeature,
+	type CommerceProductFeaturesProps,
+} from "./commerce-product-features/commerce-product-features.js";
+export {
+	CommerceQuickview,
+	type CommerceQuickviewProps,
+} from "./commerce-quickview/commerce-quickview.js";
+export {
+	CommerceIncentives,
+	type CommerceIncentive,
+	type CommerceIncentivesProps,
+} from "./commerce-incentives/commerce-incentives.js";
+export {
+	CommercePromo,
+	type CommercePromoProps,
+} from "./commerce-promo/commerce-promo.js";
+export {
+	CommerceOrderSummary,
+	type CommerceOrderItem,
+	type CommerceOrderSummaryProps,
+	type CommerceOrderTotal,
+} from "./commerce-order-summary/commerce-order-summary.js";
+export {
+	CommerceOrderHistory,
+	type CommerceOrderHistoryProps,
+	type CommerceOrderRow,
+} from "./commerce-order-history/commerce-order-history.js";

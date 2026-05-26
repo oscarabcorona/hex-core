@@ -1,0 +1,212 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "pricing-page",
+  "kind": "page",
+  "title": "Pricing page",
+  "summary": "A dedicated pricing page: header + hero (text-only intro) + pricing tiers + FAQ + closing CTA + footer.",
+  "tags": [
+    "pricing",
+    "marketing",
+    "landing",
+    "page"
+  ],
+  "brief": "Build a focused pricing page: marketing-header for nav, marketing-hero (text-only) introducing the pricing model, marketing-pricing as the tier grid (with one tier highlighted), marketing-faq for common pre-purchase questions, marketing-cta as a closing push, and marketing-footer.",
+  "steps": [],
+  "pageType": "landing",
+  "theme": {
+    "preset": "default",
+    "tokenBudget": 3600
+  },
+  "sections": [
+    {
+      "id": "header",
+      "block": "marketing-header",
+      "intent": "Top nav with brand, links, and a primary CTA.",
+      "role": "primary"
+    },
+    {
+      "id": "hero",
+      "block": "marketing-hero",
+      "intent": "Brief intro framing the pricing model.",
+      "role": "primary"
+    },
+    {
+      "id": "pricing",
+      "block": "marketing-pricing",
+      "intent": "The plan tier grid, one tier highlighted.",
+      "role": "primary"
+    },
+    {
+      "id": "faq",
+      "block": "marketing-faq",
+      "intent": "Pre-purchase questions (billing, trials, switching plans).",
+      "role": "supporting"
+    },
+    {
+      "id": "cta",
+      "block": "marketing-cta",
+      "intent": "Closing push to convert undecided visitors.",
+      "role": "primary"
+    },
+    {
+      "id": "footer",
+      "block": "marketing-footer",
+      "intent": "Site navigation, policies, social links.",
+      "role": "primary"
+    }
+  ],
+  "layout": "Stack sections vertically in declared order. The hero is text-only (no media) since the pricing grid is the visual focal point. Drop the FAQ section if there's nothing nuanced about the plans. Each section installs as its own file — import a block from `@/components/ui/<section.block>` (e.g. `import { MarketingPricing } from \"@/components/ui/marketing-pricing\"`).",
+  "checklist": [
+    {
+      "id": "marketing-header-passing-more-than-5-links-the-inline-row-gets-cr",
+      "check": "[MarketingHeader] Avoid: Passing more than ~5 links — the inline row gets crowded; group secondary items under the CTA or a footer.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-putting-raw-a-tags-in-actions-instead-of-button-",
+      "check": "[MarketingHeader] Avoid: Putting raw <a> tags in actions instead of <Button asChild><a>…</a></Button>, losing button styling.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-forgetting-the-logo-links-to-wrap-the-logo-node-",
+      "check": "[MarketingHeader] Avoid: Forgetting the logo links to '/' — wrap the logo node in an anchor.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-a11y",
+      "check": "[MarketingHeader] A11y: The mobile toggle is a <button> with aria-expanded + aria-controls pointing at the panel and an aria-label that flips between 'Open menu' / 'Close menu'. Links are real anchors, keyboard-focusable, with visible focus rings.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-hero-passing-a-long-paragraph-as-the-title-keep-the-t",
+      "check": "[MarketingHero] Avoid: Passing a long paragraph as the title — keep the title to one line; move detail into description.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-putting-raw-a-tags-in-actions-instead-of-button-",
+      "check": "[MarketingHero] Avoid: Putting raw <a> tags in actions instead of <Button asChild><a>…</a></Button>, which loses the button styling and focus ring.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-using-layout-split-with-no-media-it-leaves-an-em",
+      "check": "[MarketingHero] Avoid: Using layout='split' with no media — it leaves an empty column; drop to 'centered'.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-hard-coding-colors-via-classname-instead-of-rely",
+      "check": "[MarketingHero] Avoid: Hard-coding colors via className instead of relying on the semantic tokens, which breaks theme switching.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-a11y",
+      "check": "[MarketingHero] A11y: Renders a single <h1> for the page — don't place another <h1> elsewhere. Decorative media should carry an empty alt or aria-hidden. CTA focus rings come from the Button primitive.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-pricing-highlighting-more-than-one-tier-the-emphasis-is-",
+      "check": "[MarketingPricing] Avoid: Highlighting more than one tier — the emphasis is meant to steer toward a single recommended plan.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-pricing-giving-the-highlighted-tier-a-generic-cta-label-",
+      "check": "[MarketingPricing] Avoid: Giving the highlighted tier a generic CTA label like 'Choose' — name the plan ('Choose Pro') for screen readers and analytics.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-pricing-passing-plain-text-as-cta-instead-of-a-button-yo",
+      "check": "[MarketingPricing] Avoid: Passing plain text as cta instead of a <Button> — you lose the full-width styling and focus ring.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-pricing-a11y",
+      "check": "[MarketingPricing] A11y: Each tier name renders as an <h3> under the section <h2>. Feature check glyphs are aria-hidden; the feature text conveys meaning. Give generic CTAs an aria-label naming the plan.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-faq-writing-answers-as-1-2-word-fragments-answers-sh",
+      "check": "[MarketingFaq] Avoid: Writing answers as 1–2 word fragments — answers should be a complete sentence so they read in isolation.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-faq-using-type-multiple-with-20-items-so-the-page-be",
+      "check": "[MarketingFaq] Avoid: Using type='multiple' with 20+ items so the page becomes unscannable.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-faq-hard-coding-defaultvalue-to-item-3-then-reorderi",
+      "check": "[MarketingFaq] Avoid: Hard-coding defaultValue to 'item-3' then reordering items so the wrong one auto-opens.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-faq-a11y",
+      "check": "[MarketingFaq] A11y: Triggers are buttons with aria-expanded and aria-controls (inherited from Accordion / Radix). Keyboard: Tab to focus, Enter/Space to toggle, Up/Down to navigate items. Section title is <h2>, questions render as the button labels.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-cta-on-variant-panel-passing-a-primary-button-it-dis",
+      "check": "[MarketingCta] Avoid: On variant='panel', passing a primary <Button> — it disappears against the primary background; use variant='secondary' or 'outline'.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-omitting-actions-entirely-a-cta-with-no-button-i",
+      "check": "[MarketingCta] Avoid: Omitting actions entirely — a CTA with no button is just a heading.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-stacking-multiple-panel-ctas-creating-competing-",
+      "check": "[MarketingCta] Avoid: Stacking multiple panel CTAs, creating competing focal points.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-a11y",
+      "check": "[MarketingCta] A11y: Renders an <h2>, keeping it below the hero's <h1>. On variant='panel', button contrast must clear WCAG against the primary fill — prefer secondary/outline buttons.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-footer-one-column-with-20-links-instead-of-a-few-groupe",
+      "check": "[MarketingFooter] Avoid: One column with 20 links instead of a few grouped columns — group by topic.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-omitting-the-copyright-line-which-most-footers-a",
+      "check": "[MarketingFooter] Avoid: Omitting the copyright line, which most footers are expected to carry.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-putting-social-icons-with-no-accessible-label-wr",
+      "check": "[MarketingFooter] Avoid: Putting social icons with no accessible label — wrap each in a link with an aria-label or sr-only text.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-a11y",
+      "check": "[MarketingFooter] A11y: Each column title renders as an <h3>. Links are real anchors with visible hover/focus states. Social icon links need an accessible name (aria-label or sr-only text) since the icon alone isn't announced.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 3600
+}

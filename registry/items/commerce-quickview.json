@@ -1,0 +1,177 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "commerce-quickview",
+  "displayName": "CommerceQuickview",
+  "description": "Quick-look product body — composable into a consumer's <Dialog> or <Sheet> to preview a product without leaving the listing. Distinct from commerce-product-detail (the full PDP layout): compact two-column with the essentials and a 'see full details' link.",
+  "category": "block",
+  "subcategory": "commerce",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "name",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Product name (renders as <h2> inside the quickview)."
+    },
+    {
+      "name": "price",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Display price."
+    },
+    {
+      "name": "media",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Single product image — a ReactNode (img or media)."
+    },
+    {
+      "name": "eyebrow",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional eyebrow above the name (brand / category)."
+    },
+    {
+      "name": "description",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional short body — abbreviated vs the full detail page."
+    },
+    {
+      "name": "options",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Option selectors (size, color, quantity) — pass your own controls."
+    },
+    {
+      "name": "actions",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Primary actions (add-to-cart)."
+    },
+    {
+      "name": "detailsLink",
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional 'see full details' link to the PDP."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional classes applied to the root wrapper."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "media",
+      "description": "Product image / video.",
+      "required": true,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    },
+    {
+      "name": "options",
+      "description": "Variant selectors.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    },
+    {
+      "name": "actions",
+      "description": "Add-to-cart buttons.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    },
+    {
+      "name": "detailsLink",
+      "description": "Link to the full PDP.",
+      "required": false,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/commerce-quickview.tsx",
+      "content": "import * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\n/** Props for {@link CommerceQuickview}. */\nexport interface CommerceQuickviewProps {\n\t/** Product name. */\n\tname: React.ReactNode;\n\t/** Display price. */\n\tprice: React.ReactNode;\n\t/** Single product image — a `ReactNode` (`<img>` or media). */\n\tmedia: React.ReactNode;\n\t/** Optional eyebrow above the name (brand / category). */\n\teyebrow?: React.ReactNode;\n\t/** Optional short body — abbreviated vs the full detail page. */\n\tdescription?: React.ReactNode;\n\t/** Option selectors (size, color, quantity) — pass your own controls. */\n\toptions?: React.ReactNode;\n\t/** Primary actions (add-to-cart). */\n\tactions?: React.ReactNode;\n\t/** Optional \"see full details\" link (typically to the PDP). */\n\tdetailsLink?: React.ReactNode;\n\t/** Additional classes applied to the root wrapper. */\n\tclassName?: string;\n}\n\n/**\n * Quick-look product body — composable into a consumer's `<Dialog>` or\n * `<Sheet>` to preview a product without leaving the listing. Distinct from\n * the full `commerce-product-detail` (which is the standalone PDP layout):\n * compact two-column (media left, info right) with the essentials and a\n * \"see full details\" link to the PDP.\n */\nexport function CommerceQuickview({\n\tname,\n\tprice,\n\tmedia,\n\teyebrow,\n\tdescription,\n\toptions,\n\tactions,\n\tdetailsLink,\n\tclassName,\n}: CommerceQuickviewProps) {\n\treturn (\n\t\t<div className={cn(\"grid gap-6 sm:grid-cols-2 sm:gap-8\", className)}>\n\t\t\t<div className=\"overflow-hidden rounded-xl bg-muted [&_img]:size-full [&_img]:object-cover\">\n\t\t\t\t{media}\n\t\t\t</div>\n\t\t\t<div className=\"flex flex-col gap-5\">\n\t\t\t\t<div className=\"flex flex-col gap-2\">\n\t\t\t\t\t{eyebrow ? (\n\t\t\t\t\t\t<p className=\"text-sm font-medium text-muted-foreground\">{eyebrow}</p>\n\t\t\t\t\t) : null}\n\t\t\t\t\t<h2 className=\"text-xl font-semibold tracking-tight text-foreground\">{name}</h2>\n\t\t\t\t\t<p className=\"text-lg font-semibold text-foreground\">{price}</p>\n\t\t\t\t</div>\n\t\t\t\t{description ? (\n\t\t\t\t\t<p className=\"text-pretty text-sm text-muted-foreground\">{description}</p>\n\t\t\t\t) : null}\n\t\t\t\t{options ? <div className=\"flex flex-col gap-4\">{options}</div> : null}\n\t\t\t\t{actions ? <div className=\"flex flex-col gap-2\">{actions}</div> : null}\n\t\t\t\t{detailsLink ? (\n\t\t\t\t\t<div className=\"mt-auto text-sm\">{detailsLink}</div>\n\t\t\t\t) : null}\n\t\t\t</div>\n\t\t</div>\n\t);\n}\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n\nconst SAFE_URL_SCHEMES = [\"http:\", \"https:\", \"mailto:\"] as const;\n\n/**\n * Allowlist a URL for use as an `<a href>` against untrusted input.\n *\n * Returns the raw string when it's `http(s):` / `mailto:` / a relative\n * URL (no scheme); returns `undefined` otherwise. Defends against\n * `javascript:` / `data:` / `vbscript:` injection from streamed model\n * output or third-party JSON payloads that flow into citation chips.\n *\n * Inside a Markdown render path, `rehype-sanitize` already strips\n * `javascript:` from inline-link hrefs — but it does NOT introspect\n * JSON nested inside attribute values (e.g. `<sources data='[…]'/>`),\n * so the components that consume that data must guard themselves.\n *\n * @param raw - The candidate URL, or `undefined` when none was supplied.\n * @returns The URL when safe to render, otherwise `undefined`.\n */\nexport function safeUrl(raw: string | undefined): string | undefined {\n\tif (raw === undefined || raw === \"\") return undefined;\n\t// Relative URLs have no scheme — `new URL(relative)` throws without a base,\n\t// so a thrown URL means either malformed input OR a relative path. Treat\n\t// \"throws + does not contain a colon\" as a relative path (safe).\n\tlet parsed: URL;\n\ttry {\n\t\tparsed = new URL(raw);\n\t} catch {\n\t\treturn raw.includes(\":\") ? undefined : raw;\n\t}\n\treturn SAFE_URL_SCHEMES.some((scheme) => scheme === parsed.protocol) ? raw : undefined;\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [],
+    "peer": [
+      "react",
+      "react-dom"
+    ]
+  },
+  "tokensUsed": [
+    "foreground",
+    "muted",
+    "muted-foreground"
+  ],
+  "examples": [
+    {
+      "title": "Quickview inside a Dialog",
+      "description": "Composed into a Dialog from a product card.",
+      "code": "import { CommerceQuickview, Dialog, DialogContent, Button } from \"@hex-core/components\";\n\n<Dialog>\n  <DialogContent className=\"sm:max-w-3xl\">\n    <CommerceQuickview\n      name=\"Canvas Tote\"\n      price=\"$48\"\n      eyebrow=\"Bags\"\n      description=\"Roomy everyday tote in heavyweight natural canvas.\"\n      media={<img src=\"/tote.jpg\" alt=\"Canvas tote, natural\" />}\n      actions={<Button size=\"lg\">Add to cart</Button>}\n      detailsLink={<a href=\"/p/tote\" className=\"text-primary hover:underline\">See full details</a>}\n    />\n  </DialogContent>\n</Dialog>",
+      "composition": [
+        "commerce",
+        "quickview",
+        "modal",
+        "storefront"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use to preview a product without navigating to the PDP — typically inside a Dialog/Sheet triggered from a product card's quick-view button. For the standalone PDP layout, use commerce-product-detail.",
+    "whenNotToUse": "Don't use as the PDP itself (use commerce-product-detail). Don't render a full description / gallery / reviews here — quickview is for fast browse → add-to-cart decisions.",
+    "commonMistakes": [
+      "Forgetting the detailsLink — visitors who want the full page have no escape from the modal.",
+      "Multi-image gallery in media — quickview shows one image; full galleries belong on the PDP.",
+      "Form-style option controls without labels — accessible names are the consumer's job."
+    ],
+    "relatedComponents": [
+      "commerce-product-detail",
+      "commerce-product-grid",
+      "dialog",
+      "sheet",
+      "button"
+    ],
+    "accessibilityNotes": "Renders an <h2> for the product name — inside a Dialog the dialog's own aria-labelledby should point at this <h2> (Radix Dialog handles this when you set DialogTitle, OR you label the dialog separately). Media image needs alt text.",
+    "tokenBudget": 650
+  },
+  "tags": [
+    "block",
+    "commerce",
+    "quickview",
+    "modal",
+    "storefront"
+  ]
+}

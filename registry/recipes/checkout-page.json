@@ -1,0 +1,116 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "checkout-page",
+  "kind": "page",
+  "title": "Checkout page",
+  "summary": "Checkout page composed from the marketing header + commerce-checkout (form + order summary) + marketing footer.",
+  "tags": [
+    "checkout",
+    "ecommerce",
+    "storefront",
+    "page"
+  ],
+  "brief": "Build the checkout page: marketing-header for site nav, commerce-checkout as the body (form on the left, order summary on the right), and marketing-footer. Form submission and payment processing live with the consumer.",
+  "steps": [],
+  "pageType": "ecommerce",
+  "theme": {
+    "preset": "default",
+    "tokenBudget": 2800
+  },
+  "sections": [
+    {
+      "id": "header",
+      "block": "marketing-header",
+      "intent": "Storefront top nav.",
+      "role": "primary"
+    },
+    {
+      "id": "checkout",
+      "block": "commerce-checkout",
+      "intent": "Checkout layout: form + order summary.",
+      "role": "primary"
+    },
+    {
+      "id": "footer",
+      "block": "marketing-footer",
+      "intent": "Site navigation, policies, social links.",
+      "role": "primary"
+    }
+  ],
+  "layout": "Stack sections vertically. The body section (commerce-checkout) carries its own two-column layout (form left + summary right on ≥lg). Each section installs as its own file — import a block from `@/components/ui/<section.block>` (e.g. `import { CommerceCheckout } from \"@/components/ui/commerce-checkout\"`).",
+  "checklist": [
+    {
+      "id": "marketing-header-passing-more-than-5-links-the-inline-row-gets-cr",
+      "check": "[MarketingHeader] Avoid: Passing more than ~5 links — the inline row gets crowded; group secondary items under the CTA or a footer.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-putting-raw-a-tags-in-actions-instead-of-button-",
+      "check": "[MarketingHeader] Avoid: Putting raw <a> tags in actions instead of <Button asChild><a>…</a></Button>, losing button styling.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-forgetting-the-logo-links-to-wrap-the-logo-node-",
+      "check": "[MarketingHeader] Avoid: Forgetting the logo links to '/' — wrap the logo node in an anchor.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-a11y",
+      "check": "[MarketingHeader] A11y: The mobile toggle is a <button> with aria-expanded + aria-controls pointing at the panel and an aria-label that flips between 'Open menu' / 'Close menu'. Links are real anchors, keyboard-focusable, with visible focus rings.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "commerce-checkout-inputs-without-label-htmlfor-the-block-lays-out-",
+      "check": "[CommerceCheckout] Avoid: Inputs without <Label htmlFor> — the block lays out the form but doesn't wire labels for you.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-checkout-putting-the-submit-button-only-in-the-summary-ke",
+      "check": "[CommerceCheckout] Avoid: Putting the submit button only in the summary — keep the primary 'Pay' action in the form's flow.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-checkout-omitting-fieldset-legend-grouping-for-contact-vs",
+      "check": "[CommerceCheckout] Avoid: Omitting fieldset/legend grouping for contact vs shipping vs payment, hurting form comprehension.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-checkout-a11y",
+      "check": "[CommerceCheckout] A11y: The summary column is an <aside> labelled 'Order summary'. The optional title is the page <h1>. Accessible names depend on the Label/control pairing and fieldset/legend grouping in the form you supply.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-footer-one-column-with-20-links-instead-of-a-few-groupe",
+      "check": "[MarketingFooter] Avoid: One column with 20 links instead of a few grouped columns — group by topic.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-omitting-the-copyright-line-which-most-footers-a",
+      "check": "[MarketingFooter] Avoid: Omitting the copyright line, which most footers are expected to carry.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-putting-social-icons-with-no-accessible-label-wr",
+      "check": "[MarketingFooter] Avoid: Putting social icons with no accessible label — wrap each in a link with an aria-label or sr-only text.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-a11y",
+      "check": "[MarketingFooter] A11y: Each column title renders as an <h3>. Links are real anchors with visible hover/focus states. Social icon links need an accessible name (aria-label or sr-only text) since the icon alone isn't announced.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 2800
+}

@@ -70,6 +70,20 @@ const NO_VISUAL_DEMO = new Set([
 	"marketing-newsletter",
 	"marketing-contact",
 	"marketing-content",
+	// Catalog backfill (round 3) — final coverage round; same exclusion rationale.
+	"marketing-bento",
+	"app-stacked-list",
+	"app-grid-list",
+	"app-feed",
+	"commerce-category",
+	"commerce-category-filters",
+	"commerce-store-nav",
+	"commerce-product-features",
+	"commerce-quickview",
+	"commerce-incentives",
+	"commerce-promo",
+	"commerce-order-summary",
+	"commerce-order-history",
 ]);
 
 const themes = [

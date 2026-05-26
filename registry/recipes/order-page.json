@@ -1,0 +1,147 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "order-page",
+  "kind": "page",
+  "title": "Order page",
+  "summary": "Order confirmation / detail page composed from the storefront chrome + commerce-order-summary + an optional follow-up CTA + footer.",
+  "tags": [
+    "order",
+    "confirmation",
+    "ecommerce",
+    "storefront",
+    "page"
+  ],
+  "brief": "Build the order confirmation / receipt page: marketing-header for site nav, commerce-order-summary as the body (line items + totals + status), an optional marketing-cta band for follow-up (review request, related products), and marketing-footer. Status / meta and totals are read-only — submission lives at checkout.",
+  "steps": [],
+  "pageType": "ecommerce",
+  "theme": {
+    "preset": "default",
+    "tokenBudget": 3200
+  },
+  "sections": [
+    {
+      "id": "header",
+      "block": "marketing-header",
+      "intent": "Storefront top nav with brand + categories + cart.",
+      "role": "primary"
+    },
+    {
+      "id": "order",
+      "block": "commerce-order-summary",
+      "intent": "Read-only order detail: items + totals + status + meta.",
+      "role": "primary"
+    },
+    {
+      "id": "follow-up",
+      "block": "marketing-cta",
+      "intent": "Optional follow-up nudge (review request, keep shopping).",
+      "role": "optional"
+    },
+    {
+      "id": "footer",
+      "block": "marketing-footer",
+      "intent": "Site navigation, policies, social links.",
+      "role": "primary"
+    }
+  ],
+  "layout": "Stack sections vertically in declared order inside a single page wrapper. Drop the follow-up CTA when there's nothing to promote. Each section installs as its own file — import a block from `@/components/ui/<section.block>` (e.g. `import { CommerceOrderSummary } from \"@/components/ui/commerce-order-summary\"`).",
+  "checklist": [
+    {
+      "id": "marketing-header-passing-more-than-5-links-the-inline-row-gets-cr",
+      "check": "[MarketingHeader] Avoid: Passing more than ~5 links — the inline row gets crowded; group secondary items under the CTA or a footer.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-putting-raw-a-tags-in-actions-instead-of-button-",
+      "check": "[MarketingHeader] Avoid: Putting raw <a> tags in actions instead of <Button asChild><a>…</a></Button>, losing button styling.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-forgetting-the-logo-links-to-wrap-the-logo-node-",
+      "check": "[MarketingHeader] Avoid: Forgetting the logo links to '/' — wrap the logo node in an anchor.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-a11y",
+      "check": "[MarketingHeader] A11y: The mobile toggle is a <button> with aria-expanded + aria-controls pointing at the panel and an aria-label that flips between 'Open menu' / 'Close menu'. Links are real anchors, keyboard-focusable, with visible focus rings.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "commerce-order-summary-letting-the-consumer-mutate-the-items-array-this",
+      "check": "[CommerceOrderSummary] Avoid: Letting the consumer mutate the items array — this block doesn't expose edit handlers; pass the immutable snapshot of the order.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-order-summary-forgetting-to-mark-the-total-row-as-emphasized-w",
+      "check": "[CommerceOrderSummary] Avoid: Forgetting to mark the Total row as emphasized — without it the final total reads the same as subtotals and shipping.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-order-summary-long-meta-paragraphs-that-dominate-the-card-keep",
+      "check": "[CommerceOrderSummary] Avoid: Long meta paragraphs that dominate the card — keep meta to a few short lines.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-order-summary-a11y",
+      "check": "[CommerceOrderSummary] A11y: The card title (Order {id}) renders as <h2>; per-item names render as <h3>. Totals use <dl>/<dt>/<dd> for label→value semantics. The emphasized Total row carries a top border so the visual emphasis matches the bold weight.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-cta-on-variant-panel-passing-a-primary-button-it-dis",
+      "check": "[MarketingCta] Avoid: On variant='panel', passing a primary <Button> — it disappears against the primary background; use variant='secondary' or 'outline'.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-omitting-actions-entirely-a-cta-with-no-button-i",
+      "check": "[MarketingCta] Avoid: Omitting actions entirely — a CTA with no button is just a heading.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-stacking-multiple-panel-ctas-creating-competing-",
+      "check": "[MarketingCta] Avoid: Stacking multiple panel CTAs, creating competing focal points.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-a11y",
+      "check": "[MarketingCta] A11y: Renders an <h2>, keeping it below the hero's <h1>. On variant='panel', button contrast must clear WCAG against the primary fill — prefer secondary/outline buttons.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-footer-one-column-with-20-links-instead-of-a-few-groupe",
+      "check": "[MarketingFooter] Avoid: One column with 20 links instead of a few grouped columns — group by topic.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-omitting-the-copyright-line-which-most-footers-a",
+      "check": "[MarketingFooter] Avoid: Omitting the copyright line, which most footers are expected to carry.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-putting-social-icons-with-no-accessible-label-wr",
+      "check": "[MarketingFooter] Avoid: Putting social icons with no accessible label — wrap each in a link with an aria-label or sr-only text.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-a11y",
+      "check": "[MarketingFooter] A11y: Each column title renders as an <h3>. Links are real anchors with visible hover/focus states. Social icon links need an accessible name (aria-label or sr-only text) since the icon alone isn't announced.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 3200
+}

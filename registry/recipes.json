@@ -200,6 +200,25 @@
       "tokenBudget": 1300
     },
     {
+      "slug": "checkout-page",
+      "kind": "page",
+      "pageType": "ecommerce",
+      "title": "Checkout page",
+      "summary": "Checkout page composed from the marketing header + commerce-checkout (form + order summary) + marketing footer.",
+      "tags": [
+        "checkout",
+        "ecommerce",
+        "storefront",
+        "page"
+      ],
+      "components": [
+        "marketing-header",
+        "commerce-checkout",
+        "marketing-footer"
+      ],
+      "tokenBudget": 2800
+    },
+    {
       "slug": "command-palette",
       "kind": "component",
       "title": "Command palette",
@@ -360,6 +379,49 @@
       "tokenBudget": 3200
     },
     {
+      "slug": "order-page",
+      "kind": "page",
+      "pageType": "ecommerce",
+      "title": "Order page",
+      "summary": "Order confirmation / detail page composed from the storefront chrome + commerce-order-summary + an optional follow-up CTA + footer.",
+      "tags": [
+        "order",
+        "confirmation",
+        "ecommerce",
+        "storefront",
+        "page"
+      ],
+      "components": [
+        "marketing-header",
+        "commerce-order-summary",
+        "marketing-cta",
+        "marketing-footer"
+      ],
+      "tokenBudget": 3200
+    },
+    {
+      "slug": "pricing-page",
+      "kind": "page",
+      "pageType": "landing",
+      "title": "Pricing page",
+      "summary": "A dedicated pricing page: header + hero (text-only intro) + pricing tiers + FAQ + closing CTA + footer.",
+      "tags": [
+        "pricing",
+        "marketing",
+        "landing",
+        "page"
+      ],
+      "components": [
+        "marketing-header",
+        "marketing-hero",
+        "marketing-pricing",
+        "marketing-faq",
+        "marketing-cta",
+        "marketing-footer"
+      ],
+      "tokenBudget": 3600
+    },
+    {
       "slug": "pricing-table",
       "kind": "component",
       "title": "Pricing table",
@@ -378,6 +440,29 @@
         "button"
       ],
       "tokenBudget": 1800
+    },
+    {
+      "slug": "product-page",
+      "kind": "page",
+      "pageType": "ecommerce",
+      "title": "Product page",
+      "summary": "Product detail (PDP) composed from the storefront header + commerce-product-detail + commerce-product-features + commerce-reviews + optional closing CTA + footer.",
+      "tags": [
+        "product",
+        "pdp",
+        "ecommerce",
+        "storefront",
+        "page"
+      ],
+      "components": [
+        "marketing-header",
+        "commerce-product-detail",
+        "commerce-product-features",
+        "commerce-reviews",
+        "marketing-cta",
+        "marketing-footer"
+      ],
+      "tokenBudget": 4200
     },
     {
       "slug": "settings-page",
