@@ -4,6 +4,29 @@
   "version": "0.1.0",
   "items": [
     {
+      "slug": "about-page",
+      "kind": "page",
+      "pageType": "landing",
+      "title": "About page",
+      "summary": "A company About page composed from the marketing header + hero, a team grid, a content/blog row, a contact section, and the marketing footer.",
+      "tags": [
+        "about",
+        "marketing",
+        "team",
+        "page"
+      ],
+      "components": [
+        "marketing-header",
+        "marketing-hero",
+        "marketing-team",
+        "marketing-stats",
+        "marketing-content",
+        "marketing-contact",
+        "marketing-footer"
+      ],
+      "tokenBudget": 3800
+    },
+    {
       "slug": "app-page",
       "kind": "page",
       "pageType": "app",

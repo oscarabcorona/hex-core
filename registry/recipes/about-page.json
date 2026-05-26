@@ -1,0 +1,242 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "about-page",
+  "kind": "page",
+  "title": "About page",
+  "summary": "A company About page composed from the marketing header + hero, a team grid, a content/blog row, a contact section, and the marketing footer.",
+  "tags": [
+    "about",
+    "marketing",
+    "team",
+    "page"
+  ],
+  "brief": "Assemble a credibility-first About page: marketing-header for site nav, a marketing-hero introducing the company, a marketing-team grid for the people, marketing-content for recent writing or press, a marketing-contact section for getting in touch, and the marketing-footer. All sections are presentational and read from the same theme.",
+  "steps": [],
+  "pageType": "landing",
+  "theme": {
+    "preset": "default",
+    "tokenBudget": 3800
+  },
+  "sections": [
+    {
+      "id": "header",
+      "block": "marketing-header",
+      "intent": "Top nav with brand, links, and a primary CTA.",
+      "role": "primary"
+    },
+    {
+      "id": "hero",
+      "block": "marketing-hero",
+      "intent": "Introduce the company and its mission.",
+      "role": "primary"
+    },
+    {
+      "id": "team",
+      "block": "marketing-team",
+      "intent": "Meet-the-team grid — credibility.",
+      "role": "primary"
+    },
+    {
+      "id": "stats",
+      "block": "marketing-stats",
+      "intent": "Optional 'by the numbers' band for scale.",
+      "role": "optional"
+    },
+    {
+      "id": "content",
+      "block": "marketing-content",
+      "intent": "Recent writing, press, or case studies.",
+      "role": "supporting"
+    },
+    {
+      "id": "contact",
+      "block": "marketing-contact",
+      "intent": "How to reach the team.",
+      "role": "primary"
+    },
+    {
+      "id": "footer",
+      "block": "marketing-footer",
+      "intent": "Site navigation, policies, and social links.",
+      "role": "primary"
+    }
+  ],
+  "layout": "Stack the sections vertically in declared order inside a single page wrapper. Header first, footer last; everything between scrolls. Drop the optional stats band when there are no real numbers to share. Each section installs as its own file — import a block from `@/components/ui/<section.block>` (e.g. `import { MarketingTeam } from \"@/components/ui/marketing-team\"`).",
+  "checklist": [
+    {
+      "id": "marketing-header-passing-more-than-5-links-the-inline-row-gets-cr",
+      "check": "[MarketingHeader] Avoid: Passing more than ~5 links — the inline row gets crowded; group secondary items under the CTA or a footer.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-putting-raw-a-tags-in-actions-instead-of-button-",
+      "check": "[MarketingHeader] Avoid: Putting raw <a> tags in actions instead of <Button asChild><a>…</a></Button>, losing button styling.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-forgetting-the-logo-links-to-wrap-the-logo-node-",
+      "check": "[MarketingHeader] Avoid: Forgetting the logo links to '/' — wrap the logo node in an anchor.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-a11y",
+      "check": "[MarketingHeader] A11y: The mobile toggle is a <button> with aria-expanded + aria-controls pointing at the panel and an aria-label that flips between 'Open menu' / 'Close menu'. Links are real anchors, keyboard-focusable, with visible focus rings.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-hero-passing-a-long-paragraph-as-the-title-keep-the-t",
+      "check": "[MarketingHero] Avoid: Passing a long paragraph as the title — keep the title to one line; move detail into description.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-putting-raw-a-tags-in-actions-instead-of-button-",
+      "check": "[MarketingHero] Avoid: Putting raw <a> tags in actions instead of <Button asChild><a>…</a></Button>, which loses the button styling and focus ring.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-using-layout-split-with-no-media-it-leaves-an-em",
+      "check": "[MarketingHero] Avoid: Using layout='split' with no media — it leaves an empty column; drop to 'centered'.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-hard-coding-colors-via-classname-instead-of-rely",
+      "check": "[MarketingHero] Avoid: Hard-coding colors via className instead of relying on the semantic tokens, which breaks theme switching.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-hero-a11y",
+      "check": "[MarketingHero] A11y: Renders a single <h1> for the page — don't place another <h1> elsewhere. Decorative media should carry an empty alt or aria-hidden. CTA focus rings come from the Button primitive.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-team-mixing-avatar-sizes-pick-one-size-class-size-16-",
+      "check": "[MarketingTeam] Avoid: Mixing avatar sizes — pick one size class (size-16, size-20) and apply consistently.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-team-putting-links-to-every-social-network-pick-1-2-m",
+      "check": "[MarketingTeam] Avoid: Putting links to every social network — pick 1–2 most relevant (LinkedIn / GitHub for tech, Twitter / IG for consumer).",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-team-long-bios-keep-to-1-2-lines-per-member-or-the-gr",
+      "check": "[MarketingTeam] Avoid: Long bios — keep to 1–2 lines per member or the grid gets ragged.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-team-a11y",
+      "check": "[MarketingTeam] A11y: Each card title renders as <h3> under the section <h2>. Decorative avatars use alt=\"\" since the name is in adjacent text. Social-link icons must carry an accessible name (aria-label or sr-only text).",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-stats-padding-labels-with-the-metric-type-e-g-active-u",
+      "check": "[MarketingStats] Avoid: Padding labels with the metric type (e.g. 'Active users (count)') — the value carries the meaning, the label stays short.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-stats-stuffing-5-tiles-into-three-columns-use-four-or-",
+      "check": "[MarketingStats] Avoid: Stuffing 5+ tiles into 'three' columns — use 'four' or split into two sections.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-stats-using-app-stats-style-change-deltas-marketing-st",
+      "check": "[MarketingStats] Avoid: Using app-stats-style change deltas — marketing-stats is for static milestones, not trending metrics.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-stats-a11y",
+      "check": "[MarketingStats] A11y: Renders a <dl> with each tile as a <dt>/<dd> pair, so screen readers parse 'label / value' associations. The value uses 'order-first' on flex to render visually above the label while keeping the semantic dt→dd order.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-content-omitting-alt-on-preview-images-so-the-index-isn-",
+      "check": "[MarketingContent] Avoid: Omitting alt on preview images, so the index isn't navigable by screen reader.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-content-putting-the-meta-as-part-of-the-title-keep-it-as",
+      "check": "[MarketingContent] Avoid: Putting the meta as part of the title — keep it as a separate line so search results and feeds parse the title cleanly.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-content-mixing-aspect-ratios-the-card-uses-16-10-supply-",
+      "check": "[MarketingContent] Avoid: Mixing aspect ratios — the card uses 16/10; supply consistently cropped previews.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-content-a11y",
+      "check": "[MarketingContent] A11y: When href is set, the whole card is a single anchor with an accessible name from the title (and excerpt becomes adjacent text). When unset, the card renders as <article>. Images need alt text describing the preview.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-contact-inputs-without-label-htmlfor-the-block-is-layout",
+      "check": "[MarketingContact] Avoid: Inputs without <Label htmlFor> — the block is layout; pairing labels is the form's job.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-contact-hard-coding-mailto-tel-in-details-copy-without-m",
+      "check": "[MarketingContact] Avoid: Hard-coding mailto:/tel: in details copy without making them links — visitors expect to click.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-contact-submitting-via-a-button-s-onclick-instead-of-for",
+      "check": "[MarketingContact] Avoid: Submitting via a button's onClick instead of <form onSubmit> — breaks keyboard Enter.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-contact-a11y",
+      "check": "[MarketingContact] A11y: Section title is <h2>. Details and form columns are siblings, so screen readers reach details first in source order — put the most important channel first. Form labels and submit handling are your responsibility.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-footer-one-column-with-20-links-instead-of-a-few-groupe",
+      "check": "[MarketingFooter] Avoid: One column with 20 links instead of a few grouped columns — group by topic.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-omitting-the-copyright-line-which-most-footers-a",
+      "check": "[MarketingFooter] Avoid: Omitting the copyright line, which most footers are expected to carry.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-putting-social-icons-with-no-accessible-label-wr",
+      "check": "[MarketingFooter] Avoid: Putting social icons with no accessible label — wrap each in a link with an aria-label or sr-only text.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-a11y",
+      "check": "[MarketingFooter] A11y: Each column title renders as an <h3>. Links are real anchors with visible hover/focus states. Social icon links need an accessible name (aria-label or sr-only text) since the icon alone isn't announced.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 3800
+}
