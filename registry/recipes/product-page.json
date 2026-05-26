@@ -1,0 +1,207 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "product-page",
+  "kind": "page",
+  "title": "Product page",
+  "summary": "Product detail (PDP) composed from the storefront header + commerce-product-detail + commerce-product-features + commerce-reviews + optional closing CTA + footer.",
+  "tags": [
+    "product",
+    "pdp",
+    "ecommerce",
+    "storefront",
+    "page"
+  ],
+  "brief": "Build the product detail page (PDP): marketing-header for storefront nav, commerce-product-detail for the gallery + name + price + add-to-cart, commerce-product-features for the materials / construction spotlight, commerce-reviews for social proof, an optional marketing-cta closing band (gift card, cross-sell), and marketing-footer.",
+  "steps": [],
+  "pageType": "ecommerce",
+  "theme": {
+    "preset": "default",
+    "tokenBudget": 4200
+  },
+  "sections": [
+    {
+      "id": "header",
+      "block": "marketing-header",
+      "intent": "Storefront top nav with brand + categories + cart.",
+      "role": "primary"
+    },
+    {
+      "id": "detail",
+      "block": "commerce-product-detail",
+      "intent": "Gallery + name + price + options + add-to-cart.",
+      "role": "primary"
+    },
+    {
+      "id": "features",
+      "block": "commerce-product-features",
+      "intent": "Materials / construction / signature details.",
+      "role": "supporting"
+    },
+    {
+      "id": "reviews",
+      "block": "commerce-reviews",
+      "intent": "Star summary + individual reviews — social proof.",
+      "role": "supporting"
+    },
+    {
+      "id": "cta",
+      "block": "marketing-cta",
+      "intent": "Optional closing nudge (cross-sell, gift card).",
+      "role": "optional"
+    },
+    {
+      "id": "footer",
+      "block": "marketing-footer",
+      "intent": "Site navigation, policies, social links.",
+      "role": "primary"
+    }
+  ],
+  "layout": "Stack sections vertically in declared order — the PDP scrolls top-to-bottom. Detail first (above the fold), then features, then reviews. Drop the closing CTA when there's nothing relevant to promote. Each section installs as its own file — import a block from `@/components/ui/<section.block>` (e.g. `import { CommerceProductDetail } from \"@/components/ui/commerce-product-detail\"`).",
+  "checklist": [
+    {
+      "id": "marketing-header-passing-more-than-5-links-the-inline-row-gets-cr",
+      "check": "[MarketingHeader] Avoid: Passing more than ~5 links — the inline row gets crowded; group secondary items under the CTA or a footer.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-putting-raw-a-tags-in-actions-instead-of-button-",
+      "check": "[MarketingHeader] Avoid: Putting raw <a> tags in actions instead of <Button asChild><a>…</a></Button>, losing button styling.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-forgetting-the-logo-links-to-wrap-the-logo-node-",
+      "check": "[MarketingHeader] Avoid: Forgetting the logo links to '/' — wrap the logo node in an anchor.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-header-a11y",
+      "check": "[MarketingHeader] A11y: The mobile toggle is a <button> with aria-expanded + aria-controls pointing at the panel and an aria-label that flips between 'Open menu' / 'Close menu'. Links are real anchors, keyboard-focusable, with visible focus rings.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "commerce-product-detail-hard-coding-option-selectors-into-the-block-pass",
+      "check": "[CommerceProductDetail] Avoid: Hard-coding option selectors into the block — pass them as the options slot so selection state stays with the consumer.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-product-detail-missing-alt-text-on-the-gallery-image-describing",
+      "check": "[CommerceProductDetail] Avoid: Missing alt text on the gallery image describing the product.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-product-detail-putting-price-in-the-name-field-keep-price-separ",
+      "check": "[CommerceProductDetail] Avoid: Putting price in the name field — keep price separate so its larger styling applies.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-product-detail-a11y",
+      "check": "[CommerceProductDetail] A11y: The product name renders as the page <h1>. The block is layout; option controls and buttons you pass must carry their own labels. Gallery images need descriptive alt text.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "commerce-product-features-three-alternating-rows-that-all-look-the-same-mi",
+      "check": "[CommerceProductFeatures] Avoid: Three+ alternating rows that all look the same — mix in copy length, image crop, or add a grid section to break the rhythm.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-product-features-tiny-icons-in-grid-that-look-like-noise-use-24px",
+      "check": "[CommerceProductFeatures] Avoid: Tiny icons in 'grid' that look like noise — use 24px glyphs sized to the size-5 well.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-product-features-forgetting-alt-text-on-feature-media-these-are-i",
+      "check": "[CommerceProductFeatures] Avoid: Forgetting alt text on feature media — these are informative, not decorative.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-product-features-a11y",
+      "check": "[CommerceProductFeatures] A11y: Section title is <h2>; per-feature titles render as <h3>. The alternating order flip is purely visual — source order stays top-to-bottom, so screen readers reach features in declared order regardless of which side the image is on.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "commerce-reviews-passing-a-rating-outside-0-5-it-s-clamped-but-su",
+      "check": "[CommerceReviews] Avoid: Passing a rating outside 0–5 — it's clamped, but supply real values so the stars are accurate.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-reviews-relying-on-star-color-alone-to-convey-the-rating",
+      "check": "[CommerceReviews] Avoid: Relying on star color alone to convey the rating — pair it with the numeric '4.5 out of 5' text (the summary does this).",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-reviews-omitting-the-author-leaving-reviews-unattributed",
+      "check": "[CommerceReviews] Avoid: Omitting the author, leaving reviews unattributed.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "commerce-reviews-a11y",
+      "check": "[CommerceReviews] A11y: Star rows are decorative (aria-hidden); the numeric 'X out of 5' text carries the rating for assistive tech. The section title is an <h2> and review titles are <h3>, preserving heading order.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-cta-on-variant-panel-passing-a-primary-button-it-dis",
+      "check": "[MarketingCta] Avoid: On variant='panel', passing a primary <Button> — it disappears against the primary background; use variant='secondary' or 'outline'.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-omitting-actions-entirely-a-cta-with-no-button-i",
+      "check": "[MarketingCta] Avoid: Omitting actions entirely — a CTA with no button is just a heading.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-stacking-multiple-panel-ctas-creating-competing-",
+      "check": "[MarketingCta] Avoid: Stacking multiple panel CTAs, creating competing focal points.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-cta-a11y",
+      "check": "[MarketingCta] A11y: Renders an <h2>, keeping it below the hero's <h1>. On variant='panel', button contrast must clear WCAG against the primary fill — prefer secondary/outline buttons.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "marketing-footer-one-column-with-20-links-instead-of-a-few-groupe",
+      "check": "[MarketingFooter] Avoid: One column with 20 links instead of a few grouped columns — group by topic.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-omitting-the-copyright-line-which-most-footers-a",
+      "check": "[MarketingFooter] Avoid: Omitting the copyright line, which most footers are expected to carry.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-putting-social-icons-with-no-accessible-label-wr",
+      "check": "[MarketingFooter] Avoid: Putting social icons with no accessible label — wrap each in a link with an aria-label or sr-only text.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "marketing-footer-a11y",
+      "check": "[MarketingFooter] A11y: Each column title renders as an <h3>. Links are real anchors with visible hover/focus states. Social icon links need an accessible name (aria-label or sr-only text) since the icon alone isn't announced.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "tokenBudget": 4200
+}

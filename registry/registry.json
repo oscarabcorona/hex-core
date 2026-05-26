@@ -1146,6 +1146,39 @@
       "tokenBudget": 600
     },
     {
+      "name": "app-feed",
+      "displayName": "AppFeed",
+      "description": "Chronological activity feed, grouped by day. Each event shows a leading icon on a vertical rail, an actor + message line, optional time, and optional details. Presentational and theme-driven — sort events yourself before passing them in.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "feed",
+        "activity",
+        "timeline",
+        "dashboard"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
+      "name": "app-grid-list",
+      "displayName": "AppGridList",
+      "description": "Grid variant of app-stacked-list — same item shape rendered as cards in a 2- or 3-column grid. Each card: optional leading media + title + meta + description + actions. Cards become a single linked surface when href is set. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "list",
+        "grid-list",
+        "dashboard"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
       "name": "app-settings",
       "displayName": "AppSettings",
       "description": "Settings page layout: a stack of groups, each pairing a title + description column with a card of form controls (two columns on ≥lg, stacked below). Presentational and theme-driven — pass your own fields and submit handling.",
@@ -1193,6 +1226,22 @@
       ],
       "internalDeps": [],
       "tokenBudget": 600
+    },
+    {
+      "name": "app-stacked-list",
+      "displayName": "AppStackedList",
+      "description": "Labeled stacked list of items (members, inbox, threads, notifications). Each row: leading element + title + meta + description + trailing actions. Rows become a single linked surface when href is set. Distinct from app-data-table (no columns / no header). Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "app",
+      "tags": [
+        "block",
+        "app",
+        "list",
+        "stacked-list",
+        "dashboard"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
     },
     {
       "name": "app-stats",
@@ -1364,6 +1413,38 @@
       "tokenBudget": 700
     },
     {
+      "name": "commerce-category",
+      "displayName": "CommerceCategory",
+      "description": "Category preview cards ('shop by category'): a responsive grid of category cards (image + name + optional product count). Cards link to the category page when href is set. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "category",
+        "storefront",
+        "navigation"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "commerce-category-filters",
+      "displayName": "CommerceCategoryFilters",
+      "description": "Filter sidebar for a category page: a stack of collapsible filter groups (price, color, size, brand). Uses native <details> so no JS is needed for collapse — Server Component friendly. Each group's controls are caller-supplied; state and submission live with the consumer.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "filters",
+        "category",
+        "storefront"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
       "name": "commerce-checkout",
       "displayName": "CommerceCheckout",
       "description": "Checkout layout: the form on the left and a sticky order summary on the right (stacked on mobile). Layout only — supply the form (contact, shipping, payment) as children and the order review as summary. Presentational and theme-driven.",
@@ -1382,6 +1463,54 @@
       "tokenBudget": 650
     },
     {
+      "name": "commerce-incentives",
+      "displayName": "CommerceIncentives",
+      "description": "Value-prop band: a row of incentives (free shipping, returns, support, secure checkout) — each with an optional icon, title, and short body. Three or four columns. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "incentives",
+        "trust",
+        "storefront"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 600
+    },
+    {
+      "name": "commerce-order-history",
+      "displayName": "CommerceOrderHistory",
+      "description": "Customer order history table: each row is an order with id, date, total, status, and an optional link to the order detail page. Renders an empty-state when orders is []. Distinct from commerce-order-summary (a single order's detail card). Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "order-history",
+        "account",
+        "storefront"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
+      "name": "commerce-order-summary",
+      "displayName": "CommerceOrderSummary",
+      "description": "Read-only order detail card: header (order id + status) + line items + totals breakdown + optional meta panel + optional actions. Distinct from commerce-cart (which is editable). Use on order confirmation / order-detail pages. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "order-summary",
+        "confirmation",
+        "storefront"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 750
+    },
+    {
       "name": "commerce-product-detail",
       "displayName": "CommerceProductDetail",
       "description": "Product detail layout: imagery on the left, product info on the right (name, price, description, option controls, and add-to-cart actions), stacked on mobile. Presentational and theme-driven.",
@@ -1395,6 +1524,22 @@
         "storefront",
         "store",
         "shop"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
+      "name": "commerce-product-features",
+      "displayName": "CommerceProductFeatures",
+      "description": "Product features spotlight on a PDP — either an alternating row layout (image + copy, sides flip each row) or a compact icon-grid for spec lists. Presentational and theme-driven. Sits between commerce-product-detail and commerce-reviews on a product page.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "product-features",
+        "pdp",
+        "storefront"
       ],
       "internalDeps": [],
       "tokenBudget": 700
@@ -1418,6 +1563,38 @@
       "tokenBudget": 600
     },
     {
+      "name": "commerce-promo",
+      "displayName": "CommercePromo",
+      "description": "Featured-deal promo banner: heading + subcopy + CTA + media, with image-left, image-right, or overlay layouts. Drop it between catalog sections to surface a sale, new collection, or seasonal campaign. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "promo",
+        "campaign",
+        "storefront"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
+      "name": "commerce-quickview",
+      "displayName": "CommerceQuickview",
+      "description": "Quick-look product body — composable into a consumer's <Dialog> or <Sheet> to preview a product without leaving the listing. Distinct from commerce-product-detail (the full PDP layout): compact two-column with the essentials and a 'see full details' link.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "quickview",
+        "modal",
+        "storefront"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
       "name": "commerce-reviews",
       "displayName": "CommerceReviews",
       "description": "A product reviews section: a summary header (average rating + count) above a list of individual reviews, each with a star rating, author, optional date, and body. Presentational and theme-driven.",
@@ -1429,6 +1606,38 @@
         "reviews",
         "ratings",
         "pdp"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 650
+    },
+    {
+      "name": "commerce-store-nav",
+      "displayName": "CommerceStoreNav",
+      "description": "Storefront top navigation: brand + primary categories + search slot + trailing actions (cart, sign-in). Desktop inline nav; mobile collapses to a hamburger panel. Client Component (owns the open/close state). Theme-driven.",
+      "category": "block",
+      "subcategory": "commerce",
+      "tags": [
+        "block",
+        "commerce",
+        "store-nav",
+        "navigation",
+        "storefront"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 700
+    },
+    {
+      "name": "marketing-bento",
+      "displayName": "MarketingBento",
+      "description": "Asymmetric bento feature grid: one or two 'lg' hero tiles plus several 'md' tiles. Distinct from marketing-feature-grid (symmetric, icon-led) — bento is designed for landing pages wanting a richer, gallery-feel feature showcase. Presentational and theme-driven.",
+      "category": "block",
+      "subcategory": "marketing",
+      "tags": [
+        "block",
+        "marketing",
+        "bento",
+        "features",
+        "landing"
       ],
       "internalDeps": [],
       "tokenBudget": 650
