@@ -3257,6 +3257,39 @@
       ],
       "internalDeps": [],
       "tokenBudget": 200
+    },
+    {
+      "name": "use-ai-chat",
+      "displayName": "useAIChat",
+      "description": "SDK-agnostic chat adapter hook. Thin wrapper over AI SDK v5's useChat that normalizes the return shape to Hex types: message role narrowed to user/assistant/system/tool, text parts concatenated into a content string, and a composer slice that spreads directly onto <Composer>. Manages input state locally (AI SDK v5 no longer owns it). Future LangChain / Mastra adapters return the same shape.",
+      "category": "hook",
+      "subcategory": "ai",
+      "tags": [
+        "hook",
+        "ai",
+        "chat",
+        "streaming",
+        "ai-sdk",
+        "useAIChat"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 850
+    },
+    {
+      "name": "use-streaming-message",
+      "displayName": "useStreamingMessage",
+      "description": "Per-message helper for chat UIs. Given a chat from useAIChat and a target message id, derives 'is this one still streaming?' plus abort/retry handles. Use to wire a LoadingIndicator into a single message bubble, or to expose a retry button on the last assistant turn. Pure selector — no DOM, no extra state.",
+      "category": "hook",
+      "subcategory": "ai",
+      "tags": [
+        "hook",
+        "ai",
+        "chat",
+        "streaming",
+        "useStreamingMessage"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 550
     }
   ]
 }

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "use-streaming-message",
+  "displayName": "useStreamingMessage",
+  "description": "Per-message helper for chat UIs. Given a chat from useAIChat and a target message id, derives 'is this one still streaming?' plus abort/retry handles. Use to wire a LoadingIndicator into a single message bubble, or to expose a retry button on the last assistant turn. Pure selector — no DOM, no extra state.",
+  "category": "hook",
+  "subcategory": "ai",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "chat",
+      "type": "object",
+      "required": true,
+      "description": "UseAIChatReturn — the value from useAIChat() (or any adapter returning the same shape)."
+    },
+    {
+      "name": "messageId",
+      "type": "string",
+      "required": true,
+      "description": "The id of the message to introspect. Returns isStreaming: false when no message matches."
+    }
+  ],
+  "variants": [],
+  "slots": [],
+  "files": [],
+  "dependencies": {
+    "npm": [
+      "@hex-core/components"
+    ],
+    "internal": [],
+    "peer": [
+      "react"
+    ]
+  },
+  "tokensUsed": [],
+  "examples": [
+    {
+      "title": "Loading indicator per bubble",
+      "description": "Show a streaming indicator inside the message that's currently being generated.",
+      "code": "import { useAIChat, useStreamingMessage, Message, LoadingIndicator } from \"@hex-core/components\";\n\nfunction Bubble({ chat, messageId }) {\n  const { message, isStreaming } = useStreamingMessage(chat, messageId);\n  if (!message) return null;\n  return (\n    <Message role={message.role}>\n      {message.content}\n      {isStreaming ? <LoadingIndicator variant=\"dots\" /> : null}\n    </Message>\n  );\n}",
+      "composition": [
+        "chat",
+        "hook",
+        "streaming",
+        "loading-indicator"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Use inside a per-message component when you need to know whether THIS message is the one currently streaming, or to expose abort/retry tied to a specific bubble. Avoids re-implementing 'find the last assistant message' across the codebase.",
+    "whenNotToUse": "Don't use as the single source of chat state — that's useAIChat's job. Don't use to check chat status broadly; just read chat.status directly.",
+    "commonMistakes": [
+      "Expecting isStreaming to be true for every assistant message — it's only true for the LAST assistant message while chat is submitted/streaming.",
+      "Calling retry() mid-stream — it triggers regenerate on the SDK which aborts the current stream and restarts. Disable the retry button while isStreaming is true."
+    ],
+    "relatedComponents": [
+      "use-ai-chat",
+      "message",
+      "loading-indicator"
+    ],
+    "accessibilityNotes": "No DOM output — wire isStreaming into a <LoadingIndicator label='Generating response'/> so screen readers announce the state.",
+    "tokenBudget": 550
+  },
+  "tags": [
+    "hook",
+    "ai",
+    "chat",
+    "streaming",
+    "useStreamingMessage"
+  ]
+}
