@@ -77,7 +77,7 @@ import { Button } from "@hex-core/components";
 		relatedComponents: ["button", "navigation-menu", "marketing-hero", "marketing-footer"],
 		accessibilityNotes:
 			"The mobile toggle is a <button> with aria-expanded + aria-controls pointing at the panel and an aria-label that flips between 'Open menu' / 'Close menu'. Links are real anchors, keyboard-focusable, with visible focus rings.",
-		tokenBudget: 700,
+		tokenBudget: 833,
 	},
 	tags: ["block", "marketing", "header", "navigation", "landing"],
 };

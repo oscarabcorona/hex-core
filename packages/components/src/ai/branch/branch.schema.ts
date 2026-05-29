@@ -89,7 +89,7 @@ export const branchSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["pagination", "tabs", "message", "markdown"],
 		accessibilityNotes:
 			"Wraps the body in a `role=\"group\"` with a labelled landmark. Prev/next are real `<button>`s with aria-labels (\"Previous response\" / \"Next response\") and disabled state at boundaries. The N-of-M chip is `aria-live=\"polite\"` + `aria-atomic=\"true\"` only when interactive (so AT announces the new position as one unit when the user steps); read-only branches drop the live-region to avoid initial-mount noise on chat surfaces with many `<Branch>` blocks. Arrow keys (Left/Right) step through branches when focus is anywhere inside the group; the wrapper itself is not focusable, so the prev/next buttons or any focusable descendant carry the keys.",
-		tokenBudget: 220,
+		tokenBudget: 1044,
 	},
 	tags: ["ai", "agent", "branch", "navigation", "alternates"],
 };

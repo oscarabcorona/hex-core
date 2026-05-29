@@ -98,7 +98,7 @@ export const timeAxisSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["gantt", "sequence", "timeline"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing event count and axis range. Interactive event markers declare role=\"button\", tabIndex, and Enter/Space activation. For agent outputs, also expose a parallel chronologically-ordered list of label/date pairs.",
-		tokenBudget: 320,
+		tokenBudget: 1050,
 	},
 	tags: ["artifact", "diagram", "time-axis", "time", "events", "chronological"],
 };

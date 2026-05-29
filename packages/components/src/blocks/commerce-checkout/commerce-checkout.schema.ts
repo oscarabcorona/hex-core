@@ -73,7 +73,7 @@ export const commerceCheckoutSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["commerce-cart", "form", "input", "label", "button", "select"],
 		accessibilityNotes:
 			"The summary column is an <aside> labelled 'Order summary'. The optional title is the page <h1>. Accessible names depend on the Label/control pairing and fieldset/legend grouping in the form you supply.",
-		tokenBudget: 650,
+		tokenBudget: 886,
 	},
 	tags: ["block", "commerce", "checkout", "form", "storefront", "store", "shop"],
 };

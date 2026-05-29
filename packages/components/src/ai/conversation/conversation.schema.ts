@@ -128,7 +128,7 @@ export const conversationSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["message-list", "composer", "message", "sources", "shimmer", "markdown"],
 		accessibilityNotes:
 			"Inherits accessibility from each composed primitive: MessageList is a `role=\"log\"` with `aria-live=\"polite\"` so new turns announce, Composer's textarea is a labelled form input that submits on Enter, Sources is a labelled Collapsible, and Shimmer is `role=\"status\"`. The composer disables cleanly via the `disabled` prop, propagating to its `<textarea>`.",
-		tokenBudget: 280,
+		tokenBudget: 1429,
 	},
 	tags: ["ai", "chat", "shell", "conversation", "messages", "composer"],
 };

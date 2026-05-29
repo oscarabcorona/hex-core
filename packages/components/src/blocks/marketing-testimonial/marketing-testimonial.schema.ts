@@ -77,7 +77,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@hex-core/components";
 		relatedComponents: ["avatar", "marketing-logo-cloud", "marketing-feature-grid", "card"],
 		accessibilityNotes:
 			"Each testimonial is a <figure> with the attribution in <figcaption>, so the quote and its author are programmatically associated. Avatars are decorative (the name is text) and should carry empty alt.",
-		tokenBudget: 650,
+		tokenBudget: 923,
 	},
 	tags: ["block", "marketing", "testimonial", "social-proof", "landing"],
 };

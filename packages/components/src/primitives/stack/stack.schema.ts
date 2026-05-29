@@ -108,7 +108,7 @@ export const stackSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["cluster", "grid", "container"],
 		accessibilityNotes:
 			"Stack is presentational. Wrap stacked navigation links in a `<nav>`, stacked form fields in a `<form>`, etc. — Stack does not contribute landmark semantics.",
-		tokenBudget: 250,
+		tokenBudget: 1197,
 	},
 	tags: ["stack", "layout", "flex", "column", "vertical", "primitive"],
 };

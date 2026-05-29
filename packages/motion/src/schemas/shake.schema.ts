@@ -42,7 +42,7 @@ export const shakeSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "pulse"],
 		accessibilityNotes:
 			"Reduced-motion mode no-ops — pair with an aria-live='assertive' message so screen-reader users still get the error feedback.",
-		tokenBudget: 220,
+		tokenBudget: 537,
 	},
 	tags: ["motion", "shake", "wrapper", "feedback", "error"],
 };

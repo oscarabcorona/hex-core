@@ -104,7 +104,7 @@
       "use-animate"
     ],
     "accessibilityNotes": "Honors `prefers-reduced-motion` automatically. Override with <MotionConfig reducedMotion=\"never\"> only for screenshot tests.",
-    "tokenBudget": 350
+    "tokenBudget": 808
   },
   "tags": [
     "motion",

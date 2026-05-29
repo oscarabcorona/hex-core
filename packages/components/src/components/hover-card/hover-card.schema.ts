@@ -43,7 +43,7 @@ export const hoverCardSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["tooltip", "popover"],
 		accessibilityNotes:
 			"Radix opens on hover and keyboard focus. Content must be meaningful on focus as well as hover. Consider an alternative for touch users.",
-		tokenBudget: 400,
+		tokenBudget: 695,
 	},
 	tags: ["hover-card", "preview", "overlay", "rich-tooltip"],
 };

@@ -159,7 +159,7 @@
       "input"
     ],
     "accessibilityNotes": "react-day-picker wires aria-label, aria-selected, and keyboard navigation (arrows, Home/End, PageUp/Down). Focus rings on day buttons use the ring token.",
-    "tokenBudget": 800
+    "tokenBudget": 1115
   },
   "tags": [
     "calendar",

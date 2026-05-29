@@ -74,7 +74,7 @@ export const commerceStoreNavSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["marketing-header", "commerce-category", "commerce-category-filters", "input", "button"],
 		accessibilityNotes:
 			"The mobile toggle is a <button> with aria-expanded + aria-controls pointing at the panel and an aria-label that flips between 'Open menu' / 'Close menu'. Categories are real anchors with visible focus rings. Search and cart actions live both in the desktop bar and inside the mobile panel.",
-		tokenBudget: 700,
+		tokenBudget: 944,
 	},
 	tags: ["block", "commerce", "store-nav", "navigation", "storefront"],
 };

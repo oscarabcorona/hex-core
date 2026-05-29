@@ -108,7 +108,7 @@ export const treeMapSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["mind-map", "sunburst", "org-chart", "dendrogram", "diagram"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing the leaf count and root label. For large or interactive treemaps, also expose a parallel <table> of label/value pairs for screen readers.",
-		tokenBudget: 320,
+		tokenBudget: 1021,
 	},
 	tags: ["artifact", "diagram", "tree-map", "hierarchy", "area", "squarify"],
 };

@@ -124,7 +124,7 @@
       "markdown"
     ],
     "accessibilityNotes": "Mermaid SVG output includes basic role='graphics-document' semantics, but lacks rich navigation. For agent diagram outputs, also expose a parallel text description (the original Mermaid source itself, in a <details> or aria-describedby) so screen-reader users get the structure.",
-    "tokenBudget": 380
+    "tokenBudget": 845
   },
   "tags": [
     "ai",

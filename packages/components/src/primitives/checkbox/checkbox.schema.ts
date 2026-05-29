@@ -41,7 +41,7 @@ export const checkboxSchema: ComponentSchemaDefinition = {
 		],
 		relatedComponents: ["label", "switch", "form"],
 		accessibilityNotes: "Always pair with Label via htmlFor/id. Radix handles aria-checked automatically.",
-		tokenBudget: 300,
+		tokenBudget: 719,
 	},
 	tags: ["checkbox", "form", "toggle", "boolean", "check"],
 };

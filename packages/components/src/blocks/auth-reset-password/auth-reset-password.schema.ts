@@ -119,7 +119,7 @@ export const authResetPasswordSchema: ComponentSchemaDefinition = {
 		],
 		accessibilityNotes:
 			"Both inputs use autoComplete='new-password' and have explicit Label htmlFor pairing. The password helper text is wired via aria-describedby. Submit button uses the canonical loading prop (sets aria-busy + disabled). Errors render in an Alert with role='alert' so they're announced.",
-		tokenBudget: 1300,
+		tokenBudget: 1039,
 	},
 	tags: ["block", "auth", "reset-password", "password", "form"],
 };

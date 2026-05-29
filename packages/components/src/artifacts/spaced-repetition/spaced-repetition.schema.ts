@@ -71,7 +71,7 @@ export const spacedRepetitionSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["flashcard", "cloze", "image-occlusion", "quiz", "deck"],
 		accessibilityNotes:
 			"Outer container has role=\"group\" with aria-label=\"Confidence rating\". Each button is a real <button> with an aria-label that includes the rating label AND a hint about its effect on the next review (\"Again: Couldn't recall — show this card again soon.\"). Native button focus + Enter/Space activation handle keyboard interaction.",
-		tokenBudget: 280,
+		tokenBudget: 956,
 	},
 	tags: ["artifact", "study", "spaced-repetition", "srs", "anki", "rating"],
 };

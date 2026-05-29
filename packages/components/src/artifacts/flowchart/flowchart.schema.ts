@@ -107,7 +107,7 @@ export const flowchartSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["sankey", "funnel", "diagram", "canvas", "mind-map"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing node and edge counts. For agent outputs, also expose a parallel ordered list (or tree) of nodes-by-rank so screen-reader users get the flow without relying on visual position.",
-		tokenBudget: 380,
+		tokenBudget: 1187,
 	},
 	tags: ["artifact", "diagram", "flowchart", "flow", "dag", "process"],
 };

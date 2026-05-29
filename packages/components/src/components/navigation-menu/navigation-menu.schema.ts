@@ -42,7 +42,7 @@ export const navigationMenuSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["menubar", "dropdown-menu"],
 		accessibilityNotes:
 			"Radix implements the WAI-ARIA menu-button pattern with hover-intent delays and focus trapping in content. Links inside NavigationMenuLink get roving tabindex.",
-		tokenBudget: 800,
+		tokenBudget: 698,
 	},
 	tags: ["navigation-menu", "mega-menu", "nav", "header", "site"],
 };

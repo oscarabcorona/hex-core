@@ -84,7 +84,7 @@ export const colorPickerSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["slider", "input", "label", "popover"],
 		accessibilityNotes:
 			"Each slider has a per-axis `aria-label` (Hue / Saturation / Lightness). The trigger button needs an explicit `aria-label` describing what color is being edited (e.g. `\"Primary color\"`) — the default `\"Pick color\"` is generic. The hex input is keyboard-accessible and round-trips with the sliders.",
-		tokenBudget: 350,
+		tokenBudget: 936,
 	},
 	tags: ["color-picker", "color", "hsl", "hex", "form", "theme-editor", "primitive"],
 };

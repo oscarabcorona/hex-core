@@ -60,7 +60,7 @@ export const switchSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["checkbox", "label", "form", "toggle"],
 		accessibilityNotes:
 			"Always pair with Label (htmlFor / id). Radix handles role='switch' + aria-checked + keyboard activation (Space).",
-		tokenBudget: 350,
+		tokenBudget: 823,
 	},
 	tags: ["switch", "toggle", "form", "boolean", "setting"],
 };

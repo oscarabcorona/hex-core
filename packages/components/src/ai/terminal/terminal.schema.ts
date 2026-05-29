@@ -108,7 +108,7 @@ export const terminalSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["code-block", "composer"],
 		accessibilityNotes:
 			"xterm.js renders into a canvas + hidden screen-reader text layer; standard SR navigation works. The container exposes `data-hex-terminal` for downstream styling. For agent log displays, also consider an aria-live region above the terminal that announces summaries.",
-		tokenBudget: 360,
+		tokenBudget: 1020,
 	},
 	tags: ["ai", "terminal", "xterm", "shell", "code", "sandbox", "agent"],
 };

@@ -115,7 +115,7 @@ export const flashcardSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["cloze", "quiz", "image-occlusion", "deck", "spaced-repetition", "card"],
 		accessibilityNotes:
 			"The card declares role=\"button\", tabIndex=0, aria-pressed reflecting flipped state, and an aria-label that announces the current side. Enter and Space toggle the flip; Space's default page-scroll is preventDefaulted. Screen readers see both faces in DOM at all times — that's intentional so the back face is announced after the flip without a content swap.",
-		tokenBudget: 280,
+		tokenBudget: 1094,
 	},
 	tags: ["artifact", "study", "flashcard", "active-recall", "card"],
 };

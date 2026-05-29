@@ -68,7 +68,7 @@ export const appSettingsSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["form", "input", "label", "switch", "button", "app-shell"],
 		accessibilityNotes:
 			"Each group title is an <h3>. The block is layout only — accessible names depend on the Label/control pairing in the children you supply. Group description sits adjacent to the controls for context.",
-		tokenBudget: 600,
+		tokenBudget: 747,
 	},
 	tags: ["block", "app", "settings", "form", "dashboard"],
 };

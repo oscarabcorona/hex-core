@@ -135,7 +135,7 @@ export const tagSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["badge", "toggle", "toggle-group", "multi-combobox"],
 		accessibilityNotes:
 			"Close button gets aria-label derived from children when they're a string ('Remove Urgent'). Override via removeLabel. Tag itself is a span — wrap in a list (`role='list'` + `role='listitem'`) when rendering N tags as a collection.",
-		tokenBudget: 350,
+		tokenBudget: 1407,
 	},
 	tags: ["tag", "chip", "pill", "filter", "removable", "multi-select"],
 };

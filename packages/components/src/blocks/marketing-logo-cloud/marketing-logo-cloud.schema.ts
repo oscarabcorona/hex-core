@@ -61,7 +61,7 @@ export const marketingLogoCloudSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["marketing-hero", "marketing-feature-grid"],
 		accessibilityNotes:
 			"Logos are images — each <img> needs an alt of the brand name. The caption is a plain <p>, not a heading, so it doesn't disrupt heading order.",
-		tokenBudget: 400,
+		tokenBudget: 665,
 	},
 	tags: ["block", "marketing", "logos", "social-proof", "landing"],
 };

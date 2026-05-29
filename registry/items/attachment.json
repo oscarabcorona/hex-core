@@ -171,7 +171,7 @@
       "message-list"
     ],
     "accessibilityNotes": "Image variant uses <img alt> from the file name. Remove button gets aria-label='Remove ${name}'. Progress overlay is role='progressbar' with aria-valuemin=0 / aria-valuemax=100 / aria-valuenow=Math.round(progress * 100) and a generic 'Uploading ${name}' aria-label — AT announces 'NN percent.'",
-    "tokenBudget": 500
+    "tokenBudget": 1428
   },
   "tags": [
     "attachment",

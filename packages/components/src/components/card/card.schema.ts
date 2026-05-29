@@ -69,7 +69,7 @@ export const cardSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["button", "separator", "container", "stack"],
 		accessibilityNotes:
 			"Card is a div by default. Add role='region' and aria-labelledby (pointing to CardTitle's id) for landmark cards. CardTitle renders h3 — ensure heading hierarchy is correct on the page.",
-		tokenBudget: 400,
+		tokenBudget: 1082,
 	},
 	tags: ["card", "container", "panel", "layout", "surface"],
 };

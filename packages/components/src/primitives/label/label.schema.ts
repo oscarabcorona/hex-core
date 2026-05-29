@@ -55,7 +55,7 @@ export const labelSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["input", "textarea", "checkbox", "select", "form"],
 		accessibilityNotes:
 			"Clicking the label focuses the associated control. Automatically communicates the label to screen readers. Use htmlFor/id pairing, not nesting.",
-		tokenBudget: 200,
+		tokenBudget: 453,
 	},
 	tags: ["label", "form", "accessibility", "text"],
 };

@@ -63,7 +63,7 @@ export const appShellSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["app-sidebar-nav", "app-stats", "app-data-table", "sidebar", "breadcrumb"],
 		accessibilityNotes:
 			"The mobile menu button is a <button> with aria-expanded and an aria-label. The drawer backdrop is a labelled button so it's keyboard-dismissable. The sticky top bar stays above content via z-index without trapping focus.",
-		tokenBudget: 750,
+		tokenBudget: 838,
 	},
 	tags: ["block", "app", "shell", "layout", "dashboard", "sidebar"],
 };

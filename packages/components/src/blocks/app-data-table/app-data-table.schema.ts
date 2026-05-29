@@ -62,7 +62,7 @@ export const appDataTableSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["data-table", "table", "pagination", "input", "button", "app-shell"],
 		accessibilityNotes:
 			"The section title renders as an <h2>. The block doesn't add table semantics — those come from the Table/DataTable in children. Toolbar controls should carry their own labels (e.g. a search input with an accessible name).",
-		tokenBudget: 600,
+		tokenBudget: 896,
 	},
 	tags: ["block", "app", "data-table", "table", "dashboard"],
 };

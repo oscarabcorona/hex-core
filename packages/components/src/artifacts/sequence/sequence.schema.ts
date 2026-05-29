@@ -98,7 +98,7 @@ export const sequenceSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["flowchart", "time-axis", "gantt", "canvas", "diagram"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing actor and message counts. Interactive actor headers and message arrows declare role=\"button\", tabIndex, and Enter/Space activation. The aria-label on each message includes its index, source/target labels, and content. For agent outputs, also expose a parallel ordered list of messages with their from/to/label triples.",
-		tokenBudget: 360,
+		tokenBudget: 1110,
 	},
 	tags: ["artifact", "diagram", "sequence", "uml", "time", "messaging"],
 };

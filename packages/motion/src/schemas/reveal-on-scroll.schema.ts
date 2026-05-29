@@ -50,7 +50,7 @@ export const revealOnScrollSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "use-scroll", "stagger", "fade-in"],
 		accessibilityNotes:
 			"IntersectionObserver disconnects on unmount. Reduced-motion mode skips the animation; content renders immediately at final state.",
-		tokenBudget: 240,
+		tokenBudget: 660,
 	},
 	tags: ["motion", "scroll", "reveal", "wrapper", "intersection"],
 };

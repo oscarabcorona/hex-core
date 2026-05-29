@@ -44,7 +44,7 @@ export const progressSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["skeleton", "slider", "sonner"],
 		accessibilityNotes:
 			"Radix wires role='progressbar', aria-valuenow, aria-valuemin, aria-valuemax. Pair with a visible label or aria-label for context.",
-		tokenBudget: 250,
+		tokenBudget: 443,
 	},
 	tags: ["progress", "loading", "bar", "feedback", "determinate"],
 };

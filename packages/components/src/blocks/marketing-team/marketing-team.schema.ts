@@ -82,7 +82,7 @@ export const marketingTeamSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["avatar", "marketing-testimonial", "marketing-logo-cloud"],
 		accessibilityNotes:
 			"Each card title renders as <h3> under the section <h2>. Decorative avatars use alt=\"\" since the name is in adjacent text. Social-link icons must carry an accessible name (aria-label or sr-only text).",
-		tokenBudget: 600,
+		tokenBudget: 1006,
 	},
 	tags: ["block", "marketing", "team", "about", "landing"],
 };

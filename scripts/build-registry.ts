@@ -525,13 +525,13 @@ if (fs.existsSync(RECIPES_SRC)) {
 		const recipe = parsed.data;
 
 		// Component slugs this recipe depends on: flat `steps` for component
-		// recipes, ordered section `block`s for page recipes. Both validate
-		// against the live catalog so a recipe can never reference a slug the
-		// registry doesn't ship — and both feed checklist derivation below.
-		const referencedSlugs = [
-			...recipe.steps.map((s) => s.component),
-			...recipe.sections.map((s) => s.block),
-		];
+		// recipes, ordered section `block`s for page recipes. The Zod schema's
+		// superRefine guarantees the correct field is populated for each kind,
+		// but the fields are independent — branching here keeps us honest.
+		const referencedSlugs =
+			recipe.kind === "page"
+				? recipe.sections.map((s) => s.block)
+				: recipe.steps.map((s) => s.component);
 		const unknownSlugs = referencedSlugs.filter((slug) => !componentsBySlug.has(slug));
 		if (unknownSlugs.length > 0) {
 			console.error(

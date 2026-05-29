@@ -64,7 +64,7 @@ export const messageListSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["message", "composer", "loading-indicator"],
 		accessibilityNotes:
 			"Renders as `role=\"log\"` with `aria-live=\"polite\"` and `aria-relevant=\"additions\"` so assistive tech announces new turns. If you replace turns wholesale (e.g. on regenerate), pass `aria-relevant=\"additions removals\"` as a prop — props spread onto the underlying div and override the default.",
-		tokenBudget: 240,
+		tokenBudget: 622,
 	},
 	tags: ["ai", "chat", "scroll", "viewport", "streaming"],
 };

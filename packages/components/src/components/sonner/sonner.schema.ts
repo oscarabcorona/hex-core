@@ -73,7 +73,7 @@ export const sonnerSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["alert", "alert-dialog"],
 		accessibilityNotes:
 			"Sonner handles aria-live='polite' on the toast region so screen readers announce new toasts. Critical messages should still use Alert/AlertDialog for persistent visibility.",
-		tokenBudget: 450,
+		tokenBudget: 620,
 	},
 	tags: ["toast", "sonner", "notification", "transient", "feedback"],
 };

@@ -78,7 +78,7 @@ export const radioGroupSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["select", "checkbox", "label"],
 		accessibilityNotes:
 			"Radix implements the WAI-ARIA radio group pattern. Arrow keys move focus+selection. Radix handles aria-checked, role='radiogroup', role='radio'.",
-		tokenBudget: 400,
+		tokenBudget: 749,
 	},
 	tags: ["radio", "radio-group", "form", "choice", "mutually-exclusive"],
 };

@@ -94,7 +94,7 @@ export const mindMapSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["tree-map", "org-chart", "sunburst", "dendrogram", "canvas", "diagram"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing the node count and root label. For agent outputs, also expose a parallel text representation (a nested <ul> of node labels in a <details>) so screen-reader users get the structure.",
-		tokenBudget: 320,
+		tokenBudget: 945,
 	},
 	tags: ["artifact", "diagram", "mind-map", "hierarchy", "tree", "radial"],
 };

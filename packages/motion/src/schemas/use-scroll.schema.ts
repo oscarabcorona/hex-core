@@ -34,7 +34,7 @@ export const useScrollSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["use-animate", "motion"],
 		accessibilityNotes:
 			"Avoid scroll-linked animations that aggressively change layout — they can trigger motion sickness; gate behind `prefers-reduced-motion`.",
-		tokenBudget: 200,
+		tokenBudget: 312,
 	},
 	tags: ["motion", "scroll", "hook", "useScroll", "parallax"],
 };

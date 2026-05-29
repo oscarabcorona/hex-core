@@ -107,7 +107,7 @@ export const containerSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["stack", "grid", "cluster"],
 		accessibilityNotes:
 			"Container is presentational. Wrap in a semantic landmark (`<main>`, `<section>`, `<article>`) when the page structure needs it; Container itself renders a plain `<div>`.",
-		tokenBudget: 250,
+		tokenBudget: 1106,
 	},
 	tags: ["container", "layout", "wrapper", "max-width", "primitive"],
 };

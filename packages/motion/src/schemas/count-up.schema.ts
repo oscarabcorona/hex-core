@@ -51,7 +51,7 @@ export const countUpSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "reveal-on-scroll"],
 		accessibilityNotes:
 			"Reduced-motion snaps to the final value immediately. Wrap in role='status' aria-live='polite' if the value updates dynamically.",
-		tokenBudget: 240,
+		tokenBudget: 730,
 	},
 	tags: ["motion", "count-up", "wrapper", "tween", "numeric"],
 };

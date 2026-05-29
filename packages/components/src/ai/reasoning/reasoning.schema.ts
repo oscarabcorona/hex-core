@@ -75,7 +75,7 @@ export const reasoningSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["message", "tool-call", "markdown"],
 		accessibilityNotes:
 			"Radix Collapsible — keyboard expand/collapse via Enter/Space. The italic header is decorative; use the visible label for screen readers.",
-		tokenBudget: 280,
+		tokenBudget: 603,
 	},
 	tags: ["ai", "agent", "reasoning", "thinking", "chain-of-thought", "collapsible"],
 };

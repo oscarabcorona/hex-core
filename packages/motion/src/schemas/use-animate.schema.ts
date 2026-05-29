@@ -35,7 +35,7 @@ export const useAnimateSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "transition"],
 		accessibilityNotes:
 			"Honors `prefers-reduced-motion` via the active MotionConfig.",
-		tokenBudget: 220,
+		tokenBudget: 382,
 	},
 	tags: ["motion", "hook", "imperative", "useAnimate"],
 };

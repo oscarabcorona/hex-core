@@ -101,7 +101,7 @@ export const planSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["task", "stepper", "reasoning", "tool-call"],
 		accessibilityNotes:
 			"The step list renders as a real `<ol>` with an aria-label tied to the optional plan label, so screen readers announce it as an ordered list. Step indicators are aria-hidden (decorative) — the step label is the announced content. Approve / Cancel buttons inherit Button primitive accessibility (real `<button>`, focus ring, disabled handling).",
-		tokenBudget: 240,
+		tokenBudget: 1279,
 	},
 	tags: ["ai", "agent", "plan", "approval", "pre-execution"],
 };

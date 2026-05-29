@@ -77,7 +77,7 @@ export const marketingFeatureGridSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["marketing-hero", "marketing-cta", "card", "badge"],
 		accessibilityNotes:
 			"Each cell title renders as an <h3> under the section <h2>, preserving heading order. Decorative icons are presentational; if an icon conveys meaning, give it an accessible label.",
-		tokenBudget: 650,
+		tokenBudget: 937,
 	},
 	tags: ["block", "marketing", "features", "landing", "grid"],
 };

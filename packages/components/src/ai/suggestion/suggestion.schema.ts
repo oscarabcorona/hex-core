@@ -67,7 +67,7 @@ export const suggestionSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["composer", "cluster", "button"],
 		accessibilityNotes:
 			"Real <button>, so keyboard activation and screen-reader announcement work natively. If the label is non-text, set `aria-label`.",
-		tokenBudget: 220,
+		tokenBudget: 556,
 	},
 	tags: ["ai", "suggestion", "prompt", "pill", "chip", "quick-action"],
 };

@@ -148,7 +148,7 @@ export const authSignUpCardSchema: ComponentSchemaDefinition = {
 		],
 		accessibilityNotes:
 			"All inputs have explicit Label htmlFor pairing, autoComplete='email' / 'new-password', and required attributes where relevant. The password helper text is wired via aria-describedby. Submit button uses the canonical loading prop (sets aria-busy + disabled). Errors render in an Alert with role='alert' so they're announced. Terms checkbox label is clickable and the legal links remain reachable by keyboard.",
-		tokenBudget: 2200,
+		tokenBudget: 1148,
 	},
 	tags: ["block", "auth", "sign-up", "register", "form", "card"],
 };

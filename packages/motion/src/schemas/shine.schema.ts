@@ -42,7 +42,7 @@ export const shineSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["skeleton", "loading"],
 		accessibilityNotes:
 			"Animation suppressed under prefers-reduced-motion. Pair with role='status' + aria-busy='true' on the parent so screen readers announce loading.",
-		tokenBudget: 200,
+		tokenBudget: 520,
 	},
 	tags: ["motion", "shine", "wrapper", "loop", "loading", "skeleton"],
 };

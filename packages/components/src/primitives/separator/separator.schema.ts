@@ -29,7 +29,7 @@ export const separatorSchema: ComponentSchemaDefinition = {
 		commonMistakes: ["Using as spacing instead of semantic separation", "Forgetting orientation='vertical' needs parent height"],
 		relatedComponents: ["card", "breadcrumb", "dropdown-menu", "menubar"],
 		accessibilityNotes: "Set decorative=false if the separator conveys semantic meaning. Radix handles role='separator'.",
-		tokenBudget: 150,
+		tokenBudget: 443,
 	},
 	tags: ["separator", "divider", "hr", "layout"],
 };

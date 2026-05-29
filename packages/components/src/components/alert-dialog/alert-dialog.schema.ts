@@ -71,7 +71,7 @@ export const alertDialogSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["dialog", "toast"],
 		accessibilityNotes:
 			"Radix sets role='alertdialog', traps focus, focuses AlertDialogCancel by default, and closes on Escape. Clicks outside the dialog are prevented (user must choose Cancel or Action).",
-		tokenBudget: 650,
+		tokenBudget: 631,
 	},
 	tags: ["alert-dialog", "confirm", "destructive", "modal", "overlay"],
 };

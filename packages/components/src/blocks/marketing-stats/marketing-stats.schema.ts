@@ -76,7 +76,7 @@ export const marketingStatsSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["app-stats", "marketing-feature-grid", "marketing-logo-cloud"],
 		accessibilityNotes:
 			"Renders a <dl> with each tile as a <dt>/<dd> pair, so screen readers parse 'label / value' associations. The value uses 'order-first' on flex to render visually above the label while keeping the semantic dt→dd order.",
-		tokenBudget: 600,
+		tokenBudget: 912,
 	},
 	tags: ["block", "marketing", "stats", "metrics", "social-proof", "landing"],
 };

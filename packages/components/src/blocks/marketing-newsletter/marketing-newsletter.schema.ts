@@ -77,7 +77,7 @@ export const marketingNewsletterSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["input", "button", "form", "marketing-cta", "marketing-footer"],
 		accessibilityNotes:
 			"The block is layout; the form's labels and accessible names depend on the form you pass. Use <Label htmlFor> or aria-label on the email Input. The disclaimer is plain text positioned after the form so screen readers reach it in source order.",
-		tokenBudget: 600,
+		tokenBudget: 949,
 	},
 	tags: ["block", "marketing", "newsletter", "signup", "landing"],
 };

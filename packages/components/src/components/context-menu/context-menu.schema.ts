@@ -47,7 +47,7 @@ export const contextMenuSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["dropdown-menu", "menubar"],
 		accessibilityNotes:
 			"Triggered via right-click or Shift+F10 on keyboard. Radix handles role='menu', aria-labelledby, focus management.",
-		tokenBudget: 700,
+		tokenBudget: 593,
 	},
 	tags: ["context-menu", "right-click", "menu", "actions"],
 };

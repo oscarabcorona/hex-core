@@ -168,7 +168,7 @@
       "accordion"
     ],
     "accessibilityNotes": "The product name renders as the page <h1>. The block is layout; option controls and buttons you pass must carry their own labels. Gallery images need descriptive alt text.",
-    "tokenBudget": 700
+    "tokenBudget": 1078
   },
   "tags": [
     "block",

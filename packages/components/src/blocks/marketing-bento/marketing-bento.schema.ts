@@ -61,7 +61,7 @@ export const marketingBentoSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["marketing-feature-grid", "marketing-hero", "card"],
 		accessibilityNotes:
 			"Each tile heading is an <h3> under the section <h2>. Grid order matches source order; on mobile tiles stack one-per-row, so put your most important tile first.",
-		tokenBudget: 650,
+		tokenBudget: 873,
 	},
 	tags: ["block", "marketing", "bento", "features", "landing"],
 };

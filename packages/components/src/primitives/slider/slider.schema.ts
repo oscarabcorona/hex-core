@@ -127,7 +127,7 @@ export const sliderSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["input", "switch", "radio-group"],
 		accessibilityNotes:
 			"Arrow keys step by step, Home/End jump to min/max, PageUp/PageDown step larger. Radix handles aria-valuemin/max/now. Each thumb has its own accessible name: explicit via thumbLabels[i], else mirrored from the Root's aria-label (single thumb) or indexed '(i of N)' fallback (range). Add aria-label / aria-labelledby on the Root when there's no visible label.",
-		tokenBudget: 450,
+		tokenBudget: 1500,
 	},
 	tags: ["slider", "range", "form", "numeric", "input"],
 };

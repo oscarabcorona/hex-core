@@ -82,7 +82,7 @@ export const toolCallSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["message", "reasoning", "loading-indicator"],
 		accessibilityNotes:
 			"Built on Radix Collapsible — keyboard expand/collapse with Enter/Space works natively. Add `aria-label` on the trigger if the tool name is opaque.",
-		tokenBudget: 320,
+		tokenBudget: 771,
 	},
 	tags: ["ai", "agent", "tool-call", "function-call", "collapsible", "transparency"],
 };

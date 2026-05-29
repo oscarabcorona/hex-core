@@ -47,7 +47,7 @@ export const trackSchema: ComponentSchemaDefinition = {
 		],
 		relatedComponents: ["motion-timeline", "scene", "clip"],
 		accessibilityNotes: "No direct accessibility implications.",
-		tokenBudget: 150,
+		tokenBudget: 379,
 	},
 	tags: ["motion", "timeline", "track", "composer"],
 };
