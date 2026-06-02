@@ -63,10 +63,7 @@ interface ItemRow {
 	category: string;
 	declared: number | undefined;
 	getComponentPretty: number;
-	getComponentMin: number;
-	getComponentNoExamplesMin: number;
 	schemaPretty: number;
-	schemaMin: number;
 	searchRow: number;
 	bytes: number;
 }
@@ -117,13 +114,10 @@ function measureItem(item: Record<string, unknown>, file: string): ItemRow {
 	const ai = item.ai as { tokenBudget?: number } | undefined;
 	const declared = ai?.tokenBudget;
 
-	// get_component (with examples) — packages/mcp-server/src/index.ts:149,155
+	// get_component — mirrors packages/mcp-server/src/index.ts:155 (pretty wire shape).
 	const getComponentPretty = tok(JSON.stringify(item, null, 2));
-	const getComponentMin = tok(JSON.stringify(item));
-	// get_component (no examples) — line 149 branch
-	const getComponentNoExamplesMin = tok(JSON.stringify({ ...item, examples: [] }));
 
-	// get_component_schema — line 188–203
+	// get_component_schema — mirrors packages/mcp-server/src/index.ts:188–203.
 	const schema = {
 		name: item.name,
 		displayName: item.displayName,
@@ -135,9 +129,8 @@ function measureItem(item: Record<string, unknown>, file: string): ItemRow {
 		examples: item.examples,
 	};
 	const schemaPretty = tok(JSON.stringify(schema, null, 2));
-	const schemaMin = tok(JSON.stringify(schema));
 
-	// search_components row — line 97–105 (note: index has tokenBudget flattened)
+	// search_components row — mirrors packages/mcp-server/src/index.ts:97–105.
 	const searchRow = tok(
 		JSON.stringify({
 			name: item.name,
@@ -155,10 +148,7 @@ function measureItem(item: Record<string, unknown>, file: string): ItemRow {
 		category: String(item.category ?? "?"),
 		declared,
 		getComponentPretty,
-		getComponentMin,
-		getComponentNoExamplesMin,
 		schemaPretty,
-		schemaMin,
 		searchRow,
 		bytes,
 	};
@@ -281,7 +271,6 @@ const nonBlockRows = itemRows.filter((r) => r.category !== "block");
 // ─── A. Surface: registry index ───
 const indexJson = readFileSync(REGISTRY_INDEX, "utf8");
 const indexPretty = tok(indexJson);
-const indexMin = tok(JSON.stringify(JSON.parse(indexJson)));
 
 // ─── B. Source-vs-built parity ───
 const schemaFiles = [...listSchemaFiles(COMPONENTS_SRC), ...listSchemaFiles(MOTION_SRC)];
