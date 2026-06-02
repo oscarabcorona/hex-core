@@ -1,0 +1,251 @@
+{
+  "$schema": "https://hex-core.dev/schema/recipe.json",
+  "slug": "chatbot",
+  "kind": "component",
+  "title": "Chatbot",
+  "summary": "Streaming chatbot that wires the Phase 3 useAIChat hook to a server endpoint, renders each turn as a <Message> with streaming-safe <Markdown>, shows a typing indicator during the dead time before the first token, and offers per-bubble retry via useStreamingMessage. The end-to-end proof that the AI Kit hooks compose with the primitives into a working chat UI.",
+  "tags": [
+    "ai",
+    "chat",
+    "chatbot",
+    "streaming",
+    "ai-sdk",
+    "hook",
+    "markdown"
+  ],
+  "brief": "Build a streaming chatbot. Call useAIChat({ api: '/api/chat' }) in a client component, spread chat.composer onto <Composer>, and iterate chat.messages into <Message> bubbles inside a <MessageList>. Render assistant turns through <Markdown> so partial streamed text stays valid. Show a <LoadingIndicator> while chat.status === 'submitted' (before the first token). Use useStreamingMessage(chat, id) per assistant bubble for an isStreaming flag and a retry handle. Back it with a Next.js POST /api/chat route that returns streamText(...).toUIMessageStreamResponse(). For a no-frills version, the <Conversation> shell wraps MessageList + Composer + a streaming shimmer in one component — feed it chat.messages and chat.composer instead of hand-wiring. Install deps: ai + an SDK provider (e.g. @ai-sdk/openai) for the route; @ai-sdk/react is the heavyPeer behind useAIChat.",
+  "steps": [
+    {
+      "component": "use-ai-chat",
+      "reason": "Connects the UI to the streaming endpoint and normalizes messages + composer state",
+      "role": "primary"
+    },
+    {
+      "component": "use-streaming-message",
+      "reason": "Per-bubble isStreaming flag plus abort/retry handles tied to one assistant turn",
+      "role": "supporting"
+    },
+    {
+      "component": "message-list",
+      "reason": "Scrolling transcript with auto-scroll and an ARIA live region",
+      "role": "primary"
+    },
+    {
+      "component": "message",
+      "reason": "Renders one chat turn, styled by role",
+      "role": "primary"
+    },
+    {
+      "component": "markdown",
+      "reason": "Streaming-safe rendering of assistant text — closes unterminated fences mid-stream",
+      "role": "supporting"
+    },
+    {
+      "component": "composer",
+      "reason": "Input row; receives the chat.composer slice via spread",
+      "role": "primary"
+    },
+    {
+      "component": "loading-indicator",
+      "reason": "Typing dots during the dead time before the first streamed token",
+      "role": "optional"
+    }
+  ],
+  "sections": [],
+  "checklist": [
+    {
+      "id": "streaming-endpoint",
+      "check": "Back the hook with a streaming POST /api/chat route returning streamText(...).toUIMessageStreamResponse(). A plain JSON response leaves chat.status stuck on 'submitted' and nothing ever renders.",
+      "severity": "blocker",
+      "source": "author"
+    },
+    {
+      "id": "assistant-via-markdown",
+      "check": "Render assistant content through <Markdown>, not raw {message.content}. Raw text drops code blocks and formatting; <Markdown> is the streaming-safe path that closes unterminated fences.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "indicator-on-submitted-only",
+      "check": "Gate the standalone <LoadingIndicator> on status === 'submitted'. Once status is 'streaming' the partial assistant bubble already renders, so a second indicator double-counts the in-flight turn.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "spread-composer-whole",
+      "check": "Spread the whole {...chat.composer} slice onto <Composer>. Cherry-picking value/onSubmit but dropping disabled leaves the input editable mid-stream.",
+      "severity": "warn",
+      "source": "author"
+    },
+    {
+      "id": "stable-message-key",
+      "check": "Key each <Message> on message.id from the hook, never the array index — streaming appends/replaces turns and index keys remount the wrong bubbles.",
+      "severity": "nit",
+      "source": "author"
+    },
+    {
+      "id": "use-ai-chat-reading-chat-messages-i-content-and-ignoring-cha",
+      "check": "[useAIChat] Avoid: Reading chat.messages[i].content and ignoring chat.messages[i].parts — tool calls and reasoning blocks live in parts; content only carries concatenated text.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "use-ai-chat-forgetting-that-ai-sdk-v5-manages-messages-via-s",
+      "check": "[useAIChat] Avoid: Forgetting that AI SDK v5 manages messages via sendMessage({ text }) — the hook handles this for you via composer.onSubmit. Don't call sdk.handleSubmit directly.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "use-ai-chat-wiring-chat-composer-disabled-to-your-own-state-",
+      "check": "[useAIChat] Avoid: Wiring chat.composer.disabled to your own state — the hook already disables during submitted/streaming. Layer additional checks with &&, don't replace.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "use-ai-chat-a11y",
+      "check": "[useAIChat] A11y: No DOM output — accessibility lives in the components this hook drives. Composer manages aria-label on the textarea; MessageList renders a live region.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "use-streaming-message-expecting-isstreaming-to-be-true-for-every-assis",
+      "check": "[useStreamingMessage] Avoid: Expecting isStreaming to be true for every assistant message — it's only true for the LAST assistant message while chat is submitted/streaming.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "use-streaming-message-calling-retry-mid-stream-it-triggers-regenerate-",
+      "check": "[useStreamingMessage] Avoid: Calling retry() mid-stream — it triggers regenerate on the SDK which aborts the current stream and restarts. Disable the retry button while isStreaming is true.",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "use-streaming-message-a11y",
+      "check": "[useStreamingMessage] A11y: No DOM output — wire isStreaming into a <LoadingIndicator label='Generating response'/> so screen readers announce the state.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "message-list-forgetting-to-set-a-height-the-viewport-won-t-sc",
+      "check": "[MessageList] Avoid: Forgetting to set a height — the viewport won't scroll without `h-*` or `max-h-*`",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "message-list-disabling-autoscroll-while-still-expecting-botto",
+      "check": "[MessageList] Avoid: Disabling autoScroll while still expecting bottom-pin behavior — they're the same flag",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "message-list-putting-non-message-children-inside-a-divider-or",
+      "check": "[MessageList] Avoid: Putting non-Message children inside — a divider or banner breaks the role=log semantics",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "message-list-a11y",
+      "check": "[MessageList] A11y: Renders as `role=\"log\"` with `aria-live=\"polite\"` and `aria-relevant=\"additions\"` so assistive tech announces new turns. If you replace turns wholesale (e.g. on regenerate), pass `aria-relevant=\"additions removals\"` as a prop — props spread onto the underlying div and override the default.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "message-adding-streaming-fetch-logic-inside-message-keep",
+      "check": "[Message] Avoid: Adding streaming/fetch logic inside Message — keep it pure",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "message-using-role-tool-for-assistant-text-that-mentions",
+      "check": "[Message] Avoid: Using `role=\"tool\"` for assistant text that mentions a tool — `tool` is for the actual tool turn",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "message-hard-coding-markdown-rendering-inside-message-pa",
+      "check": "[Message] Avoid: Hard-coding markdown rendering inside Message — pass <Markdown>{...}</Markdown> as a child instead",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "message-a11y",
+      "check": "[Message] A11y: Renders as a div with `data-role`. For screen-reader chat semantics, wrap MessageList in `role=\"log\"` and consider `aria-live=\"polite\"` on the streaming container.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "markdown-passing-jsx-children-instead-of-a-markdown-strin",
+      "check": "[Markdown] Avoid: Passing JSX children instead of a markdown string — Markdown only accepts strings",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "markdown-forgetting-tailwind-typography-prose-classes-are",
+      "check": "[Markdown] Avoid: Forgetting Tailwind Typography (`prose`) classes are required to style the output",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "markdown-reaching-for-an-overrides-components-prop-slot-w",
+      "check": "[Markdown] Avoid: Reaching for an `overrides` / `components` prop — slot wiring is built in (fenced code, footnotes, <tool-call>, [!think]); compose those primitives instead of overriding renderers",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "markdown-embedding-json-in-tool-call-attrs-without-quotin",
+      "check": "[Markdown] Avoid: Embedding JSON in <tool-call> attrs without quoting the value (use single-quoted args/result so embedded double quotes survive HTML parsing)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "markdown-a11y",
+      "check": "[Markdown] A11y: Renders real semantic HTML (headings, lists, links, blockquotes). Verify Tailwind Typography (`prose`) is enabled in your CSS. Slot wiring preserves a11y semantics: Reasoning ships its own collapsible disclosure, Citation ships an inline link with a labeled index, ToolCall ships a labeled status region.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "composer-calling-onsubmit-with-the-raw-event-instead-of-t",
+      "check": "[Composer] Avoid: Calling onSubmit with the raw event instead of the value — onSubmit receives the trimmed string already",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "composer-forgetting-to-clear-value-after-submit-composer-",
+      "check": "[Composer] Avoid: Forgetting to clear `value` after submit — Composer is fully controlled",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "composer-wrapping-the-component-in-form-composer-renders-",
+      "check": "[Composer] Avoid: Wrapping the component in <form> — Composer renders its own form element",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "composer-a11y",
+      "check": "[Composer] A11y: Renders a real <form> + <textarea>, so Enter submission and screen-reader announcements work without extra ARIA. Pass `aria-label` on the wrapper if there's no visible label.",
+      "severity": "warn",
+      "source": "derived-a11y"
+    },
+    {
+      "id": "loading-indicator-leaving-the-indicator-visible-while-content-stre",
+      "check": "[LoadingIndicator] Avoid: Leaving the indicator visible while content streams — overlap looks broken",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "loading-indicator-using-bar-for-sub-second-waits-the-sweep-can-t-c",
+      "check": "[LoadingIndicator] Avoid: Using `bar` for sub-second waits — the sweep can't complete a cycle",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
+      "id": "loading-indicator-a11y",
+      "check": "[LoadingIndicator] A11y: Renders as `role=\"status\"` with `aria-live=\"polite\"` and an `aria-label`. Pass a meaningful label so screen readers announce \"Searching docs\" rather than the default \"Loading\".",
+      "severity": "warn",
+      "source": "derived-a11y"
+    }
+  ],
+  "example": "// app/chatbot.tsx\n\"use client\";\n\nimport {\n  useAIChat,\n  useStreamingMessage,\n  type UseAIChatReturn,\n  MessageList,\n  Message,\n  Markdown,\n  Composer,\n  MessageActions,\n  LoadingIndicator,\n} from \"@hex-core/components\";\nimport { Button } from \"@/components/ui/button\";\n\nexport function Chatbot() {\n  const chat = useAIChat({ api: \"/api/chat\" });\n\n  return (\n    <div className=\"flex h-[600px] flex-col gap-4\">\n      <MessageList className=\"flex-1\">\n        {chat.messages.map((message) => (\n          <ChatBubble key={message.id} chat={chat} messageId={message.id} />\n        ))}\n      </MessageList>\n\n      {/* Sibling of MessageList, not a child — keeps the role=\"log\" region\n          free of non-Message nodes and avoids nesting two live regions. */}\n      {chat.status === \"submitted\" ? (\n        <LoadingIndicator variant=\"dots\" label=\"Thinking…\" />\n      ) : null}\n\n      <Composer {...chat.composer} placeholder=\"Ask anything…\" />\n    </div>\n  );\n}\n\nfunction ChatBubble({ chat, messageId }: { chat: UseAIChatReturn; messageId: string }) {\n  const { message, isStreaming, retry } = useStreamingMessage(chat, messageId);\n  if (!message) return null;\n\n  const isAssistant = message.role === \"assistant\";\n\n  return (\n    <Message role={message.role}>\n      {isAssistant ? <Markdown>{message.content}</Markdown> : message.content}\n      {isAssistant && !isStreaming ? (\n        <MessageActions>\n          <Button variant=\"ghost\" size=\"sm\" onClick={retry}>\n            Retry\n          </Button>\n        </MessageActions>\n      ) : null}\n    </Message>\n  );\n}\n\n// app/api/chat/route.ts\nimport { openai } from \"@ai-sdk/openai\";\nimport { convertToModelMessages, streamText, type UIMessage } from \"ai\";\n\nexport async function POST(req: Request) {\n  const { messages }: { messages: UIMessage[] } = await req.json();\n\n  const result = streamText({\n    model: openai(\"gpt-4o-mini\"),\n    messages: convertToModelMessages(messages),\n  });\n\n  return result.toUIMessageStreamResponse();\n}",
+  "tokenBudget": 2800
+}

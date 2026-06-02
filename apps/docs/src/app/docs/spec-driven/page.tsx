@@ -6,7 +6,7 @@ import { DocsPage } from "../../../components/docs-page";
 export const metadata = {
 	title: "Spec-driven",
 	description:
-		"Turn a brief or spec.md into a checklist-driven component build. Four MCP tools, seven recipes, no runtime service.",
+		"Turn a brief or spec.md into a checklist-driven component build. Four MCP tools, ready-made recipes, no runtime service.",
 };
 
 const SECTIONS = [
@@ -47,6 +47,7 @@ const RECIPES = [
 	{ slug: "confirm-destructive", title: "Destructive confirm", summary: "Typed-name confirmation flow." },
 	{ slug: "command-palette", title: "Command palette", summary: "Cmd-K dialog with grouped actions." },
 	{ slug: "intro-sequence", title: "Intro sequence", summary: "Hero + CTA reveal via the motion timeline." },
+	{ slug: "chatbot", title: "Chatbot", summary: "Streaming chat wiring useAIChat to a /api/chat route." },
 ];
 
 /** Spec-driven development — positioning page explaining recipes + MCP tools. */
@@ -55,7 +56,7 @@ export default function SpecDrivenPage() {
 		<DocsPage
 			pathname="/docs/spec-driven"
 			title="Spec-driven development"
-			description="Turn a brief or a spec.md section into a checklist-driven build. Four MCP tools, seven recipes, no runtime service."
+			description="Turn a brief or a spec.md section into a checklist-driven build. Four MCP tools, ready-made recipes, no runtime service."
 			sections={SECTIONS}
 			editPath="apps/docs/src/app/docs/spec-driven/page.tsx"
 		>
@@ -106,7 +107,7 @@ export default function SpecDrivenPage() {
 
 			<DocSection id="recipes" title="Recipes">
 				<p className="text-sm leading-6">
-					Six recipes ship in-tree. Each is a static JSON file in{" "}
+					A representative set is highlighted below. Each recipe is a static JSON file in{" "}
 					<InlineCode>registry/recipes/</InlineCode> with ordered install steps and a
 					post-install checklist. Authoring a new recipe is a single file under{" "}
 					<InlineCode>packages/registry/src/recipes/&lt;slug&gt;.recipe.ts</InlineCode>;
