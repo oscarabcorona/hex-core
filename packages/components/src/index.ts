@@ -309,6 +309,19 @@ export {
 	useSidebar,
 } from "./components/sidebar/sidebar.js";
 
+// Hooks (AI Kit Phase 3)
+export {
+	useAIChat,
+	useStreamingMessage,
+	type ChatComposerSlice,
+	type ChatStatus,
+	type HexUIMessage,
+	type UseAIChatHookOptions,
+	type UseAIChatOptions,
+	type UseAIChatReturn,
+	type UseStreamingMessageReturn,
+} from "./hooks/index.js";
+
 // AI
 export type { Role, ToolCallState } from "./ai/types.js";
 export { Message, messageVariants, type MessageProps } from "./ai/message/message.js";

@@ -119,7 +119,7 @@ export const gridSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["stack", "cluster", "container", "card"],
 		accessibilityNotes:
 			"Grid is presentational. If the grid renders a list of similar items, wrap in `<ul>`/`<li>` for screen-reader semantics — Grid only handles visual layout.",
-		tokenBudget: 1373,
+		tokenBudget: 1374,
 	},
 	tags: ["grid", "layout", "css-grid", "responsive", "auto-fit", "primitive"],
 };

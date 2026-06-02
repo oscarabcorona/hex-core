@@ -69,7 +69,7 @@ export const treeSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["file-tree", "accordion", "navigation-menu"],
 		accessibilityNotes:
 			"role='tree' on root, role='treeitem' per row, aria-expanded on parents, aria-selected on the chosen leaf. Keyboard: ↑↓ move focus, → expand (or jump to first child if expanded), ← collapse (or jump to parent), Home/End first/last visible row, Enter/Space activate.",
-		tokenBudget: 1141,
+		tokenBudget: 1142,
 	},
 	tags: ["tree", "hierarchy", "navigation", "picker", "ARIA-tree"],
 };

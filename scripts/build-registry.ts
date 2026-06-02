@@ -59,6 +59,10 @@ const CATEGORY_DIR_TO_KEY = {
  */
 const SCHEMA_ONLY_ROOTS: Array<{ dir: string; category: string }> = [
 	{ dir: path.join(ROOT, "packages/motion/src/schemas"), category: "motion" },
+	// AI Kit hooks (Phase 3+) ship runtime from `@hex-core/components` itself —
+	// the schema is metadata only; the CLI adds the npm dep via dependencies.npm
+	// and the consumer imports from the existing `@hex-core/components` install.
+	{ dir: path.join(COMPONENTS_SRC, "hooks/schemas"), category: "hook" },
 ];
 
 function findSchemaFiles(): SchemaFile[] {

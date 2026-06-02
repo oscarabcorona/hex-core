@@ -114,7 +114,7 @@ export const authVerifyOtpSchema: ComponentSchemaDefinition = {
 		],
 		accessibilityNotes:
 			"InputOTP is labeled via aria-label='One-time code' so screen readers know what's being entered. Resend button uses the canonical loading prop (sets aria-busy + disabled). Cooldown countdown is reflected in the visible button label. Errors render in an Alert with role='alert'. The OTP value clears on error so users can re-enter without manually deleting digits.",
-		tokenBudget: 1039,
+		tokenBudget: 1040,
 	},
 	tags: ["block", "auth", "verify-otp", "otp", "mfa", "totp"],
 };

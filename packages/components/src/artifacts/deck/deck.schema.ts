@@ -98,7 +98,7 @@ export const deckSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["flashcard", "spaced-repetition", "cloze", "quiz", "progress"],
 		accessibilityNotes:
 			"Prev / Next buttons declare aria-label including current and total positions (\"Next card. Currently 3 of 12.\"). The progress bar is aria-hidden because the same information is in the visible '3 / 12' label and in the button labels. The inner Flashcard owns its own ARIA semantics; flipping it via Enter/Space works while the deck nav buttons remain accessible via tab order.",
-		tokenBudget: 1154,
+		tokenBudget: 1155,
 	},
 	tags: ["artifact", "study", "deck", "flashcard", "session"],
 };

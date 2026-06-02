@@ -99,7 +99,7 @@ export const matrixSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["chord", "arc", "venn", "sankey"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing dimensions. Interactive cells declare role=\"button\", tabIndex, and Enter/Space activation; hover/focus fire callback symmetrically. For agent outputs, also expose a parallel <table> so screen-reader users get the values without relying on color intensity.",
-		tokenBudget: 1046,
+		tokenBudget: 1047,
 	},
 	tags: ["artifact", "diagram", "matrix", "adjacency", "relational", "heatmap"],
 };

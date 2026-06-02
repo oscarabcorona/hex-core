@@ -106,7 +106,7 @@ export const chordSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["sankey", "matrix", "arc", "venn"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing node and ribbon counts. Interactive ribbons and node arcs declare role=\"button\", tabIndex, and Enter/Space activation. For agent outputs, also expose a parallel adjacency table so screen-reader users get the matrix without relying on the visual.",
-		tokenBudget: 1082,
+		tokenBudget: 1083,
 	},
 	tags: ["artifact", "diagram", "chord", "relational", "weighted", "circular"],
 };

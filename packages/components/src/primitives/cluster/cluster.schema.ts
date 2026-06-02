@@ -111,7 +111,7 @@ export const clusterSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["stack", "grid", "container"],
 		accessibilityNotes:
 			"Cluster is presentational. Lists of navigational items should be wrapped in `<nav>` (and ideally `<ul>` / `<li>`). Lists of tags can use a list element for screen-reader semantics; the visual wrap is independent.",
-		tokenBudget: 1300,
+		tokenBudget: 1301,
 	},
 	tags: ["cluster", "layout", "flex", "wrap", "horizontal", "primitive"],
 };

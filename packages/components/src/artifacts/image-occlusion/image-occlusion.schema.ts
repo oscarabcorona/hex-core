@@ -78,7 +78,7 @@ export const imageOcclusionSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["flashcard", "cloze", "quiz", "deck", "spaced-repetition"],
 		accessibilityNotes:
 			"Each overlay is a real <button> with type=\"button\", aria-pressed reflecting reveal state, and an aria-label that names the region's index, total, and label (when provided). The underlying <img> carries the user-supplied alt text. The decorative overlay container is aria-hidden so screen readers don't double-announce regions.",
-		tokenBudget: 1032,
+		tokenBudget: 1033,
 	},
 	tags: ["artifact", "study", "image-occlusion", "active-recall", "visual"],
 };

@@ -31,9 +31,13 @@ const entryFiles = fg.sync(
 		"src/ai/*/*.tsx",
 		"src/artifacts/*/*.tsx",
 		"src/blocks/*/*.tsx",
+		// Hooks (Phase 3+): plain .ts files (no JSX). Each hook is its own entry
+		// so RSC-safe consumers can deep-import a single hook without pulling
+		// the rest of the AI Kit through the barrel.
+		"src/hooks/*/*.ts",
 	],
 	{
-		ignore: ["**/*.test.tsx", "**/*.schema.ts", "**/_shared/**"],
+		ignore: ["**/*.test.tsx", "**/*.test.ts", "**/*.schema.ts", "**/_shared/**"],
 		cwd: path.resolve(__dirname),
 		absolute: false,
 	},
@@ -95,6 +99,10 @@ export default defineConfig({
 		"reactflow",
 		"wavesurfer.js",
 		"mermaid",
+		// AI Kit Phase 3 — heavyPeer per registry schema; consumers opt in via
+		// `hex add use-ai-chat` (CLI shows the bundle cost prompt). Externalizing
+		// here keeps consumers who never touch `useAIChat` from paying for it.
+		"@ai-sdk/react",
 		"d3-chord",
 		"d3-hierarchy",
 		"d3-sankey",

@@ -86,7 +86,7 @@ export const quizSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["flashcard", "cloze", "image-occlusion", "deck", "spaced-repetition", "radio-group", "checkbox"],
 		accessibilityNotes:
 			"The options list declares role=\"radiogroup\" (single mode) or role=\"group\" (multi mode). Native <input type=\"radio|checkbox\"> handles keyboard navigation (arrow keys for radios, tab+space for checkboxes). The status line uses role=\"status\" + aria-live=\"polite\" so screen readers announce correctness after submit. Each option's data-state encodes correctness for theming AND offers a hook for screen-reader-only labels if a future iteration adds them.",
-		tokenBudget: 1200,
+		tokenBudget: 1201,
 	},
 	tags: ["artifact", "study", "quiz", "multiple-choice", "active-recall"],
 };

@@ -78,7 +78,7 @@ export const compareTableSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["flashcard", "quiz", "cloze", "data-table", "table"],
 		accessibilityNotes:
 			"Renders a real <table> with semantic <thead>/<tbody>/<th scope=\"col|row\">/<td>. The first column is sticky so attribute labels stay visible during horizontal scroll on narrow viewports. Each cell carries data-subject-id and data-attribute-id for any consumer-driven aria-label or selection behavior. The diff-highlighted cells rely on color alone today — pair with a per-row screen-reader-only summary for AA-strict consumers.",
-		tokenBudget: 1169,
+		tokenBudget: 1170,
 	},
 	tags: ["artifact", "study", "compare-table", "comparison", "matrix"],
 };

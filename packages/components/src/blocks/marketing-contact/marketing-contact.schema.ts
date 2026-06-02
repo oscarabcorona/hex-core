@@ -87,7 +87,7 @@ export const marketingContactSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["form", "input", "textarea", "label", "button", "marketing-cta"],
 		accessibilityNotes:
 			"Section title is <h2>. Details and form columns are siblings, so screen readers reach details first in source order — put the most important channel first. Form labels and submit handling are your responsibility.",
-		tokenBudget: 1140,
+		tokenBudget: 1141,
 	},
 	tags: ["block", "marketing", "contact", "form", "landing"],
 };

@@ -105,7 +105,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1300
+      "tokenBudget": 1301
     },
     {
       "name": "container",
@@ -123,7 +123,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1106
+      "tokenBudget": 1107
     },
     {
       "name": "empty",
@@ -174,7 +174,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1373
+      "tokenBudget": 1374
     },
     {
       "name": "input",
@@ -222,7 +222,7 @@
       "internalDeps": [
         "primitives/skeleton/skeleton"
       ],
-      "tokenBudget": 1158
+      "tokenBudget": 1159
     },
     {
       "name": "progress",
@@ -376,7 +376,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1197
+      "tokenBudget": 1198
     },
     {
       "name": "switch",
@@ -545,7 +545,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1115
+      "tokenBudget": 1116
     },
     {
       "name": "card",
@@ -561,7 +561,7 @@
         "surface"
       ],
       "internalDeps": [],
-      "tokenBudget": 1082
+      "tokenBudget": 1083
     },
     {
       "name": "collapsible",
@@ -640,7 +640,7 @@
         "components/dialog/dialog",
         "lib/utils"
       ],
-      "tokenBudget": 1048
+      "tokenBudget": 1049
     },
     {
       "name": "context-menu",
@@ -696,7 +696,7 @@
         "components/popover/popover",
         "lib/utils"
       ],
-      "tokenBudget": 1115
+      "tokenBudget": 1116
     },
     {
       "name": "dialog",
@@ -712,7 +712,7 @@
         "form"
       ],
       "internalDeps": [],
-      "tokenBudget": 1219
+      "tokenBudget": 1220
     },
     {
       "name": "drawer",
@@ -1127,7 +1127,7 @@
         "ARIA-tree"
       ],
       "internalDeps": [],
-      "tokenBudget": 1141
+      "tokenBudget": 1142
     },
     {
       "name": "app-data-table",
@@ -1302,7 +1302,7 @@
         "primitives/input/input",
         "primitives/label/label"
       ],
-      "tokenBudget": 1039
+      "tokenBudget": 1040
     },
     {
       "name": "auth-sign-in-split",
@@ -1351,7 +1351,7 @@
         "primitives/label/label",
         "primitives/separator/separator"
       ],
-      "tokenBudget": 1148
+      "tokenBudget": 1149
     },
     {
       "name": "auth-verify-email",
@@ -1392,7 +1392,7 @@
         "components/input-otp/input-otp",
         "primitives/button/button"
       ],
-      "tokenBudget": 1039
+      "tokenBudget": 1040
     },
     {
       "name": "commerce-cart",
@@ -1508,7 +1508,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 1126
+      "tokenBudget": 1127
     },
     {
       "name": "commerce-product-detail",
@@ -1526,7 +1526,7 @@
         "shop"
       ],
       "internalDeps": [],
-      "tokenBudget": 1078
+      "tokenBudget": 1079
     },
     {
       "name": "commerce-product-features",
@@ -1542,7 +1542,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 1083
+      "tokenBudget": 1084
     },
     {
       "name": "commerce-product-grid",
@@ -1576,7 +1576,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 1080
+      "tokenBudget": 1081
     },
     {
       "name": "commerce-quickview",
@@ -1592,7 +1592,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 1123
+      "tokenBudget": 1124
     },
     {
       "name": "commerce-reviews",
@@ -1656,7 +1656,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 1140
+      "tokenBudget": 1141
     },
     {
       "name": "marketing-content",
@@ -1771,7 +1771,7 @@
         "cta"
       ],
       "internalDeps": [],
-      "tokenBudget": 1260
+      "tokenBudget": 1261
     },
     {
       "name": "marketing-logo-cloud",
@@ -1852,7 +1852,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 1006
+      "tokenBudget": 1007
     },
     {
       "name": "marketing-testimonial",
@@ -1943,7 +1943,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1044
+      "tokenBudget": 1045
     },
     {
       "name": "canvas",
@@ -1963,7 +1963,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1189
+      "tokenBudget": 1190
     },
     {
       "name": "chain-of-thought",
@@ -1983,7 +1983,7 @@
         "lib/utils",
         "components/reasoning/reasoning"
       ],
-      "tokenBudget": 1161
+      "tokenBudget": 1162
     },
     {
       "name": "citation",
@@ -2103,7 +2103,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1015
+      "tokenBudget": 1016
     },
     {
       "name": "loading-indicator",
@@ -2145,7 +2145,7 @@
         "components/tool-call/tool-call",
         "components/reasoning/reasoning"
       ],
-      "tokenBudget": 1063
+      "tokenBudget": 1064
     },
     {
       "name": "message",
@@ -2332,7 +2332,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1114
+      "tokenBudget": 1115
     },
     {
       "name": "terminal",
@@ -2352,7 +2352,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1020
+      "tokenBudget": 1021
     },
     {
       "name": "tool-call",
@@ -2410,7 +2410,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1082
+      "tokenBudget": 1083
     },
     {
       "name": "cloze",
@@ -2446,7 +2446,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1169
+      "tokenBudget": 1170
     },
     {
       "name": "deck",
@@ -2465,7 +2465,7 @@
         "lib/utils",
         "artifacts/flashcard/flashcard"
       ],
-      "tokenBudget": 1154
+      "tokenBudget": 1155
     },
     {
       "name": "dendrogram",
@@ -2484,7 +2484,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1024
+      "tokenBudget": 1025
     },
     {
       "name": "flashcard",
@@ -2502,7 +2502,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1094
+      "tokenBudget": 1095
     },
     {
       "name": "flowchart",
@@ -2521,7 +2521,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1187
+      "tokenBudget": 1188
     },
     {
       "name": "funnel",
@@ -2558,7 +2558,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1055
+      "tokenBudget": 1056
     },
     {
       "name": "image-occlusion",
@@ -2576,7 +2576,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1032
+      "tokenBudget": 1033
     },
     {
       "name": "matrix",
@@ -2595,7 +2595,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1046
+      "tokenBudget": 1047
     },
     {
       "name": "mind-map",
@@ -2633,7 +2633,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1075
+      "tokenBudget": 1076
     },
     {
       "name": "pyramid",
@@ -2651,7 +2651,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1075
+      "tokenBudget": 1076
     },
     {
       "name": "quiz",
@@ -2669,7 +2669,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1200
+      "tokenBudget": 1201
     },
     {
       "name": "sankey",
@@ -2688,7 +2688,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1142
+      "tokenBudget": 1143
     },
     {
       "name": "sequence",
@@ -2707,7 +2707,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1110
+      "tokenBudget": 1111
     },
     {
       "name": "spaced-repetition",
@@ -2764,7 +2764,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1050
+      "tokenBudget": 1051
     },
     {
       "name": "tree-map",
@@ -2783,7 +2783,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1021
+      "tokenBudget": 1022
     },
     {
       "name": "venn",
@@ -3257,6 +3257,39 @@
       ],
       "internalDeps": [],
       "tokenBudget": 409
+    },
+    {
+      "name": "use-ai-chat",
+      "displayName": "useAIChat",
+      "description": "SDK-agnostic chat adapter hook. Thin wrapper over AI SDK v5's useChat that normalizes the return shape to Hex types: message role narrowed to user/assistant/system/tool, text parts concatenated into a content string, and a composer slice that spreads directly onto <Composer>. Manages input state locally (AI SDK v5 no longer owns it). Future LangChain / Mastra adapters return the same shape.",
+      "category": "hook",
+      "subcategory": "ai",
+      "tags": [
+        "hook",
+        "ai",
+        "chat",
+        "streaming",
+        "ai-sdk",
+        "useAIChat"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 789
+    },
+    {
+      "name": "use-streaming-message",
+      "displayName": "useStreamingMessage",
+      "description": "Per-message helper for chat UIs. Given a chat from useAIChat and a target message id, derives 'is this one still streaming?' plus abort/retry handles. Use to wire a LoadingIndicator into a single message bubble, or to expose a retry button on the last assistant turn. Pure selector — no DOM, no extra state.",
+      "category": "hook",
+      "subcategory": "ai",
+      "tags": [
+        "hook",
+        "ai",
+        "chat",
+        "streaming",
+        "useStreamingMessage"
+      ],
+      "internalDeps": [],
+      "tokenBudget": 633
     }
   ]
 }

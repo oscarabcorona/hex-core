@@ -84,7 +84,7 @@ export const chainOfThoughtSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["reasoning", "tool-call", "markdown", "task"],
 		accessibilityNotes:
 			"Wraps `<Reasoning>` (Radix Collapsible) — header is a real `<button>` with aria-expanded; content gets aria-hidden when closed. The step list renders as an `<ol>`; per-step term labels (Thought / Action / Observation) read as inline text rather than `<dt>`/`<dd>` because the visual structure is a vertical row, not a definition list. Final answer renders outside the collapsible so it stays visible regardless of trace state.",
-		tokenBudget: 1161,
+		tokenBudget: 1162,
 	},
 	tags: ["ai", "agent", "reasoning", "react", "chain-of-thought", "trace"],
 };

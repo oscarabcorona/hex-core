@@ -170,7 +170,7 @@
       "error-state"
     ],
     "accessibilityNotes": "role='status' + aria-live='polite' + sr-only label, so screen readers announce on first render. Caller doesn't need to wire any of this.",
-    "tokenBudget": 1158
+    "tokenBudget": 1159
   },
   "tags": [
     "loading",

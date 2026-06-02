@@ -161,7 +161,7 @@
       "diagram"
     ],
     "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing the leaf count and root label. For large or interactive treemaps, also expose a parallel <table> of label/value pairs for screen readers.",
-    "tokenBudget": 1021
+    "tokenBudget": 1022
   },
   "tags": [
     "artifact",

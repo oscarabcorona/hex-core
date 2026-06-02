@@ -84,7 +84,7 @@ export const commandSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["combobox", "dialog", "dropdown-menu"],
 		accessibilityNotes:
 			"cmdk wires role=listbox/option and aria-activedescendant. Use the `label` prop on Command for a screen-reader-only name when no visible heading exists. CommandSeparator renders with role='none' (still selectable via `[data-cmdk-separator]`) so listbox-children rules are satisfied.",
-		tokenBudget: 1048,
+		tokenBudget: 1049,
 	},
 	tags: ["command", "cmdk", "palette", "search", "launcher"],
 };

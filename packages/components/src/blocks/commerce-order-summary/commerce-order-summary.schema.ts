@@ -87,7 +87,7 @@ export const commerceOrderSummarySchema: ComponentSchemaDefinition = {
 		relatedComponents: ["commerce-cart", "commerce-order-history", "badge", "button"],
 		accessibilityNotes:
 			"The card title (Order {id}) renders as <h2>; per-item names render as <h3>. Totals use <dl>/<dt>/<dd> for label→value semantics. The emphasized Total row carries a top border so the visual emphasis matches the bold weight.",
-		tokenBudget: 1126,
+		tokenBudget: 1127,
 	},
 	tags: ["block", "commerce", "order-summary", "confirmation", "storefront"],
 };
