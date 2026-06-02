@@ -84,7 +84,7 @@ export const timelineSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["card", "stepper", "separator"],
 		accessibilityNotes:
 			"Renders <ol> with the provided aria-label. The status-colored indicator and connector line are aria-hidden — meaning is carried entirely by the title/timestamp/description text. No aria-current; events are historical, not navigational. For >50 events consider a windowing solution outside Timeline.",
-		tokenBudget: 1100,
+		tokenBudget: 990,
 	},
 	tags: ["timeline", "feed", "activity", "audit-log", "history"],
 };

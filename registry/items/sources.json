@@ -113,7 +113,7 @@
       "message"
     ],
     "accessibilityNotes": "Wraps Radix Collapsible — the trigger is a real <button> with aria-expanded; content gets aria-hidden when closed. Each Citation chip is keyboard-focusable when its url is set.",
-    "tokenBudget": 240
+    "tokenBudget": 763
   },
   "tags": [
     "ai",

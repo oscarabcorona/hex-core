@@ -73,7 +73,7 @@ export const appStatsSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["app-shell", "card", "app-data-table", "funnel"],
 		accessibilityNotes:
 			"Deltas don't rely on color alone: a directional caret plus the signed change text convey direction. Carets are aria-hidden. Values and labels are plain text, read in source order.",
-		tokenBudget: 650,
+		tokenBudget: 916,
 	},
 	tags: ["block", "app", "stats", "kpi", "dashboard", "metrics"],
 };

@@ -49,7 +49,7 @@ export const presenceSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "transition"],
 		accessibilityNotes:
 			"Exit animations honor `prefers-reduced-motion` and collapse to instant removal when reduce is active.",
-		tokenBudget: 250,
+		tokenBudget: 436,
 	},
 	tags: ["motion", "animation", "presence", "exit", "unmount"],
 };

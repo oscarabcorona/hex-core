@@ -69,7 +69,7 @@ export const motionTimelineSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["scene", "clip", "track", "motion"],
 		accessibilityNotes:
 			"Respects `prefers-reduced-motion`; with reduce active all clips collapse to their `to` state immediately.",
-		tokenBudget: 350,
+		tokenBudget: 661,
 	},
 	tags: ["motion", "timeline", "composer", "scene", "deterministic"],
 };

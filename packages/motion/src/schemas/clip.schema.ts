@@ -79,7 +79,7 @@ export const clipSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion-timeline", "scene", "track"],
 		accessibilityNotes:
 			"Inherits the Timeline's reduced-motion behavior.",
-		tokenBudget: 220,
+		tokenBudget: 624,
 	},
 	tags: ["motion", "timeline", "clip", "composer"],
 };

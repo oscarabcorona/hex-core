@@ -17,7 +17,9 @@
  *   6. emit_app_context output contains the canonical section headers
  *   7. emit_app_context globals.css reflects current `@hex-core/tokens` (no #18 drift)
  *   8. emit_figma_tokens output is markdown wrapping a Figma POST JSON body
- *   9. client.close() disposes the transport without throwing
+ *   9. get_component / get_component_schema / emit_app_context stay under
+ *      the documented token ceilings (regression gate for response bloat)
+ *  10. client.close() disposes the transport without throwing
  *
  * Run via `pnpm --filter \@hex-core/mcp test:contract` (expects `pnpm build`
  * to have produced dist/index.js).
@@ -27,6 +29,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { encode } from "gpt-tokenizer";
 import { TOOL, TOOL_NAMES } from "./tool-names.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -488,13 +491,76 @@ async function main(): Promise<void> {
 			fail("get_component(auth-sign-in-split): adapter source not bundled at components/_shared/auth-adapter.tsx — install would write a broken import.");
 		}
 		pass("get_component(auth-sign-in-split) round-trips with adapter prop + bundled adapter source");
+
+		// ─── 12. Token budget ceilings ───
+		// Ceilings = current max + ~25 % buffer, derived from `pnpm audit:tokens`
+		// (packages/mcp-server/TOKEN_AUDIT.md). A regression that pushes any wire
+		// shape above the ceiling fails here BEFORE it bloats every MCP session.
+		// Counted with the same tokenizer the audit uses (cl100k_base) so the
+		// numbers stay comparable across runs.
+		// REFRESH WHEN BUMPING: `pnpm audit:tokens` → read the "Aggregate" table
+		//   in TOKEN_AUDIT.md → set each ceiling to max × 1.25, rounded.
+		const tokensIn = (text: string): number => encode(text).length;
+		const CEILINGS = {
+			getComponent: 15_000, // current max 12,655 (block component, wire-pretty)
+			getComponentSchema: 2_500, // current max 2,265 (wire-pretty)
+			emitAppContextN20: 5_000, // current 3,775 at N=20
+		};
+		const budgetSamples = ["button", "auth-sign-in-split", "input"];
+		for (const slug of budgetSamples) {
+			const r = await client.callTool({
+				name: TOOL.GET_COMPONENT,
+				arguments: { name: slug },
+			});
+			const text = (r.content as Array<{ text?: string }>)[0]?.text ?? "";
+			const n = tokensIn(text);
+			if (n > CEILINGS.getComponent) {
+				fail(`get_component(${slug}) is ${n} tokens, ceiling ${CEILINGS.getComponent}`);
+			}
+			const s = await client.callTool({
+				name: TOOL.GET_COMPONENT_SCHEMA,
+				arguments: { name: slug },
+			});
+			const sText = (s.content as Array<{ text?: string }>)[0]?.text ?? "";
+			const sn = tokensIn(sText);
+			if (sn > CEILINGS.getComponentSchema) {
+				fail(`get_component_schema(${slug}) is ${sn} tokens, ceiling ${CEILINGS.getComponentSchema}`);
+			}
+		}
+		pass(`get_component / get_component_schema stay under ceilings for ${budgetSamples.length} samples`);
+
+		// Derive the N=20 sample from the live catalog (first 20 sorted slugs)
+		// so a rename / removal can't silently shrink N and pass on smaller
+		// payloads. Mirrors the audit script's same ordering.
+		const allItemsResult = await client.callTool({
+			name: TOOL.SEARCH_COMPONENTS,
+			arguments: {},
+		});
+		const allItemsText = (allItemsResult.content as Array<{ text?: string }>)[0]?.text ?? "";
+		const allSlugs = (JSON.parse(allItemsText) as Array<{ name: string }>)
+			.map((c) => c.name)
+			.sort();
+		const appCtxComponents = allSlugs.slice(0, 20);
+		if (appCtxComponents.length < 20) {
+			fail(`expected ≥20 components for emit_app_context gate, registry only has ${appCtxComponents.length}`);
+		}
+		const budgetCtxResult = await client.callTool({
+			name: TOOL.EMIT_APP_CONTEXT,
+			arguments: { theme: "default", components: appCtxComponents },
+		});
+		const budgetCtxText = (budgetCtxResult.content as Array<{ text?: string }>)[0]?.text ?? "";
+		const budgetCtxTokens = tokensIn(budgetCtxText);
+		if (budgetCtxTokens > CEILINGS.emitAppContextN20) {
+			fail(`emit_app_context(N=20) is ${budgetCtxTokens} tokens, ceiling ${CEILINGS.emitAppContextN20}`);
+		}
+		pass(`emit_app_context(N=20) stays under ${CEILINGS.emitAppContextN20} tokens (got ${budgetCtxTokens})`);
 	} finally {
-		// ─── 11. Clean disposal — close should not throw ───
+		// ─── 13. Clean disposal — close should not throw ───
 		await client.close();
 		pass("client.close() disposed transport cleanly");
 	}
 
-	console.log("\nMCP contract test: all 14 assertions passed.");
+	console.log("\nMCP contract test: all assertions passed.");
 }
 
 main().catch((err) => {

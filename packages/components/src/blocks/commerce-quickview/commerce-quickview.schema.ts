@@ -71,7 +71,7 @@ export const commerceQuickviewSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["commerce-product-detail", "commerce-product-grid", "dialog", "sheet", "button"],
 		accessibilityNotes:
 			"Renders an <h2> for the product name — inside a Dialog the dialog's own aria-labelledby should point at this <h2> (Radix Dialog handles this when you set DialogTitle, OR you label the dialog separately). Media image needs alt text.",
-		tokenBudget: 650,
+		tokenBudget: 1124,
 	},
 	tags: ["block", "commerce", "quickview", "modal", "storefront"],
 };

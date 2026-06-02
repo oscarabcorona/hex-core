@@ -83,7 +83,7 @@ export const inputOTPSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["input", "form"],
 		accessibilityNotes:
 			"input-otp manages a single hidden <input> so screen readers hear one field of N characters. Each slot is a visual representation. The active slot gets a focus ring via the ring token.",
-		tokenBudget: 700,
+		tokenBudget: 902,
 	},
 	tags: ["input-otp", "otp", "verification", "2fa", "code", "pin"],
 };

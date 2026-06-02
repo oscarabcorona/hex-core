@@ -121,7 +121,7 @@ export const sankeySchema: ComponentSchemaDefinition = {
 		relatedComponents: ["funnel", "pyramid", "flowchart", "canvas", "diagram"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing node and link counts. For agent outputs, also expose a parallel <table> of source / target / value triples so screen-reader users get the flow magnitudes.",
-		tokenBudget: 360,
+		tokenBudget: 1143,
 	},
 	tags: ["artifact", "diagram", "sankey", "flow", "weighted", "funnel"],
 };

@@ -51,7 +51,7 @@ export const blurInSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "fade-in", "scale-in"],
 		accessibilityNotes:
 			"Reduced-motion collapses the blur, ensuring text is immediately legible.",
-		tokenBudget: 200,
+		tokenBudget: 678,
 	},
 	tags: ["motion", "blur", "wrapper", "entry", "filter"],
 };

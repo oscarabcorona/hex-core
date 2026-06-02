@@ -78,7 +78,7 @@ export const sheetSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["dialog", "drawer", "popover"],
 		accessibilityNotes:
 			"Radix traps focus, handles Escape to close, and wires aria-labelledby/describedby to SheetTitle/Description. The Close button has sr-only text. Always include a SheetTitle.",
-		tokenBudget: 700,
+		tokenBudget: 861,
 	},
 	tags: ["sheet", "drawer", "side-panel", "off-canvas", "overlay"],
 };

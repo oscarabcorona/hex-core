@@ -226,7 +226,7 @@ export const buttonSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["toggle", "toggle-group", "dropdown-menu", "badge"],
 		accessibilityNotes:
 			"Automatically handles focus ring, disabled state, and aria attributes. Icon-only buttons MUST have aria-label. Loading state automatically sets disabled.",
-		tokenBudget: 500,
+		tokenBudget: 2265,
 	},
 	tags: ["button", "action", "cta", "form", "interactive", "click"],
 };

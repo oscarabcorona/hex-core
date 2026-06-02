@@ -72,7 +72,7 @@ export const commerceProductGridSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["commerce-product-detail", "commerce-reviews", "badge", "marketing-footer"],
 		accessibilityNotes:
 			"When href is set the whole card is a single anchor wrapping the image and text, so there's one focusable target per product with an accessible name from the product name. Product images require alt text.",
-		tokenBudget: 600,
+		tokenBudget: 880,
 	},
 	tags: ["block", "commerce", "product-grid", "catalog", "storefront", "store", "shop"],
 };

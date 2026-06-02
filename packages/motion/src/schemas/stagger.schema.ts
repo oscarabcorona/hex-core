@@ -42,7 +42,7 @@ export const staggerSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["fade-in", "slide-in", "scale-in", "motion"],
 		accessibilityNotes:
 			"Inherits children's reduced-motion behavior. Cascade collapses to instant when reduce is active.",
-		tokenBudget: 220,
+		tokenBudget: 556,
 	},
 	tags: ["motion", "stagger", "wrapper", "orchestration", "cascade"],
 };

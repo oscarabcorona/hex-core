@@ -67,7 +67,7 @@ export const alertSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["alert-dialog", "sonner"],
 		accessibilityNotes:
 			"Root renders role='alert' so screen readers announce it. For non-urgent info banners consider role='status' or aria-live='polite' via className overrides.",
-		tokenBudget: 350,
+		tokenBudget: 619,
 	},
 	tags: ["alert", "notification", "banner", "info", "warning", "error"],
 };

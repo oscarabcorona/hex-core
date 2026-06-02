@@ -122,7 +122,7 @@ import { Badge, Button } from "@hex-core/components";
 		relatedComponents: ["button", "badge", "marketing-cta", "marketing-feature-grid"],
 		accessibilityNotes:
 			"Renders a single <h1> for the page — don't place another <h1> elsewhere. Decorative media should carry an empty alt or aria-hidden. CTA focus rings come from the Button primitive.",
-		tokenBudget: 600,
+		tokenBudget: 1261,
 	},
 	tags: ["block", "marketing", "hero", "landing", "header", "cta"],
 };

@@ -82,7 +82,7 @@ export const taskSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["tool-call", "reasoning", "stepper", "message"],
 		accessibilityNotes:
 			"Wraps Radix Collapsible — trigger is a real <button> with aria-expanded; content gets aria-hidden when closed. Each step icon carries an aria-label so screen readers announce status (e.g. 'Done', 'Running', 'Error', 'Pending'). The 'running' spinner is gated on `motion-safe:` — users with `prefers-reduced-motion: reduce` see a static circle.",
-		tokenBudget: 280,
+		tokenBudget: 1115,
 	},
 	tags: ["ai", "agent", "task", "progress", "collapsible", "tool-use"],
 };

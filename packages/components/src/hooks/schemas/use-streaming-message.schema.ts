@@ -63,7 +63,7 @@ function Bubble({ chat, messageId }) {
 		relatedComponents: ["use-ai-chat", "message", "loading-indicator"],
 		accessibilityNotes:
 			"No DOM output — wire isStreaming into a <LoadingIndicator label='Generating response'/> so screen readers announce the state.",
-		tokenBudget: 550,
+		tokenBudget: 633,
 	},
 	tags: ["hook", "ai", "chat", "streaming", "useStreamingMessage"],
 };

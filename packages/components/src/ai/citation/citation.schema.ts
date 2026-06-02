@@ -80,7 +80,7 @@ export const citationSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["message", "cluster"],
 		accessibilityNotes:
 			"With `url`, renders a real anchor (`rel=\"noreferrer noopener\"`). Without `url`, renders a static span. Add `aria-label` on the wrapper if title alone lacks context.",
-		tokenBudget: 240,
+		tokenBudget: 682,
 	},
 	tags: ["ai", "rag", "citation", "source", "footnote", "chip"],
 };

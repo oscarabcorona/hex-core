@@ -44,7 +44,7 @@ export const tableSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["data-table", "pagination"],
 		accessibilityNotes:
 			"Semantic <table> / <thead> / <tbody> is used, so screen readers announce rows/columns. Include a TableCaption or aria-label. Mark column sort buttons with aria-sort.",
-		tokenBudget: 450,
+		tokenBudget: 582,
 	},
 	tags: ["table", "data", "rows", "tabular"],
 };

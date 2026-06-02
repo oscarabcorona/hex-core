@@ -101,7 +101,7 @@ export const dendrogramSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["mind-map", "tree-map", "org-chart", "sunburst", "diagram"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing the leaf count and root label. For agent outputs, expose a parallel <ul> grouping leaves by their parent so screen-reader users get the clustering structure.",
-		tokenBudget: 320,
+		tokenBudget: 1025,
 	},
 	tags: ["artifact", "diagram", "dendrogram", "hierarchy", "cluster", "taxonomy"],
 };

@@ -94,7 +94,7 @@ export const ganttSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["time-axis", "sequence", "timeline", "flowchart"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing task count and date range. Interactive task bars declare role=\"button\", tabIndex, and Enter/Space activation. The aria-label includes label, date range, and progress percent. For agent outputs, also expose a parallel ordered list of tasks with their dates.",
-		tokenBudget: 360,
+		tokenBudget: 1056,
 	},
 	tags: ["artifact", "diagram", "gantt", "time", "schedule", "tasks"],
 };

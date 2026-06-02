@@ -66,7 +66,7 @@ export const dropdownMenuSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["select", "context-menu", "popover"],
 		accessibilityNotes:
 			"Full keyboard navigation: arrow keys, Home, End, typeahead, Escape. Radix handles role='menu', role='menuitem', and aria-labelledby.",
-		tokenBudget: 700,
+		tokenBudget: 676,
 	},
 	tags: ["dropdown", "menu", "actions", "overflow", "contextual"],
 };

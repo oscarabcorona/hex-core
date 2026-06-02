@@ -105,7 +105,7 @@ export const toggleGroupSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["toggle", "radio-group", "tabs"],
 		accessibilityNotes:
 			"Radix implements the WAI-ARIA toolbar pattern with roving focus. Arrow keys move focus, Space/Enter toggles. Each icon-only item needs aria-label.",
-		tokenBudget: 500,
+		tokenBudget: 891,
 	},
 	tags: ["toggle-group", "toolbar", "formatting", "alignment", "multi-select"],
 };

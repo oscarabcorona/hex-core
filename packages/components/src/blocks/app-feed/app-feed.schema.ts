@@ -71,7 +71,7 @@ export const appFeedSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["app-stacked-list", "app-grid-list", "timeline", "empty"],
 		accessibilityNotes:
 			"Each group renders an <ol> for the chronological list. Leading icons are aria-hidden — the actor + message text carries the meaning. The vertical rail is purely decorative (border-l) and not announced.",
-		tokenBudget: 650,
+		tokenBudget: 881,
 	},
 	tags: ["block", "app", "feed", "activity", "timeline", "dashboard"],
 };

@@ -79,7 +79,7 @@ export const shimmerSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["loading", "loading-indicator", "skeleton", "message"],
 		accessibilityNotes:
 			"Renders with `role=\"status\"` and `aria-live=\"polite\"`, so screen readers announce the loading label without preempting other content. The pulse animation is gated on `motion-safe:` — users with `prefers-reduced-motion: reduce` see a static bar rather than the pulsing one.",
-		tokenBudget: 160,
+		tokenBudget: 841,
 	},
 	tags: ["ai", "loading", "streaming", "placeholder", "feedback"],
 };

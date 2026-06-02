@@ -44,7 +44,7 @@ export const menubarSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["navigation-menu", "dropdown-menu"],
 		accessibilityNotes:
 			"Full WAI-ARIA menubar pattern: arrow keys navigate menus, Enter/Space opens, Escape closes. Radix handles roles and state.",
-		tokenBudget: 700,
+		tokenBudget: 831,
 	},
 	tags: ["menubar", "menu", "desktop", "app-shell", "navigation"],
 };

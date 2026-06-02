@@ -42,7 +42,7 @@ export const variantsSchema: ComponentSchemaDefinition = {
 		],
 		relatedComponents: ["motion", "transition"],
 		accessibilityNotes: "No accessibility implications beyond the underlying Motion element.",
-		tokenBudget: 200,
+		tokenBudget: 409,
 	},
 	tags: ["motion", "variants", "state-machine", "animation"],
 };

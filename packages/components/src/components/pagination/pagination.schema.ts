@@ -45,7 +45,7 @@ export const paginationSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["table", "data-table"],
 		accessibilityNotes:
 			"Root is role='navigation' aria-label='pagination'. Active link gets aria-current='page'. Previous/Next have aria-label. Ellipsis is decorative (aria-hidden) with a sr-only 'More pages' label.",
-		tokenBudget: 500,
+		tokenBudget: 634,
 	},
 	tags: ["pagination", "pages", "navigation", "list"],
 };

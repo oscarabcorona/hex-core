@@ -94,7 +94,7 @@ export const motionSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["presence", "transition", "variants", "use-animate"],
 		accessibilityNotes:
 			"Honors `prefers-reduced-motion` automatically. Override with <MotionConfig reducedMotion=\"never\"> only for screenshot tests.",
-		tokenBudget: 350,
+		tokenBudget: 808,
 	},
 	tags: ["motion", "animation", "react", "waapi", "transition"],
 };

@@ -82,7 +82,7 @@
       "motion"
     ],
     "accessibilityNotes": "Inherits children's reduced-motion behavior. Cascade collapses to instant when reduce is active.",
-    "tokenBudget": 220
+    "tokenBudget": 556
   },
   "tags": [
     "motion",

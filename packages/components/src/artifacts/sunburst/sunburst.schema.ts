@@ -97,7 +97,7 @@ export const sunburstSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["tree-map", "mind-map", "org-chart", "dendrogram", "diagram"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing segment count and focused node. Drill-down is mouse-only by default; expose a parallel <table> or breadcrumb for keyboard / screen-reader users.",
-		tokenBudget: 360,
+		tokenBudget: 961,
 	},
 	tags: ["artifact", "diagram", "sunburst", "hierarchy", "radial", "value-scaled"],
 };

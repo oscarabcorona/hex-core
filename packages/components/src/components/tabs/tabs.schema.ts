@@ -35,7 +35,7 @@ export const tabsSchema: ComponentSchemaDefinition = {
 		commonMistakes: ["Missing defaultValue causing no tab selected initially", "TabsTrigger value not matching TabsContent value", "Using for page navigation instead of in-page content switching"],
 		relatedComponents: ["card", "separator"],
 		accessibilityNotes: "Full keyboard navigation built-in (arrow keys, Home, End). Radix handles aria-selected, role='tabpanel', etc.",
-		tokenBudget: 350,
+		tokenBudget: 529,
 	},
 	tags: ["tabs", "navigation", "panel", "tabbed", "sections"],
 };

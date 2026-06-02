@@ -151,7 +151,7 @@
       "card"
     ],
     "accessibilityNotes": "The drop area is a role='button' div with tabIndex=0 and the required aria-label; Enter and Space open the file dialog. The file input is visually-hidden but live in the DOM so keyboard focus + assistive-tech file pickers work. Drag-state is exposed via data-drag-over for CSS-only state styling. When disabled, the drop area is removed from the tab order and aria-disabled is set.",
-    "tokenBudget": 1500
+    "tokenBudget": 1466
   },
   "tags": [
     "dropzone",

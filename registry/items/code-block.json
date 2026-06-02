@@ -140,7 +140,7 @@
       "message"
     ],
     "accessibilityNotes": "Highlighted output is plain text inside a `<pre>` — screen readers read it normally. The copy button has its own `aria-label`. Add a meaningful `aria-label` on the wrapper if the label alone isn't descriptive.",
-    "tokenBudget": 320
+    "tokenBudget": 749
   },
   "tags": [
     "ai",

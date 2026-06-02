@@ -78,7 +78,7 @@ import { Button, RadioGroup } from "@hex-core/components";
 		relatedComponents: ["commerce-product-grid", "commerce-reviews", "commerce-cart", "button", "radio-group", "accordion"],
 		accessibilityNotes:
 			"The product name renders as the page <h1>. The block is layout; option controls and buttons you pass must carry their own labels. Gallery images need descriptive alt text.",
-		tokenBudget: 700,
+		tokenBudget: 1079,
 	},
 	tags: ["block", "commerce", "product-detail", "pdp", "storefront", "store", "shop"],
 };

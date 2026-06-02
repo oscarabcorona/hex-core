@@ -86,7 +86,7 @@ export const commerceProductFeaturesSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["commerce-product-detail", "commerce-reviews", "marketing-feature-grid"],
 		accessibilityNotes:
 			"Section title is <h2>; per-feature titles render as <h3>. The alternating order flip is purely visual — source order stays top-to-bottom, so screen readers reach features in declared order regardless of which side the image is on.",
-		tokenBudget: 700,
+		tokenBudget: 1084,
 	},
 	tags: ["block", "commerce", "product-features", "pdp", "storefront"],
 };

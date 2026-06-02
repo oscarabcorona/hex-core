@@ -144,7 +144,7 @@
       "composer"
     ],
     "accessibilityNotes": "xterm.js renders into a canvas + hidden screen-reader text layer; standard SR navigation works. The container exposes `data-hex-terminal` for downstream styling. For agent log displays, also consider an aria-live region above the terminal that announces summaries.",
-    "tokenBudget": 360
+    "tokenBudget": 1021
   },
   "tags": [
     "ai",

@@ -44,7 +44,7 @@ export const avatarSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["badge", "card"],
 		accessibilityNotes:
 			"AvatarImage requires alt text. AvatarFallback renders initials or an icon — ensure the visible text is meaningful.",
-		tokenBudget: 250,
+		tokenBudget: 433,
 	},
 	tags: ["avatar", "profile", "user", "image", "display"],
 };

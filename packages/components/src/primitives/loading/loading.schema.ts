@@ -113,7 +113,7 @@ export const loadingSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["skeleton", "progress", "empty", "error-state"],
 		accessibilityNotes:
 			"role='status' + aria-live='polite' + sr-only label, so screen readers announce on first render. Caller doesn't need to wire any of this.",
-		tokenBudget: 300,
+		tokenBudget: 1159,
 	},
 	tags: ["loading", "skeleton", "placeholder", "feedback"],
 };

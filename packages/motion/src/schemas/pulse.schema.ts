@@ -48,7 +48,7 @@ export const pulseSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "shake", "bounce"],
 		accessibilityNotes:
 			"Animation is suppressed under prefers-reduced-motion, so the visual hint goes away — pair with an aria-live or visible label for users who rely on it.",
-		tokenBudget: 220,
+		tokenBudget: 581,
 	},
 	tags: ["motion", "pulse", "wrapper", "loop", "attention"],
 };

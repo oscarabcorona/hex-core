@@ -97,7 +97,7 @@ export const inputSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["label", "textarea", "form"],
 		accessibilityNotes:
 			"Always pair with a Label using htmlFor/id. Consider aria-describedby for helper text or error messages.",
-		tokenBudget: 300,
+		tokenBudget: 741,
 	},
 	tags: ["input", "text", "form", "field", "text-field"],
 };

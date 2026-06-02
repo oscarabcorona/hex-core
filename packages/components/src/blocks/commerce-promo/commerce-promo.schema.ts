@@ -73,7 +73,7 @@ export const commercePromoSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["marketing-cta", "marketing-hero", "commerce-product-grid", "button"],
 		accessibilityNotes:
 			"Section title is <h2>. Media images need alt text describing the promo, even in overlay variant. Overlay copy uses primary-foreground; check contrast against your photo via a manual audit.",
-		tokenBudget: 700,
+		tokenBudget: 1081,
 	},
 	tags: ["block", "commerce", "promo", "campaign", "storefront"],
 };

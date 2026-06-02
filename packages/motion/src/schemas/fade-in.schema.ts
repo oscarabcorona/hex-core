@@ -49,7 +49,7 @@ export const fadeInSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "stagger", "reveal-on-scroll"],
 		accessibilityNotes:
 			"Honors prefers-reduced-motion via the engine; collapses to instant render when reduce is active.",
-		tokenBudget: 180,
+		tokenBudget: 571,
 	},
 	tags: ["motion", "fade", "wrapper", "entry", "opacity"],
 };

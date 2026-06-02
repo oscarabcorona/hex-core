@@ -101,7 +101,7 @@ export const composerSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["message-list", "suggestion", "loading-indicator"],
 		accessibilityNotes:
 			"Renders a real <form> + <textarea>, so Enter submission and screen-reader announcements work without extra ARIA. Pass `aria-label` on the wrapper if there's no visible label.",
-		tokenBudget: 280,
+		tokenBudget: 914,
 	},
 	tags: ["ai", "input", "chat", "form", "composer", "textarea"],
 };

@@ -51,7 +51,7 @@ export const pageTransitionSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "presence"],
 		accessibilityNotes:
 			"Reduced-motion mode collapses both enter and exit to instant, preserving content visibility for users who navigate rapidly.",
-		tokenBudget: 260,
+		tokenBudget: 711,
 	},
 	tags: ["motion", "page-transition", "wrapper", "router", "navigation"],
 };

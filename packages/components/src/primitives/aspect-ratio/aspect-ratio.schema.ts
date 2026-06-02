@@ -49,7 +49,7 @@ export const aspectRatioSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["card", "avatar", "skeleton"],
 		accessibilityNotes:
 			"AspectRatio is purely structural. Ensure inner <img> has alt text and inner <iframe> has a descriptive title.",
-		tokenBudget: 200,
+		tokenBudget: 452,
 	},
 	tags: ["aspect-ratio", "layout", "image", "video", "ratio"],
 };

@@ -62,7 +62,7 @@ import { Badge, Button } from "@hex-core/components";
 		relatedComponents: ["button", "badge", "card", "marketing-feature-grid", "marketing-cta"],
 		accessibilityNotes:
 			"Each tier name renders as an <h3> under the section <h2>. Feature check glyphs are aria-hidden; the feature text conveys meaning. Give generic CTAs an aria-label naming the plan.",
-		tokenBudget: 750,
+		tokenBudget: 971,
 	},
 	tags: ["block", "marketing", "pricing", "saas", "landing"],
 };

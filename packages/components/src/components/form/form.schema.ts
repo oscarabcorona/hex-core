@@ -52,7 +52,7 @@ export const formSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["input", "textarea", "select", "checkbox", "radio-group", "switch"],
 		accessibilityNotes:
 			"FormControl automatically wires id, aria-describedby, and aria-invalid. FormLabel uses htmlFor matching the control id. Errors are announced via FormMessage with matching aria-describedby.",
-		tokenBudget: 900,
+		tokenBudget: 676,
 	},
 	tags: ["form", "react-hook-form", "zod", "validation", "field"],
 };

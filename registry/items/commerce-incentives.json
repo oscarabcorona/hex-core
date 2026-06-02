@@ -142,7 +142,7 @@
       "marketing-footer"
     ],
     "accessibilityNotes": "Each cell title renders as <h3>. Decorative icons are presentational; if an icon conveys meaning (e.g. a shipping truck), the adjacent title text carries the meaning.",
-    "tokenBudget": 600
+    "tokenBudget": 909
   },
   "tags": [
     "block",
