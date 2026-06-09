@@ -199,6 +199,7 @@ function Gantt({
 							key={t.task.id}
 							data-hex-gantt-task
 							data-row={t.rowIndex}
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							role={interactive ? "button" : undefined}
 							tabIndex={interactive ? 0 : undefined}
 							aria-label={

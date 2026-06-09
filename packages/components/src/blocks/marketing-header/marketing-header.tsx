@@ -54,7 +54,7 @@ export function MarketingHeader({ logo, links = [], actions, className }: Market
 							<li key={index}>
 								<a
 									href={link.href}
-									className="text-sm font-medium text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground"
+									className="text-sm font-medium text-muted-foreground transition-all duration-[var(--duration-normal,200ms)] ease-out hover:text-foreground"
 								>
 									{link.label}
 								</a>
@@ -68,7 +68,7 @@ export function MarketingHeader({ logo, links = [], actions, className }: Market
 				{(links.length > 0 || actions) ? (
 					<button
 						type="button"
-						className="inline-flex items-center justify-center rounded-md p-2 text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:hidden"
+						className="inline-flex items-center justify-center rounded-md p-2 text-foreground transition-all duration-[var(--duration-normal,200ms)] ease-out hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:hidden"
 						aria-expanded={open}
 						aria-controls="marketing-header-mobile"
 						aria-label={open ? "Close menu" : "Open menu"}
@@ -86,7 +86,7 @@ export function MarketingHeader({ logo, links = [], actions, className }: Market
 							<a
 								key={index}
 								href={link.href}
-								className="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground"
+								className="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-all duration-[var(--duration-normal,200ms)] ease-out hover:bg-muted hover:text-foreground"
 							>
 								{link.label}
 							</a>

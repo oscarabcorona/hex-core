@@ -122,7 +122,7 @@ function ImageOcclusion({
 							}
 							onClick={() => toggle(r.id)}
 							className={cn(
-								"pointer-events-auto absolute rounded-sm border-2 border-primary/60 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+								"pointer-events-auto absolute rounded-sm border-2 border-primary/60 transition-opacity active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 								isRevealed
 									? "bg-transparent opacity-30 hover:opacity-60"
 									: "bg-primary opacity-95 hover:bg-primary/90",

@@ -6,10 +6,11 @@ const loadingIndicatorVariants = cva("inline-flex items-center gap-2 text-muted-
 	variants: {
 		size: {
 			sm: "text-xs",
-			md: "text-sm",
+			default: "text-sm",
+			lg: "text-base",
 		},
 	},
-	defaultVariants: { size: "md" },
+	defaultVariants: { size: "default" },
 });
 
 /**

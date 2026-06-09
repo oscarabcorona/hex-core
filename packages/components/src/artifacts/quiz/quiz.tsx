@@ -134,7 +134,7 @@ function Quiz({
 								data-state={state}
 								data-picked={isPicked}
 								className={cn(
-									"flex cursor-pointer items-start gap-2 rounded-md border bg-background p-2 transition-colors",
+									"flex cursor-pointer items-start gap-2 rounded-md border bg-background p-2 transition-all duration-[var(--duration-normal,200ms)] ease-out active:scale-[0.98]",
 									"hover:bg-muted/50",
 									state === "correct" && "border-primary bg-primary/10",
 									state === "incorrect" && "border-destructive bg-destructive/10",
@@ -169,7 +169,7 @@ function Quiz({
 					disabled={!canSubmit}
 					onClick={handleSubmit}
 					className={cn(
-						"inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-opacity",
+						"inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-all duration-[var(--duration-normal,200ms)] ease-out active:scale-[0.98]",
 						"hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50",
 						"focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 					)}

@@ -38,10 +38,11 @@ const indicator = cva(
 			},
 			size: {
 				sm: "h-5 w-5 text-[10px]",
-				md: "h-7 w-7 text-xs",
+				default: "h-7 w-7 text-xs",
+				lg: "h-9 w-9 text-sm",
 			},
 		},
-		defaultVariants: { status: "default", size: "md" },
+		defaultVariants: { status: "default", size: "default" },
 	},
 );
 
@@ -49,8 +50,8 @@ interface TimelineProps
 	extends Omit<React.HTMLAttributes<HTMLOListElement>, "aria-label"> {
 	/** Ordered list of chronological events. */
 	events: TimelineEvent[];
-	/** Indicator size — `"md"` by default. */
-	size?: "sm" | "md";
+	/** Indicator size — `"default"` by default. */
+	size?: "sm" | "default" | "lg";
 	/** Required accessible name for the ordered list. */
 	"aria-label": string;
 }
@@ -72,7 +73,7 @@ function DefaultDot() {
  */
 function Timeline({
 	events,
-	size = "md",
+	size = "default",
 	"aria-label": ariaLabel,
 	className,
 	...rest

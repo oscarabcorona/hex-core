@@ -114,7 +114,7 @@ function Cloze({ parts, revealMode = "click", onReveal, className, ...rest }: Cl
 							}
 							onClick={() => toggleBlank(f.id)}
 							className={cn(
-								"mx-0.5 inline-block rounded px-1.5 py-0 align-baseline transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+								"mx-0.5 inline-block rounded px-1.5 py-0 align-baseline transition-all duration-[var(--duration-normal,200ms)] ease-out active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 								isRevealed
 									? "bg-primary/10 text-foreground underline decoration-primary decoration-dotted underline-offset-4"
 									: "select-none bg-muted text-transparent",
@@ -134,7 +134,7 @@ function Cloze({ parts, revealMode = "click", onReveal, className, ...rest }: Cl
 						data-hex-cloze-toggle-all
 						aria-label={allRevealed ? "Hide all blanks" : "Reveal all blanks"}
 						onClick={toggleAll}
-						className="rounded-md border bg-background px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						className="rounded-md border bg-background px-3 py-1 text-xs font-medium text-foreground transition-all duration-[var(--duration-normal,200ms)] ease-out active:scale-[0.98] hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 					>
 						{allRevealed ? "Hide all" : "Reveal all"}
 					</button>

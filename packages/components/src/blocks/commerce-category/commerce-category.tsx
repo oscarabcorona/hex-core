@@ -73,7 +73,11 @@ export function CommerceCategory({
 				>
 					{categories.map((category, index) =>
 						category.href ? (
-							<a key={index} href={category.href} className="group flex flex-col gap-3">
+							<a
+								key={index}
+								href={category.href}
+								className="group flex flex-col gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+							>
 								<CategoryCardBody category={category} />
 							</a>
 						) : (

@@ -88,7 +88,7 @@ function Flashcard({
 			onClick={toggle}
 			onKeyDown={handleKey}
 			className={cn(
-				"relative inline-block cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+				"relative inline-block cursor-pointer select-none transition-all duration-[var(--duration-normal,200ms)] ease-out active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 				className,
 			)}
 			style={{

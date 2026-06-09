@@ -87,7 +87,7 @@ export function AppGridList({
 						<a
 							key={index}
 							href={item.href}
-							className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors duration-200 ease-out hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+							className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm transition-all duration-[var(--duration-normal,200ms)] ease-out hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 						>
 							<CardBody item={item} />
 						</a>

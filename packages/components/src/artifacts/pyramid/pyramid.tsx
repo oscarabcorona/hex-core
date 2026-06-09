@@ -114,6 +114,7 @@ function Pyramid({
 							key={t.tier.id}
 							data-hex-pyramid-tier
 							data-depth={t.depth}
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							role={interactive ? "button" : undefined}
 							tabIndex={interactive ? 0 : undefined}
 							aria-label={interactive ? `${t.tier.label}${valueText}` : undefined}

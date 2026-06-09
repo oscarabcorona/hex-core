@@ -95,7 +95,7 @@ export function AppStackedList({
 						<li key={index}>
 							<a
 								href={item.href}
-								className="flex items-center gap-4 px-4 py-3 text-card-foreground transition-colors duration-200 ease-out hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+								className="flex items-center gap-4 px-4 py-3 text-card-foreground transition-all duration-[var(--duration-normal,200ms)] ease-out hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
 							>
 								<RowBody item={item} />
 							</a>

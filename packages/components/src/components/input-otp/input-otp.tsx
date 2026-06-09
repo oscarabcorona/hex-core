@@ -16,7 +16,10 @@ const InputOTP = React.forwardRef<React.ComponentRef<typeof OTPInput>, InputOTPP
 			"flex items-center gap-[var(--gap-sm,0.5rem)] has-[:disabled]:opacity-50",
 			containerClassName,
 		)}
-		className={cn("disabled:cursor-not-allowed", className)}
+		className={cn(
+			"disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+			className,
+		)}
 		{...props}
 	/>
 ));

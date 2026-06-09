@@ -19,9 +19,9 @@ export const loadingIndicatorSchema: ComponentSchemaDefinition = {
 			name: "size",
 			type: "enum",
 			required: false,
-			default: "md",
+			default: "default",
 			description: "Text/icon scale.",
-			enumValues: ["sm", "md"],
+			enumValues: ["sm", "default", "lg"],
 		},
 		{
 			name: "label",

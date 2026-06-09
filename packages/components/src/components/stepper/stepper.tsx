@@ -54,12 +54,13 @@ const stepItem = cva("flex gap-[var(--space-3,0.75rem)]", {
 });
 
 const stepIndicator = cva(
-	"inline-flex shrink-0 items-center justify-center rounded-full border-2 font-medium transition-colors duration-[var(--duration-normal,200ms)] ease-out",
+	"inline-flex shrink-0 items-center justify-center rounded-full border-2 font-medium transition-all duration-[var(--duration-normal,200ms)] ease-out",
 	{
 		variants: {
 			size: {
 				sm: "h-7 w-7 text-xs",
-				md: "h-[var(--control-height-sm,2.25rem)] w-[var(--control-height-sm,2.25rem)] text-sm",
+				default: "h-[var(--control-height-sm,2.25rem)] w-[var(--control-height-sm,2.25rem)] text-sm",
+				lg: "h-[var(--control-height-md,2.75rem)] w-[var(--control-height-md,2.75rem)] text-base",
 			},
 			status: {
 				complete: "bg-primary border-primary text-primary-foreground",
@@ -69,11 +70,11 @@ const stepIndicator = cva(
 					"bg-destructive border-destructive text-destructive-foreground",
 			},
 		},
-		defaultVariants: { size: "md", status: "upcoming" },
+		defaultVariants: { size: "default", status: "upcoming" },
 	},
 );
 
-const stepConnector = cva("bg-input transition-colors", {
+const stepConnector = cva("bg-input transition-all duration-[var(--duration-normal,200ms)] ease-out", {
 	variants: {
 		orientation: {
 			horizontal: "h-px flex-1 min-w-[var(--space-6,1.5rem)] mx-[var(--space-2,0.5rem)]",
@@ -99,7 +100,7 @@ interface StepperProps
 	/** Layout direction. */
 	orientation?: "horizontal" | "vertical";
 	/** Indicator size. */
-	size?: "sm" | "md";
+	size?: "sm" | "default" | "lg";
 	/** When provided, each step is rendered as a clickable button. */
 	onStepClick?: (index: number) => void;
 	/** Required accessible name for the ordered list. */
@@ -155,7 +156,7 @@ function StepError() {
 interface StepIndicatorProps {
 	index: number;
 	status: StepStatus;
-	size: "sm" | "md";
+	size: "sm" | "default" | "lg";
 }
 
 /** Circular indicator that flips between number, check, and cross by `status`. */
@@ -188,7 +189,7 @@ function Stepper({
 	steps,
 	current,
 	orientation = "horizontal",
-	size = "md",
+	size = "default",
 	onStepClick,
 	"aria-label": ariaLabel,
 	className,
@@ -266,7 +267,7 @@ function Stepper({
 								disabled={step.disabled}
 								onClick={() => onStepClick?.(index)}
 								className={cn(
-									"flex items-center gap-[var(--space-3,0.75rem)] text-left rounded-md transition-colors duration-[var(--duration-normal,200ms)] ease-out",
+									"flex items-center gap-[var(--space-3,0.75rem)] text-left rounded-md transition-all duration-[var(--duration-normal,200ms)] ease-out",
 									"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 									"disabled:opacity-50 disabled:pointer-events-none",
 								)}
