@@ -121,7 +121,7 @@ export const speechRecognitionSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["composer"],
 		accessibilityNotes:
 			"Renders a real <button> with aria-pressed reflecting listening state and aria-label that updates between start/stop/not-supported. The pulsing border (when listening) is decorative — screen readers get the state via aria-pressed.",
-		tokenBudget: 320,
+		tokenBudget: 1311,
 	},
 	tags: ["ai", "voice", "speech", "dictation", "transcription", "microphone"],
 };

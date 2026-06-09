@@ -83,7 +83,7 @@ function Chatbot() {
 		relatedComponents: ["composer", "message", "message-list", "use-streaming-message"],
 		accessibilityNotes:
 			"No DOM output — accessibility lives in the components this hook drives. Composer manages aria-label on the textarea; MessageList renders a live region.",
-		tokenBudget: 850,
+		tokenBudget: 789,
 	},
 	tags: ["hook", "ai", "chat", "streaming", "ai-sdk", "useAIChat"],
 };

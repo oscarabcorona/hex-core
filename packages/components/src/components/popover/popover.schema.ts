@@ -65,7 +65,7 @@ export const popoverSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["tooltip", "hover-card", "dialog", "dropdown-menu"],
 		accessibilityNotes:
 			"Radix manages focus, aria-expanded on the trigger, and closes on Escape. Content is portalled to body so stacking contexts don't clip it.",
-		tokenBudget: 400,
+		tokenBudget: 625,
 	},
 	tags: ["popover", "overlay", "floating", "inline", "anchored"],
 };

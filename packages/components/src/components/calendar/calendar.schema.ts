@@ -121,7 +121,7 @@ export const calendarSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["date-picker", "popover", "input"],
 		accessibilityNotes:
 			"react-day-picker wires aria-label, aria-selected, and keyboard navigation (arrows, Home/End, PageUp/Down). Focus rings on day buttons use the ring token.",
-		tokenBudget: 800,
+		tokenBudget: 1116,
 	},
 	tags: ["calendar", "date", "date-picker", "input"],
 };

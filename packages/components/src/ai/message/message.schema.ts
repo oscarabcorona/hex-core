@@ -82,7 +82,7 @@ export const messageSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["message-list", "markdown", "code-block", "tool-call", "message-actions"],
 		accessibilityNotes:
 			"Renders as a div with `data-role`. For screen-reader chat semantics, wrap MessageList in `role=\"log\"` and consider `aria-live=\"polite\"` on the streaming container.",
-		tokenBudget: 220,
+		tokenBudget: 899,
 	},
 	tags: ["ai", "chat", "message", "turn", "conversation"],
 };

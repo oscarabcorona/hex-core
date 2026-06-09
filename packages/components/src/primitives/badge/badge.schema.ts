@@ -46,7 +46,7 @@ export const badgeSchema: ComponentSchemaDefinition = {
 		commonMistakes: ["Using destructive variant for non-error states", "Badge text too long"],
 		relatedComponents: ["button", "card"],
 		accessibilityNotes: "Purely decorative by default. Add role='status' for dynamic status badges.",
-		tokenBudget: 200,
+		tokenBudget: 538,
 	},
 	tags: ["badge", "tag", "status", "label", "indicator"],
 };

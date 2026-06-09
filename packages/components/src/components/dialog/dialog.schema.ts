@@ -100,7 +100,7 @@ export const dialogSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["alert-dialog", "popover", "sheet", "drawer"],
 		accessibilityNotes:
 			"Radix traps focus, handles Escape to close, and wires aria-labelledby/describedby to DialogTitle/DialogDescription. Always include a DialogTitle. DialogContent is constrained to `max-h-[calc(100vh-2rem)]` and scrolls internally so long content stays inside the focus trap.",
-		tokenBudget: 600,
+		tokenBudget: 1220,
 	},
 	tags: ["dialog", "modal", "overlay", "popup", "form"],
 };

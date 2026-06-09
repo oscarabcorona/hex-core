@@ -37,7 +37,7 @@ export const accordionSchema: ComponentSchemaDefinition = {
 		commonMistakes: ["Forgetting type prop (it's required)", "Not setting collapsible=true for single type when all items should be closeable", "Missing value on AccordionItem"],
 		relatedComponents: ["tabs", "card"],
 		accessibilityNotes: "Full keyboard navigation (arrow keys, Home, End, Enter/Space). Radix handles aria-expanded, aria-controls, role='region'.",
-		tokenBudget: 400,
+		tokenBudget: 725,
 	},
 	tags: ["accordion", "collapsible", "faq", "disclosure", "expandable"],
 };

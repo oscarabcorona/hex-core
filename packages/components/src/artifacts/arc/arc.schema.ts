@@ -97,7 +97,7 @@ export const arcSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["chord", "matrix", "venn", "sankey"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing node and edge counts. Interactive nodes/edges declare role=\"button\", tabIndex, and Enter/Space activation. For agent outputs, also expose a parallel ordered list of nodes plus an adjacency table.",
-		tokenBudget: 320,
+		tokenBudget: 897,
 	},
 	tags: ["artifact", "diagram", "arc", "relational", "sequence", "ordered"],
 };

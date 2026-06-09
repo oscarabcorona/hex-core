@@ -76,7 +76,7 @@ export const clozeSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["flashcard", "quiz", "image-occlusion", "deck", "spaced-repetition"],
 		accessibilityNotes:
 			"Each blank renders as a real <button> with type=\"button\", aria-pressed reflecting reveal state, and an aria-label that names the blank's index and total. The hidden text always lives in the DOM (transparent when unrevealed) so screen readers announce the answer once aria-pressed flips. Enter and Space activate via the native button behavior.",
-		tokenBudget: 280,
+		tokenBudget: 982,
 	},
 	tags: ["artifact", "study", "cloze", "fill-in-the-blank", "active-recall"],
 };

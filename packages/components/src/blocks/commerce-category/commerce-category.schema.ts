@@ -72,7 +72,7 @@ export const commerceCategorySchema: ComponentSchemaDefinition = {
 		relatedComponents: ["commerce-product-grid", "commerce-category-filters", "commerce-store-nav"],
 		accessibilityNotes:
 			"When href is set the card is a single anchor with an accessible name from the category name. Images need alt text describing the category.",
-		tokenBudget: 600,
+		tokenBudget: 843,
 	},
 	tags: ["block", "commerce", "category", "storefront", "navigation"],
 };

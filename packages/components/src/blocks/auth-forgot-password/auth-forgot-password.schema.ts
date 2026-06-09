@@ -95,7 +95,7 @@ export const authForgotPasswordSchema: ComponentSchemaDefinition = {
 		],
 		accessibilityNotes:
 			"Email input has explicit Label htmlFor pairing, autoComplete='email', and required. Submit button uses the canonical loading prop (sets aria-busy + disabled). The post-submit confirmation state uses the Empty primitive's region landmark with aria-labelledby pointing at the title. Errors render in an Alert with role='alert'.",
-		tokenBudget: 1100,
+		tokenBudget: 706,
 	},
 	tags: ["block", "auth", "forgot-password", "password-reset", "form", "transactional"],
 };

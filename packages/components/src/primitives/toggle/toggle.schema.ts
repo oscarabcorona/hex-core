@@ -106,7 +106,7 @@ export const toggleSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["toggle-group", "switch", "checkbox", "button"],
 		accessibilityNotes:
 			"Radix sets aria-pressed correctly. Icon-only toggles MUST have aria-label. Space/Enter toggles state.",
-		tokenBudget: 400,
+		tokenBudget: 804,
 	},
 	tags: ["toggle", "button", "pressed", "two-state", "toolbar"],
 };

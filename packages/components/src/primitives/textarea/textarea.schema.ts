@@ -33,7 +33,7 @@ export const textareaSchema: ComponentSchemaDefinition = {
 		commonMistakes: ["Missing associated Label", "Not setting a reasonable min-height or rows"],
 		relatedComponents: ["input", "label", "form"],
 		accessibilityNotes: "Always pair with a Label using htmlFor/id. Consider aria-describedby for character limits.",
-		tokenBudget: 250,
+		tokenBudget: 563,
 	},
 	tags: ["textarea", "text", "form", "multiline", "input"],
 };

@@ -51,7 +51,7 @@ export const scaleInSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "bounce", "fade-in"],
 		accessibilityNotes:
 			"Reduced-motion collapses to instant final-state.",
-		tokenBudget: 200,
+		tokenBudget: 661,
 	},
 	tags: ["motion", "scale", "wrapper", "entry", "modal"],
 };

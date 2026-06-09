@@ -81,7 +81,7 @@ export const tooltipSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["hover-card", "popover"],
 		accessibilityNotes:
 			"Triggers on focus and hover. Radix sets role='tooltip' and aria-describedby. Still pair icon buttons with aria-label since tooltips don't announce on touch.",
-		tokenBudget: 300,
+		tokenBudget: 676,
 	},
 	tags: ["tooltip", "hint", "label", "hover", "overlay"],
 };

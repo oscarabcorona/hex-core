@@ -90,7 +90,7 @@ export const sidebarSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["sheet", "navigation-menu", "separator"],
 		accessibilityNotes:
 			"Sidebar is an <aside> landmark (not a modal — no focus trap). When collapsed, the aside sets inert + aria-hidden so its children are removed from the tab order and the accessibility tree. SidebarTrigger exposes aria-expanded and a rotating aria-label (suppressed when asChild so the consumer's visible label/aria-label wins). SidebarItem uses aria-current='page' when active. Focus rings use the ring token.",
-		tokenBudget: 900,
+		tokenBudget: 960,
 	},
 	tags: ["sidebar", "navigation", "app-shell", "layout"],
 };

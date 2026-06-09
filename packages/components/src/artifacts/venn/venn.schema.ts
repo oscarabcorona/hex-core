@@ -71,7 +71,7 @@ export const vennSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["chord", "matrix", "arc", "tree-map"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> listing the participating set labels. Interactive sets carry role=\"button\", tabIndex, and Enter/Space activation. For agent outputs, also expose a parallel list of sets so screen-reader users get the labels without relying on the visual.",
-		tokenBudget: 280,
+		tokenBudget: 802,
 	},
 	tags: ["artifact", "diagram", "venn", "set-overlap", "relational"],
 };

@@ -56,7 +56,7 @@ export const messageActionsSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["message", "button"],
 		accessibilityNotes:
 			"Pure layout container. Each child button must carry its own `aria-label` since icon-only buttons have no accessible text.",
-		tokenBudget: 180,
+		tokenBudget: 493,
 	},
 	tags: ["ai", "chat", "actions", "row", "container"],
 };

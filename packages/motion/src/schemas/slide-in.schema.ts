@@ -71,7 +71,7 @@ export const slideInSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "stagger", "fade-in"],
 		accessibilityNotes:
 			"Reduced-motion collapses the slide to instant final-state, preserving content visibility for vestibular-sensitive users.",
-		tokenBudget: 220,
+		tokenBudget: 866,
 	},
 	tags: ["motion", "slide", "wrapper", "entry", "translate"],
 };

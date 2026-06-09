@@ -72,7 +72,7 @@ export const resizableSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["separator", "collapsible"],
 		accessibilityNotes:
 			"ResizableHandle is focusable and resizable via keyboard arrows. role='separator' is set, with aria-valuenow/min/max wired by react-resizable-panels. The grab-grip is aria-hidden (decorative).",
-		tokenBudget: 700,
+		tokenBudget: 756,
 	},
 	tags: ["resizable", "split-pane", "layout", "panels"],
 };

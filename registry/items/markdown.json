@@ -160,7 +160,7 @@
       "reasoning"
     ],
     "accessibilityNotes": "Renders real semantic HTML (headings, lists, links, blockquotes). Verify Tailwind Typography (`prose`) is enabled in your CSS. Slot wiring preserves a11y semantics: Reasoning ships its own collapsible disclosure, Citation ships an inline link with a labeled index, ToolCall ships a labeled status region.",
-    "tokenBudget": 320
+    "tokenBudget": 1064
   },
   "tags": [
     "ai",

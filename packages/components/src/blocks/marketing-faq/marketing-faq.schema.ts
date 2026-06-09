@@ -82,7 +82,7 @@ export const marketingFaqSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["accordion", "marketing-cta", "marketing-content"],
 		accessibilityNotes:
 			"Triggers are buttons with aria-expanded and aria-controls (inherited from Accordion / Radix). Keyboard: Tab to focus, Enter/Space to toggle, Up/Down to navigate items. Section title is <h2>, questions render as the button labels.",
-		tokenBudget: 600,
+		tokenBudget: 980,
 	},
 	tags: ["block", "marketing", "faq", "accordion", "landing"],
 };

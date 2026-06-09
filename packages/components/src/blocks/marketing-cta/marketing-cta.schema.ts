@@ -72,7 +72,7 @@ import { Button } from "@hex-core/components";
 		relatedComponents: ["button", "marketing-hero", "marketing-footer"],
 		accessibilityNotes:
 			"Renders an <h2>, keeping it below the hero's <h1>. On variant='panel', button contrast must clear WCAG against the primary fill — prefer secondary/outline buttons.",
-		tokenBudget: 550,
+		tokenBudget: 833,
 	},
 	tags: ["block", "marketing", "cta", "landing", "conversion"],
 };

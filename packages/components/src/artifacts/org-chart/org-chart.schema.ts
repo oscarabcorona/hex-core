@@ -112,7 +112,7 @@ export const orgChartSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["mind-map", "tree-map", "sunburst", "dendrogram", "canvas", "diagram"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing the visible node count and root label. Collapsed-count badges are visual; for screen readers, also expose a parallel <ul> listing label/subtitle/depth.",
-		tokenBudget: 360,
+		tokenBudget: 1076,
 	},
 	tags: ["artifact", "diagram", "org-chart", "hierarchy", "tree", "people"],
 };

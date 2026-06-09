@@ -42,7 +42,7 @@ export const bounceSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "scale-in", "stagger"],
 		accessibilityNotes:
 			"Reduced-motion mode collapses to instant final-state.",
-		tokenBudget: 220,
+		tokenBudget: 531,
 	},
 	tags: ["motion", "bounce", "wrapper", "entry", "overshoot"],
 };

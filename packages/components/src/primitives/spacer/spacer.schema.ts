@@ -82,7 +82,7 @@ export const spacerSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["stack", "cluster", "separator"],
 		accessibilityNotes:
 			"Spacer is `aria-hidden=\"true\"` — screen readers skip it. Don't use a Spacer where a `Separator` would convey meaning (a thematic break should be `Separator`, not `Spacer`).",
-		tokenBudget: 200,
+		tokenBudget: 985,
 	},
 	tags: ["spacer", "layout", "whitespace", "spacing", "primitive"],
 };

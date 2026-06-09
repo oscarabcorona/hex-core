@@ -130,7 +130,7 @@ export const multiComboboxSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["combobox", "command", "popover", "select"],
 		accessibilityNotes:
 			"Trigger has role='combobox' + aria-expanded + aria-haspopup='listbox'. aria-controls points at the inner CommandList only when open. Each option carries aria-selected; capped/disabled options carry aria-disabled. A visually-hidden aria-live='polite' region inside the trigger announces selection-count changes.",
-		tokenBudget: 1100,
+		tokenBudget: 1311,
 	},
 	tags: ["combobox", "multi-select", "select", "search", "cmdk", "input"],
 };

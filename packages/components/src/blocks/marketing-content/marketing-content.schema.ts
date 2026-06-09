@@ -75,7 +75,7 @@ export const marketingContentSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["marketing-feature-grid", "marketing-faq", "commerce-product-grid"],
 		accessibilityNotes:
 			"When href is set, the whole card is a single anchor with an accessible name from the title (and excerpt becomes adjacent text). When unset, the card renders as <article>. Images need alt text describing the preview.",
-		tokenBudget: 650,
+		tokenBudget: 998,
 	},
 	tags: ["block", "marketing", "content", "blog", "landing"],
 };

@@ -70,7 +70,7 @@ export const appSidebarNavSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["app-shell", "sidebar", "navigation-menu", "avatar"],
 		accessibilityNotes:
 			"Links are real anchors; the active link carries aria-current='page'. Icons are aria-hidden since the adjacent label conveys meaning. The nav region scrolls independently so the brand and footer stay visible.",
-		tokenBudget: 600,
+		tokenBudget: 816,
 	},
 	tags: ["block", "app", "navigation", "sidebar", "dashboard"],
 };

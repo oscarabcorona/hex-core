@@ -41,7 +41,7 @@ export const parallaxSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "use-scroll", "reveal-on-scroll"],
 		accessibilityNotes:
 			"No reduced-motion guard yet (the hook reads scroll regardless). Consider gating the offset behind useReducedMotion until a v1.1 polish lands.",
-		tokenBudget: 220,
+		tokenBudget: 526,
 	},
 	tags: ["motion", "parallax", "wrapper", "scroll", "translate"],
 };

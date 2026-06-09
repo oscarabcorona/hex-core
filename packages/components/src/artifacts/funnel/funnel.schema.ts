@@ -91,7 +91,7 @@ export const funnelSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["sankey", "pyramid", "flowchart", "diagram"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing stage count and peak value. For agent outputs, also expose a parallel <table> of label/value/conversion-rate triples so screen-reader users get the magnitudes.",
-		tokenBudget: 280,
+		tokenBudget: 887,
 	},
 	tags: ["artifact", "diagram", "funnel", "conversion", "flow"],
 };

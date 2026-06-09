@@ -104,7 +104,7 @@ export const authVerifyEmailSchema: ComponentSchemaDefinition = {
 		],
 		accessibilityNotes:
 			"The Empty primitive provides a region landmark with aria-labelledby pointing at the title — screen readers announce 'Check your inbox' as the section heading. Resend button uses the canonical loading prop (sets aria-busy + disabled). The cooldown countdown is reflected in the visible button label, so SR users hear 'Resend available in 28s' as the timer ticks.",
-		tokenBudget: 1100,
+		tokenBudget: 938,
 	},
 	tags: ["block", "auth", "verify-email", "transactional", "empty-state"],
 };

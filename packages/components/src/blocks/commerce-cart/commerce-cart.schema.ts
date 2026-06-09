@@ -76,7 +76,7 @@ export const commerceCartSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["commerce-checkout", "commerce-product-detail", "button", "separator"],
 		accessibilityNotes:
 			"Each line item name renders as an <h3>. The summary card is sticky on desktop so totals stay visible. Per-item controls you pass must carry accessible names (e.g. 'Remove Canvas Tote').",
-		tokenBudget: 700,
+		tokenBudget: 929,
 	},
 	tags: ["block", "commerce", "cart", "checkout", "storefront", "store", "shop"],
 };

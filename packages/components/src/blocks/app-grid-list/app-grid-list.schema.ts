@@ -81,7 +81,7 @@ export const appGridListSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["app-stacked-list", "app-data-table", "card", "empty"],
 		accessibilityNotes:
 			"When href is set the card is a single anchor with an accessible name from the title. Focus ring is visible (not inset). Unlinked cards render as <article>.",
-		tokenBudget: 600,
+		tokenBudget: 982,
 	},
 	tags: ["block", "app", "list", "grid-list", "dashboard"],
 };

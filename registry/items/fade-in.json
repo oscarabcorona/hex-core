@@ -96,7 +96,7 @@
       "reveal-on-scroll"
     ],
     "accessibilityNotes": "Honors prefers-reduced-motion via the engine; collapses to instant render when reduce is active.",
-    "tokenBudget": 180
+    "tokenBudget": 571
   },
   "tags": [
     "motion",

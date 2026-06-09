@@ -163,7 +163,7 @@
       "button"
     ],
     "accessibilityNotes": "Section title is <h2>. Media images need alt text describing the promo, even in overlay variant. Overlay copy uses primary-foreground; check contrast against your photo via a manual audit.",
-    "tokenBudget": 700
+    "tokenBudget": 1081
   },
   "tags": [
     "block",

@@ -81,7 +81,7 @@
       "motion"
     ],
     "accessibilityNotes": "Respects `prefers-reduced-motion`; with reduce active all clips collapse to their `to` state immediately.",
-    "tokenBudget": 350
+    "tokenBudget": 661
   },
   "tags": [
     "motion",

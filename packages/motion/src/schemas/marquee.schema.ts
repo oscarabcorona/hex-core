@@ -50,7 +50,7 @@ export const marqueeSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion"],
 		accessibilityNotes:
 			"Animation suppressed under prefers-reduced-motion (track stops, content remains visible). Pause-on-hover gives readers a chance to scan; consider adding pause-on-focus for keyboard users.",
-		tokenBudget: 260,
+		tokenBudget: 588,
 	},
 	tags: ["motion", "marquee", "wrapper", "loop", "scroll"],
 };

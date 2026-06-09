@@ -94,7 +94,7 @@ export const selectSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["combobox", "dropdown-menu", "radio-group"],
 		accessibilityNotes:
 			"Full keyboard nav: arrow keys, Home, End, typeahead, Escape to close. Radix handles role='combobox' on trigger, role='listbox' on content, aria-selected on items.",
-		tokenBudget: 800,
+		tokenBudget: 758,
 	},
 	tags: ["select", "dropdown", "form", "field", "options", "choose"],
 };

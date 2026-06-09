@@ -105,7 +105,7 @@ export const datePickerSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["calendar", "popover", "input"],
 		accessibilityNotes:
 			"Trigger is a real <button> with focus ring. When rendered without a visible label, pass aria-label. The popover portals and traps keyboard focus inside Calendar until the user selects or presses Escape.",
-		tokenBudget: 700,
+		tokenBudget: 1116,
 	},
 	tags: ["date-picker", "date", "input", "popover", "calendar"],
 };

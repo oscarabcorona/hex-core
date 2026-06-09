@@ -42,7 +42,7 @@ export const skeletonSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["progress", "avatar", "card", "table"],
 		accessibilityNotes:
 			"Add aria-busy='true' on the loading container and a visually hidden status (aria-live='polite') to announce load completion to screen readers.",
-		tokenBudget: 200,
+		tokenBudget: 416,
 	},
 	tags: ["skeleton", "loading", "placeholder", "shimmer"],
 };

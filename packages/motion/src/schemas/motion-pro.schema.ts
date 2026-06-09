@@ -44,7 +44,7 @@ export const motionProSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "presence"],
 		accessibilityNotes:
 			"motion@^11 also honors `prefers-reduced-motion`; align MotionConfig.reducedMotion across both layers.",
-		tokenBudget: 250,
+		tokenBudget: 374,
 	},
 	tags: ["motion", "adapter", "motion-pro", "layout", "gestures"],
 };

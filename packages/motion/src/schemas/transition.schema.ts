@@ -68,7 +68,7 @@ export const transitionSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "variants"],
 		accessibilityNotes:
 			"Always respects MotionConfig's reducedMotion mode at the engine level.",
-		tokenBudget: 180,
+		tokenBudget: 561,
 	},
 	tags: ["motion", "transition", "easing", "duration", "tokens"],
 };

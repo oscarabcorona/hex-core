@@ -123,7 +123,7 @@ export const canvasSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["diagram", "tree"],
 		accessibilityNotes:
 			"Reactflow's accessibility is limited (the canvas is a div graph, not native semantics). For agent-workflow visualization, also expose a parallel screen-reader-friendly text/list representation of the nodes via aria-describedby.",
-		tokenBudget: 380,
+		tokenBudget: 1190,
 	},
 	tags: ["ai", "canvas", "graph", "workflow", "reactflow", "node-graph", "dag"],
 };

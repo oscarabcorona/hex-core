@@ -93,7 +93,7 @@ export const timePickerSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["date-picker", "input", "select"],
 		accessibilityNotes:
 			"Native <input type='time'> — assistive tech announces hour/minute (and seconds if shown) segments individually. Arrow keys spin each segment. Disabled state is announced. Pass aria-label or wrap with a <label htmlFor>. Visual chrome (icon, dropdown affordance) is browser-controlled and varies across Chrome/Edge/Safari (rendered) and Firefox (absent).",
-		tokenBudget: 700,
+		tokenBudget: 1300,
 	},
 	tags: ["time-picker", "time", "input", "form"],
 };

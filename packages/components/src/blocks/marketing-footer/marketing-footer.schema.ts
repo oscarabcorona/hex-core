@@ -76,7 +76,7 @@ export const marketingFooterSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["marketing-header", "marketing-cta", "separator"],
 		accessibilityNotes:
 			"Each column title renders as an <h3>. Links are real anchors with visible hover/focus states. Social icon links need an accessible name (aria-label or sr-only text) since the icon alone isn't announced.",
-		tokenBudget: 600,
+		tokenBudget: 843,
 	},
 	tags: ["block", "marketing", "footer", "navigation", "landing"],
 };

@@ -52,7 +52,7 @@ export const dataTableSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["table", "pagination"],
 		accessibilityNotes:
 			"Pass either `caption` (visible) or `aria-label` so screen readers announce the table when the user enters it. Add aria-sort to sortable column headers. Announce filter/sort changes via aria-live for dynamic updates.",
-		tokenBudget: 900,
+		tokenBudget: 820,
 	},
 	tags: ["data-table", "tanstack", "sortable", "filterable", "paginated"],
 };

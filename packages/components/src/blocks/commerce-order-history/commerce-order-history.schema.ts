@@ -60,7 +60,7 @@ export const commerceOrderHistorySchema: ComponentSchemaDefinition = {
 		relatedComponents: ["commerce-order-summary", "app-data-table", "badge", "table"],
 		accessibilityNotes:
 			"Renders a semantic <table> with <thead>/<tbody>; column headers have scope='col'. The View link's accessible name includes 'order {id}' via sr-only text so screen-reader users can tell which row's link they're activating.",
-		tokenBudget: 700,
+		tokenBudget: 891,
 	},
 	tags: ["block", "commerce", "order-history", "account", "storefront"],
 };

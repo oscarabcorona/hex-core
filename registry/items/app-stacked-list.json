@@ -136,7 +136,7 @@
       "button"
     ],
     "accessibilityNotes": "When href is set the row is a single anchor with an accessible name from the title. Focus ring is inset so it doesn't get clipped by the rounded container. Trailing actions inside a linked row are an anti-pattern (nested interactive); the schema notes this.",
-    "tokenBudget": 650
+    "tokenBudget": 944
   },
   "tags": [
     "block",

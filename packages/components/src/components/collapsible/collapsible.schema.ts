@@ -42,7 +42,7 @@ export const collapsibleSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["accordion", "dropdown-menu"],
 		accessibilityNotes:
 			"Radix sets aria-expanded on the trigger and aria-controls → content id. Trigger is keyboard-operable (Enter/Space).",
-		tokenBudget: 250,
+		tokenBudget: 580,
 	},
 	tags: ["collapsible", "disclosure", "expand", "show-more"],
 };

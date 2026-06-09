@@ -143,7 +143,7 @@ export const emptySchema: ComponentSchemaDefinition = {
 		relatedComponents: ["loading", "error-state", "alert", "card", "skeleton"],
 		accessibilityNotes:
 			"Wrapped in a region landmark labeled by the title (aria-labelledby + auto-generated id). Icon is decorative (aria-hidden). Pair the action with a Button that has a visible label.",
-		tokenBudget: 350,
+		tokenBudget: 1501,
 	},
 	tags: ["empty", "zero-state", "feedback", "list", "dashboard"],
 };

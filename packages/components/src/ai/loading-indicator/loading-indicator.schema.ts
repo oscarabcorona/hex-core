@@ -75,7 +75,7 @@ export const loadingIndicatorSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["message", "composer"],
 		accessibilityNotes:
 			"Renders as `role=\"status\"` with `aria-live=\"polite\"` and an `aria-label`. Pass a meaningful label so screen readers announce \"Searching docs\" rather than the default \"Loading\".",
-		tokenBudget: 200,
+		tokenBudget: 665,
 	},
 	tags: ["ai", "loading", "spinner", "typing", "indicator", "streaming"],
 };

@@ -39,7 +39,7 @@ export const breadcrumbSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["navigation-menu"],
 		accessibilityNotes:
 			"Root <nav aria-label='breadcrumb'> creates a landmark. BreadcrumbPage has aria-current='page'. Separators are aria-hidden (decorative). BreadcrumbEllipsis is decorative (SVG aria-hidden) with a sr-only 'More pages' label.",
-		tokenBudget: 400,
+		tokenBudget: 510,
 	},
 	tags: ["breadcrumb", "navigation", "path", "trail", "hierarchy"],
 };

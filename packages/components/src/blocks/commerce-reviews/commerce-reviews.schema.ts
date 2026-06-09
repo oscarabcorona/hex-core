@@ -57,7 +57,7 @@ export const commerceReviewsSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["commerce-product-detail", "commerce-product-grid", "marketing-testimonial"],
 		accessibilityNotes:
 			"Star rows are decorative (aria-hidden); the numeric 'X out of 5' text carries the rating for assistive tech. The section title is an <h2> and review titles are <h3>, preserving heading order.",
-		tokenBudget: 650,
+		tokenBudget: 702,
 	},
 	tags: ["block", "commerce", "reviews", "ratings", "pdp"],
 };

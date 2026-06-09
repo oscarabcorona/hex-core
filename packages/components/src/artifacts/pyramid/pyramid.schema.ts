@@ -100,7 +100,7 @@ export const pyramidSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["funnel", "sankey", "tree-map", "sunburst"],
 		accessibilityNotes:
 			"The SVG carries role=\"img\" with a <title> and <desc> summarizing tier count and shape. For agent outputs, also expose a parallel ordered list (<ol>) of labels so screen-reader users get the rank order without relying on visual position.",
-		tokenBudget: 260,
+		tokenBudget: 1076,
 	},
 	tags: ["artifact", "diagram", "pyramid", "rank", "hierarchy"],
 };

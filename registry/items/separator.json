@@ -98,7 +98,7 @@
       "menubar"
     ],
     "accessibilityNotes": "Set decorative=false if the separator conveys semantic meaning. Radix handles role='separator'.",
-    "tokenBudget": 150
+    "tokenBudget": 443
   },
   "tags": [
     "separator",

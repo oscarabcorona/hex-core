@@ -64,7 +64,7 @@
       "track"
     ],
     "accessibilityNotes": "Inherits the Timeline's reduced-motion behavior.",
-    "tokenBudget": 180
+    "tokenBudget": 450
   },
   "tags": [
     "motion",

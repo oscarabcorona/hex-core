@@ -102,7 +102,7 @@ export const comboboxSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["command", "popover", "select"],
 		accessibilityNotes:
 			"Trigger has role='combobox' + aria-expanded + aria-haspopup='listbox'. aria-controls points at the inner CommandList (a useId-stabilized listbox). Pass aria-label or aria-labelledby — combobox does not derive its name from contents.",
-		tokenBudget: 900,
+		tokenBudget: 991,
 	},
 	tags: ["combobox", "select", "search", "cmdk", "input"],
 };

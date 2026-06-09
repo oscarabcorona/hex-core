@@ -92,7 +92,7 @@ export const drawerSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["sheet", "dialog"],
 		accessibilityNotes:
 			"vaul delegates to Radix Dialog: focus trap, Escape to close, aria-labelledby/describedby wired to DrawerTitle/Description. The top handle is decorative (aria-hidden).",
-		tokenBudget: 700,
+		tokenBudget: 945,
 	},
 	tags: ["drawer", "bottom-sheet", "vaul", "mobile", "overlay"],
 };

@@ -44,7 +44,7 @@ export const typewriterSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["motion", "fade-in"],
 		accessibilityNotes:
 			"Reduced-motion snaps to the full string immediately, still firing onDone. Add aria-live='polite' if the text reveals on user action so screen readers re-announce.",
-		tokenBudget: 240,
+		tokenBudget: 659,
 	},
 	tags: ["motion", "typewriter", "wrapper", "text", "reveal"],
 };

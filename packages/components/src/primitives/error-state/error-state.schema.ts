@@ -105,7 +105,7 @@ export const errorStateSchema: ComponentSchemaDefinition = {
 		relatedComponents: ["alert", "alert-dialog", "form", "empty", "loading", "sonner"],
 		accessibilityNotes:
 			"role='alert' so screen readers announce on first render. Icon decorative (aria-hidden). Retry button uses focus-visible ring; pressing it doesn't dismiss the surface — caller controls that via state.",
-		tokenBudget: 450,
+		tokenBudget: 1348,
 	},
 	tags: ["error", "error-state", "failure", "retry", "feedback"],
 };
