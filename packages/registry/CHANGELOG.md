@@ -1,5 +1,45 @@
 # @hex-core/registry
 
+## 0.6.0
+
+### Minor Changes
+
+- e5d120e: feat(recipes): chatbot recipe — wires Phase 3 hooks end-to-end
+
+  New `component`-kind recipe (`chatbot`) that composes the AI Kit Phase 3 hooks
+  with the chat primitives into a working streaming chatbot — the end-to-end proof
+  that `useAIChat` + `useStreamingMessage` drop into a real UI.
+
+  Steps: `use-ai-chat` (model wiring + composer slice) → `message-list` / `message`
+  → `markdown` (streaming-safe assistant rendering) → `composer`, with
+  `use-streaming-message` for per-bubble isStreaming + retry and `loading-indicator`
+  for the pre-first-token typing state. Ships a full `example`: the client component
+  plus the Next.js `POST /api/chat` route returning
+  `streamText(...).toUIMessageStreamResponse()`. The brief points at the
+  higher-level `<Conversation>` shell as the no-frills alternative.
+
+  Recipe catalog: 23 → 24. Surfaced in the spec-driven docs showcase. No breaking
+  changes.
+
+### Patch Changes
+
+- e5d120e: fix(components): normalize interaction states and size scales
+
+  Brings 49 components to one consistency bar — the interaction-state matrix
+  (canonical focus rings incl. `ring-offset-2`, `transition-all` with duration +
+  ease, menu `hover:` paired with every `focus:`, `active:scale-[0.98]`, complete
+  `disabled:` pairs) and the two canonical size families.
+
+  **Size scales (the minor bit):** `loading-indicator`, `stepper`, and `timeline`
+  rename their `md` size key to `default` and add an `lg`. `default` inherits the
+  previous `md` rendering, so any component used without an explicit `size` looks
+  identical; `lg` is purely additive. If you set it explicitly, update
+  `size="md"` → `size="default"` on these three.
+
+  The rest are pure visual/interaction fixes (no API change) across diagram
+  primitives, study-card surfaces, menus/overlays, nav controls, and page blocks.
+  No new dependencies.
+
 ## 0.5.2
 
 ### Patch Changes
