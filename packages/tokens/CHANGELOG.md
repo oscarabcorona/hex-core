@@ -1,5 +1,13 @@
 # @hex-core/tokens
 
+## 1.3.7
+
+### Patch Changes
+
+- Updated dependencies [e5d120e]
+- Updated dependencies [e5d120e]
+  - @hex-core/registry@0.6.0
+
 ## 1.3.6
 
 ### Patch Changes
