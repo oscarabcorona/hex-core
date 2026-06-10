@@ -123,9 +123,9 @@ function Tag({
 					aria-label={ariaLabel}
 					className={cn(
 						"-mr-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full",
-						"transition-colors duration-[var(--duration-normal,200ms)] ease-out",
-						"hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-						"active:scale-[0.92]",
+						"transition-all duration-[var(--duration-normal,200ms)] ease-out",
+						"hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+						"active:scale-[0.98]",
 					)}
 				>
 					<svg

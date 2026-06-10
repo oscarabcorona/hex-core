@@ -152,6 +152,7 @@ function Sequence({
 							key={a.actor.id}
 							data-hex-sequence-actor
 							data-depth={a.depth}
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							role={interactive ? "button" : undefined}
 							tabIndex={interactive ? 0 : undefined}
 							aria-label={interactive ? a.actor.label : undefined}
@@ -200,6 +201,7 @@ function Sequence({
 							data-hex-sequence-message
 							data-depth={m.depth}
 							data-type={m.message.type ?? "sync"}
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							role={interactive ? "button" : undefined}
 							tabIndex={interactive ? 0 : undefined}
 							aria-label={

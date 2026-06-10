@@ -141,7 +141,7 @@ function Deck({
 					disabled={index === 0}
 					onClick={goPrev}
 					aria-label={`Previous card. Currently ${index + 1} of ${total}.`}
-					className="inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+					className="inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-sm font-medium transition-all duration-[var(--duration-normal,200ms)] ease-out active:scale-[0.98] hover:bg-muted disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 				>
 					Prev
 				</button>
@@ -162,7 +162,7 @@ function Deck({
 					disabled={index >= total - 1}
 					onClick={goNext}
 					aria-label={`Next card. Currently ${index + 1} of ${total}.`}
-					className="inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+					className="inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-sm font-medium transition-all duration-[var(--duration-normal,200ms)] ease-out active:scale-[0.98] hover:bg-muted disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 				>
 					Next
 				</button>

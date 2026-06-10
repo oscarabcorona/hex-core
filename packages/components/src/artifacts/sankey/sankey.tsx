@@ -183,6 +183,7 @@ function Sankey({
 						<g
 							key={n.original.id}
 							data-hex-sankey-node
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							transform={`translate(${n.x0},${n.y0})`}
 							role={interactive ? "button" : undefined}
 							tabIndex={interactive ? 0 : undefined}

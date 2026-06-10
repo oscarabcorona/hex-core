@@ -56,7 +56,7 @@ export function MarketingFooter({
 									<li key={linkIndex}>
 										<a
 											href={link.href}
-											className="text-sm text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground"
+											className="rounded-sm text-sm text-muted-foreground transition-all duration-[var(--duration-normal,200ms)] ease-out hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 										>
 											{link.label}
 										</a>

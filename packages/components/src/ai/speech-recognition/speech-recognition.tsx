@@ -250,7 +250,7 @@ function SpeechRecognition({
 			}}
 			className={cn(
 				"inline-flex h-9 w-9 items-center justify-center rounded-md border bg-background",
-				"text-foreground transition-colors duration-[var(--duration-normal,200ms)] ease-out",
+				"text-foreground transition-all duration-[var(--duration-normal,200ms)] ease-out",
 				"hover:bg-accent hover:text-accent-foreground",
 				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 				"disabled:cursor-not-allowed disabled:opacity-50",

@@ -319,7 +319,7 @@ function TreeItem({
 				"outline-none rounded-sm",
 				// H1: focus-visible-driven ring (NOT state-driven) — the ring
 				// only shows on keyboard focus, not on mouse clicks.
-				"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+				"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 			)}
 		>
 			{/*
@@ -331,7 +331,7 @@ function TreeItem({
 			<div
 				className={cn(
 					"flex cursor-pointer select-none items-center gap-[var(--gap-xs,0.25rem)] rounded-sm px-[var(--space-2,0.5rem)] py-[var(--space-1,0.25rem)]",
-					"transition-colors duration-[var(--duration-normal,200ms)] ease-out",
+					"transition-all duration-[var(--duration-normal,200ms)] ease-out",
 					"hover:bg-accent hover:text-accent-foreground",
 					isSelected && "bg-accent text-accent-foreground font-medium",
 					node.disabled && "cursor-not-allowed opacity-50",

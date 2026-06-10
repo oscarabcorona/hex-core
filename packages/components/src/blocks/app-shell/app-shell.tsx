@@ -62,7 +62,7 @@ export function AppShell({ sidebar, header, children, className }: AppShellProps
 				<header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6">
 					<button
 						type="button"
-						className="inline-flex items-center justify-center rounded-md p-2 text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 lg:hidden"
+						className="inline-flex items-center justify-center rounded-md p-2 text-foreground transition-all duration-[var(--duration-normal,200ms)] ease-out hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 lg:hidden"
 						aria-label="Open menu"
 						aria-expanded={open}
 						onClick={() => setOpen(true)}

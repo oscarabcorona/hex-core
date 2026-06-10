@@ -88,6 +88,7 @@ function Funnel({
 						key={s.stage.id}
 						data-hex-funnel-stage
 						data-depth={s.depth}
+						className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 						role={interactive ? "button" : undefined}
 						tabIndex={interactive ? 0 : undefined}
 						aria-label={interactive ? `${s.stage.label}: ${s.stage.value}` : undefined}

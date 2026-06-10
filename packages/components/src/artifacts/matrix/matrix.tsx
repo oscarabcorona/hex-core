@@ -126,6 +126,7 @@ function Matrix({
 							data-hex-matrix-cell
 							data-row={c.rowIndex}
 							data-col={c.colIndex}
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							role={interactive ? "button" : undefined}
 							tabIndex={interactive ? 0 : undefined}
 							aria-label={interactive ? `${c.row.label} → ${c.col.label}: ${c.value}` : undefined}

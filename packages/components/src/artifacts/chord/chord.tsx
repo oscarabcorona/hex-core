@@ -175,6 +175,7 @@ function Chord({
 							key={`${c.source.id}-${c.target.id}-${i}`}
 							data-hex-chord-ribbon
 							d={c.d}
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							fill={pickChartHue(c.sourceIdx)}
 							fillOpacity={0.55}
 							stroke="hsl(var(--background))"
@@ -208,6 +209,7 @@ function Chord({
 							key={a.node.id}
 							data-hex-chord-arc
 							data-depth={a.depth}
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							role={interactive ? "button" : undefined}
 							tabIndex={interactive ? 0 : undefined}
 							aria-label={interactive ? a.node.label : undefined}

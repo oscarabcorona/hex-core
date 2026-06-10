@@ -184,8 +184,8 @@ function Attachment({
 						"absolute -right-2 -top-2 inline-flex h-5 w-5 items-center justify-center rounded-full",
 						"bg-card border border-border text-foreground shadow-sm",
 						"transition-all duration-[var(--duration-normal,200ms)] ease-out",
-						"hover:bg-accent hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-						"active:scale-90",
+						"hover:bg-accent hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+						"active:scale-[0.98]",
 					)}
 				>
 					<svg

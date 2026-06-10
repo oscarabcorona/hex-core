@@ -164,6 +164,7 @@ function Flowchart({
 							data-hex-flowchart-node
 							data-shape={shape}
 							data-rank={n.rank}
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							transform={`translate(${n.x - nodeWidth / 2},${n.y - nodeHeight / 2})`}
 							role={interactive ? "button" : undefined}
 							tabIndex={interactive ? 0 : undefined}

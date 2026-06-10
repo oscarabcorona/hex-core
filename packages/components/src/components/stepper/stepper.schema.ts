@@ -32,8 +32,8 @@ export const stepperSchema: ComponentSchemaDefinition = {
 			name: "size",
 			type: "string",
 			required: false,
-			default: "md",
-			description: "Indicator size: 'sm' | 'md'",
+			default: "default",
+			description: "Indicator size: 'sm' | 'default' | 'lg'",
 		},
 		{
 			name: "onStepClick",
@@ -66,11 +66,15 @@ export const stepperSchema: ComponentSchemaDefinition = {
 			values: [
 				{ value: "sm", description: "Compact indicator (1.75rem)" },
 				{
-					value: "md",
+					value: "default",
 					description: "Default indicator (matches control-height-sm)",
 				},
+				{
+					value: "lg",
+					description: "Large indicator (matches control-height-md)",
+				},
 			],
-			default: "md",
+			default: "default",
 		},
 	],
 	slots: [],

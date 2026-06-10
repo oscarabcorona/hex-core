@@ -47,7 +47,7 @@ const MenubarTrigger = React.forwardRef<
 		className={cn(
 			"flex cursor-default select-none items-center rounded-sm px-[var(--space-3,0.75rem)] py-1.5 text-sm font-medium outline-none",
 			"transition-all duration-[var(--duration-normal,200ms)] ease-out",
-			"focus:bg-accent focus:text-accent-foreground",
+			"hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
 			"data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
 			className,
 		)}
@@ -90,7 +90,7 @@ const MenubarItem = React.forwardRef<
 		className={cn(
 			"relative flex cursor-default select-none items-center gap-[var(--gap-sm,0.5rem)] rounded-sm px-[var(--space-2,0.5rem)] py-1.5 text-sm outline-none",
 			"transition-all duration-[var(--duration-normal,200ms)] ease-out",
-			"focus:bg-accent focus:text-accent-foreground",
+			"hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
 			"data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
 			inset && "pl-[var(--space-8,2rem)]",
 			className,

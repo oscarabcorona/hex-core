@@ -120,6 +120,7 @@ function AudioPlayer({ src, autoPlay = false, onEnded, onError, className, ...re
 					"inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
 					"bg-foreground text-background transition-opacity",
 					"hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50",
+					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 				)}
 			>
 				{isPlaying ? <PauseIcon /> : <PlayIcon />}

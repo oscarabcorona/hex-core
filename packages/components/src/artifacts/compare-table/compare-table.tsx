@@ -152,7 +152,7 @@ function CompareTable({
 												"border-b px-3 py-2 align-top",
 												differs && "bg-accent/30 text-accent-foreground",
 												isEmpty && "text-muted-foreground",
-												interactive && "cursor-pointer hover:bg-muted/40",
+												interactive && "cursor-pointer transition-all duration-[var(--duration-normal,200ms)] ease-out active:scale-[0.98] hover:bg-muted/40",
 											)}
 											onClick={interactive ? () => onCellClick?.(subject.id, attr.id) : undefined}
 										>

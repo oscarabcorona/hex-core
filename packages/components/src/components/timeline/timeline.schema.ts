@@ -19,8 +19,8 @@ export const timelineSchema: ComponentSchemaDefinition = {
 			name: "size",
 			type: "string",
 			required: false,
-			default: "md",
-			description: "Indicator size: 'sm' | 'md'",
+			default: "default",
+			description: "Indicator size: 'sm' | 'default' | 'lg'",
 		},
 		{
 			name: "aria-label",
@@ -36,9 +36,10 @@ export const timelineSchema: ComponentSchemaDefinition = {
 			description: "Indicator size",
 			values: [
 				{ value: "sm", description: "Compact 1.25rem indicator" },
-				{ value: "md", description: "Default 1.75rem indicator" },
+				{ value: "default", description: "Default 1.75rem indicator" },
+				{ value: "lg", description: "Large 2.25rem indicator" },
 			],
-			default: "md",
+			default: "default",
 		},
 	],
 	slots: [],

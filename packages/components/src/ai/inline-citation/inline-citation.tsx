@@ -55,7 +55,7 @@ function InlineCitation({
 		"inline-flex select-none items-center justify-center rounded-sm bg-primary/10 px-1 py-0.5 text-[0.7em] font-mono font-semibold text-primary leading-none",
 		"transition-all duration-[var(--duration-normal,200ms)] ease-out",
 		"hover:bg-primary/15",
-		"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+		"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 		className,
 	);
 

@@ -141,6 +141,7 @@ function TimeAxis({
 							key={e.event.id}
 							data-hex-time-axis-event
 							data-row={e.rowIndex}
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							role={interactive ? "button" : undefined}
 							tabIndex={interactive ? 0 : undefined}
 							aria-label={interactive ? `${e.event.label} on ${formatDate(toDate(e.event.date))}` : undefined}

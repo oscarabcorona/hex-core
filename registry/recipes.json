@@ -200,6 +200,31 @@
       "tokenBudget": 1300
     },
     {
+      "slug": "chatbot",
+      "kind": "component",
+      "title": "Chatbot",
+      "summary": "Streaming chatbot that wires the Phase 3 useAIChat hook to a server endpoint, renders each turn as a <Message> with streaming-safe <Markdown>, shows a typing indicator during the dead time before the first token, and offers per-bubble retry via useStreamingMessage. The end-to-end proof that the AI Kit hooks compose with the primitives into a working chat UI.",
+      "tags": [
+        "ai",
+        "chat",
+        "chatbot",
+        "streaming",
+        "ai-sdk",
+        "hook",
+        "markdown"
+      ],
+      "components": [
+        "use-ai-chat",
+        "use-streaming-message",
+        "message-list",
+        "message",
+        "markdown",
+        "composer",
+        "loading-indicator"
+      ],
+      "tokenBudget": 2800
+    },
+    {
       "slug": "checkout-page",
       "kind": "page",
       "pageType": "ecommerce",

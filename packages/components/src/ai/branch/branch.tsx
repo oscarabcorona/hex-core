@@ -92,7 +92,7 @@ function Branch({
 						"transition-all duration-[var(--duration-normal,200ms)] ease-out",
 						"hover:bg-muted hover:text-foreground",
 						"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-						"disabled:pointer-events-none disabled:opacity-40",
+						"disabled:pointer-events-none disabled:opacity-50",
 					)}
 				>
 					<ChevronLeft />
@@ -121,7 +121,7 @@ function Branch({
 						"transition-all duration-[var(--duration-normal,200ms)] ease-out",
 						"hover:bg-muted hover:text-foreground",
 						"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-						"disabled:pointer-events-none disabled:opacity-40",
+						"disabled:pointer-events-none disabled:opacity-50",
 					)}
 				>
 					<ChevronRight />

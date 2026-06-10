@@ -93,7 +93,7 @@ function SpacedRepetition({
 						aria-label={`${label}: ${RATING_HINT[rating]}`}
 						onClick={() => onRateRef.current(rating, cardId)}
 						className={cn(
-							"inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors",
+							"inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-all duration-[var(--duration-normal,200ms)] ease-out active:scale-[0.98]",
 							"focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 							RATING_CLASSES[rating],
 						)}

@@ -186,9 +186,9 @@ function TreeItem({
 				}}
 				onKeyDown={(e) => onKeyDown(e, node.id)}
 				className={cn(
-					"flex items-center gap-[var(--space-2,0.5rem)] rounded-md px-[var(--space-2,0.5rem)] py-[var(--space-1,0.25rem)] text-sm cursor-pointer select-none transition-colors duration-[var(--duration-normal,200ms)] ease-out",
+					"flex items-center gap-[var(--space-2,0.5rem)] rounded-md px-[var(--space-2,0.5rem)] py-[var(--space-1,0.25rem)] text-sm cursor-pointer select-none transition-all duration-[var(--duration-normal,200ms)] ease-out",
 					"hover:bg-accent hover:text-accent-foreground",
-					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 					isSelected && "bg-accent text-accent-foreground",
 					node.disabled && "opacity-50 cursor-not-allowed pointer-events-none",
 				)}

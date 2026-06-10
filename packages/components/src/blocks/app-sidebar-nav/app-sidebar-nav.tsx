@@ -60,7 +60,7 @@ export function AppSidebarNav({ brand, groups, footer, className }: AppSidebarNa
 										href={item.href}
 										aria-current={item.active ? "page" : undefined}
 										className={cn(
-											"flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 ease-out [&_svg]:size-4 [&_svg]:flex-none",
+											"flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-[var(--duration-normal,200ms)] ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&_svg]:size-4 [&_svg]:flex-none",
 											item.active
 												? "bg-muted text-foreground"
 												: "text-muted-foreground hover:bg-muted hover:text-foreground",

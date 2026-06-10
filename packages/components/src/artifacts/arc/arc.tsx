@@ -103,6 +103,7 @@ function Arc({
 							key={`${e.edge.source}-${e.edge.target}-${i}`}
 							data-hex-arc-edge
 							d={e.d}
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							stroke="hsl(var(--primary))"
 							strokeOpacity={0.5}
 							strokeWidth={Math.max(1, e.width)}
@@ -134,6 +135,7 @@ function Arc({
 							key={n.node.id}
 							data-hex-arc-node
 							data-depth={n.depth}
+							className={interactive ? "focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-ring" : undefined}
 							role={interactive ? "button" : undefined}
 							tabIndex={interactive ? 0 : undefined}
 							aria-label={interactive ? n.node.label : undefined}

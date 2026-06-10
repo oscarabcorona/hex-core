@@ -71,7 +71,11 @@ export function CommerceProductGrid({
 				>
 					{products.map((product, index) =>
 						product.href ? (
-							<a key={index} href={product.href} className="group flex flex-col gap-3">
+							<a
+								key={index}
+								href={product.href}
+								className="group flex flex-col gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+							>
 								<ProductCardBody product={product} />
 							</a>
 						) : (
