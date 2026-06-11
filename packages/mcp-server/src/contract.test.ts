@@ -29,7 +29,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { encode } from "gpt-tokenizer";
+import { encode } from "gpt-tokenizer/encoding/cl100k_base";
 import { TOOL, TOOL_NAMES } from "./tool-names.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
