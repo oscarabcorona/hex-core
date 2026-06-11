@@ -107,6 +107,7 @@ export default defineConfig({
 		"d3-hierarchy",
 		"d3-sankey",
 		"d3-shape",
+		/^@dnd-kit\//,
 		/^@radix-ui\//,
 		"class-variance-authority",
 		"clsx",

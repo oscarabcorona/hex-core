@@ -114,7 +114,7 @@ This copies the skills into `.claude/skills/` so any agent working in your repo 
 
 ## Components
 
-**117 registry items** across primitives (Button, Input, Checkbox, Switch, Slider, …), compounds (Combobox, DataTable, Command, Calendar, Date Picker, …), AI-native (Composer, Message, Reasoning, ToolCall, Terminal, Canvas, Diagram, AudioPlayer, AudioWaveform, SpeechRecognition, …), 23 artifact diagrams (sankey, mindmap, gantt, …), and 11 motion primitives (Motion factory, Presence, Timeline composer, useAnimate, useScroll, …). Every item ships with a machine-readable `.schema.ts` containing props, variants, AI hints (`whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes`), and a token budget.
+**117 registry items** across primitives (Button, Input, Checkbox, Switch, Slider, …), compounds (Combobox, DataTable, Command, Calendar, Date Picker, Kanban, DnD primitives, …), AI-native (Composer, Message, Reasoning, ToolCall, Terminal, Canvas, Diagram, AudioPlayer, AudioWaveform, SpeechRecognition, …), 23 artifact diagrams (sankey, mindmap, gantt, …), and 11 motion primitives (Motion factory, Presence, Timeline composer, useAnimate, useScroll, …). DataTable rows and Tree top-level nodes also opt into drag-to-reorder via the shared DnD primitive set. Every item ships with a machine-readable `.schema.ts` containing props, variants, AI hints (`whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes`), and a token budget.
 
 Full catalog + live demos: **[hex-core.dev/docs](https://hex-core.dev/docs)**
 

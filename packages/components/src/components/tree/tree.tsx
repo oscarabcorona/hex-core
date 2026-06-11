@@ -1,6 +1,12 @@
 "use client";
 
 import * as React from "react";
+import type { DragEndEvent } from "@dnd-kit/core";
+import {
+	SortableContext,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { DndProvider, useSortableItem } from "../dnd/dnd.js";
 import { cn } from "../../lib/utils.js";
 
 /**
@@ -42,6 +48,19 @@ export interface TreeProps {
 	"aria-label": string;
 	/** Optional additional class names. */
 	className?: string;
+	/**
+	 * Enable drag-to-reorder for the **top-level (root) nodes only**. A
+	 * small drag handle is added on each root row; nested children are not
+	 * individually reorderable in v1 (cross-parent semantics out of scope).
+	 * Default false. The handle is its own focusable button — Space/Enter
+	 * on the row still toggles expand/select as before.
+	 */
+	reorderable?: boolean;
+	/**
+	 * Called with the new top-level tree array after a drop. Required when
+	 * `reorderable` is true.
+	 */
+	onNodeReorder?: (next: TreeNode[]) => void;
 }
 
 /** Recursively flatten a tree into the visible-row order (respecting collapsed parents). */
@@ -95,7 +114,28 @@ function Tree({
 	"aria-label": ariaLabel,
 	className,
 	ref,
+	reorderable = false,
+	onNodeReorder,
 }: TreeProps) {
+	const onNodeReorderRef = React.useRef(onNodeReorder);
+	onNodeReorderRef.current = onNodeReorder;
+
+	const handleDragEnd = React.useCallback(
+		(event: DragEndEvent) => {
+			const { active, over } = event;
+			if (!over || active.id === over.id) return;
+			const ids = data.map((n) => n.id);
+			const oldIndex = ids.indexOf(String(active.id));
+			const newIndex = ids.indexOf(String(over.id));
+			if (oldIndex === -1 || newIndex === -1) return;
+			const next = [...data];
+			const [moved] = next.splice(oldIndex, 1);
+			next.splice(newIndex, 0, moved);
+			onNodeReorderRef.current?.(next);
+		},
+		[data],
+	);
+	const rootIds = React.useMemo(() => data.map((n) => n.id), [data]);
 	const [internalExpanded, setInternalExpanded] = React.useState<Set<string>>(
 		() => new Set(defaultExpanded ?? []),
 	);
@@ -222,7 +262,7 @@ function Tree({
 	// undefined entirely when nothing on the tree is selectable.
 	const isSelectable = onSelect !== undefined || selectedProp !== undefined;
 
-	return (
+	const tree = (
 		<ul
 			ref={ref}
 			role="tree"
@@ -230,22 +270,76 @@ function Tree({
 			className={cn("flex flex-col text-sm text-foreground", className)}
 			onKeyDown={handleKeyDown}
 		>
-			{data.map((node) => (
-				<TreeItem
-					key={node.id}
-					node={node}
-					depth={0}
-					expanded={expanded}
-					selected={selected}
-					isSelectable={isSelectable}
-					focusedId={focusedId}
-					onFocus={setFocusedId}
-					onToggleExpand={toggleExpand}
-					onActivate={activate}
-				/>
-			))}
+			{data.map((node) =>
+				reorderable ? (
+					<SortableRootTreeItem
+						key={node.id}
+						node={node}
+						expanded={expanded}
+						selected={selected}
+						isSelectable={isSelectable}
+						focusedId={focusedId}
+						onFocus={setFocusedId}
+						onToggleExpand={toggleExpand}
+						onActivate={activate}
+					/>
+				) : (
+					<TreeItem
+						key={node.id}
+						node={node}
+						depth={0}
+						expanded={expanded}
+						selected={selected}
+						isSelectable={isSelectable}
+						focusedId={focusedId}
+						onFocus={setFocusedId}
+						onToggleExpand={toggleExpand}
+						onActivate={activate}
+					/>
+				),
+			)}
 		</ul>
 	);
+
+	if (!reorderable) return tree;
+	return (
+		<DndProvider onDragEnd={handleDragEnd}>
+			<SortableContext items={rootIds} strategy={verticalListSortingStrategy}>
+				{tree}
+			</SortableContext>
+		</DndProvider>
+	);
+}
+
+/**
+ * Top-level tree item with sortable wiring. Calls `useSortableItem` and
+ * forwards the resulting refs/style/attributes/listeners to TreeItem,
+ * which applies them to its <li>. Keeps the recursive child path
+ * unchanged — nested children render through the plain TreeItem path.
+ */
+function SortableRootTreeItem(props: Omit<TreeItemProps, "depth" | "outerProps">) {
+	const sortable = useSortableItem(props.node.id);
+	return (
+		<TreeItem
+			{...props}
+			depth={0}
+			outerProps={{
+				ref: sortable.setNodeRef,
+				style: sortable.style,
+				attributes: sortable.attributes,
+				listeners: sortable.listeners,
+				isDragging: sortable.isDragging,
+			}}
+		/>
+	);
+}
+
+interface TreeItemOuterProps {
+	ref: (node: HTMLLIElement | null) => void;
+	style: React.CSSProperties;
+	attributes: React.HTMLAttributes<HTMLElement>;
+	listeners: React.DOMAttributes<HTMLElement> | undefined;
+	isDragging: boolean;
 }
 
 interface TreeItemProps {
@@ -258,6 +352,13 @@ interface TreeItemProps {
 	onFocus: (id: string) => void;
 	onToggleExpand: (id: string) => void;
 	onActivate: (id: string) => void;
+	/**
+	 * When set, this row is sortable: the dnd-kit ref/style/attributes
+	 * apply to the `<li>` and a drag-handle button (carrying `listeners`)
+	 * is rendered inline. Only the top-level Tree wrapper passes this in
+	 * v1; nested children always render without it.
+	 */
+	outerProps?: TreeItemOuterProps;
 }
 
 /** One row inside a Tree. Recurses through children when expanded. */
@@ -271,6 +372,7 @@ function TreeItem({
 	onFocus,
 	onToggleExpand,
 	onActivate,
+	outerProps,
 }: TreeItemProps) {
 	const children = node.children;
 	const isParent = children !== undefined;
@@ -286,9 +388,36 @@ function TreeItem({
 	};
 
 	const labelId = React.useId();
+	const liStyle = outerProps?.style;
+	// dnd-kit's `attributes` ship `role="button"` + `tabIndex=0` +
+	// `aria-pressed` for default keyboard a11y on draggable elements. All
+	// three would clobber the tree's `role="treeitem"` + roving-tabindex,
+	// and `aria-pressed` is invalid per ARIA 1.2 on a non-button role.
+	// Strip them; the drag-handle button below keeps its own listeners and
+	// is the actual keyboard pickup target. `aria-roledescription="sortable"`
+	// + `aria-describedby` (live-region pointer) survive the strip — both
+	// are load-bearing for screen-reader announcements.
+	const safeDndAttrs = (() => {
+		const attrs = outerProps?.attributes;
+		if (!attrs) return undefined;
+		const {
+			role: _role,
+			tabIndex: _tabIndex,
+			"aria-pressed": _ariaPressed,
+			...rest
+		} = attrs as React.HTMLAttributes<HTMLElement> & {
+			role?: string;
+			tabIndex?: number;
+			"aria-pressed"?: boolean | "true" | "false";
+		};
+		return rest;
+	})();
 	return (
 		<li
+			{...(safeDndAttrs ?? {})}
 			role="treeitem"
+			ref={outerProps?.ref}
+			style={liStyle}
 			aria-labelledby={labelId}
 			aria-level={depth + 1}
 			aria-expanded={isParent ? isExpanded : undefined}
@@ -299,6 +428,8 @@ function TreeItem({
 			aria-selected={isSelectable ? isSelected : undefined}
 			aria-disabled={node.disabled || undefined}
 			tabIndex={isFocused ? 0 : -1}
+			data-row-id={outerProps ? node.id : undefined}
+			data-dragging={outerProps ? outerProps.isDragging : undefined}
 			onClick={(e) => {
 				// Stop bubbling so a parent treeitem doesn't refire on a
 				// nested-child click — each li carries its own click handler.
@@ -338,6 +469,24 @@ function TreeItem({
 				)}
 				style={{ paddingLeft: `calc(${depth} * var(--space-4, 1rem) + var(--space-2, 0.5rem))` }}
 			>
+				{outerProps ? (
+					<button
+						type="button"
+						aria-label={`Drag to reorder ${typeof node.label === "string" ? node.label : "row"}`}
+						onClick={(e) => e.stopPropagation()}
+						className="inline-flex h-4 w-4 shrink-0 cursor-grab items-center justify-center text-muted-foreground hover:text-foreground active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						{...(outerProps.listeners ?? {})}
+					>
+						<svg aria-hidden viewBox="0 0 16 16" width="10" height="10" fill="currentColor">
+							<circle cx="6" cy="3.5" r="1" />
+							<circle cx="6" cy="8" r="1" />
+							<circle cx="6" cy="12.5" r="1" />
+							<circle cx="10" cy="3.5" r="1" />
+							<circle cx="10" cy="8" r="1" />
+							<circle cx="10" cy="12.5" r="1" />
+						</svg>
+					</button>
+				) : null}
 				{isParent ? (
 					<span aria-hidden="true" className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
 						<svg

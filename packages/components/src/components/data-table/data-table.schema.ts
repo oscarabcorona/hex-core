@@ -21,13 +21,55 @@ export const dataTableSchema: ComponentSchemaDefinition = {
 			required: false,
 			description: "Accessible label forwarded as aria-label on the underlying <table>; use when no visible caption is shown",
 		},
+		{
+			name: "reorderableRows",
+			type: "boolean",
+			required: false,
+			default: false,
+			description:
+				"Enable drag-to-reorder rows. Adds a leading drag-handle column, wraps body in a DnD context. Requires `getRowId` (throws otherwise). Backwards-compatible default `false`.",
+		},
+		{
+			name: "onRowReorder",
+			type: "function",
+			required: false,
+			description:
+				"Called with the next ordered list of row IDs after a drop. Required when `reorderableRows` is true; consumer re-derives `data` in the new order.",
+		},
+		{
+			name: "getRowId",
+			type: "function",
+			required: false,
+			description:
+				"Stable row identifier `(row, index) => string`. Required when `reorderableRows` is true (TanStack's default index-based id breaks DnD on reorder).",
+		},
 	],
 	variants: [],
 	slots: [],
 	dependencies: {
 		npm: ["@tanstack/react-table", "clsx", "tailwind-merge"],
-		internal: ["lib/utils", "components/table/table"],
+		internal: ["lib/utils", "components/table/table", "dnd"],
 		peer: ["react", "react-dom"],
+		heavyPeer: [
+			{
+				name: "@dnd-kit/core",
+				version: "^6.3.1",
+				bundleKbGzip: 30,
+				reason: "Required when reorderableRows={true}; not loaded otherwise",
+			},
+			{
+				name: "@dnd-kit/sortable",
+				version: "^10.0.0",
+				bundleKbGzip: 10,
+				reason: "Required when reorderableRows={true}",
+			},
+			{
+				name: "@dnd-kit/utilities",
+				version: "^3.2.2",
+				bundleKbGzip: 3,
+				reason: "Required when reorderableRows={true}",
+			},
+		],
 	},
 	tokensUsed: ["border", "muted", "muted-foreground"],
 	examples: [
@@ -48,6 +90,7 @@ export const dataTableSchema: ComponentSchemaDefinition = {
 			"Using accessorKey with nested paths without accessorFn",
 			"Not adding filter/sort row models when those features are needed",
 			"Shipping a table without `caption` or `aria-label` — the table is unlabelled to assistive tech",
+			"Setting reorderableRows={true} without getRowId — throws at render. Pass `getRowId={(row) => row.id}` (or whatever your stable key field is)",
 		],
 		relatedComponents: ["table", "pagination"],
 		accessibilityNotes:

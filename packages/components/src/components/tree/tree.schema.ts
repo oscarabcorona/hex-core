@@ -16,13 +16,48 @@ export const treeSchema: ComponentSchemaDefinition = {
 		{ name: "onSelect", type: "function", required: false, description: "Callback (id: string) => void on activation." },
 		{ name: "aria-label", type: "string", required: true, description: "Accessible name for the tree landmark." },
 		{ name: "className", type: "string", required: false, description: "Additional CSS classes" },
+		{
+			name: "reorderable",
+			type: "boolean",
+			required: false,
+			default: false,
+			description:
+				"Enable drag-to-reorder for top-level (root) nodes only. A small drag handle is added to each root row; nested children are NOT individually reorderable in v1.",
+		},
+		{
+			name: "onNodeReorder",
+			type: "function",
+			required: false,
+			description:
+				"Called with the next top-level array `(next: TreeNode[]) => void` after a drop. Required when `reorderable` is true.",
+		},
 	],
 	variants: [],
 	slots: [],
 	dependencies: {
 		npm: ["clsx", "tailwind-merge"],
-		internal: [],
+		internal: ["dnd"],
 		peer: ["react", "react-dom"],
+		heavyPeer: [
+			{
+				name: "@dnd-kit/core",
+				version: "^6.3.1",
+				bundleKbGzip: 30,
+				reason: "Required when reorderable={true}; not loaded otherwise",
+			},
+			{
+				name: "@dnd-kit/sortable",
+				version: "^10.0.0",
+				bundleKbGzip: 10,
+				reason: "Required when reorderable={true}",
+			},
+			{
+				name: "@dnd-kit/utilities",
+				version: "^3.2.2",
+				bundleKbGzip: 3,
+				reason: "Required when reorderable={true}",
+			},
+		],
 	},
 	tokensUsed: ["foreground", "accent", "accent-foreground", "ring"],
 	examples: [
@@ -48,6 +83,7 @@ export const treeSchema: ComponentSchemaDefinition = {
 			"Forgetting aria-label — required, no fallback",
 			"Confusing data prop (TreeNode[]) with FileTree's nodes prop (FileTreeNode[]) — same shape but different icon defaults",
 			"Trying to pass selected without onSelect — controlled-mode without an updater leaves it stuck",
+			"Expecting reorderable to work for nested children in v1 — only top-level (root) nodes are sortable. Cross-parent reorder is out of scope until v2.",
 		],
 		antiPatterns: [
 			{

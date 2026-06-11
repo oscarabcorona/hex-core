@@ -1,0 +1,156 @@
+{
+  "$schema": "https://hex-core.dev/schema/registry-item.json",
+  "name": "kanban",
+  "displayName": "Kanban",
+  "description": "Headless Kanban board with drag-to-reorder + drag-across-columns. Consumer keeps state as `{ id, title, cardIds }[]` and renders cards via children. Built on the shared `<Kanban>` + `<KanbanColumn>` + `<KanbanCard>` primitives over @dnd-kit. Columns are static in v1 (cards are the moving parts).",
+  "category": "component",
+  "subcategory": "data-display",
+  "version": "0.1.0",
+  "framework": "react",
+  "props": [
+    {
+      "name": "columns",
+      "type": "object",
+      "required": true,
+      "description": "Array of `{ id, title, cardIds }` describing each column. Order in the array is the rendered column order."
+    },
+    {
+      "name": "onChange",
+      "type": "function",
+      "required": true,
+      "description": "Called with the next `columns` array after a drop. Receives the full new shape — no manual diffing required."
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Render the columns + cards. Typically `columns.map(col => <KanbanColumn id={col.id}>{col.cardIds.map(cardId => <KanbanCard id={cardId}>...</KanbanCard>)}</KanbanColumn>)`."
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes on the board container."
+    }
+  ],
+  "variants": [],
+  "slots": [
+    {
+      "name": "children",
+      "description": "Render the columns + cards yourself via `<KanbanColumn>` + `<KanbanCard>`.",
+      "required": true,
+      "acceptedTypes": [
+        "ReactNode"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/ui/kanban.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport {\n\tDndContext,\n\ttype DragEndEvent,\n\tKeyboardSensor,\n\tPointerSensor,\n\tclosestCorners,\n\tuseSensor,\n\tuseSensors,\n} from \"@dnd-kit/core\";\nimport {\n\tSortableContext,\n\tsortableKeyboardCoordinates,\n\tuseSortable,\n\tverticalListSortingStrategy,\n} from \"@dnd-kit/sortable\";\nimport { CSS } from \"@dnd-kit/utilities\";\nimport { cn } from \"../../lib/utils.js\";\n\n/**\n * Headless Kanban board backed by @dnd-kit. Cards drag within their column\n * (reorder) and across columns (move). Consumer keeps state shape:\n *\n *   columns: Array<{ id: string; title: string; cardIds: string[] }>\n *\n * Kanban receives that array + an `onChange(next)` callback, computes the\n * new state on drop, and fires the callback. No internal state. Card\n * content is fully consumer-rendered — pass any children to `<KanbanCard>`.\n *\n * Columns are static in v1 (no column reorder; cards are the moving parts).\n *\n * Heavy peer: `@dnd-kit/core` + `@dnd-kit/sortable` (~40 KB gzip). Shipped\n * via the hex-core CLI's heavy-peer prompt.\n *\n * @example\n * const [board, setBoard] = useState([\n *   { id: \"todo\", title: \"To do\", cardIds: [\"1\", \"2\"] },\n *   { id: \"doing\", title: \"Doing\", cardIds: [\"3\"] },\n *   { id: \"done\", title: \"Done\", cardIds: [] },\n * ]);\n * const cards = { \"1\": \"Wire DnD\", \"2\": \"Build Kanban\", \"3\": \"Ship PR\" };\n *\n * <Kanban columns={board} onChange={setBoard}>\n *   {board.map((col) => (\n *     <KanbanColumn key={col.id} id={col.id} title={col.title}>\n *       {col.cardIds.map((cardId) => (\n *         <KanbanCard key={cardId} id={cardId}>\n *           {cards[cardId]}\n *         </KanbanCard>\n *       ))}\n *     </KanbanColumn>\n *   ))}\n * </Kanban>\n */\n\nexport interface KanbanColumnData {\n\tid: string;\n\ttitle: string;\n\tcardIds: string[];\n}\n\nexport interface KanbanProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\" | \"onChange\"> {\n\tcolumns: KanbanColumnData[];\n\t/** Called with the next columns array after a drop. */\n\tonChange: (next: KanbanColumnData[]) => void;\n\t/** Render the columns. Use `<KanbanColumn>` + `<KanbanCard>` inside. */\n\tchildren: React.ReactNode;\n}\n\ninterface KanbanContextValue {\n\tcolumns: KanbanColumnData[];\n}\n\nconst KanbanContext = React.createContext<KanbanContextValue | null>(null);\n\nfunction useKanbanContext(): KanbanContextValue {\n\tconst ctx = React.useContext(KanbanContext);\n\tif (!ctx) {\n\t\tthrow new Error(\"KanbanColumn / KanbanCard must be rendered inside <Kanban>.\");\n\t}\n\treturn ctx;\n}\n\n/**\n * Find which column owns a given card id.\n * Exported for unit testing of the moveCard algorithm.\n */\nexport function findColumnIdForCard(columns: KanbanColumnData[], cardId: string): string | null {\n\tfor (const col of columns) {\n\t\tif (col.cardIds.includes(cardId)) return col.id;\n\t}\n\treturn null;\n}\n\n/**\n * Move a card to a target position. The target can be either another card\n * (insert at that card's index in its column) OR a column itself (append\n * to that column's cardIds).\n * Returns the same `columns` reference (===) when no move is possible — the\n * caller uses identity equality to skip an onChange call.\n * Exported for unit testing.\n */\nexport function moveCard(\n\tcolumns: KanbanColumnData[],\n\tactiveId: string,\n\toverId: string,\n): KanbanColumnData[] {\n\tconst sourceColId = findColumnIdForCard(columns, activeId);\n\tif (!sourceColId) return columns;\n\n\t// Did we drop onto another card or onto a column?\n\tconst overIsColumn = columns.some((c) => c.id === overId);\n\tconst targetColId = overIsColumn ? overId : findColumnIdForCard(columns, overId);\n\tif (!targetColId) return columns;\n\n\tif (sourceColId === targetColId) {\n\t\t// Intra-column reorder.\n\t\treturn columns.map((col) => {\n\t\t\tif (col.id !== sourceColId) return col;\n\t\t\tconst oldIndex = col.cardIds.indexOf(activeId);\n\t\t\tconst newIndex = overIsColumn ? col.cardIds.length - 1 : col.cardIds.indexOf(overId);\n\t\t\tif (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return col;\n\t\t\tconst next = [...col.cardIds];\n\t\t\tnext.splice(oldIndex, 1);\n\t\t\tnext.splice(newIndex, 0, activeId);\n\t\t\treturn { ...col, cardIds: next };\n\t\t});\n\t}\n\n\t// Cross-column move.\n\treturn columns.map((col) => {\n\t\tif (col.id === sourceColId) {\n\t\t\treturn { ...col, cardIds: col.cardIds.filter((id) => id !== activeId) };\n\t\t}\n\t\tif (col.id === targetColId) {\n\t\t\tconst insertAt = overIsColumn ? col.cardIds.length : col.cardIds.indexOf(overId);\n\t\t\tconst next = [...col.cardIds];\n\t\t\tnext.splice(insertAt < 0 ? next.length : insertAt, 0, activeId);\n\t\t\treturn { ...col, cardIds: next };\n\t\t}\n\t\treturn col;\n\t});\n}\n\n/**\n * Headless Kanban board root.\n * @param props - columns + onChange + children renderers\n * @returns A flex row of columns inside a DndContext\n */\nfunction Kanban({ columns, onChange, children, className, ...rest }: KanbanProps) {\n\tconst sensors = useSensors(\n\t\tuseSensor(PointerSensor, {\n\t\t\tactivationConstraint: { distance: 4 },\n\t\t}),\n\t\tuseSensor(KeyboardSensor, {\n\t\t\tcoordinateGetter: sortableKeyboardCoordinates,\n\t\t}),\n\t);\n\n\tconst onChangeRef = React.useRef(onChange);\n\tonChangeRef.current = onChange;\n\n\tconst handleDragEnd = React.useCallback(\n\t\t(event: DragEndEvent) => {\n\t\t\tconst { active, over } = event;\n\t\t\tif (!over || active.id === over.id) return;\n\t\t\tconst next = moveCard(columns, String(active.id), String(over.id));\n\t\t\tif (next === columns) return;\n\t\t\tonChangeRef.current(next);\n\t\t},\n\t\t[columns],\n\t);\n\n\tconst contextValue = React.useMemo<KanbanContextValue>(() => ({ columns }), [columns]);\n\n\treturn (\n\t\t<KanbanContext.Provider value={contextValue}>\n\t\t\t<DndContext\n\t\t\t\tsensors={sensors}\n\t\t\t\tcollisionDetection={closestCorners}\n\t\t\t\tonDragEnd={handleDragEnd}\n\t\t\t>\n\t\t\t\t<div\n\t\t\t\t\t{...rest}\n\t\t\t\t\tdata-hex-kanban\n\t\t\t\t\tclassName={cn(\"flex gap-4 overflow-x-auto\", className)}\n\t\t\t\t>\n\t\t\t\t\t{children}\n\t\t\t\t</div>\n\t\t\t</DndContext>\n\t\t</KanbanContext.Provider>\n\t);\n}\n\nexport interface KanbanColumnProps\n\textends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\" | \"title\"> {\n\tid: string;\n\ttitle: React.ReactNode;\n\tchildren?: React.ReactNode;\n}\n\n/**\n * Single Kanban column. Provides a SortableContext for its cards and\n * registers itself as a drop target so empty columns still accept cards.\n * @param props - column id + visible title + KanbanCard children\n */\nfunction KanbanColumn({ id, title, children, className, ...rest }: KanbanColumnProps) {\n\tconst { columns } = useKanbanContext();\n\tconst col = columns.find((c) => c.id === id);\n\tconst cardIds = col?.cardIds ?? [];\n\t// Make the column droppable too (so dropping onto an empty column works).\n\tconst { setNodeRef } = useSortable({ id });\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tref={setNodeRef}\n\t\t\tdata-hex-kanban-column\n\t\t\tdata-column-id={id}\n\t\t\tclassName={cn(\n\t\t\t\t\"flex w-72 shrink-0 flex-col gap-2 rounded-lg border bg-muted/30 p-3\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t>\n\t\t\t<header className=\"text-sm font-medium text-muted-foreground\">{title}</header>\n\t\t\t<SortableContext items={cardIds} strategy={verticalListSortingStrategy}>\n\t\t\t\t<div className=\"flex min-h-[2rem] flex-col gap-2\">{children}</div>\n\t\t\t</SortableContext>\n\t\t</div>\n\t);\n}\n\nexport interface KanbanCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, \"children\"> {\n\tid: string;\n\tchildren: React.ReactNode;\n}\n\n/**\n * Single sortable Kanban card. Spreads attributes + listeners onto a\n * draggable wrapper. Children are fully consumer-rendered — pass a\n * `<Card>` or any custom layout.\n * @param props - card id + children content\n */\nfunction KanbanCard({ id, children, className, ...rest }: KanbanCardProps) {\n\tconst { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({\n\t\tid,\n\t});\n\n\tconst style: React.CSSProperties = {\n\t\ttransform: CSS.Transform.toString(transform),\n\t\ttransition,\n\t\topacity: isDragging ? 0.5 : 1,\n\t};\n\n\treturn (\n\t\t<div\n\t\t\t{...rest}\n\t\t\tref={setNodeRef}\n\t\t\tstyle={style}\n\t\t\t{...attributes}\n\t\t\t{...listeners}\n\t\t\tdata-hex-kanban-card\n\t\t\tdata-card-id={id}\n\t\t\tdata-dragging={isDragging}\n\t\t\tclassName={cn(\n\t\t\t\t\"cursor-grab rounded-md border bg-background p-3 text-sm shadow-sm\",\n\t\t\t\t\"hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring\",\n\t\t\t\t\"active:cursor-grabbing\",\n\t\t\t\tclassName,\n\t\t\t)}\n\t\t>\n\t\t\t{children}\n\t\t</div>\n\t);\n}\n\nexport { Kanban, KanbanColumn, KanbanCard };\n",
+      "type": "component"
+    },
+    {
+      "path": "lib/chart-palette.ts",
+      "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/color.ts",
+      "content": "/**\n * Color conversion utilities for the HSL-triplet token format used across\n * `@hex-core/tokens` themes (`H S% L%`, e.g. `\"240 5.9% 10%\"` — no `hsl()`\n * wrapper, no commas).\n *\n * The triplet is the round-trip-safe serialization for Hex Core: tokens flow\n * triplet → CSS `hsl(var(--token))` → rendered color, and the ColorPicker\n * component edits triplets directly. Hex/RGB conversions are display\n * adapters, not the source of truth.\n */\n\n/** Parsed HSL components. `h` is degrees (0–360); `s` and `l` are percentages (0–100). */\nexport interface HslTriplet {\n\th: number;\n\ts: number;\n\tl: number;\n}\n\n/** Parsed RGB components. Each channel is 0–255. */\nexport interface RgbColor {\n\tr: number;\n\tg: number;\n\tb: number;\n}\n\n/**\n * Parse an HSL triplet string into numeric components.\n *\n * Note: malformed input silently coerces to `{0,0,0}` (pure black) rather than\n * returning an error signal. Callers that need to distinguish \"user typed\n * black\" from \"user typed garbage\" should validate the input format first.\n * `hexToHslTriplet` returns `null` for malformed hex; this asymmetry is\n * intentional — triplets feed CSS variables where any non-color value would\n * already break rendering.\n *\n * @param triplet - String in the form `\"<H> <S>% <L>%\"` (e.g. `\"240 5.9% 10%\"`).\n * @returns Numeric components, or `{0,0,0}` if the input is malformed.\n */\nexport function parseHslTriplet(triplet: string): HslTriplet {\n\tconst parts = triplet.trim().split(/\\s+/);\n\treturn {\n\t\th: Number.parseFloat(parts[0]) || 0,\n\t\ts: Number.parseFloat(parts[1]) || 0,\n\t\tl: Number.parseFloat(parts[2]) || 0,\n\t};\n}\n\n/**\n * Format HSL components into an HSL triplet string (the canonical token format).\n * @param hsl - Numeric components.\n * @returns Triplet in the form `\"<H> <S>% <L>%\"`.\n */\nexport function formatHslTriplet({ h, s, l }: HslTriplet): string {\n\t// Tolerant integer check: rgbToHsl can produce values like 5.0000000001 due\n\t// to float arithmetic; format those as \"5\" rather than \"5.0\".\n\tconst round = (n: number) =>\n\t\tMath.abs(n - Math.round(n)) < 1e-6 ? `${Math.round(n)}` : n.toFixed(1);\n\treturn `${Math.round(h)} ${round(s)}% ${round(l)}%`;\n}\n\n/**\n * Convert HSL components to RGB.\n * @param h - Hue (0–360).\n * @param s - Saturation (0–100).\n * @param l - Lightness (0–100).\n * @returns RGB channels (0–255, rounded).\n */\nexport function hslToRgb(h: number, s: number, l: number): RgbColor {\n\tconst sN = s / 100;\n\tconst lN = l / 100;\n\tconst k = (n: number) => (n + h / 30) % 12;\n\tconst a = sN * Math.min(lN, 1 - lN);\n\tconst f = (n: number) => lN - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));\n\treturn {\n\t\tr: Math.round(255 * f(0)),\n\t\tg: Math.round(255 * f(8)),\n\t\tb: Math.round(255 * f(4)),\n\t};\n}\n\n/**\n * Convert RGB components to HSL.\n * @param r - Red (0–255).\n * @param g - Green (0–255).\n * @param b - Blue (0–255).\n * @returns HSL components (h: 0–360, s: 0–100, l: 0–100).\n */\nexport function rgbToHsl(r: number, g: number, b: number): HslTriplet {\n\tconst rN = r / 255;\n\tconst gN = g / 255;\n\tconst bN = b / 255;\n\tconst max = Math.max(rN, gN, bN);\n\tconst min = Math.min(rN, gN, bN);\n\tlet h = 0;\n\tlet s = 0;\n\tconst l = (max + min) / 2;\n\tif (max !== min) {\n\t\tconst d = max - min;\n\t\ts = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n\t\tif (max === rN) h = (gN - bN) / d + (gN < bN ? 6 : 0);\n\t\telse if (max === gN) h = (bN - rN) / d + 2;\n\t\telse h = (rN - gN) / d + 4;\n\t\th /= 6;\n\t}\n\treturn { h: h * 360, s: s * 100, l: l * 100 };\n}\n\n/**\n * Convert an HSL triplet to a 6-digit hex string.\n * @param triplet - HSL triplet (e.g. `\"240 5.9% 10%\"`).\n * @returns Lowercase hex string with leading `#` (e.g. `\"#181a1f\"`).\n */\nexport function hslTripletToHex(triplet: string): string {\n\tconst { h, s, l } = parseHslTriplet(triplet);\n\tconst { r, g, b } = hslToRgb(h, s, l);\n\tconst toHex = (n: number) => n.toString(16).padStart(2, \"0\");\n\treturn `#${toHex(r)}${toHex(g)}${toHex(b)}`;\n}\n\n/**\n * Convert a hex string to an HSL triplet.\n * Accepts 3-digit (`#abc`) or 6-digit (`#aabbcc`) hex with optional `#`.\n * @param hex - Hex color string.\n * @returns HSL triplet, or `null` if the input is malformed.\n */\nexport function hexToHslTriplet(hex: string): string | null {\n\tconst clean = hex.trim().replace(/^#/, \"\");\n\tlet normalized: string;\n\tif (/^[0-9a-fA-F]{3}$/.test(clean)) {\n\t\tnormalized = clean\n\t\t\t.split(\"\")\n\t\t\t.map((c) => c + c)\n\t\t\t.join(\"\");\n\t} else if (/^[0-9a-fA-F]{6}$/.test(clean)) {\n\t\tnormalized = clean;\n\t} else {\n\t\treturn null;\n\t}\n\tconst r = Number.parseInt(normalized.slice(0, 2), 16);\n\tconst g = Number.parseInt(normalized.slice(2, 4), 16);\n\tconst b = Number.parseInt(normalized.slice(4, 6), 16);\n\treturn formatHslTriplet(rgbToHsl(r, g, b));\n}\n",
+      "type": "lib"
+    },
+    {
+      "path": "lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from \"clsx\";\nimport { twMerge } from \"tailwind-merge\";\n\n/**\n * Merge class names with Tailwind CSS conflict resolution.\n * @param inputs - Class values (strings, arrays, objects) to merge\n * @returns A single merged class string with Tailwind conflicts resolved\n */\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n\nconst SAFE_URL_SCHEMES = [\"http:\", \"https:\", \"mailto:\"] as const;\n\n/**\n * Allowlist a URL for use as an `<a href>` against untrusted input.\n *\n * Returns the raw string when it's `http(s):` / `mailto:` / a relative\n * URL (no scheme); returns `undefined` otherwise. Defends against\n * `javascript:` / `data:` / `vbscript:` injection from streamed model\n * output or third-party JSON payloads that flow into citation chips.\n *\n * Inside a Markdown render path, `rehype-sanitize` already strips\n * `javascript:` from inline-link hrefs — but it does NOT introspect\n * JSON nested inside attribute values (e.g. `<sources data='[…]'/>`),\n * so the components that consume that data must guard themselves.\n *\n * @param raw - The candidate URL, or `undefined` when none was supplied.\n * @returns The URL when safe to render, otherwise `undefined`.\n */\nexport function safeUrl(raw: string | undefined): string | undefined {\n\tif (raw === undefined || raw === \"\") return undefined;\n\t// Relative URLs have no scheme — `new URL(relative)` throws without a base,\n\t// so a thrown URL means either malformed input OR a relative path. Treat\n\t// \"throws + does not contain a colon\" as a relative path (safe).\n\tlet parsed: URL;\n\ttry {\n\t\tparsed = new URL(raw);\n\t} catch {\n\t\treturn raw.includes(\":\") ? undefined : raw;\n\t}\n\treturn SAFE_URL_SCHEMES.some((scheme) => scheme === parsed.protocol) ? raw : undefined;\n}\n",
+      "type": "lib"
+    }
+  ],
+  "dependencies": {
+    "npm": [
+      "clsx",
+      "tailwind-merge"
+    ],
+    "internal": [
+      "lib/utils",
+      "dnd"
+    ],
+    "peer": [
+      "react",
+      "react-dom"
+    ],
+    "heavyPeer": [
+      {
+        "name": "@dnd-kit/core",
+        "version": "^6.3.1",
+        "bundleKbGzip": 30,
+        "reason": "Drag-and-drop engine (sensors, context, collision detection)"
+      },
+      {
+        "name": "@dnd-kit/sortable",
+        "version": "^10.0.0",
+        "bundleKbGzip": 10,
+        "reason": "Sortable strategies + useSortable hook for cards"
+      },
+      {
+        "name": "@dnd-kit/utilities",
+        "version": "^3.2.2",
+        "bundleKbGzip": 3,
+        "reason": "CSS transform helpers used by KanbanCard"
+      }
+    ]
+  },
+  "tokensUsed": [
+    "background",
+    "muted",
+    "muted-foreground",
+    "accent",
+    "ring"
+  ],
+  "examples": [
+    {
+      "title": "Basic three-column board",
+      "description": "Standard To-do / Doing / Done board with text cards.",
+      "code": "const [board, setBoard] = useState([\n  { id: \"todo\", title: \"To do\", cardIds: [\"1\", \"2\"] },\n  { id: \"doing\", title: \"Doing\", cardIds: [\"3\"] },\n  { id: \"done\", title: \"Done\", cardIds: [] },\n]);\nconst cards = { \"1\": \"Wire DnD\", \"2\": \"Build Kanban\", \"3\": \"Ship PR\" };\n\n<Kanban columns={board} onChange={setBoard}>\n  {board.map((col) => (\n    <KanbanColumn key={col.id} id={col.id} title={col.title}>\n      {col.cardIds.map((cardId) => (\n        <KanbanCard key={cardId} id={cardId}>{cards[cardId]}</KanbanCard>\n      ))}\n    </KanbanColumn>\n  ))}\n</Kanban>",
+      "composition": [
+        "kanban",
+        "board",
+        "dnd"
+      ]
+    },
+    {
+      "title": "Cards composing <Card>",
+      "description": "Use the existing Card primitive inside KanbanCard for richer card UI.",
+      "code": "<KanbanCard id={item.id}>\n  <Card>\n    <CardHeader>\n      <CardTitle>{item.title}</CardTitle>\n      <CardDescription>{item.assignee}</CardDescription>\n    </CardHeader>\n    <CardContent><Badge>{item.priority}</Badge></CardContent>\n  </Card>\n</KanbanCard>",
+      "composition": [
+        "kanban",
+        "card"
+      ]
+    }
+  ],
+  "ai": {
+    "whenToUse": "Project boards, agent task queues, build pipelines visualization, any column-grouped sortable list. Pair with a backend persistence call inside `onChange` so reorders survive a refresh.",
+    "whenNotToUse": "Don't use for a single sortable list (use `<SortableList>` from `dnd`). Don't use for free-positioning canvases (use `<Canvas>` with reactflow). Don't bake server-state writes into `onChange` synchronously — debounce or use optimistic state.",
+    "commonMistakes": [
+      "Mutating the columns array in onChange — pass the returned array verbatim. Mutation breaks React's identity-based re-render and causes ghost cards",
+      "Using array indices as cardIds — indices shift on reorder and break DnD. Use stable string IDs",
+      "Forgetting that each KanbanCard id must be unique ACROSS columns, not just within one column — ids are the canonical identity for cross-column drag",
+      "Wrapping the whole Kanban in an extra DndContext — Kanban already provides one. Nested contexts confuse dnd-kit's collision detection"
+    ],
+    "relatedComponents": [
+      "dnd",
+      "card",
+      "data-table"
+    ],
+    "accessibilityNotes": "@dnd-kit's KeyboardSensor is wired by default — Tab to focus a card, Space/Enter to pick up, arrow keys to move (within or across columns), Space/Enter to drop, Escape to cancel. Live-region announcements describe drag state for screen readers. The drag-handle visual is the entire card; consumers can override the cursor via className.",
+    "tokenBudget": 460
+  },
+  "tags": [
+    "kanban",
+    "board",
+    "dnd",
+    "sortable",
+    "drag-and-drop",
+    "project-management"
+  ]
+}

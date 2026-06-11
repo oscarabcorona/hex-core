@@ -328,6 +328,28 @@
       "tokenBudget": 1800
     },
     {
+      "slug": "kanban-board",
+      "kind": "component",
+      "title": "Kanban board",
+      "summary": "Drag-and-drop Kanban board with multi-column cards, persistence on drop, and a richer card composing <Card>.",
+      "tags": [
+        "kanban",
+        "board",
+        "dnd",
+        "project-management",
+        "agent-tasks"
+      ],
+      "components": [
+        "kanban",
+        "dnd",
+        "card",
+        "badge",
+        "avatar",
+        "button"
+      ],
+      "tokenBudget": 2400
+    },
+    {
       "slug": "landing-hero",
       "kind": "component",
       "title": "Landing hero",

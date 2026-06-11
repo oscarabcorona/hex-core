@@ -58,3 +58,60 @@ describe("Tree", () => {
 		expect(screen.getByRole("treeitem", { name: "B" })).not.toHaveAttribute("aria-disabled");
 	});
 });
+
+describe("Tree reorder (top-level only)", () => {
+	const flat: TreeNode[] = [
+		{ id: "a", label: "A" },
+		{ id: "b", label: "B" },
+		{ id: "c", label: "C" },
+	];
+
+	it("renders unchanged when reorderable is false (default)", () => {
+		render(<Tree aria-label="Test" data={flat} />);
+		expect(screen.queryByRole("button", { name: /Drag to reorder/ })).toBeNull();
+		expect(document.querySelector("[data-row-id]")).toBeNull();
+	});
+
+	it("renders a drag-handle button on each ROOT row only when reorderable is true", () => {
+		render(<Tree aria-label="Test" data={TREE} reorderable defaultExpanded={["ceo"]} />);
+		const handles = screen.getAllByRole("button", { name: /Drag to reorder/ });
+		// Only 1 root in TREE → only 1 handle, even though CTO/CMO are visible.
+		expect(handles).toHaveLength(1);
+	});
+
+	it("each root row exposes data-row-id matching the node id", () => {
+		render(<Tree aria-label="Test" data={flat} reorderable />);
+		expect(document.querySelector('[data-row-id="a"]')).not.toBeNull();
+		expect(document.querySelector('[data-row-id="b"]')).not.toBeNull();
+		expect(document.querySelector('[data-row-id="c"]')).not.toBeNull();
+	});
+
+	it("each sortable row carries data-dragging=false in static state", () => {
+		render(<Tree aria-label="Test" data={flat} reorderable />);
+		document.querySelectorAll("[data-row-id]").forEach((row) => {
+			expect(row.getAttribute("data-dragging")).toBe("false");
+		});
+	});
+
+	it("clicking the drag handle does NOT trigger row activation (stopPropagation)", async () => {
+		const onSelect = vi.fn();
+		render(<Tree aria-label="Test" data={flat} reorderable onSelect={onSelect} />);
+		await userEvent.click(screen.getAllByRole("button", { name: /Drag to reorder/ })[0]);
+		expect(onSelect).not.toHaveBeenCalled();
+	});
+
+	it("existing keyboard navigation still works when reorderable is enabled (ArrowDown shifts roving tabIndex from A to B)", async () => {
+		const user = userEvent.setup();
+		render(<Tree aria-label="Test" data={flat} reorderable />);
+		const a = screen.getByRole("treeitem", { name: "A" });
+		const b = screen.getByRole("treeitem", { name: "B" });
+		// Initially A is the active row (first visible).
+		expect(a).toHaveAttribute("tabindex", "0");
+		expect(b).toHaveAttribute("tabindex", "-1");
+		a.focus();
+		await user.keyboard("{ArrowDown}");
+		// After ArrowDown, the roving tabindex hops to B (Tree's existing model).
+		expect(a).toHaveAttribute("tabindex", "-1");
+		expect(b).toHaveAttribute("tabindex", "0");
+	});
+});

@@ -674,7 +674,8 @@
       ],
       "internalDeps": [
         "lib/utils",
-        "components/table/table"
+        "components/table/table",
+        "dnd"
       ],
       "tokenBudget": 820
     },
@@ -713,6 +714,25 @@
       ],
       "internalDeps": [],
       "tokenBudget": 1220
+    },
+    {
+      "name": "dnd",
+      "displayName": "DnD",
+      "description": "Composable drag-and-drop primitives backed by @dnd-kit. Exports `<DndProvider>` (root context with sensible sensors), `<SortableList>` (turnkey wrapper), and `useSortableItem(id)` (headless hook for advanced consumers like Kanban cards, DataTable rows, Tree nodes).",
+      "category": "component",
+      "subcategory": "primitive",
+      "tags": [
+        "dnd",
+        "sortable",
+        "drag-and-drop",
+        "primitive",
+        "headless",
+        "dnd-kit"
+      ],
+      "internalDeps": [
+        "lib/utils"
+      ],
+      "tokenBudget": 420
     },
     {
       "name": "drawer",
@@ -836,6 +856,26 @@
         "lib/utils"
       ],
       "tokenBudget": 902
+    },
+    {
+      "name": "kanban",
+      "displayName": "Kanban",
+      "description": "Headless Kanban board with drag-to-reorder + drag-across-columns. Consumer keeps state as `{ id, title, cardIds }[]` and renders cards via children. Built on the shared `<Kanban>` + `<KanbanColumn>` + `<KanbanCard>` primitives over @dnd-kit. Columns are static in v1 (cards are the moving parts).",
+      "category": "component",
+      "subcategory": "data-display",
+      "tags": [
+        "kanban",
+        "board",
+        "dnd",
+        "sortable",
+        "drag-and-drop",
+        "project-management"
+      ],
+      "internalDeps": [
+        "lib/utils",
+        "dnd"
+      ],
+      "tokenBudget": 460
     },
     {
       "name": "menubar",
@@ -1126,7 +1166,9 @@
         "picker",
         "ARIA-tree"
       ],
-      "internalDeps": [],
+      "internalDeps": [
+        "dnd"
+      ],
       "tokenBudget": 1142
     },
     {

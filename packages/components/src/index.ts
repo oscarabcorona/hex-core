@@ -308,6 +308,28 @@ export {
 	SidebarItem,
 	useSidebar,
 } from "./components/sidebar/sidebar.js";
+export {
+	DndProvider,
+	SortableList,
+	useSortableItem,
+	arrayMove,
+	verticalListSortingStrategy,
+	horizontalListSortingStrategy,
+	rectSortingStrategy,
+	type DndProviderProps,
+	type SortableListProps,
+	type SortStrategy,
+	type UseSortableItemReturn,
+} from "./components/dnd/dnd.js";
+export {
+	Kanban,
+	KanbanColumn,
+	KanbanCard,
+	type KanbanProps,
+	type KanbanColumnProps,
+	type KanbanCardProps,
+	type KanbanColumnData,
+} from "./components/kanban/kanban.js";
 
 // Hooks (AI Kit Phase 3)
 export {

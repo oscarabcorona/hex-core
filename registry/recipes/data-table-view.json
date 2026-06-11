@@ -95,6 +95,12 @@
       "source": "derived-mistake"
     },
     {
+      "id": "data-table-setting-reorderablerows-true-without-getrowid-th",
+      "check": "[Data Table] Avoid: Setting reorderableRows={true} without getRowId — throws at render. Pass `getRowId={(row) => row.id}` (or whatever your stable key field is)",
+      "severity": "warn",
+      "source": "derived-mistake"
+    },
+    {
       "id": "data-table-a11y",
       "check": "[Data Table] A11y: Pass either `caption` (visible) or `aria-label` so screen readers announce the table when the user enters it. Add aria-sort to sortable column headers. Announce filter/sort changes via aria-live for dynamic updates.",
       "severity": "warn",

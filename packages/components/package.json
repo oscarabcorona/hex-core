@@ -98,6 +98,9 @@
 	},
 	"devDependencies": {
 		"@ai-sdk/react": "^3.0.193",
+		"@dnd-kit/core": "^6.3.1",
+		"@dnd-kit/sortable": "^10.0.0",
+		"@dnd-kit/utilities": "^3.2.2",
 		"@hex-core/registry": "workspace:^",
 		"@microsoft/api-extractor": "^7.58.7",
 		"@tanstack/react-table": "^8.21.3",
@@ -130,6 +133,9 @@
 	},
 	"peerDependencies": {
 		"@ai-sdk/react": "^3.0.193",
+		"@dnd-kit/core": "^6.3.0",
+		"@dnd-kit/sortable": "^10.0.0",
+		"@dnd-kit/utilities": "^3.2.0",
 		"@hex-core/registry": "*",
 		"@tanstack/react-table": "^8.0.0 || ^9.0.0",
 		"@xterm/xterm": "^5.5.0 || ^6.0.0",
@@ -153,6 +159,15 @@
 	},
 	"peerDependenciesMeta": {
 		"@ai-sdk/react": {
+			"optional": true
+		},
+		"@dnd-kit/core": {
+			"optional": true
+		},
+		"@dnd-kit/sortable": {
+			"optional": true
+		},
+		"@dnd-kit/utilities": {
 			"optional": true
 		},
 		"@hex-core/registry": {
