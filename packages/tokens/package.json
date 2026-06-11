@@ -50,7 +50,7 @@
 	},
 	"devDependencies": {
 		"@types/culori": "^4.0.1",
-		"postcss": "^8.5.0",
+		"postcss": "^8.5.15",
 		"tsup": "^8.3.0",
 		"typescript": "^6.0.3"
 	}
