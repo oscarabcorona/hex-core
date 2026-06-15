@@ -93,7 +93,7 @@
 		"rehype-sanitize": "^6.0.0",
 		"remark-gfm": "^4.0.1",
 		"shiki": "^4.0.2",
-		"tailwind-merge": "^3.5.0",
+		"tailwind-merge": "^3.6.0",
 		"unist-util-visit": "^5.1.0"
 	},
 	"devDependencies": {
