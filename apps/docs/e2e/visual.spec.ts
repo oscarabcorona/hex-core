@@ -84,7 +84,16 @@ const NO_VISUAL_DEMO = new Set([
 	"commerce-promo",
 	"commerce-order-summary",
 	"commerce-order-history",
+	// Hooks document an API surface, not a rendered component — their
+	// /docs/components page has no <ComponentPreview> to screenshot.
+	"use-ai-chat",
+	"use-streaming-message",
 ]);
+
+// Demos that read `new Date()` at render time churn their baselines daily:
+// Calendar defaults to the current month and flags "today". For these we pin
+// the page clock to a fixed instant (below) so the screenshot is deterministic.
+const TIME_SENSITIVE = new Set(["calendar"]);
 
 const themes = [
 	{ name: "light", html: "" },
@@ -120,6 +129,16 @@ for (const { name: slug, displayName } of registry.items) {
 					// classList fallback below covers it.
 				}
 			}, theme.html);
+
+			// Pin the page clock for time-sensitive demos so the rendered date
+			// and the "today" marker stay identical across runs. Set before
+			// navigation so the very first render already sees the frozen time;
+			// scoped per-slug so the other baselines (captured under real time)
+			// are untouched. Live docs keep showing the real month — only the
+			// test's view of "now" is frozen.
+			if (TIME_SENSITIVE.has(slug)) {
+				await page.clock.setFixedTime(new Date("2026-06-10T12:00:00Z"));
+			}
 
 			await page.goto(`/docs/components/${slug}`, { waitUntil: "networkidle" });
 			await page.addStyleTag({ content: FREEZE_CSS });
