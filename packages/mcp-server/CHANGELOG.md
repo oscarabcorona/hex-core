@@ -1,5 +1,24 @@
 # @hex-core/mcp
 
+## 0.6.3
+
+### Patch Changes
+
+- chore(deps): adopt zod 4.4, react-hook-form 7.78, commander 15, react-day-picker 10, @xterm/xterm 6
+
+  Runtime dependency bumps that landed across the catalog:
+  - **zod** 4.3.6 → 4.4.3 (registry, tokens, cli, mcp)
+  - **react-hook-form** 7.74 → 7.78, **react-day-picker** 9 → 10, **@xterm/xterm** 5 → 6 (components — the react-day-picker and @xterm peer ranges were widened so consumers on either major stay valid)
+  - **commander** 14 → 15 (cli)
+
+  No public API changes — calendar.tsx already used react-day-picker's v10-modern classNames + Chevron API, the Terminal uses only stable xterm APIs, and the CLI uses the stable commander surface.
+
+- Updated dependencies [0087190]
+- Updated dependencies
+- Updated dependencies [2f7586f]
+  - @hex-core/registry@0.7.0
+  - @hex-core/payload@0.4.2
+
 ## 0.6.2
 
 ### Patch Changes

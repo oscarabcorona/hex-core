@@ -8,7 +8,7 @@
 
 **The component layer for spec-driven UI development.**
 
-Hex Core turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 16 MCP tools over a catalog of 183 components, including 43 section blocks and 8 page recipes.
+Hex Core turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 16 MCP tools over a catalog of 187 components, including 43 section blocks and 8 page recipes.
 
 ## Why Hex Core?
 
