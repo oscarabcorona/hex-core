@@ -2,6 +2,10 @@
 
 ## 1.15.0
 
+### Patch Changes
+
+- chore(deps): refresh `@radix-ui/*` primitives (radix group) + `tailwind-merge` 3.6. **Note:** Radix Toggle Group `v1.1.13+` now exposes a single-select group as `role="radiogroup"` (with `role="radio"` items) instead of `role="group"` — update any `getByRole("group")` assertions on single-select toggle groups.
+
 ### Minor Changes
 
 - 2f7586f: feat(dnd, kanban): composable drag-and-drop primitives + Kanban + opt-in reorder for DataTable rows and Tree top-level nodes
