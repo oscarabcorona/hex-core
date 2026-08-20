@@ -1,6 +1,6 @@
 ---
 name: hex-core-cli
-description: Using the hex CLI. Load when the user runs or asks about hex init, hex add, hex list, hex recipe, hex skills, pnpm dlx @hex-core/cli, or npx @hex-core/cli.
+description: Using the hex CLI. Load when the user runs or asks about hex init, hex add, hex map, hex poc, hex graph, hex list, hex recipe, hex doctor, hex migrate, hex skills, pnpm dlx @hex-core/cli, or npx @hex-core/cli.
 ---
 
 # Hex Core — CLI
@@ -35,9 +35,21 @@ Installs every component in the recipe's step list (transitively), then prints t
 
 Recipes: `auth-form`, `settings-page`, `pricing-table`, `data-table-view`, `confirm-destructive`, `command-palette`.
 
+### `hex map "<brief>" [--spec <file>] [--out hex.map.json] [--json]`
+
+Deterministically maps an application brief onto the catalog: screens typed as `page-recipe` / `recipe` / `components`, plus a full `requires`-closure install list, suggestions, anti-pattern warnings, checklist, and token budgets. No LLM — same brief + registry ⇒ same map. Write it with `--out hex.map.json`; that file is what `hex add --from` and `hex poc --from` consume.
+
+### `hex poc ["<brief>" | --from hex.map.json | --recipe <page-recipe>] --dir <path> [--yes] [--dry-run]`
+
+Scaffolds a standalone runnable Next.js App Router demo app: theme globals.css, all mapped components copied in with rewritten imports, one generated route per page-recipe screen, index page, README, and the map itself. `cd <dir> && pnpm install && pnpm dev` — no manual wiring. Pass exactly one source. Non-page screens are installed but get no generated route (listed on the index page). `--yes` is required to write (and to write into a non-empty dir).
+
+### `hex graph explain|affected|neighbors|path <slug…>` `[--json]`
+
+Queries the shipped catalog knowledge graph; the four subcommands mirror MCP `query_graph`'s four modes. `explain` = edges grouped by relation (`requires`/`composes`/`themes`/`related`/`instead-use`) + community peers; `affected` = reverse blast radius (dependents + recipes); `neighbors` = adjacent nodes (`--relation` to filter); `path <from> <to>` = shortest connection. Use before inventing component relationships.
+
 ### `hex skills install [--target <path>] [--overwrite]`
 
-Copies the 8 skills that ship with hex-core into `<cwd>/.claude/skills/` by default. An agent reading the host repo will then load them into context as needed.
+Copies the nine skills that ship with hex-core into `<cwd>/.claude/skills/` by default. An agent reading the host repo will then load them into context as needed.
 
 ## Canonical flows
 
@@ -60,6 +72,14 @@ pnpm dlx @hex-core/cli add combobox --no-deps
 # → writes only combobox.tsx + warning about missing command/popover
 ```
 
+**Map and build a whole application:**
+```bash
+pnpm dlx @hex-core/cli map "a SaaS site with a landing page and pricing page" --out hex.map.json
+# review/edit hex.map.json, then either:
+pnpm dlx @hex-core/cli add --from hex.map.json          # into an existing app
+pnpm dlx @hex-core/cli poc --from hex.map.json --dir demo --yes   # instant runnable demo
+```
+
 ## Common mistakes
 
 - **Running `hex add` outside a project root.** The CLI writes into `cwd`. If you're in a parent directory, files land in the wrong place.
@@ -67,3 +87,5 @@ pnpm dlx @hex-core/cli add combobox --no-deps
 - **Running `hex recipe add` twice and wondering why nothing changed.** That's skip-if-exists at work. Add `--overwrite` or delete the files first.
 - **Expecting `hex add combobox --no-deps` to just fail.** It warns, doesn't fail. Exit code is 0. Parse the stderr or follow the printed "Install: hex add ..." line.
 - **Running the CLI before running `hex init`.** `hex init` is optional — `hex add` works without it. But the config file is where you'd edit the target components dir if you don't want `components/ui/`.
+- **Expecting `hex map` to reason like an LLM.** It's deterministic keyword + graph scoring. Name pages and features in the catalog's vocabulary ("landing page", "pricing", "kanban board") — you supply the judgment, the map supplies reproducibility. Unmatched segments are reported, not guessed at.
+- **Running `hex poc` without `--yes` and thinking it failed.** Without `--yes` it prints the plan and asks you to re-run. That's the confirmation gate, same as `hex migrate`.

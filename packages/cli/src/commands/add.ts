@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { parseMap } from "@hex-core/payload";
 import { internalDepToSlug, SLUG_REGEX } from "@hex-core/registry";
 import pc from "picocolors";
 import { z } from "zod";
@@ -130,9 +131,12 @@ export interface AddOptions {
 	from?: string;
 }
 
-const ManifestSchema = z.object({
-	components: z.array(z.string().regex(SLUG_REGEX, "invalid component slug")).min(1),
-});
+const ManifestSchema = z
+	.object({
+		$schema: z.string().optional(),
+		components: z.array(z.string().regex(SLUG_REGEX, "invalid component slug")).min(1),
+	})
+	.strict();
 
 interface Context {
 	registryDir: string;
@@ -548,13 +552,17 @@ export async function addComponents(components: string[], options: AddOptions): 
 }
 
 /**
- * Read a `hex.components.json`-style manifest, validate its shape, and
- * return the list of component slugs to enqueue. Resolved relative to cwd.
+ * Read a `hex.components.json`-style manifest OR a `hex.map.json`
+ * application map (as emitted by `hex map --out`), validate its shape,
+ * and return the list of component slugs to enqueue. Resolved relative
+ * to cwd.
  *
- * Schema: `{ "components": ["button", "card", ...] }`. Anything else
- * (extra fields, mistyped values) errors with a friendly message — the
- * file format is the user's commit-tracked source of truth, so silent
- * coercion would mask bugs they need to see.
+ * Manifest schema: `{ "components": ["button", "card", ...] }`. A map
+ * file is recognized by its `screens` field and contributes its
+ * `install.components` closure. Anything else (extra fields, mistyped
+ * values) errors with a friendly message — both file formats are the
+ * user's commit-tracked source of truth, so silent coercion would mask
+ * bugs they need to see.
  */
 function readManifest(cwd: string, manifestPath: string): string[] {
 	const abs = path.isAbsolute(manifestPath) ? manifestPath : path.resolve(cwd, manifestPath);
@@ -568,6 +576,32 @@ function readManifest(cwd: string, manifestPath: string): string[] {
 	} catch (err) {
 		console.error(`Manifest ${manifestPath} is not valid JSON: ${(err as Error).message}`);
 		process.exit(1);
+	}
+	if (typeof raw === "object" && raw !== null && "screens" in raw) {
+		const map = parseMap(raw);
+		if (!map.success) {
+			console.error(`Map file ${manifestPath} is malformed: ${map.error}`);
+			process.exit(1);
+		}
+		if (map.data.install.components.length === 0) {
+			console.error(`Map file ${manifestPath} has an empty install list — nothing to add.`);
+			process.exit(1);
+		}
+		// A hand-edited map can name a slug that passes the schema's slug
+		// pattern but doesn't exist. Say so here rather than silently
+		// installing a shorter list than the file asks for.
+		const registryDir = findRegistryDir();
+		if (registryDir) {
+			const unknown = map.data.install.components.filter(
+				(slug) => !fs.existsSync(path.join(registryDir, "items", `${slug}.json`)),
+			);
+			if (unknown.length > 0) {
+				console.warn(
+					`  Warning: ${manifestPath} names ${unknown.length} unknown component(s): ${unknown.join(", ")} — skipping them.`,
+				);
+			}
+		}
+		return map.data.install.components;
 	}
 	const result = ManifestSchema.safeParse(raw);
 	if (!result.success) {

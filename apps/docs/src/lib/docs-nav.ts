@@ -11,6 +11,7 @@ export interface DocNavLink {
 export const GETTING_STARTED_NAV: readonly DocNavLink[] = [
 	{ title: "Introduction", href: "/docs/getting-started" },
 	{ title: "Installation", href: "/docs/installation" },
+	{ title: "CLI", href: "/docs/cli" },
 	{ title: "Theming", href: "/docs/theming" },
 	{ title: "MCP Server", href: "/docs/mcp" },
 	{ title: "Spec-driven", href: "/docs/spec-driven" },

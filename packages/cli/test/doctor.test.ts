@@ -264,3 +264,11 @@ describe("doctor --layout", () => {
 		expect(empty?.hint).toMatch(/<Empty>/);
 	});
 });
+
+describe("doctor — catalog graph", () => {
+	it("passes when the bundled registry ships a parseable graph.json", async () => {
+		writePkg({ name: "scratch" });
+		const checks = await runDoctor(tmpDir);
+		expect(findCheck(checks, /catalog graph/)?.status).toBe("pass");
+	});
+});

@@ -44,6 +44,7 @@
 		"test:integration": "vitest run --config vitest.integration.config.ts"
 	},
 	"dependencies": {
+		"@hex-core/payload": "workspace:^",
 		"@hex-core/registry": "workspace:^",
 		"@hex-core/themes": "workspace:^",
 		"@hex-core/tokens": "workspace:^",

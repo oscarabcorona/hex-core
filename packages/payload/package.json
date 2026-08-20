@@ -47,13 +47,18 @@
 		"test:app-context": "tsx src/builders/app-context.test.ts",
 		"test:figma-tokens": "tsx src/builders/figma-tokens.test.ts",
 		"test:registry-loader": "tsx src/loaders/registry-loader.test.ts",
-		"test": "pnpm test:resolver && pnpm test:app-context && pnpm test:figma-tokens && pnpm test:registry-loader",
-		"clean": "rm -rf dist registry"
+		"test": "pnpm test:resolver && pnpm test:app-context && pnpm test:figma-tokens && pnpm test:registry-loader && pnpm test:graph && pnpm test:map && pnpm test:poc && pnpm test:poc-pins",
+		"clean": "rm -rf dist registry",
+		"test:graph": "tsx src/graph/graph.test.ts",
+		"test:map": "tsx src/builders/map.test.ts",
+		"test:poc": "tsx src/builders/poc.test.ts",
+		"test:poc-pins": "tsx src/builders/poc-pins.test.ts"
 	},
 	"dependencies": {
 		"@hex-core/registry": "workspace:^",
 		"@hex-core/themes": "workspace:^",
-		"@hex-core/tokens": "workspace:^"
+		"@hex-core/tokens": "workspace:^",
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@types/node": "^25.6.0",

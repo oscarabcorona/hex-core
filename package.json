@@ -5,7 +5,7 @@
 	"description": "AI-native component library for LLMs and humans",
 	"scripts": {
 		"build": "turbo build",
-		"build:registry": "tsx scripts/build-registry.ts",
+		"build:registry": "tsx scripts/build-registry.ts && tsx scripts/build-graph.ts",
 		"import:themes:fetch": "tsx scripts/fetch-getdesign-templates.ts",
 		"import:themes": "tsx scripts/import-voltagent.ts",
 		"a11y-audit": "tsx scripts/a11y-audit.ts",

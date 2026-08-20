@@ -68,7 +68,7 @@ export const alertDialogSchema: ComponentSchemaDefinition = {
 			"Putting more than one AlertDialogAction (the pattern expects one destructive action)",
 			"Making the action button non-destructive styled",
 		],
-		relatedComponents: ["dialog", "toast"],
+		relatedComponents: ["dialog", "sonner"],
 		accessibilityNotes:
 			"Radix sets role='alertdialog', traps focus, focuses AlertDialogCancel by default, and closes on Escape. Clicks outside the dialog are prevented (user must choose Cancel or Action).",
 		tokenBudget: 631,

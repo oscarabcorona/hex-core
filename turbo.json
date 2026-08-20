@@ -1,9 +1,16 @@
 {
 	"$schema": "https://turbo.build/schema.json",
+	"globalDependencies": [
+		"registry/**"
+	],
 	"tasks": {
 		"build": {
-			"dependsOn": ["^build"],
-			"outputs": ["dist/**"]
+			"dependsOn": [
+				"^build"
+			],
+			"outputs": [
+				"dist/**"
+			]
 		},
 		"build:registry": {
 			"dependsOn": [
@@ -12,13 +19,19 @@
 				"@hex-core/registry#build",
 				"@hex-core/motion#build"
 			],
-			"outputs": ["registry/**"]
+			"outputs": [
+				"registry/**"
+			]
 		},
 		"validate": {
-			"dependsOn": ["build:registry"]
+			"dependsOn": [
+				"build:registry"
+			]
 		},
 		"test": {
-			"dependsOn": ["build"],
+			"dependsOn": [
+				"build"
+			],
 			"inputs": [
 				"src/**",
 				"test/**",

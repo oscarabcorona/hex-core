@@ -23,6 +23,9 @@ export const TOOL = {
 	EMIT_FIGMA_TOKENS: "emit_figma_tokens",
 	DESCRIBE_INTENT: "describe_intent",
 	SEARCH_COMPOSITIONS: "search_compositions",
+	MAP_APPLICATION: "map_application",
+	QUERY_GRAPH: "query_graph",
+	SCAFFOLD_POC: "scaffold_poc",
 } as const;
 
 export const TOOL_NAMES = Object.values(TOOL) as readonly ToolName[];

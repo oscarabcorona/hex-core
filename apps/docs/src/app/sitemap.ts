@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { GETTING_STARTED_NAV } from "../lib/docs-nav";
 import { listComponents } from "../lib/registry";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hex-core.dev";
@@ -6,16 +7,20 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hex-core.dev";
 /** Pinned once per build so crawlers see a stable `lastModified` per deploy. */
 const BUILD_TIME = new Date();
 
+/**
+ * Docs routes are derived from `GETTING_STARTED_NAV` rather than re-listed
+ * here — two hardcoded route lists had already drifted (spec-driven, blocks
+ * and skills were missing from the sitemap). Adding a docs page is now a
+ * one-line edit in `docs-nav.ts`, which is what its own docstring promises.
+ */
 const STATIC_ROUTES: readonly { path: string; priority: number }[] = [
 	{ path: "/", priority: 1 },
 	{ path: "/docs", priority: 0.9 },
-	{ path: "/docs/getting-started", priority: 0.9 },
-	{ path: "/docs/installation", priority: 0.8 },
-	{ path: "/docs/theming", priority: 0.8 },
-	{ path: "/docs/mcp", priority: 0.8 },
-	{ path: "/docs/motion", priority: 0.8 },
-	{ path: "/docs/faq", priority: 0.7 },
-] as const;
+	...GETTING_STARTED_NAV.map((link) => ({
+		path: link.href,
+		priority: link.href === "/docs/getting-started" ? 0.9 : 0.8,
+	})),
+];
 
 /**
  * Dynamic sitemap. Emits entries for the marketing landing, docs shell pages,

@@ -1,8 +1,10 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { parseGraph } from "@hex-core/payload";
 import pc from "picocolors";
 import { detectTailwind } from "../lib/detect-tailwind.js";
 import { detectSrcLayout, resolveAlias } from "../lib/resolve-alias.js";
+import { findRegistryDir } from "../lib/registry-dir.js";
 import { type AliasConfig, DEFAULT_ALIASES } from "../lib/rewrite-imports.js";
 import { walkSourceFiles } from "../lib/walk-sources.js";
 
@@ -61,6 +63,7 @@ export async function runDoctor(
 	if (ctx.tailwindVersion === "v3") checks.push(checkTailwindConfig(ctx));
 	checks.push(...checkRadixDeps(ctx));
 	checks.push(checkShadcnArtifacts(ctx));
+	checks.push(checkCatalogGraph());
 	if (options.layout) {
 		checks.push(...checkLayoutPatterns(ctx));
 	}
@@ -97,6 +100,40 @@ function checkShadcnArtifacts(ctx: DoctorContext): Check {
 		status: "warn",
 		hint: `Found: ${bits.join(", ")}. Run \`hex migrate\` to finish converting.`,
 	};
+}
+
+/**
+ * Verify the CLI's bundled registry ships a parseable catalog graph —
+ * `hex map` / `hex poc` / `hex graph` depend on it. A missing graph means
+ * a stale CLI tarball (pre-graph release) or an interrupted
+ * `build:registry` in monorepo dev. Reported as `fail`, not `warn`: without
+ * it `loadCatalog()` exits 1, taking `hex map` / `hex poc` / `hex graph`
+ * down with it.
+ * @returns A `pass` check when graph.json loads, otherwise a `fail`.
+ */
+function checkCatalogGraph(): Check {
+	const registryDir = findRegistryDir();
+	if (!registryDir) {
+		return { name: "catalog graph", status: "fail", hint: "No registry directory found — reinstall @hex-core/cli." };
+	}
+	const graphPath = path.join(registryDir, "graph.json");
+	if (!fs.existsSync(graphPath)) {
+		return {
+			name: "catalog graph",
+			status: "fail",
+			hint: "registry/graph.json missing — update @hex-core/cli (hex map/poc/graph exit 1 without it).",
+		};
+	}
+	try {
+		parseGraph(JSON.parse(fs.readFileSync(graphPath, "utf-8")));
+	} catch (err) {
+		return {
+			name: "catalog graph",
+			status: "fail",
+			hint: `graph.json is invalid: ${err instanceof Error ? err.message : String(err)}`,
+		};
+	}
+	return { name: "catalog graph", status: "pass" };
 }
 
 function buildContext(cwd: string): DoctorContext {
