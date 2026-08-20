@@ -156,19 +156,24 @@ export interface MapBuilderOptions {
  * @returns Ordered non-empty segments (never empty for a non-blank brief)
  */
 export function segmentBrief(brief: string): string[] {
-	// Collapse whitespace runs first. The split pattern below contains
-	// `\s+` sequences followed by literals that can fail to match, which
-	// backtracks polynomially on long whitespace runs (CodeQL
-	// js/polynomial-redos): a brief with 64k consecutive tabs took 2.2s
-	// before this, growing 4x per doubling. Briefs are uncontrolled input —
-	// `hex map --spec` reads an arbitrary file. After normalization every
-	// `\s+` can match at most one character, so the split is linear.
-	// Both replaces are single unanchored quantifiers with nothing after
-	// them to fail, so they cannot backtrack.
+	// Collapse whitespace runs first, then match a single `\s` in the split
+	// pattern below rather than `\s+`.
+	//
+	// `\s+` followed by a literal that can fail backtracks polynomially on
+	// long whitespace runs (CodeQL js/polynomial-redos): 64k tabs took
+	// 2.2s, 200k took 38s, growing 4x per doubling. Briefs are
+	// uncontrolled — `hex map --spec` reads an arbitrary file.
+	//
+	// Normalizing alone fixes the runtime but not the finding: the analyzer
+	// reasons about the pattern's shape, not this invariant. Using `\s`
+	// makes it linear by construction, and normalization is what keeps that
+	// correct — after it, no two whitespace characters are ever adjacent.
+	// Both replaces below are lone unanchored quantifiers with nothing
+	// after them to fail, so neither can backtrack.
 	const normalized = brief.replace(/[^\S\n]+/g, " ").replace(/\n+/g, "\n");
 
 	const rough = normalized
-		.split(/[\n;.!?]+|(?:^|\s)[-*•]\s+|,?\s+(?:plus|and then|then)\s+|,\s+(?:and\s+)?(?=an?\s)/g)
+		.split(/[\n;.!?]+|(?:^|\s)[-*•]\s|,?\s(?:plus|and then|then)\s|,\s(?:and\s)?(?=an?\s)/g)
 		.map((part) => (part ?? "").trim())
 		.filter((part) => part.length > 0);
 
