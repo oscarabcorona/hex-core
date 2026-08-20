@@ -629,10 +629,14 @@ const SELF_MAIN_BLOCKS = new Set(["app-shell"]);
  * @returns A lowercase npm-safe name, never empty
  */
 function npmSafeName(appName: string): string {
+	// Collapse hyphen runs before trimming: `-` survives the character
+	// filter, so `/-+$/` could backtrack polynomially on an interior run
+	// (same class as the CodeQL findings in map.ts).
 	const safe = kebabCase(appName)
 		.replace(/[^a-z0-9._-]+/g, "-")
+		.replace(/-{2,}/g, "-")
 		.replace(/^[-._]+/, "")
-		.replace(/-+$/g, "");
+		.replace(/-$/, "");
 	return safe.length > 0 ? safe : "hex-poc";
 }
 

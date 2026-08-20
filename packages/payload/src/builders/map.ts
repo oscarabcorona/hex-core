@@ -156,7 +156,18 @@ export interface MapBuilderOptions {
  * @returns Ordered non-empty segments (never empty for a non-blank brief)
  */
 export function segmentBrief(brief: string): string[] {
-	const rough = brief
+	// Collapse whitespace runs first. The split pattern below contains
+	// `\s+` sequences followed by literals that can fail to match, which
+	// backtracks polynomially on long whitespace runs (CodeQL
+	// js/polynomial-redos): a brief with 64k consecutive tabs took 2.2s
+	// before this, growing 4x per doubling. Briefs are uncontrolled input —
+	// `hex map --spec` reads an arbitrary file. After normalization every
+	// `\s+` can match at most one character, so the split is linear.
+	// Both replaces are single unanchored quantifiers with nothing after
+	// them to fail, so they cannot backtrack.
+	const normalized = brief.replace(/[^\S\n]+/g, " ").replace(/\n+/g, "\n");
+
+	const rough = normalized
 		.split(/[\n;.!?]+|(?:^|\s)[-*•]\s+|,?\s+(?:plus|and then|then)\s+|,\s+(?:and\s+)?(?=an?\s)/g)
 		.map((part) => (part ?? "").trim())
 		.filter((part) => part.length > 0);
@@ -185,7 +196,7 @@ export function segmentBrief(brief: string): string[] {
 		head.push(merged.slice(MAX_SEGMENTS - 1).join(" "));
 		return head;
 	}
-	return merged.length > 0 ? merged : [brief.trim()].filter((s) => s.length > 0);
+	return merged.length > 0 ? merged : [normalized.trim()].filter((s) => s.length > 0);
 }
 
 /**
@@ -198,7 +209,11 @@ function slugifyId(input: string): string {
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, "-")
 		.replace(/^(?:a|an|the)-/, "")
-		.replace(/^-+|-+$/g, "");
+		// The collapse above leaves no adjacent hyphens, so a bounded `-?`
+		// is sufficient. `/^-+|-+$/` would backtrack polynomially on a long
+		// interior hyphen run (CodeQL js/polynomial-redos, ~96ms at 16k).
+		.replace(/^-/, "")
+		.replace(/-$/, "");
 	if (raw.length > 32) {
 		// Cut at a word boundary so ids never end mid-word.
 		const cut = raw.slice(0, 32);

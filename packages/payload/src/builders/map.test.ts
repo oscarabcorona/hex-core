@@ -115,6 +115,29 @@ if (saasDigest !== EXPECTED_SAAS_DIGEST) {
 	);
 }
 
+// ── ReDoS regression (CodeQL js/polynomial-redos, PR #225) ──
+// The split pattern's `\s+`-then-literal sequences and slugifyId's
+// `/^-+|-+$/` both backtracked polynomially: 64k tabs took 2.2s and grew
+// 4x per doubling. Briefs are uncontrolled (`hex map --spec <file>`), so
+// this is a real hang. The bound is deliberately loose — it only has to
+// separate "linear" (sub-millisecond) from "quadratic" (seconds).
+const REDOS_BUDGET_MS = 1_000;
+for (const [label, input] of [
+	["whitespace run", `a${"\t".repeat(200_000)}plusX`],
+	["hyphen run", `build me a ${"-".repeat(200_000)} thing`],
+] as const) {
+	const started = process.hrtime.bigint();
+	segmentBrief(input);
+	buildApplicationMap(input);
+	const elapsed = Number(process.hrtime.bigint() - started) / 1e6;
+	if (elapsed > REDOS_BUDGET_MS) {
+		fail(
+			`redos (${label})`,
+			`took ${elapsed.toFixed(0)}ms on a 200k-char adversarial brief (budget ${REDOS_BUDGET_MS}ms) — a polynomial regex has been reintroduced`,
+		);
+	}
+}
+
 if (failures.length > 0) {
 	console.error(`map: ${failures.length} regression(s)`);
 	for (const f of failures) console.error(`  - ${f}`);
