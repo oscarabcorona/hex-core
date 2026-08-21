@@ -55,7 +55,7 @@ Everything else — anything backed by Radix portals/triggers, hooks, `react-hoo
 
 ## What's inside
 
-65 components across primitives (Button, Input, Checkbox, …) and compounds (Combobox, DataTable, Command, …), plus 43 section blocks composed into 8 page recipes. Every component ships with:
+67 components across primitives (Button, Input, Checkbox, …) and compounds (Combobox, DataTable, Command, …), plus 43 section blocks composed into 8 page recipes. Every component ships with:
 
 - Radix UI headless foundation where applicable
 - CVA variants (`default`, `outline`, `ghost`, etc.)
