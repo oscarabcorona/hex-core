@@ -104,7 +104,7 @@
     {
       "title": "6-digit OTP with separator",
       "description": "Two groups of 3 slots divided by a bullet",
-      "code": "import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from \"@/components/ui/input-otp\";\nimport { REGEXP_ONLY_DIGITS } from \"input-otp\";\n\nexport function Example() {\n  return (\n    <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS}>\n      <InputOTPGroup>\n        <InputOTPSlot index={0} />\n        <InputOTPSlot index={1} />\n        <InputOTPSlot index={2} />\n      </InputOTPGroup>\n      <InputOTPSeparator />\n      <InputOTPGroup>\n        <InputOTPSlot index={3} />\n        <InputOTPSlot index={4} />\n        <InputOTPSlot index={5} />\n      </InputOTPGroup>\n    </InputOTP>\n  );\n}"
+      "code": "import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from \"@hex-core/components\";\nimport { REGEXP_ONLY_DIGITS } from \"input-otp\";\n\n<InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS}>\n  <InputOTPGroup>\n    <InputOTPSlot index={0} />\n    <InputOTPSlot index={1} />\n    <InputOTPSlot index={2} />\n  </InputOTPGroup>\n  <InputOTPSeparator />\n  <InputOTPGroup>\n    <InputOTPSlot index={3} />\n    <InputOTPSlot index={4} />\n    <InputOTPSlot index={5} />\n  </InputOTPGroup>\n</InputOTP>"
     }
   ],
   "ai": {

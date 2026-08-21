@@ -44,6 +44,13 @@ export const graphNodeSchema = z.object({
 	/** Exported identifiers, used by POC codegen to route example imports. */
 	exports: z.array(z.string()).optional(),
 	/**
+	 * Identifier → module suffix under `components/` (e.g. `ui/button`,
+	 * `_shared/auth-adapter`). Codegen imports from `@/components/<suffix>`;
+	 * without it, exports from `_shared/` files were attributed to the item's
+	 * main module and produced imports that don't resolve.
+	 */
+	exportPaths: z.record(z.string(), z.string().regex(/^[a-z0-9_][a-z0-9._/-]*$/)).optional(),
+	/**
 	 * Package an npm-backed item's runtime imports from (motion primitives,
 	 * AI-kit hooks). Informational: these items ship no source to copy, so
 	 * codegen never resolves an identifier to them.

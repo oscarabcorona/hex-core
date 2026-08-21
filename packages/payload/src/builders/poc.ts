@@ -240,27 +240,37 @@ function kebabCase(identifier: string): string {
  * Index every graph item's exported identifiers so example imports can be
  * routed to the copied component modules.
  * @param graph - The catalog graph
- * @returns identifier → item slugs exporting it (sorted for determinism)
+ * @returns identifier → owning items and the module each exports it from
  */
-function buildExportIndex(graph: CatalogGraph): Map<string, string[]> {
-	const index = new Map<string, string[]>();
+function buildExportIndex(graph: CatalogGraph): Map<string, ExportOwner[]> {
+	const index = new Map<string, ExportOwner[]>();
 	for (const node of graph.nodes) {
 		if (node.kind !== "item" || !node.exports) continue;
 		for (const name of node.exports) {
-			const slugs = index.get(name);
-			if (slugs) slugs.push(node.slug);
-			else index.set(name, [node.slug]);
+			// `exportPaths` tells us which module actually exports the name —
+			// `_shared/*` files are their own module, not the item's main one.
+			const owner: ExportOwner = { slug: node.slug, module: node.exportPaths?.[name] ?? `ui/${node.slug}` };
+			const owners = index.get(name);
+			if (owners) owners.push(owner);
+			else index.set(name, [owner]);
 		}
 	}
-	for (const slugs of index.values()) slugs.sort();
+	for (const owners of index.values()) owners.sort((a, b) => compareStrings(a.slug, b.slug));
 	return index;
+}
+
+/** Which item exports an identifier, and from which module. */
+interface ExportOwner {
+	slug: string;
+	/** Module suffix under `components/`, e.g. `ui/button`. */
+	module: string;
 }
 
 /** What generating one page produced. */
 export interface GeneratedPage {
 	/** The page.tsx source. */
 	source: string;
-	/** Item slugs the page imports from `@/components/ui/`. */
+	/** Item slugs whose source the page imports (may resolve to `_shared/`). */
 	componentSlugs: string[];
 	/** Non-barrel packages the page still imports (e.g. `@hex-core/motion`). */
 	externalPackages: string[];
@@ -270,8 +280,8 @@ export interface GeneratedPage {
  * Deterministically generate the `page.tsx` source for a page-recipe
  * screen. Each section contributes its block's first schema example:
  * import lines are stripped, every identifier imported from the
- * `@hex-core/components` barrel is re-routed to the copied module
- * (`@/components/ui/<slug>`) via the graph's export index, and the JSX
+ * `@hex-core/components` barrel is re-routed to the copied module it is
+ * actually exported from (`@/components/ui/<slug>`, or `@/components/_shared/<name>`), and the JSX
  * bodies are stitched into one Server Component in section order with
  * `{/* id: intent *\/}` markers.
  * @param screen - A `page-recipe` screen from an application map
@@ -340,9 +350,9 @@ export function generatePageSource(screen: MapScreen, options: PocBuilderOptions
 					const identifier = piece.trim().replace(/^type\s+/, "");
 					if (identifier.length === 0) continue;
 					if (module === "@hex-core/components") {
-						const slug = resolveIdentifier(identifier, section.block, exportIndex, graph);
-						componentSlugs.add(slug);
-						addImport(`@/components/ui/${slug}`, identifier, section.block);
+						const owner = resolveIdentifier(identifier, section.block, exportIndex, graph);
+						componentSlugs.add(owner.slug);
+						addImport(`@/components/${owner.module}`, identifier, section.block);
 					} else if (module.startsWith("@/")) {
 						// Alias import — the example already points at a copied
 						// module. Accept the components/ui shape; anything else
@@ -466,22 +476,22 @@ ${sectionsJsx.join("\n")}
 }
 
 /**
- * Resolve a barrel identifier to the item slug that exports it. On
+ * Resolve a barrel identifier to the item and module that export it. On
  * collisions, an exact kebab-case name match wins, then the section's own
  * block, then the alphabetically first exporter.
  * @param identifier - Named export from the `@hex-core/components` barrel
  * @param blockSlug - Slug of the block whose example imports it
- * @param exportIndex - identifier → exporting slugs
+ * @param exportIndex - identifier → owning items and their modules
  * @param graph - The catalog graph (for the block's requires closure)
- * @returns The chosen item slug
+ * @returns The owning item slug plus the module that exports the identifier
  * @throws {Error} When no registry item exports the identifier
  */
 function resolveIdentifier(
 	identifier: string,
 	blockSlug: string,
-	exportIndex: Map<string, string[]>,
+	exportIndex: Map<string, ExportOwner[]>,
 	graph: CatalogGraph,
-): string {
+): ExportOwner {
 	const candidates = exportIndex.get(identifier);
 	if (!candidates || candidates.length === 0) {
 		throw new Error(
@@ -490,10 +500,10 @@ function resolveIdentifier(
 	}
 	if (candidates.length === 1) return candidates[0];
 	const kebab = kebabCase(identifier);
-	if (candidates.includes(kebab)) return kebab;
+	const exact = candidates.find((c) => c.slug === kebab);
+	if (exact) return exact;
 	const closure = new Set(requiresClosure(graph, [blockSlug]));
-	const inClosure = candidates.find((slug) => closure.has(slug));
-	return inClosure ?? candidates[0];
+	return candidates.find((c) => closure.has(c.slug)) ?? candidates[0];
 }
 
 /**

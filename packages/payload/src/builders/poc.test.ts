@@ -7,10 +7,68 @@
  * build` green on the calibrated SaaS brief); these assertions pin the
  * properties that build depended on.
  */
-import { buildApplicationMap, mapSchema, stableStringifyMap } from "./map.js";
+import { buildApplicationMap, mapFromRecipe, mapSchema, stableStringifyMap } from "./map.js";
+import { loadRegistry, loadRegistryItem } from "../loaders/registry-loader.js";
 import { buildPocFiles, generatePageSource } from "./poc.js";
 
 const failures: string[] = [];
+
+/**
+ * Find identifiers a generated page references but never imports or
+ * declares (TS2304). Prop-shape drift is NOT covered: `app-data-table`
+ * also passed a `page`/`pageCount` API that `Pagination` never had, which
+ * is TS2322 and only a real typecheck would catch.
+ * Checks JSX component tags (`<Foo`) and bare identifiers passed as prop
+ * values (`prop={foo}`), both against the page's imports plus its hoisted
+ * fixture declarations.
+ * @param source - Generated page source
+ * @returns Human-readable descriptions of each undefined reference
+ */
+function undefinedIdentifiers(source: string): string[] {
+	const known = new Set<string>();
+	for (const m of source.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s+from/g)) {
+		for (const piece of m[1].split(",")) {
+			const name = piece.trim().replace(/^type\s+/, "").split(/\s+as\s+/).pop()?.trim();
+			if (name) known.add(name);
+		}
+	}
+	// Value bindings: plain declarations, destructured patterns, function
+	// params and arrow params. Without the last two, `.map((c) => …)` reports
+	// `c` as undefined — a false positive on legitimate code.
+	for (const m of source.matchAll(/(?:const|let|var|function)\s+([A-Za-z_$][\w$]*)/g)) known.add(m[1]);
+	for (const m of source.matchAll(/(?:const|let|var)\s*(\{[^}]*\}|\[[^\]]*\])/g)) {
+		for (const piece of m[1].replace(/[{}[\]]/g, "").split(",")) {
+			const bound = piece.split(":").pop()?.trim().replace(/=.*$/, "").trim();
+			if (bound && /^[A-Za-z_$][\w$]*$/.test(bound)) known.add(bound);
+		}
+	}
+	// Parenthesised arrow params. The list must be identifiers/commas/spaces
+	// only: a looser `[^)]*` spans newlines and swallows an entire JSX block
+	// starting from an earlier `(`, binding the wrong names.
+	for (const m of source.matchAll(/\(\s*([A-Za-z_$][\w$]*(?:\s*,\s*[A-Za-z_$][\w$]*)*)\s*\)\s*=>/g)) {
+		for (const piece of m[1].split(",")) {
+			const bound = piece.trim();
+			if (/^[A-Za-z_$][\w$]*$/.test(bound)) known.add(bound);
+		}
+	}
+	for (const m of source.matchAll(/\b([A-Za-z_$][\w$]*)\s*=>/g)) known.add(m[1]);
+
+	const problems: string[] = [];
+	for (const m of source.matchAll(/<([A-Z][\w$]*)(\.?)/g)) {
+		// `<React.Fragment>` resolves through the member expression, not the
+		// bare name — skip it rather than reporting `React` as undefined.
+		if (m[2] === ".") continue;
+		if (!known.has(m[1])) problems.push(`component <${m[1]}>`);
+	}
+	// `prop={ident}` where ident is a bare reference (not a call, member
+	// access, literal, or arrow function).
+	for (const m of source.matchAll(/=\{([a-z][A-Za-z0-9_$]*)\}/g)) {
+		if (!known.has(m[1])) problems.push(`identifier {${m[1]}}`);
+	}
+	return [...new Set(problems)];
+}
+
+
 
 /**
  * Record a failed assertion.
@@ -269,6 +327,69 @@ try {
 	if (mapSchema.safeParse(tampered).success) {
 		fail("traversal id", "mapSchema accepted a screen id containing ../");
 	}
+}
+
+
+// ── Every composable item must generate a clean page section ──
+// Originally scoped to page recipes, this guard could not see `timeline` —
+// it is not a section of any page recipe, so the defect it was meant to
+// catch stayed green. Scope by *composability* instead: every block (the
+// page-section family — all 8 page recipes compose only blocks) plus any
+// item whose example is import-led, i.e. claims to be usable as a section.
+//
+// Items whose example is a bare JSX snippet with no imports are docs
+// fragments, not page sections; composing one silently emits an unimported
+// component. That is a real latent gap (~40 recipe-referenced items) but a
+// separate cleanup — see the changeset.
+//
+// CLIENT_BOUNDARY items are excluded because they genuinely cannot be page
+// sections, not because they pass: their examples need React state or pass
+// functions, and generated pages are Server Components that also export
+// `metadata`, so they cannot be marked "use client".
+const CLIENT_BOUNDARY = new Set([
+	"calendar", "combobox", "command", "date-picker", "dropzone", "file-tree",
+	"multi-combobox", "time-picker", "kanban", "carousel", "resizable", "sonner",
+	"form",
+]);
+
+{
+	const registry = loadRegistry();
+	let checked = 0;
+	for (const item of registry.items) {
+		if (CLIENT_BOUNDARY.has(item.name)) continue;
+		const full = loadRegistryItem(item.name);
+		const example = full?.examples?.[0]?.code ?? "";
+		// npm-backed items (motion primitives, AI-kit hooks) ship no source to
+		// copy, so they can never be a page section regardless of example shape.
+		if ((full?.files.length ?? 0) === 0) continue;
+		const composable = item.category === "block" || example.trimStart().startsWith("import");
+		if (!composable) continue;
+
+		const probe = {
+			id: "probe", name: item.name, segment: item.name,
+			source: "page-recipe" as const, recipe: "landing-page",
+			sections: [{ id: "probe", block: item.name, intent: item.name, role: "primary" }],
+			components: [item.name], score: 0, confidence: "high" as const, matchReason: [],
+		};
+		let page: { source: string };
+		try {
+			page = generatePageSource(probe);
+		} catch (err) {
+			// Items that genuinely cannot be sections are already excluded
+			// above, so within this set a throw IS the defect — degrading
+			// loudly is better than emitting broken code, but it still means
+			// the item can't be composed. Treating a "Catalog defect:" throw
+			// as acceptable is what let `timeline`'s wrong example shape sit
+			// green while the screen using it was silently skipped.
+			fail(`catalog guard (${item.name})`, `cannot generate a section: ${(err as Error).message.slice(0, 140)}`);
+			continue;
+		}
+		checked += 1;
+		for (const problem of undefinedIdentifiers(page.source)) {
+			fail(`catalog guard (${item.name})`, `generated route uses undefined ${problem}`);
+		}
+	}
+	if (checked < 40) fail("catalog guard", `only generated ${checked} routes — the scan is broken`);
 }
 
 if (failures.length > 0) {

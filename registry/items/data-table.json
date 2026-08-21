@@ -121,7 +121,7 @@
     {
       "title": "Basic data table",
       "description": "Three-column table rendered from TanStack column defs",
-      "code": "import type { ColumnDef } from \"@tanstack/react-table\";\nimport { DataTable } from \"@/components/ui/data-table\";\n\ntype Payment = { id: string; amount: number; status: \"pending\" | \"paid\" | \"failed\"; email: string };\n\nconst columns: ColumnDef<Payment>[] = [\n  { accessorKey: \"status\", header: \"Status\" },\n  { accessorKey: \"email\", header: \"Email\" },\n  { accessorKey: \"amount\", header: \"Amount\" },\n];\n\nconst data: Payment[] = [\n  { id: \"1\", amount: 100, status: \"paid\", email: \"a@x.com\" },\n  { id: \"2\", amount: 250, status: \"pending\", email: \"b@x.com\" },\n];\n\nexport function Example() {\n  return <DataTable columns={columns} data={data} />;\n}"
+      "code": "import { DataTable } from \"@hex-core/components\";\n\nconst columns = [\n  { accessorKey: \"status\", header: \"Status\" },\n  { accessorKey: \"email\", header: \"Email\" },\n  { accessorKey: \"amount\", header: \"Amount\" },\n];\n\nconst data = [\n  { id: \"1\", amount: 100, status: \"paid\", email: \"a@x.com\" },\n  { id: \"2\", amount: 250, status: \"pending\", email: \"b@x.com\" },\n];\n\n<DataTable columns={columns} data={data} aria-label=\"Payments\" />"
     }
   ],
   "ai": {

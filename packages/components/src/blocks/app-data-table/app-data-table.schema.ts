@@ -36,15 +36,36 @@ export const appDataTableSchema: ComponentSchemaDefinition = {
 		{
 			title: "Users table view",
 			description: "Title, a search + add toolbar, the table, and pagination.",
-			code: `import { AppDataTable, Input, Button, Pagination } from "@hex-core/components";
+			code: `import { AppDataTable, DataTable, Input, Button, Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@hex-core/components";
+
+const columns = [
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "email", header: "Email" },
+  { accessorKey: "role", header: "Role" },
+];
+
+const rows = [
+  { id: "1", name: "Ada Lovelace", email: "ada@example.com", role: "Owner" },
+  { id: "2", name: "Alan Turing", email: "alan@example.com", role: "Admin" },
+  { id: "3", name: "Grace Hopper", email: "grace@example.com", role: "Member" },
+];
 
 <AppDataTable
   title="Users"
   description="Manage workspace members."
   toolbar={<><Input placeholder="Search…" className="w-56" /><Button size="sm">Add user</Button></>}
-  footer={<Pagination page={1} pageCount={4} />}
+  footer={
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem><PaginationPrevious href="#" /></PaginationItem>
+        <PaginationItem><PaginationLink href="#" isActive>1</PaginationLink></PaginationItem>
+        <PaginationItem><PaginationLink href="#">2</PaginationLink></PaginationItem>
+        <PaginationItem><PaginationNext href="#" /></PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  }
 >
-  <DataTable columns={columns} data={rows} />
+  <DataTable columns={columns} data={rows} aria-label="Workspace members" />
 </AppDataTable>`,
 			composition: ["app", "data-table", "table", "dashboard"],
 		},

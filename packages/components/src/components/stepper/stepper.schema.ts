@@ -98,7 +98,7 @@ export const stepperSchema: ComponentSchemaDefinition = {
 			title: "Form wizard",
 			description:
 				"Three-step horizontal stepper with the second step active",
-			code: 'import { Stepper } from "@/components/ui/stepper";\n\nexport function Example() {\n  return (\n    <Stepper\n      aria-label="Onboarding"\n      current={1}\n      steps={[\n        { id: "account", label: "Account", description: "Email + password" },\n        { id: "profile", label: "Profile", description: "Name + photo" },\n        { id: "confirm", label: "Confirm" },\n      ]}\n    />\n  );\n}',
+			code: 'import { Stepper } from "@hex-core/components";\n\n<Stepper\n  aria-label="Onboarding"\n  current={1}\n  steps={[\n    { id: "account", label: "Account", description: "Email + password" },\n    { id: "profile", label: "Profile", description: "Name + photo" },\n    { id: "confirm", label: "Confirm" },\n  ]}\n/>',
 		},
 		{
 			title: "With error state",

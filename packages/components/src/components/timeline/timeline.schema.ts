@@ -62,12 +62,12 @@ export const timelineSchema: ComponentSchemaDefinition = {
 		{
 			title: "Activity log",
 			description: "Three-entry vertical feed with mixed status colors",
-			code: 'import { Timeline } from "@/components/ui/timeline";\n\nexport function Example() {\n  return (\n    <Timeline\n      aria-label="Activity"\n      events={[\n        { id: "1", title: "Pull request opened", timestamp: "2 hours ago", status: "info" },\n        { id: "2", title: "CI passed", timestamp: "1 hour ago", status: "success" },\n        { id: "3", title: "Merged to main", timestamp: "12 minutes ago", description: "Squash + merge by @oscar", status: "success" },\n      ]}\n    />\n  );\n}',
+			code: 'import { Timeline } from "@hex-core/components";\n\n<Timeline\n  aria-label="Activity"\n  events={[\n    { id: "1", title: "Pull request opened", timestamp: "2 hours ago", status: "info" },\n    { id: "2", title: "CI passed", timestamp: "1 hour ago", status: "success" },\n    { id: "3", title: "Merged to main", timestamp: "12 minutes ago", description: "Squash + merge by @oscar", status: "success" },\n  ]}\n/>',
 		},
 		{
 			title: "Custom icon",
 			description: "Override the default dot with a custom node",
-			code: 'import { Timeline } from "@/components/ui/timeline";\n\nexport function Example() {\n  return (\n    <Timeline\n      aria-label="Release notes"\n      events={[\n        { id: "v1", title: "v1.0", timestamp: "Apr 24", icon: <span>⚡</span> },\n        { id: "v2", title: "v1.1", timestamp: "Apr 27", icon: <span>🐛</span>, status: "warning" },\n      ]}\n    />\n  );\n}',
+			code: 'import { Timeline } from "@hex-core/components";\n\n<Timeline\n  aria-label="Release notes"\n  events={[\n    { id: "v1", title: "v1.0", timestamp: "Apr 24", icon: <span>⚡</span> },\n    { id: "v2", title: "v1.1", timestamp: "Apr 27", icon: <span>🐛</span>, status: "warning" },\n  ]}\n/>',
 		},
 	],
 	ai: {

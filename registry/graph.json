@@ -38,7 +38,13 @@
         "AccordionContent",
         "AccordionItem",
         "AccordionTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "Accordion": "ui/accordion",
+        "AccordionItem": "ui/accordion",
+        "AccordionTrigger": "ui/accordion",
+        "AccordionContent": "ui/accordion"
+      }
     },
     {
       "id": "item:alert",
@@ -65,7 +71,13 @@
         "AlertDescription",
         "AlertTitle",
         "alertVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Alert": "ui/alert",
+        "AlertTitle": "ui/alert",
+        "AlertDescription": "ui/alert",
+        "alertVariants": "ui/alert"
+      }
     },
     {
       "id": "item:alert-dialog",
@@ -98,7 +110,20 @@
         "AlertDialogPortal",
         "AlertDialogTitle",
         "AlertDialogTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "AlertDialog": "ui/alert-dialog",
+        "AlertDialogPortal": "ui/alert-dialog",
+        "AlertDialogOverlay": "ui/alert-dialog",
+        "AlertDialogTrigger": "ui/alert-dialog",
+        "AlertDialogContent": "ui/alert-dialog",
+        "AlertDialogHeader": "ui/alert-dialog",
+        "AlertDialogFooter": "ui/alert-dialog",
+        "AlertDialogTitle": "ui/alert-dialog",
+        "AlertDialogDescription": "ui/alert-dialog",
+        "AlertDialogAction": "ui/alert-dialog",
+        "AlertDialogCancel": "ui/alert-dialog"
+      }
     },
     {
       "id": "item:app-data-table",
@@ -126,7 +151,10 @@
       "degree": 12,
       "exports": [
         "AppDataTable"
-      ]
+      ],
+      "exportPaths": {
+        "AppDataTable": "ui/app-data-table"
+      }
     },
     {
       "id": "item:app-feed",
@@ -156,7 +184,10 @@
       "degree": 5,
       "exports": [
         "AppFeed"
-      ]
+      ],
+      "exportPaths": {
+        "AppFeed": "ui/app-feed"
+      }
     },
     {
       "id": "item:app-grid-list",
@@ -184,7 +215,10 @@
       "degree": 6,
       "exports": [
         "AppGridList"
-      ]
+      ],
+      "exportPaths": {
+        "AppGridList": "ui/app-grid-list"
+      }
     },
     {
       "id": "item:app-settings",
@@ -212,7 +246,10 @@
       "degree": 6,
       "exports": [
         "AppSettings"
-      ]
+      ],
+      "exportPaths": {
+        "AppSettings": "ui/app-settings"
+      }
     },
     {
       "id": "item:app-shell",
@@ -241,7 +278,10 @@
       "degree": 10,
       "exports": [
         "AppShell"
-      ]
+      ],
+      "exportPaths": {
+        "AppShell": "ui/app-shell"
+      }
     },
     {
       "id": "item:app-sidebar-nav",
@@ -269,7 +309,10 @@
       "degree": 6,
       "exports": [
         "AppSidebarNav"
-      ]
+      ],
+      "exportPaths": {
+        "AppSidebarNav": "ui/app-sidebar-nav"
+      }
     },
     {
       "id": "item:app-stacked-list",
@@ -297,7 +340,10 @@
       "degree": 7,
       "exports": [
         "AppStackedList"
-      ]
+      ],
+      "exportPaths": {
+        "AppStackedList": "ui/app-stacked-list"
+      }
     },
     {
       "id": "item:app-stats",
@@ -326,7 +372,10 @@
       "degree": 7,
       "exports": [
         "AppStats"
-      ]
+      ],
+      "exportPaths": {
+        "AppStats": "ui/app-stats"
+      }
     },
     {
       "id": "item:arc",
@@ -356,7 +405,10 @@
       "degree": 7,
       "exports": [
         "Arc"
-      ]
+      ],
+      "exportPaths": {
+        "Arc": "ui/arc"
+      }
     },
     {
       "id": "item:aspect-ratio",
@@ -379,7 +431,10 @@
       "degree": 3,
       "exports": [
         "AspectRatio"
-      ]
+      ],
+      "exportPaths": {
+        "AspectRatio": "ui/aspect-ratio"
+      }
     },
     {
       "id": "item:attachment",
@@ -414,7 +469,11 @@
       "exports": [
         "Attachment",
         "attachmentVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Attachment": "ui/attachment",
+        "attachmentVariants": "ui/attachment"
+      }
     },
     {
       "id": "item:audio-player",
@@ -443,7 +502,10 @@
       "degree": 3,
       "exports": [
         "AudioPlayer"
-      ]
+      ],
+      "exportPaths": {
+        "AudioPlayer": "ui/audio-player"
+      }
     },
     {
       "id": "item:audio-waveform",
@@ -472,7 +534,10 @@
       "degree": 3,
       "exports": [
         "AudioWaveform"
-      ]
+      ],
+      "exportPaths": {
+        "AudioWaveform": "ui/audio-waveform"
+      }
     },
     {
       "id": "item:auth-forgot-password",
@@ -502,7 +567,11 @@
       "exports": [
         "AuthForgotPassword",
         "mockAuthAdapter"
-      ]
+      ],
+      "exportPaths": {
+        "AuthForgotPassword": "ui/auth-forgot-password",
+        "mockAuthAdapter": "_shared/auth-adapter"
+      }
     },
     {
       "id": "item:auth-reset-password",
@@ -531,7 +600,11 @@
       "exports": [
         "AuthResetPassword",
         "mockAuthAdapter"
-      ]
+      ],
+      "exportPaths": {
+        "AuthResetPassword": "ui/auth-reset-password",
+        "mockAuthAdapter": "_shared/auth-adapter"
+      }
     },
     {
       "id": "item:auth-sign-in-split",
@@ -562,7 +635,11 @@
       "exports": [
         "AuthSignInSplit",
         "mockAuthAdapter"
-      ]
+      ],
+      "exportPaths": {
+        "AuthSignInSplit": "ui/auth-sign-in-split",
+        "mockAuthAdapter": "_shared/auth-adapter"
+      }
     },
     {
       "id": "item:auth-sign-up-card",
@@ -592,7 +669,11 @@
       "exports": [
         "AuthSignUpCard",
         "mockAuthAdapter"
-      ]
+      ],
+      "exportPaths": {
+        "AuthSignUpCard": "ui/auth-sign-up-card",
+        "mockAuthAdapter": "_shared/auth-adapter"
+      }
     },
     {
       "id": "item:auth-verify-email",
@@ -620,7 +701,11 @@
       "exports": [
         "AuthVerifyEmail",
         "mockAuthAdapter"
-      ]
+      ],
+      "exportPaths": {
+        "AuthVerifyEmail": "ui/auth-verify-email",
+        "mockAuthAdapter": "_shared/auth-adapter"
+      }
     },
     {
       "id": "item:auth-verify-otp",
@@ -650,7 +735,11 @@
       "exports": [
         "AuthVerifyOtp",
         "mockAuthAdapter"
-      ]
+      ],
+      "exportPaths": {
+        "AuthVerifyOtp": "ui/auth-verify-otp",
+        "mockAuthAdapter": "_shared/auth-adapter"
+      }
     },
     {
       "id": "item:avatar",
@@ -675,7 +764,12 @@
         "Avatar",
         "AvatarFallback",
         "AvatarImage"
-      ]
+      ],
+      "exportPaths": {
+        "Avatar": "ui/avatar",
+        "AvatarImage": "ui/avatar",
+        "AvatarFallback": "ui/avatar"
+      }
     },
     {
       "id": "item:badge",
@@ -699,7 +793,11 @@
       "exports": [
         "Badge",
         "badgeVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Badge": "ui/badge",
+        "badgeVariants": "ui/badge"
+      }
     },
     {
       "id": "item:blur-in",
@@ -769,7 +867,10 @@
       "degree": 4,
       "exports": [
         "Branch"
-      ]
+      ],
+      "exportPaths": {
+        "Branch": "ui/branch"
+      }
     },
     {
       "id": "item:breadcrumb",
@@ -798,7 +899,16 @@
         "BreadcrumbList",
         "BreadcrumbPage",
         "BreadcrumbSeparator"
-      ]
+      ],
+      "exportPaths": {
+        "Breadcrumb": "ui/breadcrumb",
+        "BreadcrumbList": "ui/breadcrumb",
+        "BreadcrumbItem": "ui/breadcrumb",
+        "BreadcrumbLink": "ui/breadcrumb",
+        "BreadcrumbPage": "ui/breadcrumb",
+        "BreadcrumbSeparator": "ui/breadcrumb",
+        "BreadcrumbEllipsis": "ui/breadcrumb"
+      }
     },
     {
       "id": "item:button",
@@ -838,6 +948,10 @@
         "Button",
         "buttonVariants"
       ],
+      "exportPaths": {
+        "Button": "ui/button",
+        "buttonVariants": "ui/button"
+      },
       "hub": true
     },
     {
@@ -860,7 +974,10 @@
       "degree": 5,
       "exports": [
         "Calendar"
-      ]
+      ],
+      "exportPaths": {
+        "Calendar": "ui/calendar"
+      }
     },
     {
       "id": "item:canvas",
@@ -889,7 +1006,10 @@
       "degree": 8,
       "exports": [
         "Canvas"
-      ]
+      ],
+      "exportPaths": {
+        "Canvas": "ui/canvas"
+      }
     },
     {
       "id": "item:card",
@@ -926,6 +1046,14 @@
         "CardHeader",
         "CardTitle"
       ],
+      "exportPaths": {
+        "Card": "ui/card",
+        "CardHeader": "ui/card",
+        "CardFooter": "ui/card",
+        "CardTitle": "ui/card",
+        "CardDescription": "ui/card",
+        "CardContent": "ui/card"
+      },
       "hub": true
     },
     {
@@ -954,7 +1082,10 @@
       "degree": 5,
       "exports": [
         "ChainOfThought"
-      ]
+      ],
+      "exportPaths": {
+        "ChainOfThought": "ui/chain-of-thought"
+      }
     },
     {
       "id": "item:checkbox",
@@ -977,7 +1108,10 @@
       "degree": 18,
       "exports": [
         "Checkbox"
-      ]
+      ],
+      "exportPaths": {
+        "Checkbox": "ui/checkbox"
+      }
     },
     {
       "id": "item:chord",
@@ -1006,7 +1140,10 @@
       "degree": 7,
       "exports": [
         "Chord"
-      ]
+      ],
+      "exportPaths": {
+        "Chord": "ui/chord"
+      }
     },
     {
       "id": "item:citation",
@@ -1033,7 +1170,10 @@
       "degree": 6,
       "exports": [
         "Citation"
-      ]
+      ],
+      "exportPaths": {
+        "Citation": "ui/citation"
+      }
     },
     {
       "id": "item:clip",
@@ -1081,7 +1221,10 @@
       "degree": 11,
       "exports": [
         "Cloze"
-      ]
+      ],
+      "exportPaths": {
+        "Cloze": "ui/cloze"
+      }
     },
     {
       "id": "item:cluster",
@@ -1110,7 +1253,15 @@
         "flexAlignVariants",
         "gapVariants",
         "justifyVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Cluster": "ui/cluster",
+        "clusterVariants": "ui/cluster",
+        "gapVariants": "_shared/layout-variants",
+        "justifyVariants": "_shared/layout-variants",
+        "flexAlignVariants": "_shared/layout-variants",
+        "clusterAlignVariants": "_shared/layout-variants"
+      }
     },
     {
       "id": "item:code-block",
@@ -1139,7 +1290,11 @@
       "exports": [
         "CodeBlock",
         "CodeBlockCopy"
-      ]
+      ],
+      "exportPaths": {
+        "CodeBlock": "ui/code-block",
+        "CodeBlockCopy": "ui/code-block-copy"
+      }
     },
     {
       "id": "item:collapsible",
@@ -1163,7 +1318,12 @@
         "Collapsible",
         "CollapsibleContent",
         "CollapsibleTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "Collapsible": "ui/collapsible",
+        "CollapsibleTrigger": "ui/collapsible",
+        "CollapsibleContent": "ui/collapsible"
+      }
     },
     {
       "id": "item:color-picker",
@@ -1188,7 +1348,10 @@
       "degree": 8,
       "exports": [
         "ColorPicker"
-      ]
+      ],
+      "exportPaths": {
+        "ColorPicker": "ui/color-picker"
+      }
     },
     {
       "id": "item:combobox",
@@ -1211,7 +1374,10 @@
       "degree": 9,
       "exports": [
         "Combobox"
-      ]
+      ],
+      "exportPaths": {
+        "Combobox": "ui/combobox"
+      }
     },
     {
       "id": "item:command",
@@ -1242,7 +1408,18 @@
         "CommandList",
         "CommandSeparator",
         "CommandShortcut"
-      ]
+      ],
+      "exportPaths": {
+        "Command": "ui/command",
+        "CommandDialog": "ui/command",
+        "CommandInput": "ui/command",
+        "CommandList": "ui/command",
+        "CommandEmpty": "ui/command",
+        "CommandGroup": "ui/command",
+        "CommandItem": "ui/command",
+        "CommandShortcut": "ui/command",
+        "CommandSeparator": "ui/command"
+      }
     },
     {
       "id": "item:commerce-cart",
@@ -1272,7 +1449,10 @@
       "degree": 7,
       "exports": [
         "CommerceCart"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceCart": "ui/commerce-cart"
+      }
     },
     {
       "id": "item:commerce-category",
@@ -1300,7 +1480,10 @@
       "degree": 5,
       "exports": [
         "CommerceCategory"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceCategory": "ui/commerce-category"
+      }
     },
     {
       "id": "item:commerce-category-filters",
@@ -1328,7 +1511,10 @@
       "degree": 9,
       "exports": [
         "CommerceCategoryFilters"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceCategoryFilters": "ui/commerce-category-filters"
+      }
     },
     {
       "id": "item:commerce-checkout",
@@ -1358,7 +1544,10 @@
       "degree": 8,
       "exports": [
         "CommerceCheckout"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceCheckout": "ui/commerce-checkout"
+      }
     },
     {
       "id": "item:commerce-incentives",
@@ -1386,7 +1575,10 @@
       "degree": 3,
       "exports": [
         "CommerceIncentives"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceIncentives": "ui/commerce-incentives"
+      }
     },
     {
       "id": "item:commerce-order-history",
@@ -1414,7 +1606,10 @@
       "degree": 5,
       "exports": [
         "CommerceOrderHistory"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceOrderHistory": "ui/commerce-order-history"
+      }
     },
     {
       "id": "item:commerce-order-summary",
@@ -1442,7 +1637,10 @@
       "degree": 6,
       "exports": [
         "CommerceOrderSummary"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceOrderSummary": "ui/commerce-order-summary"
+      }
     },
     {
       "id": "item:commerce-product-detail",
@@ -1472,7 +1670,10 @@
       "degree": 12,
       "exports": [
         "CommerceProductDetail"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceProductDetail": "ui/commerce-product-detail"
+      }
     },
     {
       "id": "item:commerce-product-features",
@@ -1500,7 +1701,10 @@
       "degree": 4,
       "exports": [
         "CommerceProductFeatures"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceProductFeatures": "ui/commerce-product-features"
+      }
     },
     {
       "id": "item:commerce-product-grid",
@@ -1530,7 +1734,10 @@
       "degree": 13,
       "exports": [
         "CommerceProductGrid"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceProductGrid": "ui/commerce-product-grid"
+      }
     },
     {
       "id": "item:commerce-promo",
@@ -1558,7 +1765,10 @@
       "degree": 4,
       "exports": [
         "CommercePromo"
-      ]
+      ],
+      "exportPaths": {
+        "CommercePromo": "ui/commerce-promo"
+      }
     },
     {
       "id": "item:commerce-quickview",
@@ -1586,7 +1796,10 @@
       "degree": 5,
       "exports": [
         "CommerceQuickview"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceQuickview": "ui/commerce-quickview"
+      }
     },
     {
       "id": "item:commerce-reviews",
@@ -1614,7 +1827,10 @@
       "degree": 7,
       "exports": [
         "CommerceReviews"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceReviews": "ui/commerce-reviews"
+      }
     },
     {
       "id": "item:commerce-store-nav",
@@ -1642,7 +1858,10 @@
       "degree": 6,
       "exports": [
         "CommerceStoreNav"
-      ]
+      ],
+      "exportPaths": {
+        "CommerceStoreNav": "ui/commerce-store-nav"
+      }
     },
     {
       "id": "item:compare-table",
@@ -1670,7 +1889,10 @@
       "degree": 5,
       "exports": [
         "CompareTable"
-      ]
+      ],
+      "exportPaths": {
+        "CompareTable": "ui/compare-table"
+      }
     },
     {
       "id": "item:composer",
@@ -1698,7 +1920,10 @@
       "degree": 13,
       "exports": [
         "Composer"
-      ]
+      ],
+      "exportPaths": {
+        "Composer": "ui/composer"
+      }
     },
     {
       "id": "item:container",
@@ -1722,7 +1947,11 @@
       "exports": [
         "Container",
         "containerVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Container": "ui/container",
+        "containerVariants": "ui/container"
+      }
     },
     {
       "id": "item:context-menu",
@@ -1755,7 +1984,21 @@
         "ContextMenuSeparator",
         "ContextMenuShortcut",
         "ContextMenuTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "ContextMenu": "ui/context-menu",
+        "ContextMenuTrigger": "ui/context-menu",
+        "ContextMenuContent": "ui/context-menu",
+        "ContextMenuItem": "ui/context-menu",
+        "ContextMenuCheckboxItem": "ui/context-menu",
+        "ContextMenuRadioItem": "ui/context-menu",
+        "ContextMenuLabel": "ui/context-menu",
+        "ContextMenuSeparator": "ui/context-menu",
+        "ContextMenuShortcut": "ui/context-menu",
+        "ContextMenuGroup": "ui/context-menu",
+        "ContextMenuPortal": "ui/context-menu",
+        "ContextMenuRadioGroup": "ui/context-menu"
+      }
     },
     {
       "id": "item:conversation",
@@ -1786,7 +2029,10 @@
       "degree": 11,
       "exports": [
         "Conversation"
-      ]
+      ],
+      "exportPaths": {
+        "Conversation": "ui/conversation"
+      }
     },
     {
       "id": "item:count-up",
@@ -1830,7 +2076,10 @@
       "degree": 11,
       "exports": [
         "DataTable"
-      ]
+      ],
+      "exportPaths": {
+        "DataTable": "ui/data-table"
+      }
     },
     {
       "id": "item:date-picker",
@@ -1853,7 +2102,10 @@
       "degree": 7,
       "exports": [
         "DatePicker"
-      ]
+      ],
+      "exportPaths": {
+        "DatePicker": "ui/date-picker"
+      }
     },
     {
       "id": "item:deck",
@@ -1880,7 +2132,10 @@
       "degree": 11,
       "exports": [
         "Deck"
-      ]
+      ],
+      "exportPaths": {
+        "Deck": "ui/deck"
+      }
     },
     {
       "id": "item:dendrogram",
@@ -1910,7 +2165,10 @@
       "degree": 9,
       "exports": [
         "Dendrogram"
-      ]
+      ],
+      "exportPaths": {
+        "Dendrogram": "ui/dendrogram"
+      }
     },
     {
       "id": "item:diagram",
@@ -1938,7 +2196,10 @@
       "degree": 13,
       "exports": [
         "Diagram"
-      ]
+      ],
+      "exportPaths": {
+        "Diagram": "ui/diagram"
+      }
     },
     {
       "id": "item:dialog",
@@ -1975,7 +2236,19 @@
         "DialogPortal",
         "DialogTitle",
         "DialogTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "Dialog": "ui/dialog",
+        "DialogPortal": "ui/dialog",
+        "DialogOverlay": "ui/dialog",
+        "DialogTrigger": "ui/dialog",
+        "DialogClose": "ui/dialog",
+        "DialogContent": "ui/dialog",
+        "DialogHeader": "ui/dialog",
+        "DialogFooter": "ui/dialog",
+        "DialogTitle": "ui/dialog",
+        "DialogDescription": "ui/dialog"
+      }
     },
     {
       "id": "item:dnd",
@@ -2010,7 +2283,15 @@
         "rectSortingStrategy",
         "useSortableItem",
         "verticalListSortingStrategy"
-      ]
+      ],
+      "exportPaths": {
+        "DndProvider": "ui/dnd",
+        "SortableList": "ui/dnd",
+        "useSortableItem": "ui/dnd",
+        "verticalListSortingStrategy": "ui/dnd",
+        "horizontalListSortingStrategy": "ui/dnd",
+        "rectSortingStrategy": "ui/dnd"
+      }
     },
     {
       "id": "item:drawer",
@@ -2042,7 +2323,19 @@
         "DrawerPortal",
         "DrawerTitle",
         "DrawerTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "Drawer": "ui/drawer",
+        "DrawerPortal": "ui/drawer",
+        "DrawerOverlay": "ui/drawer",
+        "DrawerTrigger": "ui/drawer",
+        "DrawerClose": "ui/drawer",
+        "DrawerContent": "ui/drawer",
+        "DrawerHeader": "ui/drawer",
+        "DrawerFooter": "ui/drawer",
+        "DrawerTitle": "ui/drawer",
+        "DrawerDescription": "ui/drawer"
+      }
     },
     {
       "id": "item:dropdown-menu",
@@ -2077,7 +2370,22 @@
         "DropdownMenuShortcut",
         "DropdownMenuSub",
         "DropdownMenuTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "DropdownMenu": "ui/dropdown-menu",
+        "DropdownMenuTrigger": "ui/dropdown-menu",
+        "DropdownMenuContent": "ui/dropdown-menu",
+        "DropdownMenuItem": "ui/dropdown-menu",
+        "DropdownMenuCheckboxItem": "ui/dropdown-menu",
+        "DropdownMenuRadioItem": "ui/dropdown-menu",
+        "DropdownMenuLabel": "ui/dropdown-menu",
+        "DropdownMenuSeparator": "ui/dropdown-menu",
+        "DropdownMenuShortcut": "ui/dropdown-menu",
+        "DropdownMenuGroup": "ui/dropdown-menu",
+        "DropdownMenuPortal": "ui/dropdown-menu",
+        "DropdownMenuSub": "ui/dropdown-menu",
+        "DropdownMenuRadioGroup": "ui/dropdown-menu"
+      }
     },
     {
       "id": "item:dropzone",
@@ -2099,7 +2407,10 @@
       "degree": 5,
       "exports": [
         "Dropzone"
-      ]
+      ],
+      "exportPaths": {
+        "Dropzone": "ui/dropzone"
+      }
     },
     {
       "id": "item:empty",
@@ -2130,7 +2441,11 @@
       "exports": [
         "Empty",
         "emptyVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Empty": "ui/empty",
+        "emptyVariants": "ui/empty"
+      }
     },
     {
       "id": "item:error-state",
@@ -2160,7 +2475,11 @@
       "exports": [
         "ErrorState",
         "errorStateVariants"
-      ]
+      ],
+      "exportPaths": {
+        "ErrorState": "ui/error-state",
+        "errorStateVariants": "ui/error-state"
+      }
     },
     {
       "id": "item:fade-in",
@@ -2204,7 +2523,10 @@
       "degree": 5,
       "exports": [
         "FileTree"
-      ]
+      ],
+      "exportPaths": {
+        "FileTree": "ui/file-tree"
+      }
     },
     {
       "id": "item:flashcard",
@@ -2232,7 +2554,10 @@
       "degree": 13,
       "exports": [
         "Flashcard"
-      ]
+      ],
+      "exportPaths": {
+        "Flashcard": "ui/flashcard"
+      }
     },
     {
       "id": "item:flowchart",
@@ -2262,7 +2587,10 @@
       "degree": 9,
       "exports": [
         "Flowchart"
-      ]
+      ],
+      "exportPaths": {
+        "Flowchart": "ui/flowchart"
+      }
     },
     {
       "id": "item:form",
@@ -2292,7 +2620,17 @@
         "FormLabel",
         "FormMessage",
         "useFormField"
-      ]
+      ],
+      "exportPaths": {
+        "useFormField": "ui/form",
+        "Form": "ui/form",
+        "FormItem": "ui/form",
+        "FormLabel": "ui/form",
+        "FormControl": "ui/form",
+        "FormDescription": "ui/form",
+        "FormMessage": "ui/form",
+        "FormField": "ui/form"
+      }
     },
     {
       "id": "item:funnel",
@@ -2320,7 +2658,10 @@
       "degree": 8,
       "exports": [
         "Funnel"
-      ]
+      ],
+      "exportPaths": {
+        "Funnel": "ui/funnel"
+      }
     },
     {
       "id": "item:gantt",
@@ -2349,7 +2690,10 @@
       "degree": 6,
       "exports": [
         "Gantt"
-      ]
+      ],
+      "exportPaths": {
+        "Gantt": "ui/gantt"
+      }
     },
     {
       "id": "item:grid",
@@ -2378,7 +2722,15 @@
         "gapVariants",
         "gridVariants",
         "justifyVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Grid": "ui/grid",
+        "gridVariants": "ui/grid",
+        "gapVariants": "_shared/layout-variants",
+        "justifyVariants": "_shared/layout-variants",
+        "flexAlignVariants": "_shared/layout-variants",
+        "clusterAlignVariants": "_shared/layout-variants"
+      }
     },
     {
       "id": "item:hover-card",
@@ -2402,7 +2754,12 @@
         "HoverCard",
         "HoverCardContent",
         "HoverCardTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "HoverCard": "ui/hover-card",
+        "HoverCardTrigger": "ui/hover-card",
+        "HoverCardContent": "ui/hover-card"
+      }
     },
     {
       "id": "item:image-occlusion",
@@ -2429,7 +2786,10 @@
       "degree": 9,
       "exports": [
         "ImageOcclusion"
-      ]
+      ],
+      "exportPaths": {
+        "ImageOcclusion": "ui/image-occlusion"
+      }
     },
     {
       "id": "item:inline-citation",
@@ -2461,7 +2821,10 @@
       "degree": 7,
       "exports": [
         "InlineCitation"
-      ]
+      ],
+      "exportPaths": {
+        "InlineCitation": "ui/inline-citation"
+      }
     },
     {
       "id": "item:input",
@@ -2485,6 +2848,9 @@
       "exports": [
         "Input"
       ],
+      "exportPaths": {
+        "Input": "ui/input"
+      },
       "hub": true
     },
     {
@@ -2512,7 +2878,13 @@
         "InputOTPGroup",
         "InputOTPSeparator",
         "InputOTPSlot"
-      ]
+      ],
+      "exportPaths": {
+        "InputOTP": "ui/input-otp",
+        "InputOTPGroup": "ui/input-otp",
+        "InputOTPSlot": "ui/input-otp",
+        "InputOTPSeparator": "ui/input-otp"
+      }
     },
     {
       "id": "item:kanban",
@@ -2545,7 +2917,14 @@
         "KanbanColumn",
         "findColumnIdForCard",
         "moveCard"
-      ]
+      ],
+      "exportPaths": {
+        "findColumnIdForCard": "ui/kanban",
+        "moveCard": "ui/kanban",
+        "Kanban": "ui/kanban",
+        "KanbanColumn": "ui/kanban",
+        "KanbanCard": "ui/kanban"
+      }
     },
     {
       "id": "item:label",
@@ -2568,6 +2947,9 @@
       "exports": [
         "Label"
       ],
+      "exportPaths": {
+        "Label": "ui/label"
+      },
       "hub": true
     },
     {
@@ -2598,7 +2980,11 @@
       "exports": [
         "Loading",
         "loadingVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Loading": "ui/loading",
+        "loadingVariants": "ui/loading"
+      }
     },
     {
       "id": "item:loading-indicator",
@@ -2626,7 +3012,11 @@
       "exports": [
         "LoadingIndicator",
         "loadingIndicatorVariants"
-      ]
+      ],
+      "exportPaths": {
+        "LoadingIndicator": "ui/loading-indicator",
+        "loadingIndicatorVariants": "ui/loading-indicator"
+      }
     },
     {
       "id": "item:markdown",
@@ -2661,7 +3051,12 @@
         "Markdown",
         "closeUnterminated",
         "remarkAdmonitions"
-      ]
+      ],
+      "exportPaths": {
+        "Markdown": "ui/markdown",
+        "closeUnterminated": "ui/markdown",
+        "remarkAdmonitions": "ui/remark-admonitions"
+      }
     },
     {
       "id": "item:marketing-bento",
@@ -2689,7 +3084,10 @@
       "degree": 3,
       "exports": [
         "MarketingBento"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingBento": "ui/marketing-bento"
+      }
     },
     {
       "id": "item:marketing-contact",
@@ -2717,7 +3115,10 @@
       "degree": 7,
       "exports": [
         "MarketingContact"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingContact": "ui/marketing-contact"
+      }
     },
     {
       "id": "item:marketing-content",
@@ -2745,7 +3146,10 @@
       "degree": 5,
       "exports": [
         "MarketingContent"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingContent": "ui/marketing-content"
+      }
     },
     {
       "id": "item:marketing-cta",
@@ -2773,7 +3177,10 @@
       "degree": 16,
       "exports": [
         "MarketingCta"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingCta": "ui/marketing-cta"
+      }
     },
     {
       "id": "item:marketing-faq",
@@ -2801,7 +3208,10 @@
       "degree": 6,
       "exports": [
         "MarketingFaq"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingFaq": "ui/marketing-faq"
+      }
     },
     {
       "id": "item:marketing-feature-grid",
@@ -2829,7 +3239,10 @@
       "degree": 14,
       "exports": [
         "MarketingFeatureGrid"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingFeatureGrid": "ui/marketing-feature-grid"
+      }
     },
     {
       "id": "item:marketing-footer",
@@ -2857,7 +3270,10 @@
       "degree": 15,
       "exports": [
         "MarketingFooter"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingFooter": "ui/marketing-footer"
+      }
     },
     {
       "id": "item:marketing-header",
@@ -2885,7 +3301,10 @@
       "degree": 13,
       "exports": [
         "MarketingHeader"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingHeader": "ui/marketing-header"
+      }
     },
     {
       "id": "item:marketing-hero",
@@ -2915,7 +3334,10 @@
       "degree": 13,
       "exports": [
         "MarketingHero"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingHero": "ui/marketing-hero"
+      }
     },
     {
       "id": "item:marketing-logo-cloud",
@@ -2943,7 +3365,10 @@
       "degree": 6,
       "exports": [
         "MarketingLogoCloud"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingLogoCloud": "ui/marketing-logo-cloud"
+      }
     },
     {
       "id": "item:marketing-newsletter",
@@ -2971,7 +3396,10 @@
       "degree": 5,
       "exports": [
         "MarketingNewsletter"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingNewsletter": "ui/marketing-newsletter"
+      }
     },
     {
       "id": "item:marketing-pricing",
@@ -2999,7 +3427,10 @@
       "degree": 7,
       "exports": [
         "MarketingPricing"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingPricing": "ui/marketing-pricing"
+      }
     },
     {
       "id": "item:marketing-stats",
@@ -3028,7 +3459,10 @@
       "degree": 4,
       "exports": [
         "MarketingStats"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingStats": "ui/marketing-stats"
+      }
     },
     {
       "id": "item:marketing-team",
@@ -3056,7 +3490,10 @@
       "degree": 4,
       "exports": [
         "MarketingTeam"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingTeam": "ui/marketing-team"
+      }
     },
     {
       "id": "item:marketing-testimonial",
@@ -3084,7 +3521,10 @@
       "degree": 7,
       "exports": [
         "MarketingTestimonial"
-      ]
+      ],
+      "exportPaths": {
+        "MarketingTestimonial": "ui/marketing-testimonial"
+      }
     },
     {
       "id": "item:marquee",
@@ -3135,7 +3575,10 @@
       "degree": 7,
       "exports": [
         "Matrix"
-      ]
+      ],
+      "exportPaths": {
+        "Matrix": "ui/matrix"
+      }
     },
     {
       "id": "item:menubar",
@@ -3168,7 +3611,20 @@
         "MenubarSeparator",
         "MenubarShortcut",
         "MenubarTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "Menubar": "ui/menubar",
+        "MenubarMenu": "ui/menubar",
+        "MenubarTrigger": "ui/menubar",
+        "MenubarContent": "ui/menubar",
+        "MenubarItem": "ui/menubar",
+        "MenubarLabel": "ui/menubar",
+        "MenubarSeparator": "ui/menubar",
+        "MenubarShortcut": "ui/menubar",
+        "MenubarGroup": "ui/menubar",
+        "MenubarPortal": "ui/menubar",
+        "MenubarRadioGroup": "ui/menubar"
+      }
     },
     {
       "id": "item:message",
@@ -3197,7 +3653,11 @@
       "exports": [
         "Message",
         "messageVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Message": "ui/message",
+        "messageVariants": "ui/message"
+      }
     },
     {
       "id": "item:message-actions",
@@ -3223,7 +3683,10 @@
       "degree": 3,
       "exports": [
         "MessageActions"
-      ]
+      ],
+      "exportPaths": {
+        "MessageActions": "ui/message-actions"
+      }
     },
     {
       "id": "item:message-list",
@@ -3249,7 +3712,10 @@
       "degree": 10,
       "exports": [
         "MessageList"
-      ]
+      ],
+      "exportPaths": {
+        "MessageList": "ui/message-list"
+      }
     },
     {
       "id": "item:mind-map",
@@ -3279,7 +3745,10 @@
       "degree": 11,
       "exports": [
         "MindMap"
-      ]
+      ],
+      "exportPaths": {
+        "MindMap": "ui/mind-map"
+      }
     },
     {
       "id": "item:motion",
@@ -3367,7 +3836,10 @@
       "degree": 7,
       "exports": [
         "MultiCombobox"
-      ]
+      ],
+      "exportPaths": {
+        "MultiCombobox": "ui/multi-combobox"
+      }
     },
     {
       "id": "item:navigation-menu",
@@ -3398,7 +3870,18 @@
         "NavigationMenuTrigger",
         "NavigationMenuViewport",
         "navigationMenuTriggerStyle"
-      ]
+      ],
+      "exportPaths": {
+        "navigationMenuTriggerStyle": "ui/navigation-menu",
+        "NavigationMenu": "ui/navigation-menu",
+        "NavigationMenuList": "ui/navigation-menu",
+        "NavigationMenuItem": "ui/navigation-menu",
+        "NavigationMenuContent": "ui/navigation-menu",
+        "NavigationMenuTrigger": "ui/navigation-menu",
+        "NavigationMenuLink": "ui/navigation-menu",
+        "NavigationMenuIndicator": "ui/navigation-menu",
+        "NavigationMenuViewport": "ui/navigation-menu"
+      }
     },
     {
       "id": "item:org-chart",
@@ -3427,7 +3910,10 @@
       "degree": 10,
       "exports": [
         "OrgChart"
-      ]
+      ],
+      "exportPaths": {
+        "OrgChart": "ui/org-chart"
+      }
     },
     {
       "id": "item:page-transition",
@@ -3477,7 +3963,17 @@
         "PaginationNext",
         "PaginationPrevious",
         "buttonVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Pagination": "ui/pagination",
+        "PaginationContent": "ui/pagination",
+        "PaginationEllipsis": "ui/pagination",
+        "PaginationItem": "ui/pagination",
+        "PaginationLink": "ui/pagination",
+        "PaginationNext": "ui/pagination",
+        "PaginationPrevious": "ui/pagination",
+        "buttonVariants": "ui/button-variants"
+      }
     },
     {
       "id": "item:parallax",
@@ -3528,7 +4024,10 @@
       "degree": 5,
       "exports": [
         "Plan"
-      ]
+      ],
+      "exportPaths": {
+        "Plan": "ui/plan"
+      }
     },
     {
       "id": "item:popover",
@@ -3554,7 +4053,13 @@
         "PopoverAnchor",
         "PopoverContent",
         "PopoverTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "Popover": "ui/popover",
+        "PopoverTrigger": "ui/popover",
+        "PopoverContent": "ui/popover",
+        "PopoverAnchor": "ui/popover"
+      }
     },
     {
       "id": "item:presence",
@@ -3598,7 +4103,10 @@
       "degree": 8,
       "exports": [
         "Progress"
-      ]
+      ],
+      "exportPaths": {
+        "Progress": "ui/progress"
+      }
     },
     {
       "id": "item:pulse",
@@ -3647,7 +4155,10 @@
       "degree": 6,
       "exports": [
         "Pyramid"
-      ]
+      ],
+      "exportPaths": {
+        "Pyramid": "ui/pyramid"
+      }
     },
     {
       "id": "item:quiz",
@@ -3675,7 +4186,10 @@
       "degree": 13,
       "exports": [
         "Quiz"
-      ]
+      ],
+      "exportPaths": {
+        "Quiz": "ui/quiz"
+      }
     },
     {
       "id": "item:radio-group",
@@ -3699,7 +4213,11 @@
       "exports": [
         "RadioGroup",
         "RadioGroupItem"
-      ]
+      ],
+      "exportPaths": {
+        "RadioGroup": "ui/radio-group",
+        "RadioGroupItem": "ui/radio-group"
+      }
     },
     {
       "id": "item:reasoning",
@@ -3727,7 +4245,10 @@
       "degree": 10,
       "exports": [
         "Reasoning"
-      ]
+      ],
+      "exportPaths": {
+        "Reasoning": "ui/reasoning"
+      }
     },
     {
       "id": "item:resizable",
@@ -3751,7 +4272,12 @@
         "ResizableHandle",
         "ResizablePanel",
         "ResizablePanelGroup"
-      ]
+      ],
+      "exportPaths": {
+        "ResizablePanelGroup": "ui/resizable",
+        "ResizablePanel": "ui/resizable",
+        "ResizableHandle": "ui/resizable"
+      }
     },
     {
       "id": "item:reveal-on-scroll",
@@ -3802,7 +4328,10 @@
       "degree": 11,
       "exports": [
         "Sankey"
-      ]
+      ],
+      "exportPaths": {
+        "Sankey": "ui/sankey"
+      }
     },
     {
       "id": "item:scale-in",
@@ -3867,7 +4396,11 @@
       "exports": [
         "ScrollArea",
         "ScrollBar"
-      ]
+      ],
+      "exportPaths": {
+        "ScrollArea": "ui/scroll-area",
+        "ScrollBar": "ui/scroll-area"
+      }
     },
     {
       "id": "item:select",
@@ -3898,7 +4431,17 @@
         "SelectSeparator",
         "SelectTrigger",
         "SelectValue"
-      ]
+      ],
+      "exportPaths": {
+        "Select": "ui/select",
+        "SelectGroup": "ui/select",
+        "SelectValue": "ui/select",
+        "SelectTrigger": "ui/select",
+        "SelectContent": "ui/select",
+        "SelectLabel": "ui/select",
+        "SelectItem": "ui/select",
+        "SelectSeparator": "ui/select"
+      }
     },
     {
       "id": "item:separator",
@@ -3920,7 +4463,10 @@
       "degree": 24,
       "exports": [
         "Separator"
-      ]
+      ],
+      "exportPaths": {
+        "Separator": "ui/separator"
+      }
     },
     {
       "id": "item:sequence",
@@ -3948,7 +4494,10 @@
       "degree": 7,
       "exports": [
         "Sequence"
-      ]
+      ],
+      "exportPaths": {
+        "Sequence": "ui/sequence"
+      }
     },
     {
       "id": "item:shake",
@@ -4001,7 +4550,19 @@
         "SheetPortal",
         "SheetTitle",
         "SheetTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "Sheet": "ui/sheet",
+        "SheetPortal": "ui/sheet",
+        "SheetOverlay": "ui/sheet",
+        "SheetTrigger": "ui/sheet",
+        "SheetClose": "ui/sheet",
+        "SheetContent": "ui/sheet",
+        "SheetHeader": "ui/sheet",
+        "SheetFooter": "ui/sheet",
+        "SheetTitle": "ui/sheet",
+        "SheetDescription": "ui/sheet"
+      }
     },
     {
       "id": "item:shimmer",
@@ -4028,7 +4589,10 @@
       "degree": 6,
       "exports": [
         "Shimmer"
-      ]
+      ],
+      "exportPaths": {
+        "Shimmer": "ui/shimmer"
+      }
     },
     {
       "id": "item:shine",
@@ -4079,7 +4643,17 @@
         "SidebarProvider",
         "SidebarTrigger",
         "useSidebar"
-      ]
+      ],
+      "exportPaths": {
+        "SidebarProvider": "ui/sidebar",
+        "Sidebar": "ui/sidebar",
+        "SidebarTrigger": "ui/sidebar",
+        "SidebarHeader": "ui/sidebar",
+        "SidebarContent": "ui/sidebar",
+        "SidebarFooter": "ui/sidebar",
+        "SidebarItem": "ui/sidebar",
+        "useSidebar": "ui/sidebar"
+      }
     },
     {
       "id": "item:skeleton",
@@ -4101,7 +4675,10 @@
       "degree": 12,
       "exports": [
         "Skeleton"
-      ]
+      ],
+      "exportPaths": {
+        "Skeleton": "ui/skeleton"
+      }
     },
     {
       "id": "item:slide-in",
@@ -4153,7 +4730,10 @@
       "degree": 10,
       "exports": [
         "Slider"
-      ]
+      ],
+      "exportPaths": {
+        "Slider": "ui/slider"
+      }
     },
     {
       "id": "item:sonner",
@@ -4177,7 +4757,11 @@
       "exports": [
         "Toaster",
         "toast"
-      ]
+      ],
+      "exportPaths": {
+        "Toaster": "ui/sonner",
+        "toast": "ui/sonner"
+      }
     },
     {
       "id": "item:sources",
@@ -4206,7 +4790,10 @@
       "degree": 10,
       "exports": [
         "Sources"
-      ]
+      ],
+      "exportPaths": {
+        "Sources": "ui/sources"
+      }
     },
     {
       "id": "item:spaced-repetition",
@@ -4234,7 +4821,10 @@
       "degree": 10,
       "exports": [
         "SpacedRepetition"
-      ]
+      ],
+      "exportPaths": {
+        "SpacedRepetition": "ui/spaced-repetition"
+      }
     },
     {
       "id": "item:spacer",
@@ -4258,7 +4848,11 @@
       "exports": [
         "Spacer",
         "spacerVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Spacer": "ui/spacer",
+        "spacerVariants": "ui/spacer"
+      }
     },
     {
       "id": "item:speech-recognition",
@@ -4287,7 +4881,10 @@
       "degree": 3,
       "exports": [
         "SpeechRecognition"
-      ]
+      ],
+      "exportPaths": {
+        "SpeechRecognition": "ui/speech-recognition"
+      }
     },
     {
       "id": "item:stack",
@@ -4316,7 +4913,15 @@
         "gapVariants",
         "justifyVariants",
         "stackVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Stack": "ui/stack",
+        "stackVariants": "ui/stack",
+        "gapVariants": "_shared/layout-variants",
+        "justifyVariants": "_shared/layout-variants",
+        "flexAlignVariants": "_shared/layout-variants",
+        "clusterAlignVariants": "_shared/layout-variants"
+      }
     },
     {
       "id": "item:stagger",
@@ -4360,7 +4965,10 @@
       "degree": 7,
       "exports": [
         "Stepper"
-      ]
+      ],
+      "exportPaths": {
+        "Stepper": "ui/stepper"
+      }
     },
     {
       "id": "item:suggestion",
@@ -4388,7 +4996,10 @@
       "degree": 4,
       "exports": [
         "Suggestion"
-      ]
+      ],
+      "exportPaths": {
+        "Suggestion": "ui/suggestion"
+      }
     },
     {
       "id": "item:sunburst",
@@ -4417,7 +5028,10 @@
       "degree": 10,
       "exports": [
         "Sunburst"
-      ]
+      ],
+      "exportPaths": {
+        "Sunburst": "ui/sunburst"
+      }
     },
     {
       "id": "item:switch",
@@ -4445,7 +5059,10 @@
       "degree": 14,
       "exports": [
         "Switch"
-      ]
+      ],
+      "exportPaths": {
+        "Switch": "ui/switch"
+      }
     },
     {
       "id": "item:table",
@@ -4474,7 +5091,17 @@
         "TableHead",
         "TableHeader",
         "TableRow"
-      ]
+      ],
+      "exportPaths": {
+        "Table": "ui/table",
+        "TableHeader": "ui/table",
+        "TableBody": "ui/table",
+        "TableFooter": "ui/table",
+        "TableHead": "ui/table",
+        "TableRow": "ui/table",
+        "TableCell": "ui/table",
+        "TableCaption": "ui/table"
+      }
     },
     {
       "id": "item:tabs",
@@ -4500,7 +5127,13 @@
         "TabsContent",
         "TabsList",
         "TabsTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "Tabs": "ui/tabs",
+        "TabsList": "ui/tabs",
+        "TabsTrigger": "ui/tabs",
+        "TabsContent": "ui/tabs"
+      }
     },
     {
       "id": "item:tag",
@@ -4533,7 +5166,11 @@
       "exports": [
         "Tag",
         "tagVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Tag": "ui/tag",
+        "tagVariants": "ui/tag"
+      }
     },
     {
       "id": "item:task",
@@ -4563,7 +5200,10 @@
       "degree": 6,
       "exports": [
         "Task"
-      ]
+      ],
+      "exportPaths": {
+        "Task": "ui/task"
+      }
     },
     {
       "id": "item:terminal",
@@ -4593,7 +5233,10 @@
       "degree": 2,
       "exports": [
         "Terminal"
-      ]
+      ],
+      "exportPaths": {
+        "Terminal": "ui/terminal"
+      }
     },
     {
       "id": "item:textarea",
@@ -4616,7 +5259,10 @@
       "degree": 7,
       "exports": [
         "Textarea"
-      ]
+      ],
+      "exportPaths": {
+        "Textarea": "ui/textarea"
+      }
     },
     {
       "id": "item:time-axis",
@@ -4644,7 +5290,10 @@
       "degree": 5,
       "exports": [
         "TimeAxis"
-      ]
+      ],
+      "exportPaths": {
+        "TimeAxis": "ui/time-axis"
+      }
     },
     {
       "id": "item:time-picker",
@@ -4666,7 +5315,10 @@
       "degree": 3,
       "exports": [
         "TimePicker"
-      ]
+      ],
+      "exportPaths": {
+        "TimePicker": "ui/time-picker"
+      }
     },
     {
       "id": "item:timeline",
@@ -4689,7 +5341,10 @@
       "degree": 7,
       "exports": [
         "Timeline"
-      ]
+      ],
+      "exportPaths": {
+        "Timeline": "ui/timeline"
+      }
     },
     {
       "id": "item:toggle",
@@ -4713,7 +5368,11 @@
       "exports": [
         "Toggle",
         "toggleVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Toggle": "ui/toggle",
+        "toggleVariants": "ui/toggle"
+      }
     },
     {
       "id": "item:toggle-group",
@@ -4737,7 +5396,11 @@
       "exports": [
         "ToggleGroup",
         "ToggleGroupItem"
-      ]
+      ],
+      "exportPaths": {
+        "ToggleGroup": "ui/toggle-group",
+        "ToggleGroupItem": "ui/toggle-group"
+      }
     },
     {
       "id": "item:tool-call",
@@ -4765,7 +5428,10 @@
       "degree": 10,
       "exports": [
         "ToolCall"
-      ]
+      ],
+      "exportPaths": {
+        "ToolCall": "ui/tool-call"
+      }
     },
     {
       "id": "item:toolbar",
@@ -4800,7 +5466,16 @@
         "ToolbarToggleGroup",
         "ToolbarToggleItem",
         "toolbarVariants"
-      ]
+      ],
+      "exportPaths": {
+        "Toolbar": "ui/toolbar",
+        "ToolbarButton": "ui/toolbar",
+        "ToolbarLink": "ui/toolbar",
+        "ToolbarSeparator": "ui/toolbar",
+        "ToolbarToggleGroup": "ui/toolbar",
+        "ToolbarToggleItem": "ui/toolbar",
+        "toolbarVariants": "ui/toolbar"
+      }
     },
     {
       "id": "item:tooltip",
@@ -4826,7 +5501,13 @@
         "TooltipContent",
         "TooltipProvider",
         "TooltipTrigger"
-      ]
+      ],
+      "exportPaths": {
+        "Tooltip": "ui/tooltip",
+        "TooltipTrigger": "ui/tooltip",
+        "TooltipContent": "ui/tooltip",
+        "TooltipProvider": "ui/tooltip"
+      }
     },
     {
       "id": "item:track",
@@ -4896,7 +5577,10 @@
       "degree": 9,
       "exports": [
         "Tree"
-      ]
+      ],
+      "exportPaths": {
+        "Tree": "ui/tree"
+      }
     },
     {
       "id": "item:tree-map",
@@ -4925,7 +5609,10 @@
       "degree": 11,
       "exports": [
         "TreeMap"
-      ]
+      ],
+      "exportPaths": {
+        "TreeMap": "ui/tree-map"
+      }
     },
     {
       "id": "item:typewriter",
@@ -5088,7 +5775,10 @@
       "degree": 7,
       "exports": [
         "Venn"
-      ]
+      ],
+      "exportPaths": {
+        "Venn": "ui/venn"
+      }
     },
     {
       "id": "recipe:about-page",
