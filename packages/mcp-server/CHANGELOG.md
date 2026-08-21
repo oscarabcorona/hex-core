@@ -1,5 +1,19 @@
 # @hex-core/mcp
 
+## 0.7.0
+
+### Minor Changes
+
+- 33440ea: Three agent-builder tools: `map_application` (whole-application brief → typed screens + install closure + warnings + checklist + budgets), `query_graph` (explain / neighbors / path / affected over the catalog knowledge graph), and `scaffold_poc` (complete runnable Next.js demo-app file tree from a brief, map, or recipe — returned as JSON, no disk writes). 19 tools total.
+
+### Patch Changes
+
+- Updated dependencies [0087190]
+- Updated dependencies [2f7586f]
+- Updated dependencies [33440ea]
+  - @hex-core/registry@0.7.0
+  - @hex-core/payload@0.5.0
+
 ## 0.6.2
 
 ### Patch Changes

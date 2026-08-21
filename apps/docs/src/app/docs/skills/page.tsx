@@ -6,7 +6,7 @@ import { DocsPage } from "../../../components/docs-page";
 export const metadata = {
 	title: "Skills",
 	description:
-		"Agent skills for Hex Core — nine SKILL.md packs that give Claude Code prose context alongside the 11 MCP tools.",
+		"Agent skills for Hex Core — nine SKILL.md packs that give Claude Code prose context alongside the 19 MCP tools.",
 };
 
 const SECTIONS = [

@@ -44,7 +44,7 @@
 	},
 	"dependencies": {
 		"clsx": "^2.1.0",
-		"tailwind-merge": "^3.5.0"
+		"tailwind-merge": "^3.6.0"
 	},
 	"devDependencies": {
 		"@types/react": "^19.0.0",

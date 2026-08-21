@@ -8,7 +8,7 @@
 
 **The component layer for spec-driven UI development.**
 
-Hex Core turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 16 MCP tools over a catalog of 183 components, including 43 section blocks and 8 page recipes.
+Hex Core turns a brief (or a `spec.md` / `plan.md` section) into a ranked component checklist over MCP. No server, no runtime — just static JSON and 19 MCP tools over a catalog of 187 components, including 43 section blocks and 8 page recipes.
 
 ## Why Hex Core?
 
@@ -48,6 +48,9 @@ Then ask Claude: *"Search hex-core for a button component and add it to my proje
 npx @hex-core/cli init                    # detects Tailwind v3 vs v4, scaffolds globals.css, auto-installs peer deps
 npx @hex-core/cli add button input label  # writes components, auto-installs Radix peers, rewrites imports to your @/ alias
 npx @hex-core/cli doctor                  # diagnose what's missing if anything breaks
+npx @hex-core/cli map "a SaaS site with landing + pricing"   # brief → screens/install/warnings map
+npx @hex-core/cli poc --from hex.map.json --dir demo --yes   # scaffold a runnable Next.js demo app
+npx @hex-core/cli graph affected button                      # reverse blast radius across the catalog
 ```
 
 ## Packages
@@ -81,6 +84,9 @@ npx @hex-core/cli doctor                  # diagnose what's missing if anything 
 | `resolve_spec` | Deterministic brief → ranked component + recipe shortlist |
 | `verify_checklist` | Cross-check installed components against the internal-dep graph |
 | `emit_app_context` | Synthesize a paste-into-LLM markdown payload of theme + installed components |
+| `map_application` | Whole-app brief → typed screens, `requires`-closure install manifest, warnings (`hex.map.json`) |
+| `query_graph` | Query the catalog knowledge graph — `explain`, `neighbors`, `path`, `affected` |
+| `scaffold_poc` | Generate a standalone runnable Next.js demo app from a brief, map, or page recipe |
 
 See **[hex-core.dev/docs/spec-driven](https://hex-core.dev/docs/spec-driven)** for the full spec-driven workflow.
 

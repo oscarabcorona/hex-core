@@ -127,6 +127,27 @@ export default function McpPage() {
 						<strong>emit_app_context</strong> — synthesize a paste-into-LLM markdown
 						payload describing the chosen stack
 					</li>
+					<li>
+						<strong>search_compositions</strong> — find component examples by composition tags (destructive, confirm, form-action, …)
+					</li>
+					<li>
+						<strong>describe_intent</strong> — intent-first payload: per-variant useWhen, structured anti-patterns, and token intents — call before generating JSX
+					</li>
+					<li>
+						<strong>search_themes</strong> — search the theme catalog by category, tags, or free-text
+					</li>
+					<li>
+						<strong>emit_figma_tokens</strong> — render a theme as a Figma Variables REST POST payload
+					</li>
+					<li>
+						<strong>map_application</strong> — whole-app brief → typed screens, a requires-closure install manifest, and anti-pattern warnings
+					</li>
+					<li>
+						<strong>query_graph</strong> — query the catalog knowledge graph — explain, neighbors, path, affected
+					</li>
+					<li>
+						<strong>scaffold_poc</strong> — generate a standalone runnable Next.js demo app from a brief, map, or page recipe
+					</li>
 				</ul>
 				<p className="text-sm leading-6">
 					See{" "}

@@ -15,7 +15,9 @@ describe("ToggleGroup (single)", () => {
 				</ToggleGroupItem>
 			</ToggleGroup>,
 		);
-		expect(screen.getByRole("group", { name: "Align" })).toBeInTheDocument();
+		// Radix Toggle Group v1.1.13+ exposes a single-select group as
+		// role="radiogroup" with role="radio" items (more correct a11y semantics).
+		expect(screen.getByRole("radiogroup", { name: "Align" })).toBeInTheDocument();
 		expect(screen.getAllByRole("radio")).toHaveLength(2);
 	});
 
