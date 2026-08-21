@@ -74,3 +74,65 @@ export {
 	type RecipeKind,
 	type RecipeStep,
 } from "./loaders/recipe-loader.js";
+
+// ─── Catalog graph (schema + loader + pure queries) ───
+export {
+	type CatalogGraph,
+	catalogGraphSchema,
+	type GraphEdge,
+	graphEdgeSchema,
+	type GraphNode,
+	graphNodeSchema,
+	type NodeKind,
+	GRAPH_FORMAT_VERSION,
+	nodeKindEnum,
+	parseGraph,
+	type Relation,
+	relationEnum,
+} from "./graph/graph-schema.js";
+
+export { loadGraph } from "./graph/graph-loader.js";
+
+export {
+	affected,
+	type AffectedItem,
+	type AffectedResult,
+	explainNode,
+	type ExplainResult,
+	itemId,
+	type Neighbor,
+	neighbors,
+	nodeBySlug,
+	type PathHop,
+	recipeId,
+	requiresClosure,
+	shortestPath,
+} from "./graph/graph-query.js";
+
+// ─── Application map + POC builders (pure functions) ───
+export {
+	type ApplicationMap,
+	buildApplicationMap,
+	MAP_SCHEMA_URL,
+	type MapBuilderOptions,
+	mapFromRecipe,
+	type MapScreen,
+	mapSchema,
+	MAP_FORMAT_VERSION,
+	mapScreenSchema,
+	parseMap,
+	segmentBrief,
+	stableStringifyMap,
+} from "./builders/map.js";
+
+export {
+	buildPocFiles,
+	type GeneratedPage,
+	generatePageSource,
+	type PocBuilderOptions,
+	type PocBuildResult,
+	type PocFile,
+	type PocRoute,
+} from "./builders/poc.js";
+
+export { type AliasConfig, DEFAULT_ALIASES, rewriteRegistryImports } from "./lib/rewrite-imports.js";

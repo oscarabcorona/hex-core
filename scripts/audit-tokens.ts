@@ -32,6 +32,10 @@ import {
 	type AppContextTheme,
 } from "../packages/payload/src/builders/app-context.js";
 import { getTheme } from "../packages/tokens/src/index.js";
+import { buildApplicationMap, mapFromRecipe } from "../packages/payload/src/builders/map.js";
+import { buildPocFiles } from "../packages/payload/src/builders/poc.js";
+import { loadGraph } from "../packages/payload/src/graph/graph-loader.js";
+import { explainNode } from "../packages/payload/src/graph/graph-query.js";
 
 const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 // The MCP server serves whatever `@hex-core/payload` bundles (its `prebuild`
@@ -521,6 +525,24 @@ if (designRefs.length > 0) {
 	push(`| **Total** | **${fmt(refSum)}** | — |`);
 	push("");
 }
+
+push("## Surface H — catalog graph + agent-builder tools");
+push("");
+push("The graph ships in the registry bundle; the tool rows measure representative wire-shape responses of the three agent-builder tools (`map_application`, `query_graph`, `scaffold_poc`). `scaffold_poc` embeds full file contents by design — agents should write the tree, not hold it in context.");
+push("");
+const graph = loadGraph();
+const graphPretty = JSON.stringify(graph, null, 2);
+const sampleMap = buildApplicationMap("a SaaS site with a landing page and pricing page, plus an admin dashboard with a data table");
+const sampleMapPretty = JSON.stringify(sampleMap, null, 2);
+const sampleExplain = JSON.stringify(explainNode(graph, "marketing-hero"), null, 2);
+const samplePoc = JSON.stringify(buildPocFiles(mapFromRecipe("landing-page"), { appName: "audit-poc" }), null, 2);
+push("| Shape | Tokens | Bytes |");
+push("|---|---|---|");
+push(`| \`registry/graph.json\` (${graph.nodes.length} nodes, ${graph.edges.length} edges) | ${fmt(tok(graphPretty))} | ${fmt(Buffer.byteLength(graphPretty))} |`);
+push(`| \`map_application\` (3-screen SaaS brief) | ${fmt(tok(sampleMapPretty))} | ${fmt(Buffer.byteLength(sampleMapPretty))} |`);
+push(`| \`query_graph\` (explain marketing-hero) | ${fmt(tok(sampleExplain))} | ${fmt(Buffer.byteLength(sampleExplain))} |`);
+push(`| \`scaffold_poc\` (landing-page recipe, full file tree) | ${fmt(tok(samplePoc))} | ${fmt(Buffer.byteLength(samplePoc))} |`);
+push("");
 
 push("## Context window fit");
 push("");

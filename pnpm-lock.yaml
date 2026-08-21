@@ -239,6 +239,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@hex-core/payload':
+        specifier: workspace:^
+        version: link:../payload
       '@hex-core/registry':
         specifier: workspace:^
         version: link:../registry
@@ -579,6 +582,9 @@ importers:
       '@hex-core/tokens':
         specifier: workspace:^
         version: link:../tokens
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@types/node':
         specifier: ^25.6.0

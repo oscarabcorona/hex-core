@@ -347,3 +347,46 @@ describe("addComponents — --from manifest", () => {
 		}
 	});
 });
+
+/**
+ * --from also accepts a `hex.map.json` application map (as written by
+ * `hex map --out`) — its `install.components` closure seeds the queue.
+ */
+describe("addComponents — --from hex.map.json", () => {
+	it("installs the map's install.components closure", async () => {
+		const { buildApplicationMap, stableStringifyMap } = await import("@hex-core/payload");
+		const map = buildApplicationMap("landing page");
+		fs.writeFileSync(path.join(tmpDir, "hex.map.json"), `${stableStringifyMap(map)}\n`);
+		await addComponents([], {
+			yes: false,
+			overwrite: false,
+			deps: false,
+			install: false,
+			from: "hex.map.json",
+		});
+		expect(fs.existsSync(path.join(tmpDir, "components/ui/marketing-hero.tsx"))).toBe(true);
+	});
+
+	it("errors on a malformed map file", async () => {
+		fs.writeFileSync(path.join(tmpDir, "bad-map.json"), JSON.stringify({ screens: "nope" }));
+		const exitSpy = vi.spyOn(process, "exit").mockImplementation(((code?: string | number | null | undefined) => {
+			throw new Error(`process.exit(${code ?? 0})`);
+		}) as never);
+		const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+		try {
+			await expect(
+				addComponents([], {
+					yes: false,
+					overwrite: false,
+					deps: false,
+					install: false,
+					from: "bad-map.json",
+				}),
+			).rejects.toThrow(/exit/);
+			expect(errSpy.mock.calls.flat().join("\n")).toContain("malformed");
+		} finally {
+			exitSpy.mockRestore();
+			errSpy.mockRestore();
+		}
+	});
+});

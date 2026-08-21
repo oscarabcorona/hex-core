@@ -101,10 +101,20 @@ export interface RegistryItem {
 	variants: unknown[];
 	slots: unknown[];
 	files: Array<{ path: string; content: string; type: string }>;
-	dependencies: { npm?: string[]; internal?: string[]; peer?: string[] };
+	/**
+	 * Mirrors `dependencySchema` in `@hex-core/registry`. `heavyPeer` is
+	 * declared here (not just `npm`/`internal`/`peer`) because 18 items ship
+	 * it and consumers must not need an `as` cast to read it.
+	 */
+	dependencies: {
+		npm?: string[];
+		internal?: string[];
+		peer?: string[];
+		heavyPeer?: Array<{ name: string; version: string; bundleKbGzip?: number; reason?: string }>;
+	};
 	tokensUsed: string[];
 	cssVariables?: Record<string, { light: string; dark: string }>;
-	examples: Array<{ title: string; description: string; code: string }>;
+	examples: Array<{ title: string; description: string; code: string; composition?: string[] }>;
 	ai: Record<string, unknown>;
 	tags: string[];
 }

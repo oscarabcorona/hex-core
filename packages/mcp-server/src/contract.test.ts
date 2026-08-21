@@ -505,6 +505,9 @@ async function main(): Promise<void> {
 			getComponent: 15_000, // current max 12,655 (block component, wire-pretty)
 			getComponentSchema: 2_500, // current max 2,265 (wire-pretty)
 			emitAppContextN20: 5_000, // current 3,775 at N=20
+			// scaffold_poc embeds full file contents by design; the ceiling
+			// exists so a change that doubles the tree is caught here.
+			scaffoldPocRecipe: 32_000, // current ~23,645 for landing-page
 		};
 		const budgetSamples = ["button", "auth-sign-in-split", "input"];
 		for (const slug of budgetSamples) {
@@ -554,6 +557,77 @@ async function main(): Promise<void> {
 			fail(`emit_app_context(N=20) is ${budgetCtxTokens} tokens, ceiling ${CEILINGS.emitAppContextN20}`);
 		}
 		pass(`emit_app_context(N=20) stays under ${CEILINGS.emitAppContextN20} tokens (got ${budgetCtxTokens})`);
+		// ─── Agent-builder trio: map_application → query_graph → scaffold_poc ───
+		const mapResult = (await client.callTool({
+			name: TOOL.MAP_APPLICATION,
+			arguments: { brief: "landing page with pricing page" },
+		})) as { content?: Array<{ type: string; text?: string }> };
+		let mapParsed: {
+			screens: Array<{ recipe?: string; source: string }>;
+			install: { components: string[] };
+		};
+		try {
+			mapParsed = JSON.parse(mapResult.content?.[0]?.text ?? "");
+		} catch (err) {
+			fail(`map_application did not return valid JSON: ${(err as Error).message}`);
+		}
+		const mappedRecipes = mapParsed.screens.map((s) => s.recipe);
+		if (!mappedRecipes.includes("landing-page") || !mappedRecipes.includes("pricing-page")) {
+			fail(`map_application missed a page screen — got ${mappedRecipes.join(", ")}`);
+		}
+		if (!mapParsed.install.components.includes("marketing-hero")) {
+			fail("map_application install closure is missing marketing-hero");
+		}
+		pass("map_application maps a two-page brief to page-recipe screens + install closure");
+
+		const graphResult = (await client.callTool({
+			name: TOOL.QUERY_GRAPH,
+			arguments: { mode: "explain", slug: "marketing-hero" },
+		})) as { content?: Array<{ type: string; text?: string }> };
+		let graphParsed: { node: { id: string }; relations: Array<{ relation: string }> };
+		try {
+			graphParsed = JSON.parse(graphResult.content?.[0]?.text ?? "");
+		} catch (err) {
+			fail(`query_graph did not return valid JSON: ${(err as Error).message}`);
+		}
+		if (graphParsed.node.id !== "item:marketing-hero") {
+			fail(`query_graph explain returned wrong node: ${graphParsed.node.id}`);
+		}
+		if (!graphParsed.relations.some((r) => r.relation === "composes")) {
+			fail("query_graph explain(marketing-hero) is missing its composes edges");
+		}
+		pass("query_graph explains a node with its composes edges");
+
+		const pocResult = (await client.callTool({
+			name: TOOL.SCAFFOLD_POC,
+			arguments: { recipe: "landing-page", name: "contract-poc" },
+		})) as { content?: Array<{ type: string; text?: string }> };
+		let pocParsed: {
+			files: Array<{ path: string; content: string }>;
+			routes: Array<{ route: string }>;
+			npmDependencies: string[];
+		};
+		try {
+			pocParsed = JSON.parse(pocResult.content?.[0]?.text ?? "");
+		} catch (err) {
+			fail(`scaffold_poc did not return valid JSON: ${(err as Error).message}`);
+		}
+		if (!pocParsed.routes.some((r) => r.route === "/landing")) {
+			fail("scaffold_poc(landing-page) did not generate the /landing route");
+		}
+		const pocPage = pocParsed.files.find((f) => f.path === "app/landing/page.tsx");
+		if (!pocPage || !pocPage.content.includes('from "@/components/ui/marketing-hero"')) {
+			fail("scaffold_poc page does not import the copied marketing-hero module");
+		}
+		if (!pocParsed.files.some((f) => f.path === "package.json")) {
+			fail("scaffold_poc is missing package.json in the file tree");
+		}
+		const pocTokens = tokensIn(pocResult.content?.[0]?.text ?? "");
+		if (pocTokens > CEILINGS.scaffoldPocRecipe) {
+			fail(`scaffold_poc(landing-page) is ${pocTokens} tokens, ceiling ${CEILINGS.scaffoldPocRecipe}`);
+		}
+		pass(`scaffold_poc(recipe) returns a runnable file tree with generated routes (${pocTokens} tokens)`);
+
 	} finally {
 		// ─── 13. Clean disposal — close should not throw ───
 		await client.close();

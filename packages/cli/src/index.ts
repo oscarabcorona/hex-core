@@ -37,7 +37,7 @@ program
 	.option("--dry-run", "Plan but do not write files or run installs", false)
 	.option(
 		"--from <manifest>",
-		"Install every slug from a `hex.components.json`-style manifest instead of positional args",
+		"Install every slug from a `hex.components.json` manifest or a `hex.map.json` application map instead of positional args",
 	)
 	.option(
 		"--pack <name>",
@@ -230,6 +230,110 @@ theme
 	.action(async (preset: string, options: { file: string }) => {
 		const { themeApply } = await import("./commands/theme.js");
 		await themeApply({ name: preset, file: options.file });
+	});
+
+program
+	.command("map")
+	.description(
+		"Map an application brief onto the catalog: screens → recipes/blocks/components, install manifest, warnings, budgets. Deterministic — feeds `hex add --from` and `hex poc --from`.",
+	)
+	.argument("[brief]", 'Freeform description of the app (e.g. "a SaaS site with a landing page and pricing page")')
+	.option("--spec <file>", "Read the brief from a file (PRD, notes) instead of the argument")
+	.option("--out <file>", "Write the map JSON to a file (e.g. hex.map.json)")
+	.option("--json", "Print the raw map JSON to stdout (for piping)", false)
+	.option("-y, --yes", "Overwrite an existing --out file", false)
+	.option("--limit <n>", "Per-segment component-match limit (default 8)")
+	.action(
+		async (
+			brief: string | undefined,
+			options: { spec?: string; out?: string; json: boolean; yes: boolean; limit?: string },
+		) => {
+			const { mapApplication } = await import("./commands/map.js");
+			const limit = options.limit === undefined ? undefined : Number(options.limit);
+			// Same ceiling as MCP map_application so the two surfaces don't drift.
+			if (limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 20)) {
+				console.error(`--limit must be an integer between 1 and 20, got "${options.limit}".`);
+				process.exit(1);
+			}
+			await mapApplication(brief, { ...options, limit });
+		},
+	);
+
+program
+	.command("poc")
+	.description(
+		"Scaffold a standalone runnable Next.js demo app from a brief, a hex.map.json, or one page recipe — the fastest way to see a mapped application working.",
+	)
+	.argument("[brief]", "Freeform description of the app (omit when using --from or --recipe)")
+	.option("--from <map>", "Scaffold from an existing hex.map.json (as written by `hex map --out`)")
+	.option("--recipe <slug>", "Scaffold a single page recipe (e.g. landing-page) without scoring")
+	.option("--dir <path>", "Target directory for the generated app", "hex-poc")
+	.option("--theme <preset>", "Theme preset override (default: the map's preset)")
+	.option("--name <name>", "package.json name for the generated app (default: the dir basename)")
+	.option("-y, --yes", "Skip the confirmation gate (required for non-empty --dir)", false)
+	.option("--dry-run", "Print the planned file tree without writing anything", false)
+	.action(
+		async (
+			brief: string | undefined,
+			options: {
+				from?: string;
+				recipe?: string;
+				dir: string;
+				theme?: string;
+				name?: string;
+				yes: boolean;
+				dryRun: boolean;
+			},
+		) => {
+			const { createPoc } = await import("./commands/poc.js");
+			await createPoc(brief, options);
+		},
+	);
+
+const graph = program
+	.command("graph")
+	.description("Query the catalog knowledge graph (items, recipes, themes and their relationships)");
+
+graph
+	.command("explain")
+	.description("Explain one slug: its edges grouped by relation, community, and peers")
+	.argument("<slug>", "Item, recipe, or theme slug (e.g. marketing-hero, landing-page)")
+	.option("--json", "Emit JSON instead of the human rendering", false)
+	.action(async (slug: string, options: { json: boolean }) => {
+		const { explainSlug } = await import("./commands/graph.js");
+		await explainSlug(slug, options);
+	});
+
+graph
+	.command("affected")
+	.description("Reverse blast radius: which items and recipes are touched if this item changes")
+	.argument("<slug>", "Item slug (e.g. button)")
+	.option("--json", "Emit JSON instead of the human rendering", false)
+	.action(async (slug: string, options: { json: boolean }) => {
+		const { affectedSlug } = await import("./commands/graph.js");
+		await affectedSlug(slug, options);
+	});
+
+graph
+	.command("neighbors")
+	.description("List adjacent nodes, optionally filtered by relation")
+	.argument("<slug>", "Item, recipe, or theme slug")
+	.option("--relation <name...>", "Filter to these relations: requires, related, instead-use, composes, themes")
+	.option("--json", "Emit JSON instead of the human rendering", false)
+	.action(async (slug: string, options: { relation?: string[]; json: boolean }) => {
+		const { neighborsOfSlug } = await import("./commands/graph.js");
+		await neighborsOfSlug(slug, options);
+	});
+
+graph
+	.command("path")
+	.description("Shortest connection between two catalog slugs")
+	.argument("<from>", "Starting slug")
+	.argument("<to>", "Destination slug")
+	.option("--json", "Emit JSON instead of the human rendering", false)
+	.action(async (from: string, to: string, options: { json: boolean }) => {
+		const { pathBetween } = await import("./commands/graph.js");
+		await pathBetween(from, to, options);
 	});
 
 program

@@ -5,18 +5,28 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { variantSchema } from "@hex-core/registry";
 import { z } from "zod";
 import {
+	affected,
 	buildAppContext,
+	buildApplicationMap,
 	buildFigmaTokens,
+	buildPocFiles,
 	defaultSemanticTokens,
+	explainNode,
 	generateGlobalsCss,
 	getTheme,
 	internalDepToSlug,
 	listThemes,
+	loadGraph,
 	loadRecipe,
 	loadRecipes,
 	loadRegistry,
 	loadRegistryItem,
+	mapFromRecipe,
+	parseMap,
+	neighbors,
+	relationEnum,
 	resolveSpec,
+	shortestPath,
 	SLUG_REGEX,
 	themeToFlatJson,
 	themeToTailwindConfig,
@@ -24,6 +34,18 @@ import {
 import { TOOL } from "./tool-names.js";
 
 const registry = loadRegistry();
+
+/**
+ * Normalize a thrown value into tool-response text. Used by the
+ * agent-builder tools so a missing/invalid catalog graph, an unknown theme,
+ * and a catalog defect all surface the same shape (`isError: true` plus the
+ * message) instead of three different ones.
+ * @param err - The thrown value
+ * @returns Human-readable error text
+ */
+function toolErrorText(err: unknown): string {
+	return err instanceof Error ? err.message : String(err);
+}
 
 const server = new McpServer({
 	name: "hex-core",
@@ -1072,6 +1094,190 @@ server.registerTool(
 				{ type: "text" as const, text: JSON.stringify(trimmed, null, 2) },
 			],
 		};
+	},
+);
+
+// ─── Tool 17: map_application ───
+
+server.registerTool(
+	TOOL.MAP_APPLICATION,
+	{
+		description:
+			"Map a whole-application brief onto the catalog: segments the brief, types each segment as a page-recipe / recipe / components screen, and returns screens + a requires-closure install manifest + related-component suggestions + anti-pattern warnings + merged checklist + token budgets. Deterministic — same brief and registry always produce the same map. Use this before multi-page scaffolds; feed the result to scaffold_poc or save it as hex.map.json for `hex add --from` / `hex poc --from`.",
+		inputSchema: z
+			.object({
+				brief: z
+					.string()
+					.min(3)
+					.describe("Freeform description of the application to build (multiple screens welcome)"),
+				limit: z
+					.number()
+					.int()
+					.positive()
+					.max(20)
+					.optional()
+					.describe("Per-segment component-match limit (default 8)"),
+			})
+			.strict(),
+	},
+	async ({ brief, limit }) => {
+		try {
+			const map = buildApplicationMap(brief, { limit });
+			return {
+				content: [{ type: "text" as const, text: JSON.stringify(map, null, 2) }],
+			};
+		} catch (err) {
+			return { content: [{ type: "text" as const, text: toolErrorText(err) }], isError: true };
+		}
+	},
+);
+
+// ─── Tool 18: query_graph ───
+
+/** Cap on neighbors returned per query_graph call — keeps responses inside token budgets. */
+const QUERY_GRAPH_NEIGHBOR_CAP = 50;
+
+server.registerTool(
+	TOOL.QUERY_GRAPH,
+	{
+		description:
+			"Query the catalog knowledge graph (items, recipes, theme presets; relations: requires, composes, themes, related, instead-use). Modes: explain (one node + edges grouped by relation + community peers), neighbors (adjacent nodes, optionally filtered by relation), path (shortest connection between two slugs), affected (reverse blast radius: what depends on an item). Use this instead of guessing component relationships.",
+		inputSchema: z
+			.object({
+				mode: z
+					.enum(["explain", "neighbors", "path", "affected"])
+					.describe("Query mode"),
+				slug: z.string().describe("Item, recipe, or theme slug to query"),
+				to: z.string().optional().describe("Destination slug (path mode only)"),
+				relations: z
+					.array(relationEnum)
+					.optional()
+					.describe("Relation filter (neighbors mode only)"),
+			})
+			.strict(),
+	},
+	async ({ mode, slug, to, relations }) => {
+		try {
+			const graph = loadGraph();
+			let result: unknown;
+			switch (mode) {
+				case "explain": {
+					// Hub items (button, input, card…) carry the largest
+					// neighborhoods in the catalog — cap per relation group so
+					// one explain call can't blow an agent's context window.
+					const explained = explainNode(graph, slug);
+					result = explained
+						? {
+								...explained,
+								relations: explained.relations.map((group) => ({
+									relation: group.relation,
+									total: group.neighbors.length,
+									neighbors: group.neighbors.slice(0, QUERY_GRAPH_NEIGHBOR_CAP),
+								})),
+							}
+						: null;
+					break;
+				}
+				case "neighbors":
+					result = neighbors(graph, slug, relations).slice(0, QUERY_GRAPH_NEIGHBOR_CAP);
+					break;
+				case "path": {
+					if (!to) {
+						return {
+							content: [{ type: "text" as const, text: 'path mode requires "to".' }],
+							isError: true,
+						};
+					}
+					result = shortestPath(graph, slug, to);
+					break;
+				}
+				case "affected":
+					result = affected(graph, slug);
+					break;
+			}
+			if (result === null) {
+				return {
+					content: [
+						{
+							type: "text" as const,
+							text: `"${slug}" is not in the catalog graph. Use search_components for valid slugs.`,
+						},
+					],
+				};
+			}
+			return {
+				content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
+			};
+		} catch (err) {
+			return { content: [{ type: "text" as const, text: toolErrorText(err) }], isError: true };
+		}
+	},
+);
+
+// ─── Tool 19: scaffold_poc ───
+
+server.registerTool(
+	TOOL.SCAFFOLD_POC,
+	{
+		description:
+			"Generate the complete file tree of a standalone runnable Next.js App Router demo app (the POC / 'demo side' of a mapped application): configs, theme globals.css, copied component sources with rewritten imports, and one generated route per page-recipe screen assembled from schema examples. Pass exactly one of brief (mapped via map_application's pipeline), map (a hex.map.json object), or recipe (a page-recipe slug). Returns JSON — no files are written; write the files yourself or run `hex poc` for the CLI equivalent.",
+		inputSchema: z
+			.object({
+				brief: z.string().min(3).optional().describe("Freeform application brief to map and scaffold"),
+				map: z
+					.record(z.string(), z.unknown())
+					.optional()
+					.describe(
+						"An application map object (the parsed contents of a hex.map.json). Required top-level keys: version, brief, screens, theme, install, suggestions, warnings, checklist, tokenBudget — call map_application to produce one.",
+					),
+				recipe: z.string().optional().describe("A single recipe slug to scaffold (e.g. landing-page)"),
+				theme: z.string().optional().describe("Theme preset override (default: the map's preset)"),
+				name: z.string().optional().describe("App name for package.json (default: hex-poc)"),
+			})
+			.strict(),
+	},
+	async ({ brief, map, recipe, theme, name }) => {
+		const sources = [brief, map, recipe].filter((s) => s !== undefined).length;
+		if (sources !== 1) {
+			return {
+				content: [
+					{ type: "text" as const, text: "Pass exactly one of: brief, map, or recipe." },
+				],
+			};
+		}
+		let applicationMap;
+		try {
+			if (map !== undefined) {
+				const parsed = parseMap(map);
+				if (!parsed.success) {
+					return {
+						content: [{ type: "text" as const, text: `Map is malformed: ${parsed.error}` }],
+						isError: true,
+					};
+				}
+				applicationMap = parsed.data;
+			} else if (recipe !== undefined) {
+				applicationMap = mapFromRecipe(recipe);
+			} else {
+				applicationMap = buildApplicationMap(brief ?? "");
+			}
+			if (applicationMap.screens.length === 0) {
+				return {
+					content: [
+						{
+							type: "text" as const,
+							text: "The brief mapped to no screens — call map_application first to tune the mapping.",
+						},
+					],
+				};
+			}
+			const result = buildPocFiles(applicationMap, { theme, appName: name });
+			return {
+				content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
+			};
+		} catch (err) {
+			return { content: [{ type: "text" as const, text: toolErrorText(err) }], isError: true };
+		}
 	},
 );
 
