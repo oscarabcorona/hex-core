@@ -132,6 +132,19 @@ export default function CliPage() {
 					<InlineCode>--yes</InlineCode> is required to write. Screens that aren&rsquo;t page
 					recipes are installed as components and listed on the generated index page.
 				</p>
+				<p className="text-sm leading-6">
+					Every generated app ships a <strong className="font-medium">demo panel</strong> floating
+					over the frames, because a POC is the frames <em>demoed</em> — without a way to reach the
+					states that matter, a reviewer only sees one screenshot&rsquo;s worth of the product.{" "}
+					<strong className="font-medium">Viewing as</strong> re-renders every frame as{" "}
+					<InlineCode>viewer</InlineCode>, <InlineCode>member</InlineCode> or{" "}
+					<InlineCode>admin</InlineCode> — gated frames explain why they&rsquo;re unavailable
+					instead of 404ing — and <strong className="font-medium">Data</strong> flips every frame
+					between its populated and empty state. Both live in cookies, so a selection survives
+					clicking through the frames. The vocabulary in <InlineCode>lib/demo.ts</InlineCode> is
+					small on purpose: add roles and capabilities there, and scope real data through{" "}
+					<InlineCode>can</InlineCode> rather than the role name.
+				</p>
 			</DocSection>
 
 			<DocSection id="graph" title="hex graph">

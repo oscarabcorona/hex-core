@@ -146,7 +146,7 @@ export default function McpPage() {
 						<strong>query_graph</strong> — query the catalog knowledge graph — explain, neighbors, path, affected
 					</li>
 					<li>
-						<strong>scaffold_poc</strong> — generate a standalone runnable Next.js demo app from a brief, map, or page recipe
+						<strong>scaffold_poc</strong> — generate a standalone runnable Next.js demo app from a brief, map, or page recipe, with a panel to demo every frame by role and data state
 					</li>
 				</ul>
 				<p className="text-sm leading-6">
