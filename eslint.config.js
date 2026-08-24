@@ -24,6 +24,10 @@ export default tseslint.config(
 			"registry/**",
 			"apps/**",
 			"tests/regression/src/fixtures/**",
+			// Scaffolded `hex poc` apps dogfooded at the repo root: generated
+			// output plus their own .next builds, linted by their own config.
+			"**/.next/**",
+			"*-poc*/**",
 		],
 	},
 	{

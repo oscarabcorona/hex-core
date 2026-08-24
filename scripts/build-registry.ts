@@ -73,7 +73,9 @@ function findSchemaFiles(): SchemaFile[] {
 		const categoryDir = path.join(COMPONENTS_SRC, dirName);
 		if (!fs.existsSync(categoryDir)) continue;
 
-		for (const componentDir of fs.readdirSync(categoryDir)) {
+		// Sorted: readdir order is filesystem-dependent (APFS vs ext4), and
+		// this order reaches the committed registry/. CI diffs that artifact.
+		for (const componentDir of fs.readdirSync(categoryDir).sort()) {
 			const fullDir = path.join(categoryDir, componentDir);
 			if (!fs.statSync(fullDir).isDirectory()) continue;
 
@@ -94,7 +96,7 @@ function findSchemaFiles(): SchemaFile[] {
 	// Schema-only roots — flat directories of `<name>.schema.ts` files.
 	for (const root of SCHEMA_ONLY_ROOTS) {
 		if (!fs.existsSync(root.dir)) continue;
-		for (const file of fs.readdirSync(root.dir)) {
+		for (const file of fs.readdirSync(root.dir).sort()) {
 			if (!file.endsWith(".schema.ts")) continue;
 			const name = file.replace(/\.schema\.ts$/, "");
 			results.push({
@@ -190,7 +192,7 @@ function readLibFiles(): Array<{ path: string; content: string; type: string }> 
 	const files: Array<{ path: string; content: string; type: string }> = [];
 	if (!fs.existsSync(LIB_DIR)) return files;
 
-	for (const file of fs.readdirSync(LIB_DIR)) {
+	for (const file of fs.readdirSync(LIB_DIR).sort()) {
 		if (file.endsWith(".ts") || file.endsWith(".tsx")) {
 			files.push({
 				path: `lib/${file}`,
@@ -235,7 +237,7 @@ function discoverDependencies(
 	const componentDir = path.dirname(componentPath);
 
 	// 1. Sibling -variants files in the same directory.
-	for (const f of fs.readdirSync(componentDir)) {
+	for (const f of fs.readdirSync(componentDir).sort()) {
 		if (!/-variants\.(ts|tsx)$/.test(f)) continue;
 		if (f === `${mainName}.tsx`) continue;
 		const baseName = f.replace(/\.ts$/, "").replace(/\.tsx$/, "");
