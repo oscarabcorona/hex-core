@@ -8,6 +8,7 @@ import type { Theme } from "@hex-core/registry";
 import { generateGlobalsCss, getTheme } from "../loaders/theme-loader.js";
 import type { ApplicationMap, MapScreen } from "./map.js";
 import { stableStringifyMap } from "./map.js";
+import { buildDemoFiles, DEMO_COMPONENT_SLUGS, DEMO_SERVER_MODULE } from "./poc-demo.js";
 
 /**
  * POC scaffolder — the pure "demo side" engine behind `hex poc` and MCP
@@ -236,6 +237,15 @@ function kebabCase(identifier: string): string {
 		.toLowerCase();
 }
 
+/** Which item exports an identifier, and from which module. */
+interface ExportOwner {
+	slug: string;
+	/** Module suffix under `components/`, e.g. `ui/button`. */
+	module: string;
+	/** True when the graph predates `exportPaths` and the module is a guess. */
+	stale: boolean;
+}
+
 /**
  * Index every graph item's exported identifiers so example imports can be
  * routed to the copied component modules.
@@ -249,7 +259,16 @@ function buildExportIndex(graph: CatalogGraph): Map<string, ExportOwner[]> {
 		for (const name of node.exports) {
 			// `exportPaths` tells us which module actually exports the name —
 			// `_shared/*` files are their own module, not the item's main one.
-			const owner: ExportOwner = { slug: node.slug, module: node.exportPaths?.[name] ?? `ui/${node.slug}` };
+			// A node with `exports` but no `exportPaths` is a pre-0.6 graph.
+			// Falling back to `ui/<slug>` there silently reproduces the
+			// wrong-module bug this field fixed (an old bundled graph paired
+			// with a floated-forward engine), so mark it and fail loudly.
+			const stale = node.exportPaths === undefined;
+			const owner: ExportOwner = {
+				slug: node.slug,
+				module: node.exportPaths?.[name] ?? `ui/${node.slug}`,
+				stale,
+			};
 			const owners = index.get(name);
 			if (owners) owners.push(owner);
 			else index.set(name, [owner]);
@@ -257,13 +276,6 @@ function buildExportIndex(graph: CatalogGraph): Map<string, ExportOwner[]> {
 	}
 	for (const owners of index.values()) owners.sort((a, b) => compareStrings(a.slug, b.slug));
 	return index;
-}
-
-/** Which item exports an identifier, and from which module. */
-interface ExportOwner {
-	slug: string;
-	/** Module suffix under `components/`, e.g. `ui/button`. */
-	module: string;
 }
 
 /** What generating one page produced. */
@@ -343,10 +355,17 @@ export function generatePageSource(screen: MapScreen, options: PocBuilderOptions
 		const lines = example.split("\n");
 		const bodyLines: string[] = [];
 		for (const line of lines) {
-			const importMatch = /^import\s+(?:type\s+)?\{([^}]*)\}\s+from\s+["']([^"']+)["'];?\s*$/.exec(line);
+			const importMatch = /^import\s+(type\s+)?\{([^}]*)\}\s+from\s+["']([^"']+)["'];?\s*$/.exec(line);
 			if (importMatch) {
-				const module = importMatch[2];
-				for (const piece of importMatch[1].split(",")) {
+				// A type-only import must stay type-only: the scaffold sets
+				// `isolatedModules`, where re-emitting a type specifier as a
+				// value import can fail at runtime.
+				if (importMatch[1]) {
+					passthroughImports.add(line.trim());
+					continue;
+				}
+				const module = importMatch[3];
+				for (const piece of importMatch[2].split(",")) {
 					const identifier = piece.trim().replace(/^type\s+/, "");
 					if (identifier.length === 0) continue;
 					if (module === "@hex-core/components") {
@@ -364,7 +383,10 @@ export function generatePageSource(screen: MapScreen, options: PocBuilderOptions
 							);
 						}
 						componentSlugs.add(aliasSlug);
-						addImport(module, identifier, section.block);
+						// Route through the export index so a `_shared` identifier
+						// written as an alias import lands on the right module.
+						const aliasOwner = exportIndex.get(identifier)?.find((c) => c.slug === aliasSlug);
+						addImport(aliasOwner ? `@/components/${aliasOwner.module}` : module, identifier, section.block);
 					} else {
 						externalPackages.add(packageNameOf(module));
 						addImport(module, identifier, section.block);
@@ -434,6 +456,13 @@ export function generatePageSource(screen: MapScreen, options: PocBuilderOptions
 		);
 	}
 
+	// Every frame answers the demo panel, so `Empty` is imported unconditionally
+	// — the panel is part of what a POC *is*, and a frame that could not be
+	// emptied would be a hole in the demo. Registered before the import lines
+	// are assembled, so it lands in them.
+	addImport("@/components/ui/empty", "Empty", screen.sections[0].block);
+	componentSlugs.add("empty");
+
 	const importLines = [
 		...[...importsByModule.entries()]
 			.sort((a, b) => compareStrings(a[0], b[0]))
@@ -446,13 +475,45 @@ export function generatePageSource(screen: MapScreen, options: PocBuilderOptions
 	// landmark navigation and skip-links have a target.
 	const wrapsMain = screen.sections.some((section) => SELF_MAIN_BLOCKS.has(section.block));
 	const [openTag, closeTag] = wrapsMain ? ["<>", "</>"] : ['<main className="min-h-screen">', "</main>"];
+
+	const demoImports = [`import { getDemoContext } from "${DEMO_SERVER_MODULE}";`];
+	const gate = ROLE_GATED_RECIPES.get(screen.recipe ?? "");
+	const gateBlock = gate
+		? `\tif (!can.${gate.capability}) {
+\t\treturn (
+\t\t\t${openTag}
+\t\t\t\t<Empty
+\t\t\t\t\ttitle=${JSON.stringify(`${screen.name} isn't available to your role`)}
+\t\t\t\t\tdescription=${JSON.stringify(gate.description)}
+\t\t\t\t/>
+\t\t\t${closeTag}
+\t\t);
+\t}
+
+`
+		: "";
+	const emptyBlock = `\tif (state === "empty") {
+\t\treturn (
+\t\t\t${openTag}
+\t\t\t\t<Empty
+\t\t\t\t\ttitle=${JSON.stringify(`No ${screen.name.toLowerCase()} yet`)}
+\t\t\t\t\tdescription="Switch the demo panel back to \\u201cWith data\\u201d to see this frame populated."
+\t\t\t\t/>
+\t\t\t${closeTag}
+\t\t);
+\t}
+
+`;
+	// `can` is only read by a gated frame; destructuring it unconditionally
+	// would trip noUnusedLocals in a consumer with stricter settings.
+	const contextBinding = gate ? "{ can, state }" : "{ state }";
 	// Indent hoisted fixtures with the same template-aware helper the JSX
 	// uses: a naive per-line prefix would inject tabs *inside* a multi-line
 	// template literal, changing the string's runtime value (a leading tab
 	// turns a markdown line into a code block).
 	const hoistedBlock = hoisted.length > 0 ? `${indentBlock(hoisted.join("\n\n"), "\t")}\n\n` : "";
 	const source = `import type { Metadata } from "next";
-${importLines.join("\n")}
+${[...importLines, ...demoImports].join("\n")}
 
 export const metadata: Metadata = {
 	title: ${JSON.stringify(screen.name)},
@@ -460,8 +521,10 @@ export const metadata: Metadata = {
 };
 
 /** ${commentSafe(screen.name)} — generated from the ${commentSafe(screen.recipe ?? screen.id)} recipe. */
-export default function ${componentIdentifier(screen.id)}Page() {
-${hoistedBlock}	return (
+export default async function ${componentIdentifier(screen.id)}Page() {
+	const ${contextBinding} = await getDemoContext();
+
+${gateBlock}${emptyBlock}${hoistedBlock}	return (
 		${openTag}
 ${sectionsJsx.join("\n")}
 		${closeTag}
@@ -498,12 +561,24 @@ function resolveIdentifier(
 			`Cannot resolve "${identifier}" (imported by block "${blockSlug}"): no registry item exports it — rebuild the registry graph or fix the block's example imports.`,
 		);
 	}
-	if (candidates.length === 1) return candidates[0];
+	/**
+	 * Reject a guessed module rather than emitting an import that may not
+	 * resolve. @param owner - The chosen owner @returns The same owner
+	 */
+	const checked = (owner: ExportOwner): ExportOwner => {
+		if (owner.stale) {
+			throw new Error(
+				`Catalog defect: the bundled catalog graph predates \`exportPaths\`, so "${identifier}" cannot be resolved to a module. Update @hex-core/cli (or re-run \`pnpm run build:registry\`) so the graph and engine match.`,
+			);
+		}
+		return owner;
+	};
+	if (candidates.length === 1) return checked(candidates[0]);
 	const kebab = kebabCase(identifier);
 	const exact = candidates.find((c) => c.slug === kebab);
-	if (exact) return exact;
+	if (exact) return checked(exact);
 	const closure = new Set(requiresClosure(graph, [blockSlug]));
-	return candidates.find((c) => closure.has(c.slug)) ?? candidates[0];
+	return checked(candidates.find((c) => closure.has(c.slug)) ?? candidates[0]);
 }
 
 /**
@@ -558,7 +633,12 @@ export function buildPocFiles(map: ApplicationMap, options: PocBuilderOptions = 
 		for (const pkg of page.externalPackages) externalPackages.add(pkg);
 	}
 
-	const copySlugs = requiresClosure(graph, [...new Set([...map.install.components, ...pageSlugs])]);
+	// The demo harness is part of every POC, so its components are part of every
+	// install closure — the panel's Select and the frames' Empty resolve even
+	// when the brief mapped neither.
+	const copySlugs = requiresClosure(graph, [
+		...new Set([...map.install.components, ...pageSlugs, ...DEMO_COMPONENT_SLUGS]),
+	]);
 
 	// Copy component sources with imports rewritten to the app's aliases.
 	const fileMap = new Map<string, PocFile>();
@@ -632,6 +712,25 @@ export function buildPocFiles(map: ApplicationMap, options: PocBuilderOptions = 
 const SELF_MAIN_BLOCKS = new Set(["app-shell"]);
 
 /**
+ * Page recipes whose frame is an administrative surface, and the capability a
+ * role needs to reach it.
+ *
+ * Only recipes that are unambiguously privileged belong here: a wrong entry
+ * hides a frame the reviewer expected to see. Everything else is visible to
+ * every role and demos through its data state instead.
+ */
+const ROLE_GATED_RECIPES = new Map<string, { capability: string; description: string }>([
+	[
+		"settings-page",
+		{
+			capability: "seeSettings",
+			description:
+				"Settings are managed by an admin. Switch roles in the demo panel to see this frame.",
+		},
+	],
+]);
+
+/**
  * Coerce an app name into a valid npm package name for `package.json`.
  * `--dir Demo` or `--dir "My Demo"` would otherwise emit an invalid name and
  * break the very next command the CLI prints (`pnpm install`).
@@ -664,7 +763,11 @@ function findJsxStart(body: string): number {
 	let offset = 0;
 	let inTemplate = false;
 	for (const line of body.split("\n")) {
-		if (!inTemplate && /^\s*</.test(line)) return offset + line.length - line.trimStart().length;
+		// Column 0 only. Allowing indentation matched JSX nested inside a
+		// wrapper function, slicing the body mid-function and emitting a
+		// dangling `return (` — unparseable TSX, produced silently instead of
+		// throwing. An example's top-level JSX is never indented.
+		if (!inTemplate && /^</.test(line)) return offset;
 		// Odd backtick count flips template state (examples don't nest them).
 		if ((line.match(/`/g)?.length ?? 0) % 2 === 1) inTemplate = !inTemplate;
 		offset += line.length + 1;
@@ -776,7 +879,14 @@ function scaffoldFiles(
 	routes: PocRoute[],
 	installOnlyScreens: string[],
 ): PocFile[] {
-	const globalsCss = generateGlobalsCss(theme, { target: "v4" });
+	// A POC is normally generated *inside* an existing repository, where
+	// Tailwind's automatic content detection walks up past the app and reads
+	// the host repo — binary files included — as class candidates. Name this
+	// app's own directories instead.
+	const globalsCss = generateGlobalsCss(theme, {
+		target: "v4",
+		sources: ["../app/**/*.{ts,tsx}", "../components/**/*.{ts,tsx}", "../lib/**/*.{ts,tsx}"],
+	});
 
 	const packageJson = {
 		name: npmSafeName(appName),
@@ -837,18 +947,34 @@ function scaffoldFiles(
 
 	const indexPage = `import type { Metadata } from "next";
 import Link from "next/link";
+import { ROLE_LABELS, ROLE_SUMMARIES, STATE_LABELS } from "@/lib/demo";
+import { getDemoContext } from "${DEMO_SERVER_MODULE}";
 
 export const metadata: Metadata = {
 	title: ${JSON.stringify(appName)},
 	description: ${JSON.stringify(map.brief)},
 };
 
-/** Generated POC index — links every mapped screen. */
-export default function HomePage() {
+/**
+ * Generated POC index — links every mapped screen.
+ *
+ * The links carry no demo parameters: the panel owns role and data state, and
+ * this page reflects what it selected.
+ */
+export default async function HomePage() {
+	const { role, state } = await getDemoContext();
+
 	return (
 		<main className="mx-auto max-w-2xl px-6 py-16">
 			<h1 className="text-3xl font-semibold tracking-tight">${escapeJsxText(appName)}</h1>
 			<p className="mt-2 text-muted-foreground">${escapeJsxText(map.brief)}</p>
+			<div className="mt-6 rounded-lg border border-border bg-muted/30 px-4 py-3">
+				<p className="text-sm text-foreground">
+					Viewing as <span className="font-medium">{ROLE_LABELS[role]}</span>, showing{" "}
+					<span className="font-medium">{STATE_LABELS[state].toLowerCase()}</span>
+				</p>
+				<p className="mt-0.5 text-sm text-muted-foreground">{ROLE_SUMMARIES[role]}</p>
+			</div>
 ${routeList}${installOnlyList}
 		</main>
 	);
@@ -856,17 +982,24 @@ ${routeList}${installOnlyList}
 `;
 
 	const layout = `import type { Metadata } from "next";
+import { DemoControls } from "@/components/demo-controls";
+import { getDemoContext } from "${DEMO_SERVER_MODULE}";
 import "./globals.css";
 
 export const metadata: Metadata = {
 	title: { default: ${JSON.stringify(appName)}, template: ${JSON.stringify(`%s — ${appName}`)} },
 };
 
-/** Root layout for the generated POC app. */
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/** Root layout. Reads the demo selections once and hands them to the panel. */
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+	const { role, state } = await getDemoContext();
+
 	return (
 		<html lang="en">
-			<body className="min-h-screen bg-background text-foreground antialiased">{children}</body>
+			<body className="min-h-screen bg-background text-foreground antialiased">
+				{children}
+				<DemoControls role={role} state={state} />
+			</body>
 		</html>
 	);
 }
@@ -874,7 +1007,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 	const nextConfig = `import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+	// The dev-tools bubble sits bottom-left, on top of app chrome. A POC is
+	// something people look at — keep the overlay out of the screenshot.
+	devIndicators: false,
+};
 
 export default nextConfig;
 `;
@@ -912,6 +1049,21 @@ pnpm dev
 | --- | --- | --- |
 ${screenRows}
 
+## Demoing it
+
+A POC is the frames *demoed*, so the app ships a floating demo panel
+(bottom-right) holding every control for states you cannot reach by clicking:
+
+| Control | What it does |
+| --- | --- |
+| **Viewing as** | Re-renders every frame as \`viewer\`, \`member\` or \`admin\`. Frames gated on a capability show why they are unavailable instead of 404ing. |
+| **Data** | Flips every frame between its populated and empty state. |
+
+Both live in cookies, so a selection holds while you click through the app.
+The vocabulary is in [lib/demo.ts](./lib/demo.ts) — add roles, add
+capabilities, and scope your own data through \`can\` rather than through the
+role name. Frames read the current selection with \`getDemoContext()\`.
+
 Images referenced by the block examples point at \`public/placeholder.svg\`.
 Swap in real assets and update the \`src\` values when you make this yours.
 
@@ -921,6 +1073,7 @@ after editing it, and \`npx hex doctor\` to verify the install.
 `;
 
 	return [
+		...buildDemoFiles(),
 		{ path: "package.json", content: `${JSON.stringify(packageJson, null, 2)}\n` },
 		{ path: "tsconfig.json", content: `${JSON.stringify(tsconfig, null, 2)}\n` },
 		{ path: "next.config.ts", content: nextConfig },

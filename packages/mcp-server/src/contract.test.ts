@@ -507,7 +507,10 @@ async function main(): Promise<void> {
 			emitAppContextN20: 5_000, // current 3,775 at N=20
 			// scaffold_poc embeds full file contents by design; the ceiling
 			// exists so a change that doubles the tree is caught here.
-			scaffoldPocRecipe: 32_000, // current ~23,645 for landing-page
+			// Rose from ~23,645 when the scaffold gained the demo harness (the
+			// panel, its vocabulary, the route) plus the `empty` and `select`
+			// sources every tree now copies — a deliberate +36%, not a doubling.
+			scaffoldPocRecipe: 40_000, // current ~32,078 for landing-page
 		};
 		const budgetSamples = ["button", "auth-sign-in-split", "input"];
 		for (const slug of budgetSamples) {

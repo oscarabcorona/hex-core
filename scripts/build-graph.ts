@@ -7,7 +7,6 @@ import {
 	type CatalogGraph,
 	type GraphEdge,
 	type GraphNode,
-	type NodeKind,
 	parseGraphStrict,
 	type Relation,
 } from "../packages/payload/src/graph/graph-schema.js";
@@ -154,7 +153,7 @@ function communityFor(category: string, subcategory?: string): { community: stri
 function scanExports(files: RawItemFile[]): { names: string[]; paths: Record<string, string> } {
 	// Prototype-free: `"constructor" in {}` is true, which would silently
 	// drop an export named `constructor` / `toString` / `valueOf`.
-	const paths: Record<string, string> = Object.create(null) as Record<string, string>;
+	const paths: Record<string, string> = Object.create(null);
 	for (const file of files) {
 		if (!file.path.startsWith("components/")) continue;
 		if (!/\.(?:ts|tsx)$/.test(file.path)) continue;
@@ -181,7 +180,10 @@ function scanExports(files: RawItemFile[]): { names: string[]; paths: Record<str
 		// discovered deps, then libs) — asserted below rather than assumed.
 		for (const name of names) if (!(name in paths)) paths[name] = suffix;
 	}
-	return { names: Object.keys(paths).sort(), paths };
+	// Sort keys so the emitted artifact stays diff-stable if file order shifts.
+	const sorted: Record<string, string> = Object.create(null);
+	for (const name of Object.keys(paths).sort()) sorted[name] = paths[name];
+	return { names: Object.keys(sorted), paths: sorted };
 }
 
 /**
@@ -265,8 +267,11 @@ for (const item of registryIndex.items) {
 	// regression there instead of silently mis-routing an import.
 	const mainFile = `components/ui/${item.name}.tsx`;
 	const mainIndex = raw.files.findIndex((f) => f.path === mainFile);
-	if (mainIndex > 0) {
-		errors.push(`item ${item.name}: main module ${mainFile} is not first in files[] (index ${mainIndex})`);
+	// `findIndex` returns -1 when the main module is absent, and `-1 > 0` is
+	// false — which would silently retire this whole invariant.
+	const hasComponentFiles = raw.files.some((f) => f.path.startsWith("components/"));
+	if (hasComponentFiles && mainIndex !== 0) {
+		errors.push(`item ${item.name}: main module ${mainFile} must be first in files[] (index ${mainIndex})`);
 	}
 	const { names: exportedNames, paths: exportPaths } = scanExports(raw.files);
 	// npm-backed items (motion, hooks) copy no source; record where their

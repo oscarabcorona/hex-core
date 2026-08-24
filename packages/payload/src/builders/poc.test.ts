@@ -7,7 +7,7 @@
  * build` green on the calibrated SaaS brief); these assertions pin the
  * properties that build depended on.
  */
-import { buildApplicationMap, mapFromRecipe, mapSchema, stableStringifyMap } from "./map.js";
+import { buildApplicationMap, mapSchema, stableStringifyMap } from "./map.js";
 import { loadRegistry, loadRegistryItem } from "../loaders/registry-loader.js";
 import { buildPocFiles, generatePageSource } from "./poc.js";
 
@@ -67,8 +67,6 @@ function undefinedIdentifiers(source: string): string[] {
 	}
 	return [...new Set(problems)];
 }
-
-
 
 /**
  * Record a failed assertion.
@@ -342,21 +340,44 @@ try {
 // component. That is a real latent gap (~40 recipe-referenced items) but a
 // separate cleanup — see the changeset.
 //
-// CLIENT_BOUNDARY items are excluded because they genuinely cannot be page
-// sections, not because they pass: their examples need React state or pass
-// functions, and generated pages are Server Components that also export
-// `metadata`, so they cannot be marked "use client".
-const CLIENT_BOUNDARY = new Set([
+// NOT_COMPOSABLE items are excluded with a recorded reason per group, not
+// as a blanket "client boundary" claim — several are simply bare-JSX docs
+// snippets. A membership assertion below stops dead entries accumulating.
+const NOT_COMPOSABLE = new Set([
+	// Examples that need React state or pass functions. Generated pages are
+	// Server Components that also export `metadata`, so they cannot be
+	// "use client" — these can never be page sections as written.
 	"calendar", "combobox", "command", "date-picker", "dropzone", "file-tree",
-	"multi-combobox", "time-picker", "kanban", "carousel", "resizable", "sonner",
-	"form",
+	"multi-combobox", "time-picker", "form",
+	// Bare-JSX examples with no imports. Already skipped by the composable
+	// filter below; listed so the reason is recorded rather than implicit.
+	"kanban", "resizable", "sonner",
 ]);
 
 {
 	const registry = loadRegistry();
+	// A misspelled or removed slug in the exclusion set silently widens it.
+	for (const name of NOT_COMPOSABLE) {
+		if (!registry.items.some((i) => i.name === name)) {
+			fail("catalog guard", `NOT_COMPOSABLE lists "${name}", which is not a registry item`);
+		}
+	}
+	// Police the exclusion set: any composable example that calls a React
+	// hook needs a client boundary and must be listed. Answers "what tells
+	// me when someone adds a stateful component?" — this does.
+	for (const item of registry.items) {
+		const full = loadRegistryItem(item.name);
+		const raw = full?.examples?.[0]?.code ?? "";
+		if (!full?.files.length) continue;
+		if (!(item.category === "block" || raw.trimStart().startsWith("import"))) continue;
+		const code = raw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+		if (/\buse[A-Z]\w*\s*[<(]/.test(code) && !NOT_COMPOSABLE.has(item.name)) {
+			fail("catalog guard", `"${item.name}" example calls a React hook but is not in NOT_COMPOSABLE`);
+		}
+	}
 	let checked = 0;
 	for (const item of registry.items) {
-		if (CLIENT_BOUNDARY.has(item.name)) continue;
+		if (NOT_COMPOSABLE.has(item.name)) continue;
 		const full = loadRegistryItem(item.name);
 		const example = full?.examples?.[0]?.code ?? "";
 		// npm-backed items (motion primitives, AI-kit hooks) ship no source to
@@ -381,7 +402,8 @@ const CLIENT_BOUNDARY = new Set([
 			// the item can't be composed. Treating a "Catalog defect:" throw
 			// as acceptable is what let `timeline`'s wrong example shape sit
 			// green while the screen using it was silently skipped.
-			fail(`catalog guard (${item.name})`, `cannot generate a section: ${(err as Error).message.slice(0, 140)}`);
+			const detail = err instanceof Error ? err.message : String(err);
+			fail(`catalog guard (${item.name})`, `cannot generate a section: ${detail.slice(0, 140)}`);
 			continue;
 		}
 		checked += 1;
@@ -389,7 +411,37 @@ const CLIENT_BOUNDARY = new Set([
 			fail(`catalog guard (${item.name})`, `generated route uses undefined ${problem}`);
 		}
 	}
-	if (checked < 40) fail("catalog guard", `only generated ${checked} routes — the scan is broken`);
+	// High-water mark, not a loose floor: an example that loses its import
+	// line silently leaves the composable set — the same way `timeline` stayed
+	// green. Bump deliberately when coverage grows.
+	const EXPECTED_COVERAGE = 48;
+	if (checked < EXPECTED_COVERAGE) {
+		fail("catalog guard", `generated ${checked} routes, expected >= ${EXPECTED_COVERAGE} — coverage regressed`);
+	}
+}
+
+// ── _shared export routing (TS2305, invisible to undefinedIdentifiers) ──
+// A wrong-module import is still *an* import, so the name lands in `known`
+// and the guard above reports nothing. Before the exportPaths fix this
+// emitted `mockAuthAdapter` from the item's main module, which does not
+// export it. Pin the resolved module directly.
+{
+	const authProbe = {
+		id: "auth", name: "auth", segment: "auth",
+		source: "page-recipe" as const, recipe: "landing-page",
+		sections: [{ id: "auth", block: "auth-verify-otp", intent: "auth", role: "primary" }],
+		components: ["auth-verify-otp"], score: 0, confidence: "high" as const, matchReason: [],
+	};
+	const authPage = generatePageSource(authProbe);
+	if (!authPage.source.includes('from "@/components/_shared/auth-adapter"')) {
+		fail("shared export routing", "mockAuthAdapter must import from @/components/_shared/auth-adapter");
+	}
+	if (authPage.source.includes('mockAuthAdapter } from "@/components/ui/')) {
+		fail("shared export routing", "mockAuthAdapter is imported from the item's main module, which does not export it");
+	}
+	if (!authPage.componentSlugs.includes("auth-verify-otp")) {
+		fail("shared export routing", "owning slug dropped — the _shared file would not be copied");
+	}
 }
 
 if (failures.length > 0) {

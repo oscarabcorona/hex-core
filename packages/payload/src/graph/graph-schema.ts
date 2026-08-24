@@ -49,13 +49,26 @@ export const graphNodeSchema = z.object({
 	 * without it, exports from `_shared/` files were attributed to the item's
 	 * main module and produced imports that don't resolve.
 	 */
-	exportPaths: z.record(z.string(), z.string().regex(/^[a-z0-9_][a-z0-9._/-]*$/)).optional(),
+	exportPaths: z
+		.record(z.string().regex(/^[A-Za-z_$][A-Za-z0-9_$]*$/), z.string().regex(/^[a-z0-9_][a-z0-9._/-]*$/).refine((v) => !v.includes(".."), "must not contain '..'"))
+		.optional(),
 	/**
 	 * Package an npm-backed item's runtime imports from (motion primitives,
 	 * AI-kit hooks). Informational: these items ship no source to copy, so
 	 * codegen never resolves an identifier to them.
 	 */
 	importPath: z.string().optional(),
+}).superRefine((node, ctx) => {
+	// `resolveIdentifier` falls back to `ui/<slug>` for any name missing from
+	// `exportPaths` — which is exactly the wrong-module bug this field fixed.
+	// Drift between the two is therefore silent, so reject it here. Nodes
+	// from an older graph carry no `exportPaths` at all and are exempt.
+	if (!node.exportPaths || !node.exports) return;
+	for (const name of node.exports) {
+		if (!(name in node.exportPaths)) {
+			ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["exportPaths"], message: `missing module for exported "${name}"` });
+		}
+	}
 });
 export type GraphNode = z.infer<typeof graphNodeSchema>;
 

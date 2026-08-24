@@ -41,9 +41,9 @@
       ],
       "exportPaths": {
         "Accordion": "ui/accordion",
+        "AccordionContent": "ui/accordion",
         "AccordionItem": "ui/accordion",
-        "AccordionTrigger": "ui/accordion",
-        "AccordionContent": "ui/accordion"
+        "AccordionTrigger": "ui/accordion"
       }
     },
     {
@@ -74,8 +74,8 @@
       ],
       "exportPaths": {
         "Alert": "ui/alert",
-        "AlertTitle": "ui/alert",
         "AlertDescription": "ui/alert",
+        "AlertTitle": "ui/alert",
         "alertVariants": "ui/alert"
       }
     },
@@ -113,16 +113,16 @@
       ],
       "exportPaths": {
         "AlertDialog": "ui/alert-dialog",
-        "AlertDialogPortal": "ui/alert-dialog",
-        "AlertDialogOverlay": "ui/alert-dialog",
-        "AlertDialogTrigger": "ui/alert-dialog",
-        "AlertDialogContent": "ui/alert-dialog",
-        "AlertDialogHeader": "ui/alert-dialog",
-        "AlertDialogFooter": "ui/alert-dialog",
-        "AlertDialogTitle": "ui/alert-dialog",
-        "AlertDialogDescription": "ui/alert-dialog",
         "AlertDialogAction": "ui/alert-dialog",
-        "AlertDialogCancel": "ui/alert-dialog"
+        "AlertDialogCancel": "ui/alert-dialog",
+        "AlertDialogContent": "ui/alert-dialog",
+        "AlertDialogDescription": "ui/alert-dialog",
+        "AlertDialogFooter": "ui/alert-dialog",
+        "AlertDialogHeader": "ui/alert-dialog",
+        "AlertDialogOverlay": "ui/alert-dialog",
+        "AlertDialogPortal": "ui/alert-dialog",
+        "AlertDialogTitle": "ui/alert-dialog",
+        "AlertDialogTrigger": "ui/alert-dialog"
       }
     },
     {
@@ -767,8 +767,8 @@
       ],
       "exportPaths": {
         "Avatar": "ui/avatar",
-        "AvatarImage": "ui/avatar",
-        "AvatarFallback": "ui/avatar"
+        "AvatarFallback": "ui/avatar",
+        "AvatarImage": "ui/avatar"
       }
     },
     {
@@ -902,12 +902,12 @@
       ],
       "exportPaths": {
         "Breadcrumb": "ui/breadcrumb",
-        "BreadcrumbList": "ui/breadcrumb",
+        "BreadcrumbEllipsis": "ui/breadcrumb",
         "BreadcrumbItem": "ui/breadcrumb",
         "BreadcrumbLink": "ui/breadcrumb",
+        "BreadcrumbList": "ui/breadcrumb",
         "BreadcrumbPage": "ui/breadcrumb",
-        "BreadcrumbSeparator": "ui/breadcrumb",
-        "BreadcrumbEllipsis": "ui/breadcrumb"
+        "BreadcrumbSeparator": "ui/breadcrumb"
       }
     },
     {
@@ -1048,11 +1048,11 @@
       ],
       "exportPaths": {
         "Card": "ui/card",
-        "CardHeader": "ui/card",
-        "CardFooter": "ui/card",
-        "CardTitle": "ui/card",
+        "CardContent": "ui/card",
         "CardDescription": "ui/card",
-        "CardContent": "ui/card"
+        "CardFooter": "ui/card",
+        "CardHeader": "ui/card",
+        "CardTitle": "ui/card"
       },
       "hub": true
     },
@@ -1256,11 +1256,11 @@
       ],
       "exportPaths": {
         "Cluster": "ui/cluster",
+        "clusterAlignVariants": "_shared/layout-variants",
         "clusterVariants": "ui/cluster",
-        "gapVariants": "_shared/layout-variants",
-        "justifyVariants": "_shared/layout-variants",
         "flexAlignVariants": "_shared/layout-variants",
-        "clusterAlignVariants": "_shared/layout-variants"
+        "gapVariants": "_shared/layout-variants",
+        "justifyVariants": "_shared/layout-variants"
       }
     },
     {
@@ -1321,8 +1321,8 @@
       ],
       "exportPaths": {
         "Collapsible": "ui/collapsible",
-        "CollapsibleTrigger": "ui/collapsible",
-        "CollapsibleContent": "ui/collapsible"
+        "CollapsibleContent": "ui/collapsible",
+        "CollapsibleTrigger": "ui/collapsible"
       }
     },
     {
@@ -1412,13 +1412,13 @@
       "exportPaths": {
         "Command": "ui/command",
         "CommandDialog": "ui/command",
-        "CommandInput": "ui/command",
-        "CommandList": "ui/command",
         "CommandEmpty": "ui/command",
         "CommandGroup": "ui/command",
+        "CommandInput": "ui/command",
         "CommandItem": "ui/command",
-        "CommandShortcut": "ui/command",
-        "CommandSeparator": "ui/command"
+        "CommandList": "ui/command",
+        "CommandSeparator": "ui/command",
+        "CommandShortcut": "ui/command"
       }
     },
     {
@@ -1987,17 +1987,17 @@
       ],
       "exportPaths": {
         "ContextMenu": "ui/context-menu",
-        "ContextMenuTrigger": "ui/context-menu",
-        "ContextMenuContent": "ui/context-menu",
-        "ContextMenuItem": "ui/context-menu",
         "ContextMenuCheckboxItem": "ui/context-menu",
-        "ContextMenuRadioItem": "ui/context-menu",
+        "ContextMenuContent": "ui/context-menu",
+        "ContextMenuGroup": "ui/context-menu",
+        "ContextMenuItem": "ui/context-menu",
         "ContextMenuLabel": "ui/context-menu",
+        "ContextMenuPortal": "ui/context-menu",
+        "ContextMenuRadioGroup": "ui/context-menu",
+        "ContextMenuRadioItem": "ui/context-menu",
         "ContextMenuSeparator": "ui/context-menu",
         "ContextMenuShortcut": "ui/context-menu",
-        "ContextMenuGroup": "ui/context-menu",
-        "ContextMenuPortal": "ui/context-menu",
-        "ContextMenuRadioGroup": "ui/context-menu"
+        "ContextMenuTrigger": "ui/context-menu"
       }
     },
     {
@@ -2239,15 +2239,15 @@
       ],
       "exportPaths": {
         "Dialog": "ui/dialog",
-        "DialogPortal": "ui/dialog",
-        "DialogOverlay": "ui/dialog",
-        "DialogTrigger": "ui/dialog",
         "DialogClose": "ui/dialog",
         "DialogContent": "ui/dialog",
-        "DialogHeader": "ui/dialog",
+        "DialogDescription": "ui/dialog",
         "DialogFooter": "ui/dialog",
+        "DialogHeader": "ui/dialog",
+        "DialogOverlay": "ui/dialog",
+        "DialogPortal": "ui/dialog",
         "DialogTitle": "ui/dialog",
-        "DialogDescription": "ui/dialog"
+        "DialogTrigger": "ui/dialog"
       }
     },
     {
@@ -2287,10 +2287,10 @@
       "exportPaths": {
         "DndProvider": "ui/dnd",
         "SortableList": "ui/dnd",
-        "useSortableItem": "ui/dnd",
-        "verticalListSortingStrategy": "ui/dnd",
         "horizontalListSortingStrategy": "ui/dnd",
-        "rectSortingStrategy": "ui/dnd"
+        "rectSortingStrategy": "ui/dnd",
+        "useSortableItem": "ui/dnd",
+        "verticalListSortingStrategy": "ui/dnd"
       }
     },
     {
@@ -2326,15 +2326,15 @@
       ],
       "exportPaths": {
         "Drawer": "ui/drawer",
-        "DrawerPortal": "ui/drawer",
-        "DrawerOverlay": "ui/drawer",
-        "DrawerTrigger": "ui/drawer",
         "DrawerClose": "ui/drawer",
         "DrawerContent": "ui/drawer",
-        "DrawerHeader": "ui/drawer",
+        "DrawerDescription": "ui/drawer",
         "DrawerFooter": "ui/drawer",
+        "DrawerHeader": "ui/drawer",
+        "DrawerOverlay": "ui/drawer",
+        "DrawerPortal": "ui/drawer",
         "DrawerTitle": "ui/drawer",
-        "DrawerDescription": "ui/drawer"
+        "DrawerTrigger": "ui/drawer"
       }
     },
     {
@@ -2373,18 +2373,18 @@
       ],
       "exportPaths": {
         "DropdownMenu": "ui/dropdown-menu",
-        "DropdownMenuTrigger": "ui/dropdown-menu",
-        "DropdownMenuContent": "ui/dropdown-menu",
-        "DropdownMenuItem": "ui/dropdown-menu",
         "DropdownMenuCheckboxItem": "ui/dropdown-menu",
-        "DropdownMenuRadioItem": "ui/dropdown-menu",
+        "DropdownMenuContent": "ui/dropdown-menu",
+        "DropdownMenuGroup": "ui/dropdown-menu",
+        "DropdownMenuItem": "ui/dropdown-menu",
         "DropdownMenuLabel": "ui/dropdown-menu",
+        "DropdownMenuPortal": "ui/dropdown-menu",
+        "DropdownMenuRadioGroup": "ui/dropdown-menu",
+        "DropdownMenuRadioItem": "ui/dropdown-menu",
         "DropdownMenuSeparator": "ui/dropdown-menu",
         "DropdownMenuShortcut": "ui/dropdown-menu",
-        "DropdownMenuGroup": "ui/dropdown-menu",
-        "DropdownMenuPortal": "ui/dropdown-menu",
         "DropdownMenuSub": "ui/dropdown-menu",
-        "DropdownMenuRadioGroup": "ui/dropdown-menu"
+        "DropdownMenuTrigger": "ui/dropdown-menu"
       }
     },
     {
@@ -2622,14 +2622,14 @@
         "useFormField"
       ],
       "exportPaths": {
-        "useFormField": "ui/form",
         "Form": "ui/form",
-        "FormItem": "ui/form",
-        "FormLabel": "ui/form",
         "FormControl": "ui/form",
         "FormDescription": "ui/form",
+        "FormField": "ui/form",
+        "FormItem": "ui/form",
+        "FormLabel": "ui/form",
         "FormMessage": "ui/form",
-        "FormField": "ui/form"
+        "useFormField": "ui/form"
       }
     },
     {
@@ -2725,11 +2725,11 @@
       ],
       "exportPaths": {
         "Grid": "ui/grid",
-        "gridVariants": "ui/grid",
-        "gapVariants": "_shared/layout-variants",
-        "justifyVariants": "_shared/layout-variants",
+        "clusterAlignVariants": "_shared/layout-variants",
         "flexAlignVariants": "_shared/layout-variants",
-        "clusterAlignVariants": "_shared/layout-variants"
+        "gapVariants": "_shared/layout-variants",
+        "gridVariants": "ui/grid",
+        "justifyVariants": "_shared/layout-variants"
       }
     },
     {
@@ -2757,8 +2757,8 @@
       ],
       "exportPaths": {
         "HoverCard": "ui/hover-card",
-        "HoverCardTrigger": "ui/hover-card",
-        "HoverCardContent": "ui/hover-card"
+        "HoverCardContent": "ui/hover-card",
+        "HoverCardTrigger": "ui/hover-card"
       }
     },
     {
@@ -2882,8 +2882,8 @@
       "exportPaths": {
         "InputOTP": "ui/input-otp",
         "InputOTPGroup": "ui/input-otp",
-        "InputOTPSlot": "ui/input-otp",
-        "InputOTPSeparator": "ui/input-otp"
+        "InputOTPSeparator": "ui/input-otp",
+        "InputOTPSlot": "ui/input-otp"
       }
     },
     {
@@ -2919,11 +2919,11 @@
         "moveCard"
       ],
       "exportPaths": {
-        "findColumnIdForCard": "ui/kanban",
-        "moveCard": "ui/kanban",
         "Kanban": "ui/kanban",
+        "KanbanCard": "ui/kanban",
         "KanbanColumn": "ui/kanban",
-        "KanbanCard": "ui/kanban"
+        "findColumnIdForCard": "ui/kanban",
+        "moveCard": "ui/kanban"
       }
     },
     {
@@ -3614,16 +3614,16 @@
       ],
       "exportPaths": {
         "Menubar": "ui/menubar",
-        "MenubarMenu": "ui/menubar",
-        "MenubarTrigger": "ui/menubar",
         "MenubarContent": "ui/menubar",
+        "MenubarGroup": "ui/menubar",
         "MenubarItem": "ui/menubar",
         "MenubarLabel": "ui/menubar",
+        "MenubarMenu": "ui/menubar",
+        "MenubarPortal": "ui/menubar",
+        "MenubarRadioGroup": "ui/menubar",
         "MenubarSeparator": "ui/menubar",
         "MenubarShortcut": "ui/menubar",
-        "MenubarGroup": "ui/menubar",
-        "MenubarPortal": "ui/menubar",
-        "MenubarRadioGroup": "ui/menubar"
+        "MenubarTrigger": "ui/menubar"
       }
     },
     {
@@ -3872,15 +3872,15 @@
         "navigationMenuTriggerStyle"
       ],
       "exportPaths": {
-        "navigationMenuTriggerStyle": "ui/navigation-menu",
         "NavigationMenu": "ui/navigation-menu",
-        "NavigationMenuList": "ui/navigation-menu",
-        "NavigationMenuItem": "ui/navigation-menu",
         "NavigationMenuContent": "ui/navigation-menu",
-        "NavigationMenuTrigger": "ui/navigation-menu",
-        "NavigationMenuLink": "ui/navigation-menu",
         "NavigationMenuIndicator": "ui/navigation-menu",
-        "NavigationMenuViewport": "ui/navigation-menu"
+        "NavigationMenuItem": "ui/navigation-menu",
+        "NavigationMenuLink": "ui/navigation-menu",
+        "NavigationMenuList": "ui/navigation-menu",
+        "NavigationMenuTrigger": "ui/navigation-menu",
+        "NavigationMenuViewport": "ui/navigation-menu",
+        "navigationMenuTriggerStyle": "ui/navigation-menu"
       }
     },
     {
@@ -4056,9 +4056,9 @@
       ],
       "exportPaths": {
         "Popover": "ui/popover",
-        "PopoverTrigger": "ui/popover",
+        "PopoverAnchor": "ui/popover",
         "PopoverContent": "ui/popover",
-        "PopoverAnchor": "ui/popover"
+        "PopoverTrigger": "ui/popover"
       }
     },
     {
@@ -4274,9 +4274,9 @@
         "ResizablePanelGroup"
       ],
       "exportPaths": {
-        "ResizablePanelGroup": "ui/resizable",
+        "ResizableHandle": "ui/resizable",
         "ResizablePanel": "ui/resizable",
-        "ResizableHandle": "ui/resizable"
+        "ResizablePanelGroup": "ui/resizable"
       }
     },
     {
@@ -4434,13 +4434,13 @@
       ],
       "exportPaths": {
         "Select": "ui/select",
-        "SelectGroup": "ui/select",
-        "SelectValue": "ui/select",
-        "SelectTrigger": "ui/select",
         "SelectContent": "ui/select",
-        "SelectLabel": "ui/select",
+        "SelectGroup": "ui/select",
         "SelectItem": "ui/select",
-        "SelectSeparator": "ui/select"
+        "SelectLabel": "ui/select",
+        "SelectSeparator": "ui/select",
+        "SelectTrigger": "ui/select",
+        "SelectValue": "ui/select"
       }
     },
     {
@@ -4553,15 +4553,15 @@
       ],
       "exportPaths": {
         "Sheet": "ui/sheet",
-        "SheetPortal": "ui/sheet",
-        "SheetOverlay": "ui/sheet",
-        "SheetTrigger": "ui/sheet",
         "SheetClose": "ui/sheet",
         "SheetContent": "ui/sheet",
-        "SheetHeader": "ui/sheet",
+        "SheetDescription": "ui/sheet",
         "SheetFooter": "ui/sheet",
+        "SheetHeader": "ui/sheet",
+        "SheetOverlay": "ui/sheet",
+        "SheetPortal": "ui/sheet",
         "SheetTitle": "ui/sheet",
-        "SheetDescription": "ui/sheet"
+        "SheetTrigger": "ui/sheet"
       }
     },
     {
@@ -4645,13 +4645,13 @@
         "useSidebar"
       ],
       "exportPaths": {
-        "SidebarProvider": "ui/sidebar",
         "Sidebar": "ui/sidebar",
-        "SidebarTrigger": "ui/sidebar",
-        "SidebarHeader": "ui/sidebar",
         "SidebarContent": "ui/sidebar",
         "SidebarFooter": "ui/sidebar",
+        "SidebarHeader": "ui/sidebar",
         "SidebarItem": "ui/sidebar",
+        "SidebarProvider": "ui/sidebar",
+        "SidebarTrigger": "ui/sidebar",
         "useSidebar": "ui/sidebar"
       }
     },
@@ -4916,11 +4916,11 @@
       ],
       "exportPaths": {
         "Stack": "ui/stack",
-        "stackVariants": "ui/stack",
+        "clusterAlignVariants": "_shared/layout-variants",
+        "flexAlignVariants": "_shared/layout-variants",
         "gapVariants": "_shared/layout-variants",
         "justifyVariants": "_shared/layout-variants",
-        "flexAlignVariants": "_shared/layout-variants",
-        "clusterAlignVariants": "_shared/layout-variants"
+        "stackVariants": "ui/stack"
       }
     },
     {
@@ -5094,13 +5094,13 @@
       ],
       "exportPaths": {
         "Table": "ui/table",
-        "TableHeader": "ui/table",
         "TableBody": "ui/table",
+        "TableCaption": "ui/table",
+        "TableCell": "ui/table",
         "TableFooter": "ui/table",
         "TableHead": "ui/table",
-        "TableRow": "ui/table",
-        "TableCell": "ui/table",
-        "TableCaption": "ui/table"
+        "TableHeader": "ui/table",
+        "TableRow": "ui/table"
       }
     },
     {
@@ -5130,9 +5130,9 @@
       ],
       "exportPaths": {
         "Tabs": "ui/tabs",
+        "TabsContent": "ui/tabs",
         "TabsList": "ui/tabs",
-        "TabsTrigger": "ui/tabs",
-        "TabsContent": "ui/tabs"
+        "TabsTrigger": "ui/tabs"
       }
     },
     {
@@ -5504,9 +5504,9 @@
       ],
       "exportPaths": {
         "Tooltip": "ui/tooltip",
-        "TooltipTrigger": "ui/tooltip",
         "TooltipContent": "ui/tooltip",
-        "TooltipProvider": "ui/tooltip"
+        "TooltipProvider": "ui/tooltip",
+        "TooltipTrigger": "ui/tooltip"
       }
     },
     {
