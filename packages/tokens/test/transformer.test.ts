@@ -269,6 +269,54 @@ describe("generateGlobalsCss target option", () => {
 		expect(rootBlock?.[0]).toMatch(/--primary: [\d.]+ [\d.]+% [\d.]+%;/);
 	});
 
+	it("v4 without `sources` keeps automatic content detection", () => {
+		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
+		expect(css).toContain(`@import "tailwindcss";`);
+		expect(css).not.toContain("source(none)");
+		expect(css).not.toContain("@source");
+	});
+
+	it("v4 with `sources` turns detection off and names each glob", () => {
+		// The scan is scoped because Tailwind's automatic detection walks up
+		// past a generated app to the enclosing repo and reads binary files as
+		// class candidates — which emitted unparseable utilities and 500'd
+		// every route of a POC scaffolded inside this monorepo.
+		const css = generateGlobalsCss(defaultTheme, {
+			target: "v4",
+			sources: ["../app/**/*.{ts,tsx}", "../components/**/*.{ts,tsx}"],
+		});
+		expect(css).toContain(`@import "tailwindcss" source(none);`);
+		expect(css).not.toMatch(/@import "tailwindcss";/);
+		expect(css).toContain(`@source "../app/**/*.{ts,tsx}";`);
+		expect(css).toContain(`@source "../components/**/*.{ts,tsx}";`);
+	});
+
+	it("v4 `sources` orders @source rules after the import so they apply", () => {
+		const css = generateGlobalsCss(defaultTheme, {
+			target: "v4",
+			sources: ["../app/**/*.tsx"],
+		});
+		expect(css.indexOf("source(none)")).toBeLessThan(css.indexOf("@source"));
+	});
+
+	it("v4 treats an empty `sources` array as unscoped rather than scanning nothing", () => {
+		// `source(none)` with no @source rule would emit zero utilities — a
+		// blank-looking app. Falling back to automatic detection is the safer
+		// reading of "no globs given".
+		const css = generateGlobalsCss(defaultTheme, { target: "v4", sources: [] });
+		expect(css).toContain(`@import "tailwindcss";`);
+		expect(css).not.toContain("source(none)");
+	});
+
+	it("v3 ignores `sources` — it has no @source rule", () => {
+		const withSources = generateGlobalsCss(defaultTheme, {
+			target: "v3",
+			sources: ["../app/**/*.tsx"],
+		});
+		expect(withSources).toBe(generateGlobalsCss(defaultTheme, { target: "v3" }));
+		expect(withSources).not.toContain("@source");
+	});
+
 	it("v4 bridges raw triplets into Tailwind's --color-* namespace via @theme inline", () => {
 		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
 		expect(css).toContain("@theme inline {");

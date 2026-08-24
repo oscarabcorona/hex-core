@@ -220,6 +220,22 @@ export interface GenerateGlobalsCssOptions {
 	 *   utilities like `bg-background` resolve directly. No `tailwind.config.ts` needed.
 	 */
 	target?: "v3" | "v4";
+	/**
+	 * Explicit content globs for Tailwind v4 to scan, relative to the CSS file.
+	 *
+	 * When set, the import becomes `@import "tailwindcss" source(none)` followed
+	 * by one `@source` rule per glob — automatic detection is turned off.
+	 *
+	 * Pass this for an app generated *inside* an existing repository. Tailwind's
+	 * automatic scan walks up past the app to the enclosing git root and reads
+	 * whatever it finds — including binary files, whose bytes become class
+	 * candidates and emit unparseable utilities. Scoping the scan to the app's
+	 * own directories is the fix. Omit it for an app at the root of its own
+	 * repository, where automatic detection is correct.
+	 *
+	 * Ignored when `target` is `"v3"`, which has no `@source` rule.
+	 */
+	sources?: readonly string[];
 }
 
 /**
@@ -230,8 +246,8 @@ export interface GenerateGlobalsCssOptions {
  * @returns A full globals.css string ready to drop into `app/globals.css`.
  */
 export function generateGlobalsCss(theme: Theme, options: GenerateGlobalsCssOptions = {}): string {
-	const { target = "v3" } = options;
-	if (target === "v4") return generateGlobalsCssV4(theme);
+	const { target = "v3", sources } = options;
+	if (target === "v4") return generateGlobalsCssV4(theme, sources);
 	return generateGlobalsCssV3(theme);
 }
 
@@ -256,10 +272,22 @@ function generateGlobalsCssV3(theme: Theme): string {
 	return lines.join("\n");
 }
 
-function generateGlobalsCssV4(theme: Theme): string {
+function generateGlobalsCssV4(theme: Theme, sources?: readonly string[]): string {
 	const lines: string[] = [];
 
-	lines.push(`@import "tailwindcss";`);
+	const scoped = sources !== undefined && sources.length > 0;
+	if (scoped) {
+		lines.push("/*");
+		lines.push(" * `source(none)` turns off Tailwind's automatic content detection, which");
+		lines.push(" * would otherwise walk up past this app to the enclosing repository and read");
+		lines.push(" * binary files as class candidates, emitting utilities that fail to parse.");
+		lines.push(" * The @source rules below name this app's own files instead.");
+		lines.push(" */");
+		lines.push(`@import "tailwindcss" source(none);`);
+		for (const source of sources) lines.push(`@source "${source}";`);
+	} else {
+		lines.push(`@import "tailwindcss";`);
+	}
 	// tw-animate-css ports tailwindcss-animate's animate-in/out, fade-*, slide-*,
 	// zoom-* utilities to v4 as a pure CSS import. Every Hex component that
 	// transitions (dialog, dropdown-menu, popover, accordion, ...) depends on
