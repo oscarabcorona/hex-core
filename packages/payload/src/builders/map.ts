@@ -6,6 +6,7 @@ import { neighbors, requiresClosure } from "../graph/graph-query.js";
 import { loadRecipe as loadRecipeFromDisk, loadRecipes, type Recipe, type RecipeIndex } from "../loaders/recipe-loader.js";
 import { loadRegistry, type RegistryIndex } from "../loaders/registry-loader.js";
 import { resolveSpec } from "./resolver.js";
+import { slugify, titleFromSlug } from "../lib/slug.js";
 
 /**
  * Application-map builder — the deterministic "map a big app brief onto
@@ -204,37 +205,14 @@ export function segmentBrief(brief: string): string[] {
 	return merged.length > 0 ? merged : [normalized.trim()].filter((s) => s.length > 0);
 }
 
+
 /**
  * Slugify a text fragment into a screen id.
  * @param input - Arbitrary text
  * @returns Lowercase hyphenated slug, capped at 32 chars, never empty
  */
-function slugifyId(input: string): string {
-	let raw = input
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^(?:a|an|the)-/, "")
-		// The collapse above leaves no adjacent hyphens, so a bounded `-?`
-		// is sufficient. `/^-+|-+$/` would backtrack polynomially on a long
-		// interior hyphen run (CodeQL js/polynomial-redos, ~96ms at 16k).
-		.replace(/^-/, "")
-		.replace(/-$/, "");
-	if (raw.length > 32) {
-		// Cut at a word boundary so ids never end mid-word.
-		const cut = raw.slice(0, 32);
-		raw = cut.includes("-") ? cut.slice(0, cut.lastIndexOf("-")) : cut;
-	}
-	return raw.length > 0 ? raw : "screen";
-}
-
-/**
- * Title-case a slug for display ("pricing-page" → "Pricing page").
- * @param slug - Lowercase hyphenated slug
- * @returns Display name
- */
-function titleFromSlug(slug: string): string {
-	const spaced = slug.replace(/-/g, " ");
-	return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+function screenId(input: string): string {
+	return slugify(input, { maxLength: 32, fallback: "screen" });
 }
 
 /**
@@ -343,7 +321,7 @@ export function buildApplicationMap(brief: string, options: MapBuilderOptions = 
 		if (components.length === 0) continue;
 
 		screens.push({
-			id: reserveId(slugifyId(segment)),
+			id: reserveId(screenId(segment)),
 			name: titleFromSlug(components[0].component),
 			segment,
 			source: "components",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { cn } from "../lib/utils";
+import { cn } from "@hex-core/components/utils";
 
 type BrandSize = "sm" | "md" | "lg";
 

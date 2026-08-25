@@ -163,6 +163,11 @@
       "type": "component"
     },
     {
+      "path": "components/ui/layout-variants.tsx",
+      "content": "/**\n * Single source of truth for layout-primitive CVA variant maps.\n *\n * Stack, Cluster, Grid all share `gap` and `justify` value sets; align values\n * differ slightly (`stretch` for column-like flows, `baseline` for row flows).\n * Centralizing the maps here keeps token names and Tailwind classes in one\n * file — when the gap scale changes (renamed token, new step, etc.), all\n * three components update together.\n */\n\n/** Gap scale bound to `--gap-*` tokens. Used by Stack, Cluster, Grid. */\nexport const gapVariants = {\n\txs: \"gap-[var(--gap-xs,0.25rem)]\",\n\tsm: \"gap-[var(--gap-sm,0.5rem)]\",\n\tmd: \"gap-[var(--gap-md,1rem)]\",\n\tlg: \"gap-[var(--gap-lg,1.5rem)]\",\n\txl: \"gap-[var(--gap-xl,2rem)]\",\n} as const;\n\n/** `justify-content` values shared by Stack and Cluster. */\nexport const justifyVariants = {\n\tstart: \"justify-start\",\n\tcenter: \"justify-center\",\n\tend: \"justify-end\",\n\tbetween: \"justify-between\",\n} as const;\n\n/** Cross-axis `align-items` values for vertical/grid flows (column-like). */\nexport const flexAlignVariants = {\n\tstart: \"items-start\",\n\tcenter: \"items-center\",\n\tend: \"items-end\",\n\tstretch: \"items-stretch\",\n} as const;\n\n/** Cross-axis `align-items` values for horizontal flows. Includes `baseline`. */\nexport const clusterAlignVariants = {\n\tstart: \"items-start\",\n\tcenter: \"items-center\",\n\tend: \"items-end\",\n\tstretch: \"items-stretch\",\n\tbaseline: \"items-baseline\",\n} as const;\n",
+      "type": "component"
+    },
+    {
       "path": "lib/chart-palette.ts",
       "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
       "type": "lib"
@@ -223,7 +228,7 @@
       "card"
     ],
     "accessibilityNotes": "Grid is presentational. If the grid renders a list of similar items, wrap in `<ul>`/`<li>` for screen-reader semantics — Grid only handles visual layout.",
-    "tokenBudget": 1374
+    "tokenBudget": 1460
   },
   "tags": [
     "grid",

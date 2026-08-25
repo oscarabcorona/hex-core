@@ -91,7 +91,7 @@
       "sonner"
     ],
     "accessibilityNotes": "Radix wires role='progressbar', aria-valuenow, aria-valuemin, aria-valuemax. Pair with a visible label or aria-label for context.",
-    "tokenBudget": 443
+    "tokenBudget": 317
   },
   "tags": [
     "progress",

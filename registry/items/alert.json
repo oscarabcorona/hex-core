@@ -120,7 +120,7 @@
       "sonner"
     ],
     "accessibilityNotes": "Root renders role='alert' so screen readers announce it. For non-urgent info banners consider role='status' or aria-live='polite' via className overrides.",
-    "tokenBudget": 619
+    "tokenBudget": 547
   },
   "tags": [
     "alert",

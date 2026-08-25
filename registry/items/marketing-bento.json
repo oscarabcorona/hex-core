@@ -119,7 +119,7 @@
       "card"
     ],
     "accessibilityNotes": "Each tile heading is an <h3> under the section <h2>. Grid order matches source order; on mobile tiles stack one-per-row, so put your most important tile first.",
-    "tokenBudget": 873
+    "tokenBudget": 803
   },
   "tags": [
     "block",

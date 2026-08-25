@@ -86,7 +86,7 @@
       "pagination"
     ],
     "accessibilityNotes": "Semantic <table> / <thead> / <tbody> is used, so screen readers announce rows/columns. Include a TableCaption or aria-label. Mark column sort buttons with aria-sort.",
-    "tokenBudget": 582
+    "tokenBudget": 951
   },
   "tags": [
     "table",

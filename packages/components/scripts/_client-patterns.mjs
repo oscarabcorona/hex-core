@@ -70,8 +70,13 @@ export const CLIENT_PATTERNS = [
 ];
 
 /**
- * Walk a directory recursively, returning all `.tsx` files (excluding
- * `.test.tsx`).
+ * Walk a directory recursively, returning every `.tsx` that tsup turns
+ * into a dist entry.
+ *
+ * Must stay in sync with the `ignore` list in `tsup.config.ts`: tests and
+ * demos are colocated with their component but excluded from the build,
+ * so a source file here without a `dist/` counterpart is a real entry-name
+ * regression rather than an expected omission.
  * @param {string} dir
  * @returns {string[]}
  */
@@ -83,7 +88,8 @@ export function walkTsx(dir) {
 		else if (
 			entry.isFile() &&
 			entry.name.endsWith(".tsx") &&
-			!entry.name.endsWith(".test.tsx")
+			!entry.name.endsWith(".test.tsx") &&
+			!entry.name.endsWith(".demo.tsx")
 		) {
 			out.push(full);
 		}

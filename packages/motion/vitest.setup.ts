@@ -67,8 +67,11 @@ if (typeof Element !== "undefined" && typeof Element.prototype.animate !== "func
 					resolveFinished = r;
 				});
 			},
-			get finished() {
-				return finished as unknown as Promise<Animation>;
+			get finished(): Promise<Animation> {
+				// The stub resolves with no value; nothing under test reads the
+				// resolved Animation, so widen the void promise rather than
+				// fabricating one.
+				return finished.then(() => anim);
 			},
 			oncancel: null,
 			onfinish: null,

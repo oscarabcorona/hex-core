@@ -7,22 +7,38 @@ description: Authoring components, recipes, or a third-party hex-core-compatible
 
 Two kinds of authoring: adding to the first-party registry (contributing), or publishing your own registry that follows the same shape.
 
-## Component authoring — two files per component
+## Component authoring — one folder per component
 
 ```
 packages/components/src/{category}/{name}/
-  ├── {name}.tsx       # React + Tailwind + CVA + Radix
-  └── {name}.schema.ts # Machine-readable contract
+  ├── {name}.tsx        # React + Tailwind + CVA + Radix
+  ├── {name}.schema.ts  # Machine-readable contract
+  ├── {name}.test.tsx   # Unit test
+  └── {name}.demo.tsx   # The demo the docs site renders
 ```
 
-`{category}` is `primitives`, `components`, or `blocks`. After writing both files, run `pnpm run build:registry` to regenerate `registry/items/<name>.json` and the index.
+`{category}` is `primitives`, `components`, `ai`, `artifacts`, or `blocks`.
+
+Then run `pnpm build` (regenerates every barrel and the docs demo map from
+the filesystem) and `pnpm run build:registry` (regenerates
+`registry/items/<name>.json` and the index).
+
+**There is nothing else to register.** The runtime barrel, the schema
+barrel, the docs demo map and the visual-test skip set are all generated
+from this folder — do not hand-edit any `*.generated.*` file.
 
 ### `.schema.ts` shape
 
-```ts
-import type { ComponentSchemaDefinition } from "@hex-core/registry";
+Only `name`, `displayName`, `description`, `category` and `ai` are required.
+`props`, `variants`, `slots`, `tokensUsed`, `examples` and `tags` default to
+empty; `dependencies` is re-derived from the component's imports; and
+`ai.tokenBudget` is measured from the emitted registry item. Declare a field
+only when you are saying something the build cannot work out.
 
-export const mySchema: ComponentSchemaDefinition = {
+```ts
+import type { ComponentSchemaInput } from "@hex-core/registry";
+
+export const mySchema: ComponentSchemaInput = {
   name: "my-component",           // kebab-case slug
   displayName: "My Component",
   description: "One-sentence pitch.",
@@ -39,6 +55,8 @@ export const mySchema: ComponentSchemaDefinition = {
   slots: [
     { name: "children", description: "Content", required: true, acceptedTypes: ["ReactNode"] },
   ],
+  // Optional — re-derived from the component's imports. Declare it only to
+  // pin something the import scan cannot see.
   dependencies: {
     npm: ["@radix-ui/react-X", "class-variance-authority"],
     internal: ["components/other/other"],   // file paths, translated to slugs at runtime
@@ -54,21 +72,23 @@ export const mySchema: ComponentSchemaDefinition = {
     commonMistakes: ["..."],
     relatedComponents: ["other"],
     accessibilityNotes: "...",
-    tokenBudget: 500,
   },
   tags: ["mine", "primitive"],
 };
 ```
 
-**Every `ai.*` field is mandatory.** The build fails if missing. `verify_checklist` derives agent warnings from `commonMistakes` and `accessibilityNotes`, so incomplete `ai` fields silently reduce quality.
+**Every `ai.*` field is mandatory** except `tokenBudget`. The build fails if one is missing. `verify_checklist` derives agent warnings from `commonMistakes` and `accessibilityNotes`, so incomplete `ai` fields silently reduce quality.
 
-### Token budget guideline
+### Token budget
 
-- Primitive (button, input, badge): 200–500
-- Compound (card, form): 500–1000
-- Block (data-table, calendar, sidebar): 1000–3000
+Measured at build time from the component's own source plus the dependency
+files unique to it — shared `lib/*` is excluded, since every item bundles the
+same helpers and counting them would flatten the ranking signal the budget
+exists for. Used by agents for context planning.
 
-Budget is for *the component's registry JSON* (source + schema), not runtime. Used by agents for context planning.
+Do not hand-type it. The 161 hand-typed values this replaced had drifted
+badly: `data-table` declared 820 against a real 2,269. Set it explicitly only
+for a schema-only item that ships no source to measure.
 
 ## Recipe authoring
 

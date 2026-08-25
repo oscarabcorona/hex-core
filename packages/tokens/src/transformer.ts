@@ -3,6 +3,39 @@ import type { Theme } from "@hex-core/registry";
 interface TokenLike {
 	value: string;
 	type?: string;
+	ref?: string;
+}
+
+/**
+ * Extract the palette key a token was drawn from.
+ * @param token - A token object potentially carrying a `ref`
+ * @returns The palette key, or undefined when the token holds a literal
+ */
+function extractRef(token: unknown): string | undefined {
+	if (typeof token === "object" && token !== null && "ref" in token) {
+		const { ref } = token;
+		return typeof ref === "string" ? ref : undefined;
+	}
+	return undefined;
+}
+
+/**
+ * Render a token for CSS, pointing at its ramp entry when it has one.
+ *
+ * A token drawn from the palette emits `var(--slate-900)` rather than the
+ * triplet it resolves to. That indirection is the point of a two-tier
+ * palette: `--primary` and `--ring` come from one graphite entry, so a
+ * consumer re-tints everything downstream by overriding `--slate-900` in
+ * their own stylesheet.
+ *
+ * Tokens without a `ref` — every one of the 143 imported brand presets —
+ * emit their literal value unchanged.
+ * @param token - The token to render
+ * @returns CSS-ready value text
+ */
+function renderTokenValue(token: unknown): string {
+	const key = extractRef(token);
+	return key === undefined ? extractValue(token) : `var(--${key})`;
 }
 
 /**
@@ -46,14 +79,17 @@ export function themeToCss(theme: Theme): string {
 
 	lines.push("@layer base {");
 	lines.push("  :root {");
+	for (const [key, value] of Object.entries(theme.palette ?? {})) {
+		lines.push(`    --${key}: ${value};`);
+	}
 	for (const [key, token] of Object.entries(theme.tokens.light)) {
-		lines.push(`    --${key}: ${extractValue(token)};`);
+		lines.push(`    --${key}: ${renderTokenValue(token)};`);
 	}
 	lines.push("  }");
 	lines.push("");
 	lines.push("  .dark {");
 	for (const [key, token] of Object.entries(theme.tokens.dark)) {
-		lines.push(`    --${key}: ${extractValue(token)};`);
+		lines.push(`    --${key}: ${renderTokenValue(token)};`);
 	}
 	lines.push("  }");
 	lines.push("}");
@@ -272,6 +308,80 @@ function generateGlobalsCssV3(theme: Theme): string {
 	return lines.join("\n");
 }
 
+/**
+ * Emit only the token layer — the raw ramp, the semantic tokens, and the
+ * Tailwind `--color-*` bridge.
+ *
+ * Split out of {@link generateGlobalsCss} so a consumer that already owns
+ * its `@import`s, custom variants and non-colour `@theme` block can
+ * generate just the colours. The docs site does exactly that: its
+ * `globals.css` used to hand-copy this output four times over and carried
+ * a "KEEP IN SYNC" comment to prove it.
+ *
+ * @param theme - The theme to emit
+ * @returns The `:root` / `.dark` / `@theme inline` blocks, plus the base
+ *   `body` and border rules
+ */
+export function generateThemeCssV4(theme: Theme): string {
+	const lines: string[] = [];
+	// Bridge pattern: raw `H S% L%` triplets live in :root / .dark, and the
+	// @theme inline block aliases each `--color-<key>` to `hsl(var(--<key>))`.
+	// This shape is deliberate:
+	//   1. Keeps the raw `--<key>` triplet that `hex theme edit` searches for —
+	//      direct values inside @theme would silently break that command.
+	//   2. Keeps alpha-modifier utilities (bg-primary/50) cheap because the
+	//      `<H S% L%>` triplet composes via Tailwind v4's color-mix() machinery
+	//      with no per-utility re-derivation.
+	lines.push("/*");
+	lines.push(" * Raw token triplets (H S% L%) — the source of truth that `hex theme edit`");
+	lines.push(" * mutates, and that the @theme inline block below aliases into Tailwind's");
+	lines.push(" * --color-<key> namespace.");
+	if (theme.palette) {
+		lines.push(" *");
+		lines.push(" * Tier 1 is the raw ramp; the semantic tokens below point at it with");
+		lines.push(" * var(). Re-tint the whole theme by overriding a ramp entry — every");
+		lines.push(" * semantic token that references it follows.");
+	}
+	lines.push(" */");
+	lines.push(":root {");
+	for (const [key, value] of Object.entries(theme.palette ?? {})) {
+		lines.push(`  --${key}: ${value};`);
+	}
+	for (const [key, token] of Object.entries(theme.tokens.light)) {
+		lines.push(`  --${key}: ${renderTokenValue(token)};`);
+	}
+	lines.push("}");
+	lines.push("");
+	lines.push(".dark {");
+	for (const [key, token] of Object.entries(theme.tokens.dark)) {
+		lines.push(`  --${key}: ${renderTokenValue(token)};`);
+	}
+	lines.push("}");
+	lines.push("");
+	lines.push("/*");
+	lines.push(" * Tailwind v4 namespace bridge — generated utilities like bg-background");
+	lines.push(" * resolve var(--color-background) here, which in turn reads var(--background)");
+	lines.push(" * from the blocks above.");
+	lines.push(" */");
+	lines.push("@theme inline {");
+	for (const [key, token] of Object.entries(theme.tokens.light)) {
+		if (extractType(token) !== "color") continue;
+		lines.push(`  --color-${key}: hsl(var(--${key}));`);
+	}
+	lines.push("}");
+	lines.push("");
+	lines.push("body {");
+	lines.push("  background: var(--color-background);");
+	lines.push("  color: var(--color-foreground);");
+	lines.push("}");
+	lines.push("");
+	lines.push("* {");
+	lines.push("  border-color: var(--color-border);");
+	lines.push("}");
+
+	return lines.join("\n");
+}
+
 function generateGlobalsCssV4(theme: Theme, sources?: readonly string[]): string {
 	const lines: string[] = [];
 
@@ -297,51 +407,6 @@ function generateGlobalsCssV4(theme: Theme, sources?: readonly string[]): string
 	lines.push("/* Class-based dark mode — set `.dark` on <html> via next-themes or your own provider. */");
 	lines.push("@custom-variant dark (&:is(.dark *));");
 	lines.push("");
-	// Bridge pattern: raw `H S% L%` triplets live in :root / .dark, and the
-	// @theme inline block aliases each `--color-<key>` to `hsl(var(--<key>))`.
-	// This shape is deliberate:
-	//   1. Keeps the raw `--<key>` triplet that `hex theme edit` searches for —
-	//      direct values inside @theme would silently break that command.
-	//   2. Keeps alpha-modifier utilities (bg-primary/50) cheap because the
-	//      `<H S% L%>` triplet composes via Tailwind v4's color-mix() machinery
-	//      with no per-utility re-derivation.
-	lines.push("/*");
-	lines.push(" * Raw token triplets (H S% L%) — the source of truth that `hex theme edit`");
-	lines.push(" * mutates, and that the @theme inline block below aliases into Tailwind's");
-	lines.push(" * --color-<key> namespace.");
-	lines.push(" */");
-	lines.push(":root {");
-	for (const [key, token] of Object.entries(theme.tokens.light)) {
-		lines.push(`  --${key}: ${extractValue(token)};`);
-	}
-	lines.push("}");
-	lines.push("");
-	lines.push(".dark {");
-	for (const [key, token] of Object.entries(theme.tokens.dark)) {
-		lines.push(`  --${key}: ${extractValue(token)};`);
-	}
-	lines.push("}");
-	lines.push("");
-	lines.push("/*");
-	lines.push(" * Tailwind v4 namespace bridge — generated utilities like bg-background");
-	lines.push(" * resolve var(--color-background) here, which in turn reads var(--background)");
-	lines.push(" * from the blocks above.");
-	lines.push(" */");
-	lines.push("@theme inline {");
-	for (const [key, token] of Object.entries(theme.tokens.light)) {
-		if (extractType(token) !== "color") continue;
-		lines.push(`  --color-${key}: hsl(var(--${key}));`);
-	}
-	lines.push("}");
-	lines.push("");
-	lines.push("body {");
-	lines.push("  background: var(--color-background);");
-	lines.push("  color: var(--color-foreground);");
-	lines.push("}");
-	lines.push("");
-	lines.push("* {");
-	lines.push("  border-color: var(--color-border);");
-	lines.push("}");
-
+	lines.push(generateThemeCssV4(theme));
 	return lines.join("\n");
 }

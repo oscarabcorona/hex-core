@@ -17,7 +17,7 @@ shadcn/ui is built for humans browsing docs. Hex Core is built for **AI agents**
 - **Machine-readable component specs** — Zod schemas with props, variants, slots, and constraints
 - **AI hints** — `whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes` per component
 - **Recipes** — spec-driven blueprints (auth flows, settings page, pricing table, data table, confirm-destructive, command palette, and the `app-shell` layout starter) with ordered install steps and post-install checklists
-- **MCP server** — 16 tools for component discovery, installation, theming, scaffolding, spec resolution, and emitting paste-into-LLM app context
+- **MCP server** — 19 tools for component discovery, installation, theming, scaffolding, spec resolution, and emitting paste-into-LLM app context
 - **Token budgets** — each component declares its token cost for efficient LLM context usage
 
 > [!WARNING]

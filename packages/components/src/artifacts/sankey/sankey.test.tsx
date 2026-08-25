@@ -108,13 +108,14 @@ describe("Sankey", () => {
 	});
 
 	it("preserves consumer-supplied extra fields on link callbacks (forward-compat)", async () => {
-		// Cast through `unknown` to add a forward-compatible field; the public
-		// type only declares { source, target, value }, but the layout passes
-		// the original through via spread, so future widenings round-trip.
-		const linksWithExtra = [
-			{ ...sampleLinks[0], category: "main" } as unknown as SankeyLink,
-			sampleLinks[1],
-		];
+		// Widen with an index signature rather than casting: the public type
+		// only declares { source, target, value }, but the layout passes the
+		// original through via spread, so future widenings round-trip.
+		const linkWithExtra: SankeyLink & Record<string, unknown> = {
+			...sampleLinks[0],
+			category: "main",
+		};
+		const linksWithExtra = [linkWithExtra, sampleLinks[1]];
 		const onLinkHover = vi.fn();
 		const { container } = render(
 			<Sankey nodes={sampleNodes} links={linksWithExtra} onLinkHover={onLinkHover} />,

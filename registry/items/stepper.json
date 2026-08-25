@@ -163,7 +163,7 @@
       "breadcrumb"
     ],
     "accessibilityNotes": "Renders <ol> with the provided aria-label. The active step's interactive element gets aria-current='step'. Completed steps prefix the label with visually-hidden 'Completed:'; error steps prefix with 'Error:' and set aria-invalid='true' on the indicator. Connector lines are aria-hidden. When onStepClick is omitted, steps are plain <span>s — not fake buttons.",
-    "tokenBudget": 1370
+    "tokenBudget": 2447
   },
   "tags": [
     "stepper",

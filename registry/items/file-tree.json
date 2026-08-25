@@ -119,7 +119,7 @@
       "sidebar"
     ],
     "accessibilityNotes": "Root: role='tree' with aria-label. Each node: role='treeitem' with aria-level, aria-expanded (folders only), aria-selected, tabIndex=0 only on the active visible node (roving tabindex). Children container: role='group'. Click semantics: row click selects only; the chevron is a separate decorative button that toggles. Keyboard: ArrowDown/Up move through visible non-disabled nodes (disabled nodes are skipped); ArrowRight expands a closed folder or moves to first child; ArrowLeft collapses an open folder or moves to parent; Home/End jump to first/last visible; Enter/Space activate (toggle on folders, select on all).",
-    "tokenBudget": 1295
+    "tokenBudget": 3523
   },
   "tags": [
     "file-tree",

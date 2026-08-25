@@ -3,6 +3,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { internalDepToSlug } from "@hex-core/registry";
 import { compareStrings } from "../packages/payload/src/lib/compare.js";
+import { titleFromSlug } from "../packages/payload/src/lib/slug.js";
 import {
 	type CatalogGraph,
 	type GraphEdge,
@@ -110,16 +111,6 @@ const HUB_MIN_DEGREE = 8;
 /** Max characters of anti-pattern prose carried on an `instead-use` edge. */
 const NOTE_MAX_LENGTH = 200;
 
-/**
- * Title-case a slug-ish string: `"marketing"` → `"Marketing"`,
- * `"data-display"` → `"Data display"`.
- * @param input - Lowercase, possibly hyphenated string
- * @returns The string with its first letter uppercased and hyphens spaced
- */
-function titleCase(input: string): string {
-	const spaced = input.replace(/-/g, " ");
-	return spaced.charAt(0).toUpperCase() + spaced.slice(1);
-}
 
 /**
  * Derive the community id + display name for an item from its curated
@@ -133,11 +124,11 @@ function titleCase(input: string): string {
 function communityFor(category: string, subcategory?: string): { community: string; communityName: string } {
 	const plural = CATEGORY_PLURAL[category] ?? category;
 	if (!subcategory) {
-		return { community: category, communityName: titleCase(plural) };
+		return { community: category, communityName: titleFromSlug(plural) };
 	}
 	return {
 		community: `${category}/${subcategory}`,
-		communityName: `${titleCase(subcategory)} ${plural}`,
+		communityName: `${titleFromSlug(subcategory)} ${plural}`,
 	};
 }
 
@@ -341,7 +332,7 @@ for (const recipe of compiledRecipes) {
 	nodes.set(`theme:${preset}`, {
 		id: `theme:${preset}`,
 		slug: preset,
-		label: titleCase(preset),
+		label: titleFromSlug(preset),
 		kind: "theme",
 		community: "theme",
 		communityName: "Themes",

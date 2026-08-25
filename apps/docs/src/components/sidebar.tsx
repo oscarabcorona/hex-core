@@ -3,7 +3,7 @@
 import { motion, LayoutGroup } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "../lib/utils";
+import { cn } from "@hex-core/components/utils";
 import { GETTING_STARTED_NAV } from "../lib/docs-nav";
 import {
 	CATEGORY_LABELS,

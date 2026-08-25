@@ -1,4 +1,4 @@
-// AUTO-GENERATED — do not hand-edit. Source: https://github.com/voltagent/awesome-design-md
+// Originally generated from voltagent/awesome-design-md (MIT) and hand-curated since.
 export const spacexBrief = `# Design System Inspired by SpaceX
 
 ## 1. Visual Theme & Atmosphere

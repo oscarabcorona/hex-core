@@ -57,7 +57,15 @@ describe("init", () => {
 		expect(css).toContain(`@import "tw-animate-css";`);
 		expect(css).toContain("@theme inline {");
 		expect(css).toContain("--color-background: hsl(var(--background));");
-		expect(css).toMatch(/:root \{[\s\S]+?--background: [\d.]+ [\d.]+% [\d.]+%;/);
+		// A palette-backed theme points the semantic token at a ramp entry and
+		// puts the triplet there, so assert on the chain rather than the shape:
+		// `--background` must resolve, through at most one hop, to `H S% L%`.
+		const root = /:root \{[^}]*\}/.exec(css)?.[0] ?? "";
+		const declared = (key: string) =>
+			new RegExp(`--${key}:\\s*([^;]+);`).exec(root)?.[1]?.trim();
+		const background = declared("background");
+		const via = background === undefined ? null : /^var\(--([a-z0-9-]+)\)$/.exec(background);
+		expect(via ? declared(via[1]) : background).toMatch(/^[\d.]+ [\d.]+% [\d.]+%$/);
 
 		// v4 must NOT generate tailwind.config.ts
 		expect(fs.existsSync(path.join(tmpDir, "tailwind.config.ts"))).toBe(false);

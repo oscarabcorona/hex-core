@@ -1,9 +1,16 @@
 import Link from "next/link";
-import { AuthSignInSplitDemo } from "../../demos/auth-sign-in-split-demo";
+import { getDemo } from "../../../lib/demos.generated";
 import { CodeBlock } from "../../../components/code-block";
 import { DocSection, InlineCode } from "../../../components/doc-section";
 import { DocsPage } from "../../../components/docs-page";
 import { listBlocks } from "../../../lib/registry";
+
+/**
+ * Pulled from the generated demo map rather than imported directly —
+ * demos live beside their component in `packages/components`, and the
+ * map is the one place that knows where each one is.
+ */
+const AuthSignInSplitDemo = getDemo("auth-sign-in-split");
 
 export const metadata = {
 	title: "Blocks",
@@ -138,7 +145,7 @@ export default function BlocksDocPage() {
 					. Both are wired to <InlineCode>mockAuthAdapter</InlineCode> — every submit
 					resolves <InlineCode>{"{ ok: true }"}</InlineCode> after 400ms.
 				</p>
-				<AuthSignInSplitDemo />
+				{AuthSignInSplitDemo ? <AuthSignInSplitDemo /> : null}
 			</DocSection>
 
 			<DocSection id="auth-journey" title="Password-auth journey">

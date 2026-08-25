@@ -92,4 +92,106 @@ export default tseslint.config(
 			"jsdoc/require-param": "off",
 		},
 	},
+	{
+		/*
+		 * Colour literals belong in the token system, not in a component.
+		 *
+		 * The whole point of the two-tier palette in
+		 * `packages/tokens/src/themes/` is that changing a colour is one
+		 * edit; a hardcoded `#171717` in a component is a value the theme
+		 * cannot reach, and it will not flip in dark mode.
+		 *
+		 * Scoped to the layers where the token system fully applies.
+		 * `src/ai/**` is deliberately outside it: Terminal, AudioPlayer and
+		 * AudioWaveform hand concrete colours to third-party canvas APIs
+		 * (xterm.js, WaveSurfer) that cannot read CSS custom properties.
+		 * `src/lib/color.ts` is the hex↔HSL converter, whose JSDoc examples
+		 * are necessarily hex.
+		 */
+		files: [
+			"packages/components/src/primitives/**/*.tsx",
+			"packages/components/src/components/**/*.tsx",
+			"packages/components/src/artifacts/**/*.tsx",
+			"packages/components/src/blocks/**/*.tsx",
+		],
+		// Tests and demos use literal colours as fixtures on purpose — a
+		// `colorBy` stub returning `rgb(255, 0, 0)`, an order id of `#1042`.
+		// The rule is about what ships.
+		ignores: ["**/*.test.tsx", "**/*.demo.tsx"],
+		rules: {
+			"no-restricted-syntax": [
+				"error",
+				{
+					// 3, 6 or 8 digits. The 4-digit form is omitted deliberately: it
+					// collides with ordinary strings like an order id of `#1042`.
+					selector: "Literal[value=/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]",
+					message:
+						"Hardcoded colour. Use a semantic token — a Tailwind utility (`bg-primary`) or `hsl(var(--border))`. See the token pyramid in packages/tokens/src/themes/default.ts.",
+				},
+				{
+					// Matches a colour function given literal channels —
+					// `hsl(222 25% 18%)`, `rgba(0, 0, 0, .1)`. Deliberately does
+					// NOT match `hsl(var(--primary))`, which is the prescribed
+					// way to read a token.
+					selector: "Literal[value=/(?:rgba?|hsla?)\\(\\s*[\\d.]/]",
+					message:
+						"Hardcoded colour. Use a semantic token — a Tailwind utility (`bg-primary`) or `hsl(var(--border))`. See the token pyramid in packages/tokens/src/themes/default.ts.",
+				},
+			],
+		},
+	},
+	{
+		/*
+		 * `as unknown as T` defeats the type system outright — it is the one
+		 * assertion form that can turn any value into any other with no
+		 * overlap check. Zero sites remain; this keeps it that way.
+		 *
+		 * The alternatives, in order of preference: `satisfies` for object
+		 * literals, a Zod `.parse()` at a trust boundary, a type guard for
+		 * unions, `declare global` for untyped browser APIs, and an
+		 * intersection (`T & Record<string, unknown>`) to widen a fixture.
+		 */
+		rules: {
+			"no-restricted-syntax": [
+				"error",
+				{
+					selector: "TSAsExpression > TSAsExpression > TSUnknownKeyword",
+					message:
+						"`as unknown as T` is banned. Use `satisfies`, a Zod `.parse()` at the boundary, a type guard, `declare global` for browser APIs, or an intersection type to widen. See CONTRIBUTING.md § Type safety.",
+				},
+			],
+		},
+	},
+	{
+		/*
+		 * Radix is an implementation detail of the primitive and component
+		 * layers. Blocks, AI surfaces, artifacts and the docs app compose
+		 * what those layers export; reaching past them re-creates the
+		 * unstyled, untokenised primitive the library exists to provide.
+		 */
+		files: ["packages/components/src/{blocks,ai,artifacts}/**/*.{ts,tsx}"],
+		/*
+		 * `inline-citation` renders a citation popover whose panel is sized
+		 * and padded unlike the shared `HoverCardContent`, which hardcodes
+		 * `w-64` and its own padding. Composing the primitive would change
+		 * how it renders, so it drives `HoverCardPrimitive` directly until
+		 * that primitive grows a size variant. It is the one open case;
+		 * every other AI surface composes the Hex primitive.
+		 */
+		ignores: ["packages/components/src/ai/inline-citation/inline-citation.tsx"],
+		rules: {
+			"no-restricted-imports": [
+				"error",
+				{
+					patterns: [
+						{
+							group: ["@radix-ui/*"],
+							message:
+								"Import the Hex primitive instead (e.g. `Dialog` from ../../primitives/dialog/dialog.js). Radix belongs to the primitive + component layers only — see CONTRIBUTING.md § Layer boundaries.",
+						},
+					],
+				},
+			],
+		},
+	},
 );

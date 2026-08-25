@@ -19,7 +19,7 @@
         "ratio"
       ],
       "internalDeps": [],
-      "tokenBudget": 452
+      "tokenBudget": 50
     },
     {
       "name": "avatar",
@@ -37,7 +37,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 433
+      "tokenBudget": 415
     },
     {
       "name": "badge",
@@ -53,7 +53,7 @@
         "indicator"
       ],
       "internalDeps": [],
-      "tokenBudget": 538
+      "tokenBudget": 373
     },
     {
       "name": "button",
@@ -70,7 +70,7 @@
         "click"
       ],
       "internalDeps": [],
-      "tokenBudget": 2265
+      "tokenBudget": 1188
     },
     {
       "name": "checkbox",
@@ -86,7 +86,7 @@
         "check"
       ],
       "internalDeps": [],
-      "tokenBudget": 719
+      "tokenBudget": 643
     },
     {
       "name": "cluster",
@@ -105,7 +105,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1301
+      "tokenBudget": 1113
     },
     {
       "name": "container",
@@ -123,7 +123,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1107
+      "tokenBudget": 607
     },
     {
       "name": "empty",
@@ -139,7 +139,7 @@
         "dashboard"
       ],
       "internalDeps": [],
-      "tokenBudget": 1501
+      "tokenBudget": 1151
     },
     {
       "name": "error-state",
@@ -155,7 +155,7 @@
         "feedback"
       ],
       "internalDeps": [],
-      "tokenBudget": 1348
+      "tokenBudget": 839
     },
     {
       "name": "grid",
@@ -174,7 +174,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1374
+      "tokenBudget": 1460
     },
     {
       "name": "input",
@@ -190,7 +190,7 @@
         "text-field"
       ],
       "internalDeps": [],
-      "tokenBudget": 741
+      "tokenBudget": 339
     },
     {
       "name": "label",
@@ -205,7 +205,7 @@
         "text"
       ],
       "internalDeps": [],
-      "tokenBudget": 453
+      "tokenBudget": 174
     },
     {
       "name": "loading",
@@ -222,7 +222,7 @@
       "internalDeps": [
         "primitives/skeleton/skeleton"
       ],
-      "tokenBudget": 1159
+      "tokenBudget": 1111
     },
     {
       "name": "progress",
@@ -240,7 +240,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 443
+      "tokenBudget": 317
     },
     {
       "name": "radio-group",
@@ -256,7 +256,7 @@
         "mutually-exclusive"
       ],
       "internalDeps": [],
-      "tokenBudget": 749
+      "tokenBudget": 483
     },
     {
       "name": "scroll-area",
@@ -274,7 +274,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 668
+      "tokenBudget": 637
     },
     {
       "name": "select",
@@ -291,7 +291,7 @@
         "choose"
       ],
       "internalDeps": [],
-      "tokenBudget": 758
+      "tokenBudget": 1609
     },
     {
       "name": "separator",
@@ -306,7 +306,7 @@
         "layout"
       ],
       "internalDeps": [],
-      "tokenBudget": 443
+      "tokenBudget": 212
     },
     {
       "name": "skeleton",
@@ -323,7 +323,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 416
+      "tokenBudget": 118
     },
     {
       "name": "slider",
@@ -339,7 +339,7 @@
         "input"
       ],
       "internalDeps": [],
-      "tokenBudget": 1500
+      "tokenBudget": 769
     },
     {
       "name": "spacer",
@@ -357,7 +357,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 985
+      "tokenBudget": 559
     },
     {
       "name": "stack",
@@ -376,7 +376,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1198
+      "tokenBudget": 1111
     },
     {
       "name": "switch",
@@ -392,7 +392,7 @@
         "setting"
       ],
       "internalDeps": [],
-      "tokenBudget": 823
+      "tokenBudget": 446
     },
     {
       "name": "tag",
@@ -409,7 +409,7 @@
         "multi-select"
       ],
       "internalDeps": [],
-      "tokenBudget": 1407
+      "tokenBudget": 1314
     },
     {
       "name": "textarea",
@@ -425,7 +425,7 @@
         "input"
       ],
       "internalDeps": [],
-      "tokenBudget": 563
+      "tokenBudget": 303
     },
     {
       "name": "toggle",
@@ -441,7 +441,7 @@
         "toolbar"
       ],
       "internalDeps": [],
-      "tokenBudget": 804
+      "tokenBudget": 530
     },
     {
       "name": "toggle-group",
@@ -459,7 +459,7 @@
       "internalDeps": [
         "primitives/toggle/toggle"
       ],
-      "tokenBudget": 891
+      "tokenBudget": 965
     },
     {
       "name": "accordion",
@@ -475,7 +475,7 @@
         "expandable"
       ],
       "internalDeps": [],
-      "tokenBudget": 725
+      "tokenBudget": 643
     },
     {
       "name": "alert",
@@ -494,7 +494,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 619
+      "tokenBudget": 547
     },
     {
       "name": "alert-dialog",
@@ -510,7 +510,7 @@
         "overlay"
       ],
       "internalDeps": [],
-      "tokenBudget": 631
+      "tokenBudget": 1508
     },
     {
       "name": "breadcrumb",
@@ -528,7 +528,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 510
+      "tokenBudget": 1101
     },
     {
       "name": "calendar",
@@ -545,7 +545,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1116
+      "tokenBudget": 1563
     },
     {
       "name": "card",
@@ -561,7 +561,7 @@
         "surface"
       ],
       "internalDeps": [],
-      "tokenBudget": 1083
+      "tokenBudget": 659
     },
     {
       "name": "collapsible",
@@ -576,7 +576,7 @@
         "show-more"
       ],
       "internalDeps": [],
-      "tokenBudget": 580
+      "tokenBudget": 104
     },
     {
       "name": "color-picker",
@@ -601,7 +601,7 @@
         "lib/color",
         "lib/utils"
       ],
-      "tokenBudget": 936
+      "tokenBudget": 3497
     },
     {
       "name": "combobox",
@@ -621,7 +621,7 @@
         "components/popover/popover",
         "lib/utils"
       ],
-      "tokenBudget": 991
+      "tokenBudget": 5147
     },
     {
       "name": "command",
@@ -640,7 +640,7 @@
         "components/dialog/dialog",
         "lib/utils"
       ],
-      "tokenBudget": 1049
+      "tokenBudget": 3430
     },
     {
       "name": "context-menu",
@@ -657,7 +657,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 593
+      "tokenBudget": 1736
     },
     {
       "name": "data-table",
@@ -677,7 +677,7 @@
         "components/table/table",
         "dnd"
       ],
-      "tokenBudget": 820
+      "tokenBudget": 4893
     },
     {
       "name": "date-picker",
@@ -697,7 +697,7 @@
         "components/popover/popover",
         "lib/utils"
       ],
-      "tokenBudget": 1116
+      "tokenBudget": 3048
     },
     {
       "name": "dialog",
@@ -713,7 +713,7 @@
         "form"
       ],
       "internalDeps": [],
-      "tokenBudget": 1220
+      "tokenBudget": 1487
     },
     {
       "name": "dnd",
@@ -732,7 +732,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 420
+      "tokenBudget": 1647
     },
     {
       "name": "drawer",
@@ -750,7 +750,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 945
+      "tokenBudget": 941
     },
     {
       "name": "dropdown-menu",
@@ -766,7 +766,7 @@
         "contextual"
       ],
       "internalDeps": [],
-      "tokenBudget": 676
+      "tokenBudget": 1845
     },
     {
       "name": "dropzone",
@@ -783,7 +783,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1466
+      "tokenBudget": 2342
     },
     {
       "name": "file-tree",
@@ -801,7 +801,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1295
+      "tokenBudget": 3523
     },
     {
       "name": "form",
@@ -819,7 +819,7 @@
       "internalDeps": [
         "primitives/label/label"
       ],
-      "tokenBudget": 676
+      "tokenBudget": 1399
     },
     {
       "name": "hover-card",
@@ -836,7 +836,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 695
+      "tokenBudget": 395
     },
     {
       "name": "input-otp",
@@ -855,7 +855,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 902
+      "tokenBudget": 886
     },
     {
       "name": "kanban",
@@ -875,7 +875,7 @@
         "lib/utils",
         "dnd"
       ],
-      "tokenBudget": 460
+      "tokenBudget": 2239
     },
     {
       "name": "menubar",
@@ -893,7 +893,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 831
+      "tokenBudget": 1478
     },
     {
       "name": "multi-combobox",
@@ -914,7 +914,7 @@
         "components/popover/popover",
         "lib/utils"
       ],
-      "tokenBudget": 1311
+      "tokenBudget": 5622
     },
     {
       "name": "navigation-menu",
@@ -932,7 +932,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 698
+      "tokenBudget": 1431
     },
     {
       "name": "pagination",
@@ -950,7 +950,7 @@
         "lib/utils",
         "primitives/button/button"
       ],
-      "tokenBudget": 634
+      "tokenBudget": 1946
     },
     {
       "name": "popover",
@@ -966,7 +966,7 @@
         "anchored"
       ],
       "internalDeps": [],
-      "tokenBudget": 625
+      "tokenBudget": 411
     },
     {
       "name": "resizable",
@@ -983,7 +983,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 756
+      "tokenBudget": 759
     },
     {
       "name": "sheet",
@@ -1001,7 +1001,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 861
+      "tokenBudget": 1418
     },
     {
       "name": "sidebar",
@@ -1018,7 +1018,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 960
+      "tokenBudget": 2163
     },
     {
       "name": "sonner",
@@ -1034,7 +1034,7 @@
         "feedback"
       ],
       "internalDeps": [],
-      "tokenBudget": 620
+      "tokenBudget": 268
     },
     {
       "name": "stepper",
@@ -1052,7 +1052,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1370
+      "tokenBudget": 2447
     },
     {
       "name": "table",
@@ -1069,7 +1069,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 582
+      "tokenBudget": 951
     },
     {
       "name": "tabs",
@@ -1085,7 +1085,7 @@
         "sections"
       ],
       "internalDeps": [],
-      "tokenBudget": 529
+      "tokenBudget": 569
     },
     {
       "name": "time-picker",
@@ -1102,7 +1102,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1300
+      "tokenBudget": 714
     },
     {
       "name": "timeline",
@@ -1120,7 +1120,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 990
+      "tokenBudget": 1172
     },
     {
       "name": "toolbar",
@@ -1135,7 +1135,7 @@
         "command-group"
       ],
       "internalDeps": [],
-      "tokenBudget": 1262
+      "tokenBudget": 1377
     },
     {
       "name": "tooltip",
@@ -1151,7 +1151,7 @@
         "overlay"
       ],
       "internalDeps": [],
-      "tokenBudget": 676
+      "tokenBudget": 374
     },
     {
       "name": "tree",
@@ -1169,7 +1169,7 @@
       "internalDeps": [
         "dnd"
       ],
-      "tokenBudget": 1142
+      "tokenBudget": 6195
     },
     {
       "name": "app-data-table",
@@ -1185,7 +1185,7 @@
         "dashboard"
       ],
       "internalDeps": [],
-      "tokenBudget": 896
+      "tokenBudget": 481
     },
     {
       "name": "app-feed",
@@ -1202,7 +1202,7 @@
         "dashboard"
       ],
       "internalDeps": [],
-      "tokenBudget": 881
+      "tokenBudget": 917
     },
     {
       "name": "app-grid-list",
@@ -1218,7 +1218,7 @@
         "dashboard"
       ],
       "internalDeps": [],
-      "tokenBudget": 982
+      "tokenBudget": 983
     },
     {
       "name": "app-settings",
@@ -1234,7 +1234,7 @@
         "dashboard"
       ],
       "internalDeps": [],
-      "tokenBudget": 747
+      "tokenBudget": 414
     },
     {
       "name": "app-shell",
@@ -1251,7 +1251,7 @@
         "sidebar"
       ],
       "internalDeps": [],
-      "tokenBudget": 838
+      "tokenBudget": 803
     },
     {
       "name": "app-sidebar-nav",
@@ -1267,7 +1267,7 @@
         "dashboard"
       ],
       "internalDeps": [],
-      "tokenBudget": 816
+      "tokenBudget": 767
     },
     {
       "name": "app-stacked-list",
@@ -1283,7 +1283,7 @@
         "dashboard"
       ],
       "internalDeps": [],
-      "tokenBudget": 944
+      "tokenBudget": 995
     },
     {
       "name": "app-stats",
@@ -1300,7 +1300,7 @@
         "metrics"
       ],
       "internalDeps": [],
-      "tokenBudget": 916
+      "tokenBudget": 880
     },
     {
       "name": "auth-forgot-password",
@@ -1323,7 +1323,7 @@
         "primitives/input/input",
         "primitives/label/label"
       ],
-      "tokenBudget": 706
+      "tokenBudget": 5680
     },
     {
       "name": "auth-reset-password",
@@ -1344,7 +1344,7 @@
         "primitives/input/input",
         "primitives/label/label"
       ],
-      "tokenBudget": 1040
+      "tokenBudget": 4477
     },
     {
       "name": "auth-sign-in-split",
@@ -1368,7 +1368,7 @@
         "primitives/label/label",
         "primitives/separator/separator"
       ],
-      "tokenBudget": 1398
+      "tokenBudget": 6000
     },
     {
       "name": "auth-sign-up-card",
@@ -1393,7 +1393,7 @@
         "primitives/label/label",
         "primitives/separator/separator"
       ],
-      "tokenBudget": 1149
+      "tokenBudget": 7041
     },
     {
       "name": "auth-verify-email",
@@ -1413,7 +1413,7 @@
         "primitives/button/button",
         "primitives/empty/empty"
       ],
-      "tokenBudget": 938
+      "tokenBudget": 5133
     },
     {
       "name": "auth-verify-otp",
@@ -1434,7 +1434,7 @@
         "components/input-otp/input-otp",
         "primitives/button/button"
       ],
-      "tokenBudget": 1040
+      "tokenBudget": 5246
     },
     {
       "name": "commerce-cart",
@@ -1452,7 +1452,7 @@
         "shop"
       ],
       "internalDeps": [],
-      "tokenBudget": 929
+      "tokenBudget": 841
     },
     {
       "name": "commerce-category",
@@ -1468,7 +1468,7 @@
         "navigation"
       ],
       "internalDeps": [],
-      "tokenBudget": 843
+      "tokenBudget": 797
     },
     {
       "name": "commerce-category-filters",
@@ -1484,7 +1484,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 982
+      "tokenBudget": 742
     },
     {
       "name": "commerce-checkout",
@@ -1502,7 +1502,7 @@
         "shop"
       ],
       "internalDeps": [],
-      "tokenBudget": 886
+      "tokenBudget": 414
     },
     {
       "name": "commerce-incentives",
@@ -1518,7 +1518,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 909
+      "tokenBudget": 822
     },
     {
       "name": "commerce-order-history",
@@ -1534,7 +1534,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 891
+      "tokenBudget": 933
     },
     {
       "name": "commerce-order-summary",
@@ -1550,7 +1550,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 1127
+      "tokenBudget": 972
     },
     {
       "name": "commerce-product-detail",
@@ -1568,7 +1568,7 @@
         "shop"
       ],
       "internalDeps": [],
-      "tokenBudget": 1079
+      "tokenBudget": 666
     },
     {
       "name": "commerce-product-features",
@@ -1584,7 +1584,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 1084
+      "tokenBudget": 1151
     },
     {
       "name": "commerce-product-grid",
@@ -1602,7 +1602,7 @@
         "shop"
       ],
       "internalDeps": [],
-      "tokenBudget": 880
+      "tokenBudget": 823
     },
     {
       "name": "commerce-promo",
@@ -1618,7 +1618,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 1081
+      "tokenBudget": 933
     },
     {
       "name": "commerce-quickview",
@@ -1634,7 +1634,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 1124
+      "tokenBudget": 619
     },
     {
       "name": "commerce-reviews",
@@ -1650,7 +1650,7 @@
         "pdp"
       ],
       "internalDeps": [],
-      "tokenBudget": 702
+      "tokenBudget": 950
     },
     {
       "name": "commerce-store-nav",
@@ -1666,7 +1666,7 @@
         "storefront"
       ],
       "internalDeps": [],
-      "tokenBudget": 944
+      "tokenBudget": 1059
     },
     {
       "name": "marketing-bento",
@@ -1682,7 +1682,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 873
+      "tokenBudget": 803
     },
     {
       "name": "marketing-contact",
@@ -1698,7 +1698,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 1141
+      "tokenBudget": 641
     },
     {
       "name": "marketing-content",
@@ -1714,7 +1714,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 998
+      "tokenBudget": 1030
     },
     {
       "name": "marketing-cta",
@@ -1730,7 +1730,7 @@
         "conversion"
       ],
       "internalDeps": [],
-      "tokenBudget": 833
+      "tokenBudget": 546
     },
     {
       "name": "marketing-faq",
@@ -1748,7 +1748,7 @@
       "internalDeps": [
         "components/accordion/accordion"
       ],
-      "tokenBudget": 980
+      "tokenBudget": 1479
     },
     {
       "name": "marketing-feature-grid",
@@ -1764,7 +1764,7 @@
         "grid"
       ],
       "internalDeps": [],
-      "tokenBudget": 937
+      "tokenBudget": 743
     },
     {
       "name": "marketing-footer",
@@ -1780,7 +1780,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 843
+      "tokenBudget": 685
     },
     {
       "name": "marketing-header",
@@ -1796,7 +1796,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 833
+      "tokenBudget": 977
     },
     {
       "name": "marketing-hero",
@@ -1813,7 +1813,7 @@
         "cta"
       ],
       "internalDeps": [],
-      "tokenBudget": 1261
+      "tokenBudget": 834
     },
     {
       "name": "marketing-logo-cloud",
@@ -1829,7 +1829,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 665
+      "tokenBudget": 409
     },
     {
       "name": "marketing-newsletter",
@@ -1845,7 +1845,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 949
+      "tokenBudget": 688
     },
     {
       "name": "marketing-pricing",
@@ -1861,7 +1861,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 971
+      "tokenBudget": 1279
     },
     {
       "name": "marketing-stats",
@@ -1878,7 +1878,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 912
+      "tokenBudget": 775
     },
     {
       "name": "marketing-team",
@@ -1894,7 +1894,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 1007
+      "tokenBudget": 859
     },
     {
       "name": "marketing-testimonial",
@@ -1910,7 +1910,7 @@
         "landing"
       ],
       "internalDeps": [],
-      "tokenBudget": 923
+      "tokenBudget": 944
     },
     {
       "name": "attachment",
@@ -1928,7 +1928,7 @@
         "multimodal"
       ],
       "internalDeps": [],
-      "tokenBudget": 1428
+      "tokenBudget": 2120
     },
     {
       "name": "audio-player",
@@ -1948,7 +1948,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 756
+      "tokenBudget": 1428
     },
     {
       "name": "audio-waveform",
@@ -1967,7 +1967,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 779
+      "tokenBudget": 791
     },
     {
       "name": "branch",
@@ -1985,7 +1985,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1045
+      "tokenBudget": 1310
     },
     {
       "name": "canvas",
@@ -2005,7 +2005,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1190
+      "tokenBudget": 866
     },
     {
       "name": "chain-of-thought",
@@ -2025,7 +2025,7 @@
         "lib/utils",
         "components/reasoning/reasoning"
       ],
-      "tokenBudget": 1162
+      "tokenBudget": 1899
     },
     {
       "name": "citation",
@@ -2044,7 +2044,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 682
+      "tokenBudget": 813
     },
     {
       "name": "code-block",
@@ -2064,7 +2064,7 @@
         "lib/utils",
         "ai/code-block-copy"
       ],
-      "tokenBudget": 749
+      "tokenBudget": 2155
     },
     {
       "name": "composer",
@@ -2083,7 +2083,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 914
+      "tokenBudget": 800
     },
     {
       "name": "conversation",
@@ -2107,7 +2107,7 @@
         "components/shimmer/shimmer",
         "components/sources/sources"
       ],
-      "tokenBudget": 1429
+      "tokenBudget": 5841
     },
     {
       "name": "diagram",
@@ -2126,7 +2126,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 845
+      "tokenBudget": 920
     },
     {
       "name": "inline-citation",
@@ -2145,7 +2145,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1016
+      "tokenBudget": 1117
     },
     {
       "name": "loading-indicator",
@@ -2164,7 +2164,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 665
+      "tokenBudget": 721
     },
     {
       "name": "markdown",
@@ -2187,7 +2187,7 @@
         "components/tool-call/tool-call",
         "components/reasoning/reasoning"
       ],
-      "tokenBudget": 1064
+      "tokenBudget": 12750
     },
     {
       "name": "message",
@@ -2206,7 +2206,7 @@
         "lib/utils",
         "ai/types"
       ],
-      "tokenBudget": 899
+      "tokenBudget": 685
     },
     {
       "name": "message-actions",
@@ -2224,7 +2224,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 493
+      "tokenBudget": 353
     },
     {
       "name": "message-list",
@@ -2242,7 +2242,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 622
+      "tokenBudget": 487
     },
     {
       "name": "plan",
@@ -2261,7 +2261,7 @@
         "lib/utils",
         "primitives/button/button"
       ],
-      "tokenBudget": 1279
+      "tokenBudget": 2379
     },
     {
       "name": "reasoning",
@@ -2280,7 +2280,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 603
+      "tokenBudget": 1013
     },
     {
       "name": "shimmer",
@@ -2298,7 +2298,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 841
+      "tokenBudget": 536
     },
     {
       "name": "sources",
@@ -2317,7 +2317,7 @@
         "lib/utils",
         "components/citation/citation"
       ],
-      "tokenBudget": 763
+      "tokenBudget": 1997
     },
     {
       "name": "speech-recognition",
@@ -2336,7 +2336,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1311
+      "tokenBudget": 2439
     },
     {
       "name": "suggestion",
@@ -2355,7 +2355,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 556
+      "tokenBudget": 673
     },
     {
       "name": "task",
@@ -2374,7 +2374,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1115
+      "tokenBudget": 2234
     },
     {
       "name": "terminal",
@@ -2394,7 +2394,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1021
+      "tokenBudget": 2245
     },
     {
       "name": "tool-call",
@@ -2414,7 +2414,7 @@
         "lib/utils",
         "ai/types"
       ],
-      "tokenBudget": 771
+      "tokenBudget": 1642
     },
     {
       "name": "arc",
@@ -2433,7 +2433,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 897
+      "tokenBudget": 1897
     },
     {
       "name": "chord",
@@ -2452,7 +2452,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1083
+      "tokenBudget": 2896
     },
     {
       "name": "cloze",
@@ -2470,7 +2470,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 982
+      "tokenBudget": 1363
     },
     {
       "name": "compare-table",
@@ -2488,7 +2488,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1170
+      "tokenBudget": 1470
     },
     {
       "name": "deck",
@@ -2507,7 +2507,7 @@
         "lib/utils",
         "artifacts/flashcard/flashcard"
       ],
-      "tokenBudget": 1155
+      "tokenBudget": 2619
     },
     {
       "name": "dendrogram",
@@ -2526,7 +2526,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1025
+      "tokenBudget": 1933
     },
     {
       "name": "flashcard",
@@ -2544,7 +2544,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1095
+      "tokenBudget": 1023
     },
     {
       "name": "flowchart",
@@ -2563,7 +2563,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1188
+      "tokenBudget": 3670
     },
     {
       "name": "funnel",
@@ -2581,7 +2581,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 887
+      "tokenBudget": 1675
     },
     {
       "name": "gantt",
@@ -2600,7 +2600,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1056
+      "tokenBudget": 3409
     },
     {
       "name": "image-occlusion",
@@ -2618,7 +2618,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1033
+      "tokenBudget": 1264
     },
     {
       "name": "matrix",
@@ -2637,7 +2637,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1047
+      "tokenBudget": 1932
     },
     {
       "name": "mind-map",
@@ -2656,7 +2656,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 945
+      "tokenBudget": 1875
     },
     {
       "name": "org-chart",
@@ -2675,7 +2675,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1076
+      "tokenBudget": 2330
     },
     {
       "name": "pyramid",
@@ -2693,7 +2693,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1076
+      "tokenBudget": 1912
     },
     {
       "name": "quiz",
@@ -2711,7 +2711,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1201
+      "tokenBudget": 1692
     },
     {
       "name": "sankey",
@@ -2730,7 +2730,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1143
+      "tokenBudget": 2658
     },
     {
       "name": "sequence",
@@ -2749,7 +2749,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1111
+      "tokenBudget": 2704
     },
     {
       "name": "spaced-repetition",
@@ -2768,7 +2768,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 956
+      "tokenBudget": 944
     },
     {
       "name": "sunburst",
@@ -2787,7 +2787,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 961
+      "tokenBudget": 2450
     },
     {
       "name": "time-axis",
@@ -2806,7 +2806,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1051
+      "tokenBudget": 2951
     },
     {
       "name": "tree-map",
@@ -2825,7 +2825,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 1022
+      "tokenBudget": 1970
     },
     {
       "name": "venn",
@@ -2843,7 +2843,7 @@
       "internalDeps": [
         "lib/utils"
       ],
-      "tokenBudget": 802
+      "tokenBudget": 2031
     },
     {
       "name": "blur-in",

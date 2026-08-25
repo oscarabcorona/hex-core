@@ -132,7 +132,7 @@
       "funnel"
     ],
     "accessibilityNotes": "Deltas don't rely on color alone: a directional caret plus the signed change text convey direction. Carets are aria-hidden. Values and labels are plain text, read in source order.",
-    "tokenBudget": 916
+    "tokenBudget": 880
   },
   "tags": [
     "block",

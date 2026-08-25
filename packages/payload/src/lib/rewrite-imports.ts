@@ -88,6 +88,19 @@ export function rewriteRegistryImports(content: string, aliases: AliasConfig = D
 		(_, q, name) => `${q}${aliases.components}/ui/${name}${q}`,
 	);
 
+	// 4c. Category-level shared modules: "../<name>[.js]" — a single segment
+	//     with nothing after it. This is the `ai/types.ts` shape, which the
+	//     registry ships flat as components/ui/<name>. Ordering matters: it
+	//     runs after rules 2 and 4a, whose patterns require a second path
+	//     segment, so `../button/button` and `../button/button-variants`
+	//     are already rewritten and cannot reach here. `../lib/utils` and
+	//     `../_shared/x` are likewise excluded — the first has a trailing
+	//     segment, the second starts with an underscore.
+	out = out.replace(
+		/(["'])\.\.\/([a-z][a-z0-9-]*)(?:\.js)?\1/g,
+		(_, q, name) => `${q}${aliases.components}/ui/${name}${q}`,
+	);
+
 	// 5. Any remaining relative import ending in `.js` — drop the suffix.
 	//    Restricted to specifiers that begin with `.` so bare specifiers
 	//    (`react`, `@radix-ui/...`) are untouched.

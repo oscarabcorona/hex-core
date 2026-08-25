@@ -1,6 +1,10 @@
 "use client";
 
-import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "../../components/collapsible/collapsible.js";
 import * as React from "react";
 import { cn } from "../../lib/utils.js";
 import type { ToolCallState } from "../types.js";
@@ -63,7 +67,7 @@ function ToolCall({
 	className,
 }: ToolCallProps) {
 	return (
-		<CollapsiblePrimitive.Root
+		<Collapsible
 			defaultOpen={defaultOpen}
 			className={cn(
 				"overflow-hidden rounded-md border bg-card text-card-foreground",
@@ -72,7 +76,7 @@ function ToolCall({
 				className,
 			)}
 		>
-			<CollapsiblePrimitive.Trigger
+			<CollapsibleTrigger
 				className={cn(
 					"group flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm",
 					"hover:bg-muted/40",
@@ -92,15 +96,15 @@ function ToolCall({
 					</span>
 				</span>
 				<Chevron />
-			</CollapsiblePrimitive.Trigger>
-			<CollapsiblePrimitive.Content className="overflow-hidden border-t bg-muted/20 px-3 py-2 text-xs">
+			</CollapsibleTrigger>
+			<CollapsibleContent className="overflow-hidden border-t bg-muted/20 px-3 py-2 text-xs">
 				{args !== undefined ? <CodeSection label="Arguments" value={args} /> : null}
 				{result !== undefined ? <CodeSection label="Result" value={result} /> : null}
 				{args === undefined && result === undefined ? (
 					<p className="text-muted-foreground">No arguments or result yet.</p>
 				) : null}
-			</CollapsiblePrimitive.Content>
-		</CollapsiblePrimitive.Root>
+			</CollapsibleContent>
+		</Collapsible>
 	);
 }
 

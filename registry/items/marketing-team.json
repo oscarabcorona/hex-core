@@ -149,7 +149,7 @@
       "marketing-logo-cloud"
     ],
     "accessibilityNotes": "Each card title renders as <h3> under the section <h2>. Decorative avatars use alt=\"\" since the name is in adjacent text. Social-link icons must carry an accessible name (aria-label or sr-only text).",
-    "tokenBudget": 1007
+    "tokenBudget": 859
   },
   "tags": [
     "block",

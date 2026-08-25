@@ -1,8 +1,9 @@
 {
+	"//": "Drives Vitest's `typecheck` pass so `expectTypeOf` assertions in test/** are enforced by tsc. Deliberately does NOT include vitest.config.ts: it imports the shared factory at <repo-root>/vitest.base.ts, which sits outside this package's inferred rootDir. The config file is still type-checked by the root tsc/eslint pass.",
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
 		"noEmit": true,
-		"types": ["vitest/globals"]
+		"types": ["vitest/globals", "node"]
 	},
-	"include": ["src", "test", "vitest.config.ts"]
+	"include": ["src", "test"]
 }

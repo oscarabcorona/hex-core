@@ -61,13 +61,21 @@ interface SpeechRecognitionInstance {
 	abort(): void;
 }
 
-function getSpeechRecognitionCtor(): SpeechRecognitionConstructor | null {
-	if (typeof window === "undefined") return null;
-	const w = window as unknown as {
+/*
+ * The Web Speech API is not in TypeScript's DOM lib, and Chromium still
+ * only exposes the vendor-prefixed name. Declaring both on `Window` types
+ * the access directly instead of casting `window` at each call site.
+ */
+declare global {
+	interface Window {
 		SpeechRecognition?: SpeechRecognitionConstructor;
 		webkitSpeechRecognition?: SpeechRecognitionConstructor;
-	};
-	return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+	}
+}
+
+function getSpeechRecognitionCtor(): SpeechRecognitionConstructor | null {
+	if (typeof window === "undefined") return null;
+	return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null;
 }
 
 export interface SpeechRecognitionProps

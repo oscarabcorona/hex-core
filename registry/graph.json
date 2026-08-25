@@ -31,7 +31,7 @@
         "faq"
       ],
       "compositionTags": [],
-      "tokenBudget": 725,
+      "tokenBudget": 643,
       "degree": 10,
       "exports": [
         "Accordion",
@@ -64,7 +64,7 @@
         "warning"
       ],
       "compositionTags": [],
-      "tokenBudget": 619,
+      "tokenBudget": 547,
       "degree": 24,
       "exports": [
         "Alert",
@@ -96,7 +96,7 @@
         "overlay"
       ],
       "compositionTags": [],
-      "tokenBudget": 631,
+      "tokenBudget": 1508,
       "degree": 9,
       "exports": [
         "AlertDialog",
@@ -147,7 +147,7 @@
         "data-table",
         "table"
       ],
-      "tokenBudget": 896,
+      "tokenBudget": 481,
       "degree": 12,
       "exports": [
         "AppDataTable"
@@ -180,7 +180,7 @@
         "feed",
         "timeline"
       ],
-      "tokenBudget": 881,
+      "tokenBudget": 917,
       "degree": 5,
       "exports": [
         "AppFeed"
@@ -211,7 +211,7 @@
         "grid-list",
         "list"
       ],
-      "tokenBudget": 982,
+      "tokenBudget": 983,
       "degree": 6,
       "exports": [
         "AppGridList"
@@ -242,7 +242,7 @@
         "form",
         "settings"
       ],
-      "tokenBudget": 747,
+      "tokenBudget": 414,
       "degree": 6,
       "exports": [
         "AppSettings"
@@ -274,7 +274,7 @@
         "layout",
         "shell"
       ],
-      "tokenBudget": 838,
+      "tokenBudget": 803,
       "degree": 10,
       "exports": [
         "AppShell"
@@ -305,7 +305,7 @@
         "navigation",
         "sidebar"
       ],
-      "tokenBudget": 816,
+      "tokenBudget": 767,
       "degree": 6,
       "exports": [
         "AppSidebarNav"
@@ -336,7 +336,7 @@
         "list",
         "stacked-list"
       ],
-      "tokenBudget": 944,
+      "tokenBudget": 995,
       "degree": 7,
       "exports": [
         "AppStackedList"
@@ -368,7 +368,7 @@
         "kpi",
         "stats"
       ],
-      "tokenBudget": 916,
+      "tokenBudget": 880,
       "degree": 7,
       "exports": [
         "AppStats"
@@ -401,7 +401,7 @@
         "sequence",
         "transit"
       ],
-      "tokenBudget": 897,
+      "tokenBudget": 1897,
       "degree": 7,
       "exports": [
         "Arc"
@@ -427,7 +427,7 @@
         "video"
       ],
       "compositionTags": [],
-      "tokenBudget": 452,
+      "tokenBudget": 50,
       "degree": 3,
       "exports": [
         "AspectRatio"
@@ -464,7 +464,7 @@
         "removable",
         "upload"
       ],
-      "tokenBudget": 1428,
+      "tokenBudget": 2120,
       "degree": 7,
       "exports": [
         "Attachment",
@@ -498,7 +498,7 @@
         "playback",
         "voicemail"
       ],
-      "tokenBudget": 756,
+      "tokenBudget": 1428,
       "degree": 3,
       "exports": [
         "AudioPlayer"
@@ -530,7 +530,7 @@
         "recording",
         "thumbnail"
       ],
-      "tokenBudget": 779,
+      "tokenBudget": 791,
       "degree": 3,
       "exports": [
         "AudioWaveform"
@@ -562,14 +562,34 @@
         "form",
         "transactional"
       ],
-      "tokenBudget": 706,
+      "tokenBudget": 5680,
       "degree": 14,
       "exports": [
+        "Alert",
+        "AlertDescription",
+        "AlertTitle",
         "AuthForgotPassword",
+        "Button",
+        "Empty",
+        "Input",
+        "Label",
+        "alertVariants",
+        "buttonVariants",
+        "emptyVariants",
         "mockAuthAdapter"
       ],
       "exportPaths": {
+        "Alert": "ui/alert",
+        "AlertDescription": "ui/alert",
+        "AlertTitle": "ui/alert",
         "AuthForgotPassword": "ui/auth-forgot-password",
+        "Button": "ui/button",
+        "Empty": "ui/empty",
+        "Input": "ui/input",
+        "Label": "ui/label",
+        "alertVariants": "ui/alert",
+        "buttonVariants": "ui/button",
+        "emptyVariants": "ui/empty",
         "mockAuthAdapter": "_shared/auth-adapter"
       }
     },
@@ -595,14 +615,30 @@
         "next-app-router",
         "reset-password"
       ],
-      "tokenBudget": 1040,
+      "tokenBudget": 4477,
       "degree": 12,
       "exports": [
+        "Alert",
+        "AlertDescription",
+        "AlertTitle",
         "AuthResetPassword",
+        "Button",
+        "Input",
+        "Label",
+        "alertVariants",
+        "buttonVariants",
         "mockAuthAdapter"
       ],
       "exportPaths": {
+        "Alert": "ui/alert",
+        "AlertDescription": "ui/alert",
+        "AlertTitle": "ui/alert",
         "AuthResetPassword": "ui/auth-reset-password",
+        "Button": "ui/button",
+        "Input": "ui/input",
+        "Label": "ui/label",
+        "alertVariants": "ui/alert",
+        "buttonVariants": "ui/button",
         "mockAuthAdapter": "_shared/auth-adapter"
       }
     },
@@ -630,14 +666,34 @@
         "sign-in",
         "split-screen"
       ],
-      "tokenBudget": 1398,
+      "tokenBudget": 6000,
       "degree": 18,
       "exports": [
+        "Alert",
+        "AlertDescription",
+        "AlertTitle",
         "AuthSignInSplit",
+        "Button",
+        "Checkbox",
+        "Input",
+        "Label",
+        "Separator",
+        "alertVariants",
+        "buttonVariants",
         "mockAuthAdapter"
       ],
       "exportPaths": {
+        "Alert": "ui/alert",
+        "AlertDescription": "ui/alert",
+        "AlertTitle": "ui/alert",
         "AuthSignInSplit": "ui/auth-sign-in-split",
+        "Button": "ui/button",
+        "Checkbox": "ui/checkbox",
+        "Input": "ui/input",
+        "Label": "ui/label",
+        "Separator": "ui/separator",
+        "alertVariants": "ui/alert",
+        "buttonVariants": "ui/button",
         "mockAuthAdapter": "_shared/auth-adapter"
       }
     },
@@ -664,14 +720,46 @@
         "form",
         "sign-up"
       ],
-      "tokenBudget": 1149,
+      "tokenBudget": 7041,
       "degree": 18,
       "exports": [
+        "Alert",
+        "AlertDescription",
+        "AlertTitle",
         "AuthSignUpCard",
+        "Button",
+        "Card",
+        "CardContent",
+        "CardDescription",
+        "CardFooter",
+        "CardHeader",
+        "CardTitle",
+        "Checkbox",
+        "Input",
+        "Label",
+        "Separator",
+        "alertVariants",
+        "buttonVariants",
         "mockAuthAdapter"
       ],
       "exportPaths": {
+        "Alert": "ui/alert",
+        "AlertDescription": "ui/alert",
+        "AlertTitle": "ui/alert",
         "AuthSignUpCard": "ui/auth-sign-up-card",
+        "Button": "ui/button",
+        "Card": "ui/card",
+        "CardContent": "ui/card",
+        "CardDescription": "ui/card",
+        "CardFooter": "ui/card",
+        "CardHeader": "ui/card",
+        "CardTitle": "ui/card",
+        "Checkbox": "ui/checkbox",
+        "Input": "ui/input",
+        "Label": "ui/label",
+        "Separator": "ui/separator",
+        "alertVariants": "ui/alert",
+        "buttonVariants": "ui/button",
         "mockAuthAdapter": "_shared/auth-adapter"
       }
     },
@@ -696,14 +784,30 @@
         "transactional",
         "verify-email"
       ],
-      "tokenBudget": 938,
+      "tokenBudget": 5133,
       "degree": 10,
       "exports": [
+        "Alert",
+        "AlertDescription",
+        "AlertTitle",
         "AuthVerifyEmail",
+        "Button",
+        "Empty",
+        "alertVariants",
+        "buttonVariants",
+        "emptyVariants",
         "mockAuthAdapter"
       ],
       "exportPaths": {
+        "Alert": "ui/alert",
+        "AlertDescription": "ui/alert",
+        "AlertTitle": "ui/alert",
         "AuthVerifyEmail": "ui/auth-verify-email",
+        "Button": "ui/button",
+        "Empty": "ui/empty",
+        "alertVariants": "ui/alert",
+        "buttonVariants": "ui/button",
+        "emptyVariants": "ui/empty",
         "mockAuthAdapter": "_shared/auth-adapter"
       }
     },
@@ -730,14 +834,34 @@
         "sign-in",
         "verify-otp"
       ],
-      "tokenBudget": 1040,
+      "tokenBudget": 5246,
       "degree": 10,
       "exports": [
+        "Alert",
+        "AlertDescription",
+        "AlertTitle",
         "AuthVerifyOtp",
+        "Button",
+        "InputOTP",
+        "InputOTPGroup",
+        "InputOTPSeparator",
+        "InputOTPSlot",
+        "alertVariants",
+        "buttonVariants",
         "mockAuthAdapter"
       ],
       "exportPaths": {
+        "Alert": "ui/alert",
+        "AlertDescription": "ui/alert",
+        "AlertTitle": "ui/alert",
         "AuthVerifyOtp": "ui/auth-verify-otp",
+        "Button": "ui/button",
+        "InputOTP": "ui/input-otp",
+        "InputOTPGroup": "ui/input-otp",
+        "InputOTPSeparator": "ui/input-otp",
+        "InputOTPSlot": "ui/input-otp",
+        "alertVariants": "ui/alert",
+        "buttonVariants": "ui/button",
         "mockAuthAdapter": "_shared/auth-adapter"
       }
     },
@@ -758,7 +882,7 @@
         "user"
       ],
       "compositionTags": [],
-      "tokenBudget": 433,
+      "tokenBudget": 415,
       "degree": 9,
       "exports": [
         "Avatar",
@@ -788,7 +912,7 @@
         "tag"
       ],
       "compositionTags": [],
-      "tokenBudget": 538,
+      "tokenBudget": 373,
       "degree": 16,
       "exports": [
         "Badge",
@@ -863,7 +987,7 @@
         "chat",
         "read-only"
       ],
-      "tokenBudget": 1045,
+      "tokenBudget": 1310,
       "degree": 4,
       "exports": [
         "Branch"
@@ -889,7 +1013,7 @@
         "trail"
       ],
       "compositionTags": [],
-      "tokenBudget": 510,
+      "tokenBudget": 1101,
       "degree": 5,
       "exports": [
         "Breadcrumb",
@@ -942,7 +1066,7 @@
         "showcase",
         "toolbar"
       ],
-      "tokenBudget": 2265,
+      "tokenBudget": 1188,
       "degree": 59,
       "exports": [
         "Button",
@@ -970,7 +1094,7 @@
         "input"
       ],
       "compositionTags": [],
-      "tokenBudget": 1116,
+      "tokenBudget": 1563,
       "degree": 5,
       "exports": [
         "Calendar"
@@ -1002,7 +1126,7 @@
         "interactive",
         "workflow"
       ],
-      "tokenBudget": 1190,
+      "tokenBudget": 866,
       "degree": 8,
       "exports": [
         "Canvas"
@@ -1036,7 +1160,7 @@
         "showcase",
         "stat"
       ],
-      "tokenBudget": 1083,
+      "tokenBudget": 659,
       "degree": 35,
       "exports": [
         "Card",
@@ -1078,13 +1202,21 @@
         "react",
         "reasoning"
       ],
-      "tokenBudget": 1162,
+      "tokenBudget": 1899,
       "degree": 5,
       "exports": [
-        "ChainOfThought"
+        "ChainOfThought",
+        "Collapsible",
+        "CollapsibleContent",
+        "CollapsibleTrigger",
+        "Reasoning"
       ],
       "exportPaths": {
-        "ChainOfThought": "ui/chain-of-thought"
+        "ChainOfThought": "ui/chain-of-thought",
+        "Collapsible": "ui/collapsible",
+        "CollapsibleContent": "ui/collapsible",
+        "CollapsibleTrigger": "ui/collapsible",
+        "Reasoning": "ui/reasoning"
       }
     },
     {
@@ -1104,7 +1236,7 @@
         "toggle"
       ],
       "compositionTags": [],
-      "tokenBudget": 719,
+      "tokenBudget": 643,
       "degree": 18,
       "exports": [
         "Checkbox"
@@ -1136,7 +1268,7 @@
         "trade-flow",
         "weighted"
       ],
-      "tokenBudget": 1083,
+      "tokenBudget": 2896,
       "degree": 7,
       "exports": [
         "Chord"
@@ -1166,7 +1298,7 @@
         "citations",
         "rag"
       ],
-      "tokenBudget": 682,
+      "tokenBudget": 813,
       "degree": 6,
       "exports": [
         "Citation"
@@ -1217,7 +1349,7 @@
         "multi-blank",
         "study"
       ],
-      "tokenBudget": 982,
+      "tokenBudget": 1363,
       "degree": 11,
       "exports": [
         "Cloze"
@@ -1244,7 +1376,7 @@
         "wrap"
       ],
       "compositionTags": [],
-      "tokenBudget": 1301,
+      "tokenBudget": 1113,
       "degree": 10,
       "exports": [
         "Cluster",
@@ -1285,7 +1417,7 @@
         "docs",
         "install"
       ],
-      "tokenBudget": 749,
+      "tokenBudget": 2155,
       "degree": 6,
       "exports": [
         "CodeBlock",
@@ -1312,7 +1444,7 @@
         "show-more"
       ],
       "compositionTags": [],
-      "tokenBudget": 580,
+      "tokenBudget": 104,
       "degree": 3,
       "exports": [
         "Collapsible",
@@ -1344,13 +1476,27 @@
         "theme-editor"
       ],
       "compositionTags": [],
-      "tokenBudget": 936,
+      "tokenBudget": 3497,
       "degree": 8,
       "exports": [
-        "ColorPicker"
+        "ColorPicker",
+        "Input",
+        "Label",
+        "Popover",
+        "PopoverAnchor",
+        "PopoverContent",
+        "PopoverTrigger",
+        "Slider"
       ],
       "exportPaths": {
-        "ColorPicker": "ui/color-picker"
+        "ColorPicker": "ui/color-picker",
+        "Input": "ui/input",
+        "Label": "ui/label",
+        "Popover": "ui/popover",
+        "PopoverAnchor": "ui/popover",
+        "PopoverContent": "ui/popover",
+        "PopoverTrigger": "ui/popover",
+        "Slider": "ui/slider"
       }
     },
     {
@@ -1370,13 +1516,59 @@
         "select"
       ],
       "compositionTags": [],
-      "tokenBudget": 991,
+      "tokenBudget": 5147,
       "degree": 9,
       "exports": [
-        "Combobox"
+        "Combobox",
+        "Command",
+        "CommandDialog",
+        "CommandEmpty",
+        "CommandGroup",
+        "CommandInput",
+        "CommandItem",
+        "CommandList",
+        "CommandSeparator",
+        "CommandShortcut",
+        "Dialog",
+        "DialogClose",
+        "DialogContent",
+        "DialogDescription",
+        "DialogFooter",
+        "DialogHeader",
+        "DialogOverlay",
+        "DialogPortal",
+        "DialogTitle",
+        "DialogTrigger",
+        "Popover",
+        "PopoverAnchor",
+        "PopoverContent",
+        "PopoverTrigger"
       ],
       "exportPaths": {
-        "Combobox": "ui/combobox"
+        "Combobox": "ui/combobox",
+        "Command": "ui/command",
+        "CommandDialog": "ui/command",
+        "CommandEmpty": "ui/command",
+        "CommandGroup": "ui/command",
+        "CommandInput": "ui/command",
+        "CommandItem": "ui/command",
+        "CommandList": "ui/command",
+        "CommandSeparator": "ui/command",
+        "CommandShortcut": "ui/command",
+        "Dialog": "ui/dialog",
+        "DialogClose": "ui/dialog",
+        "DialogContent": "ui/dialog",
+        "DialogDescription": "ui/dialog",
+        "DialogFooter": "ui/dialog",
+        "DialogHeader": "ui/dialog",
+        "DialogOverlay": "ui/dialog",
+        "DialogPortal": "ui/dialog",
+        "DialogTitle": "ui/dialog",
+        "DialogTrigger": "ui/dialog",
+        "Popover": "ui/popover",
+        "PopoverAnchor": "ui/popover",
+        "PopoverContent": "ui/popover",
+        "PopoverTrigger": "ui/popover"
       }
     },
     {
@@ -1396,7 +1588,7 @@
         "search"
       ],
       "compositionTags": [],
-      "tokenBudget": 1049,
+      "tokenBudget": 3430,
       "degree": 9,
       "exports": [
         "Command",
@@ -1407,7 +1599,17 @@
         "CommandItem",
         "CommandList",
         "CommandSeparator",
-        "CommandShortcut"
+        "CommandShortcut",
+        "Dialog",
+        "DialogClose",
+        "DialogContent",
+        "DialogDescription",
+        "DialogFooter",
+        "DialogHeader",
+        "DialogOverlay",
+        "DialogPortal",
+        "DialogTitle",
+        "DialogTrigger"
       ],
       "exportPaths": {
         "Command": "ui/command",
@@ -1418,7 +1620,17 @@
         "CommandItem": "ui/command",
         "CommandList": "ui/command",
         "CommandSeparator": "ui/command",
-        "CommandShortcut": "ui/command"
+        "CommandShortcut": "ui/command",
+        "Dialog": "ui/dialog",
+        "DialogClose": "ui/dialog",
+        "DialogContent": "ui/dialog",
+        "DialogDescription": "ui/dialog",
+        "DialogFooter": "ui/dialog",
+        "DialogHeader": "ui/dialog",
+        "DialogOverlay": "ui/dialog",
+        "DialogPortal": "ui/dialog",
+        "DialogTitle": "ui/dialog",
+        "DialogTrigger": "ui/dialog"
       }
     },
     {
@@ -1445,7 +1657,7 @@
         "commerce",
         "storefront"
       ],
-      "tokenBudget": 929,
+      "tokenBudget": 841,
       "degree": 7,
       "exports": [
         "CommerceCart"
@@ -1476,7 +1688,7 @@
         "navigation",
         "storefront"
       ],
-      "tokenBudget": 843,
+      "tokenBudget": 797,
       "degree": 5,
       "exports": [
         "CommerceCategory"
@@ -1507,7 +1719,7 @@
         "filters",
         "storefront"
       ],
-      "tokenBudget": 982,
+      "tokenBudget": 742,
       "degree": 9,
       "exports": [
         "CommerceCategoryFilters"
@@ -1540,7 +1752,7 @@
         "form",
         "storefront"
       ],
-      "tokenBudget": 886,
+      "tokenBudget": 414,
       "degree": 8,
       "exports": [
         "CommerceCheckout"
@@ -1571,7 +1783,7 @@
         "storefront",
         "trust"
       ],
-      "tokenBudget": 909,
+      "tokenBudget": 822,
       "degree": 3,
       "exports": [
         "CommerceIncentives"
@@ -1602,7 +1814,7 @@
         "order-history",
         "storefront"
       ],
-      "tokenBudget": 891,
+      "tokenBudget": 933,
       "degree": 5,
       "exports": [
         "CommerceOrderHistory"
@@ -1633,7 +1845,7 @@
         "order-summary",
         "storefront"
       ],
-      "tokenBudget": 1127,
+      "tokenBudget": 972,
       "degree": 6,
       "exports": [
         "CommerceOrderSummary"
@@ -1666,7 +1878,7 @@
         "product-detail",
         "storefront"
       ],
-      "tokenBudget": 1079,
+      "tokenBudget": 666,
       "degree": 12,
       "exports": [
         "CommerceProductDetail"
@@ -1697,7 +1909,7 @@
         "product-features",
         "storefront"
       ],
-      "tokenBudget": 1084,
+      "tokenBudget": 1151,
       "degree": 4,
       "exports": [
         "CommerceProductFeatures"
@@ -1730,7 +1942,7 @@
         "product-grid",
         "storefront"
       ],
-      "tokenBudget": 880,
+      "tokenBudget": 823,
       "degree": 13,
       "exports": [
         "CommerceProductGrid"
@@ -1761,7 +1973,7 @@
         "promo",
         "storefront"
       ],
-      "tokenBudget": 1081,
+      "tokenBudget": 933,
       "degree": 4,
       "exports": [
         "CommercePromo"
@@ -1792,7 +2004,7 @@
         "quickview",
         "storefront"
       ],
-      "tokenBudget": 1124,
+      "tokenBudget": 619,
       "degree": 5,
       "exports": [
         "CommerceQuickview"
@@ -1823,7 +2035,7 @@
         "ratings",
         "reviews"
       ],
-      "tokenBudget": 702,
+      "tokenBudget": 950,
       "degree": 7,
       "exports": [
         "CommerceReviews"
@@ -1854,7 +2066,7 @@
         "store-nav",
         "storefront"
       ],
-      "tokenBudget": 944,
+      "tokenBudget": 1059,
       "degree": 6,
       "exports": [
         "CommerceStoreNav"
@@ -1885,7 +2097,7 @@
         "feature-matrix",
         "vocabulary"
       ],
-      "tokenBudget": 1170,
+      "tokenBudget": 1470,
       "degree": 5,
       "exports": [
         "CompareTable"
@@ -1916,7 +2128,7 @@
         "chat",
         "form"
       ],
-      "tokenBudget": 914,
+      "tokenBudget": 800,
       "degree": 13,
       "exports": [
         "Composer"
@@ -1942,7 +2154,7 @@
         "wrapper"
       ],
       "compositionTags": [],
-      "tokenBudget": 1107,
+      "tokenBudget": 607,
       "degree": 11,
       "exports": [
         "Container",
@@ -1969,7 +2181,7 @@
         "right-click"
       ],
       "compositionTags": [],
-      "tokenBudget": 593,
+      "tokenBudget": 1736,
       "degree": 3,
       "exports": [
         "ContextMenu",
@@ -2025,13 +2237,33 @@
         "shell",
         "streaming"
       ],
-      "tokenBudget": 1429,
+      "tokenBudget": 5841,
       "degree": 11,
       "exports": [
-        "Conversation"
+        "Citation",
+        "Collapsible",
+        "CollapsibleContent",
+        "CollapsibleTrigger",
+        "Composer",
+        "Conversation",
+        "Message",
+        "MessageList",
+        "Shimmer",
+        "Sources",
+        "messageVariants"
       ],
       "exportPaths": {
-        "Conversation": "ui/conversation"
+        "Citation": "ui/citation",
+        "Collapsible": "ui/collapsible",
+        "CollapsibleContent": "ui/collapsible",
+        "CollapsibleTrigger": "ui/collapsible",
+        "Composer": "ui/composer",
+        "Conversation": "ui/conversation",
+        "Message": "ui/message",
+        "MessageList": "ui/message-list",
+        "Shimmer": "ui/shimmer",
+        "Sources": "ui/sources",
+        "messageVariants": "ui/message"
       }
     },
     {
@@ -2072,13 +2304,41 @@
         "tanstack"
       ],
       "compositionTags": [],
-      "tokenBudget": 820,
+      "tokenBudget": 4893,
       "degree": 11,
       "exports": [
-        "DataTable"
+        "DataTable",
+        "DndProvider",
+        "SortableList",
+        "Table",
+        "TableBody",
+        "TableCaption",
+        "TableCell",
+        "TableFooter",
+        "TableHead",
+        "TableHeader",
+        "TableRow",
+        "horizontalListSortingStrategy",
+        "rectSortingStrategy",
+        "useSortableItem",
+        "verticalListSortingStrategy"
       ],
       "exportPaths": {
-        "DataTable": "ui/data-table"
+        "DataTable": "ui/data-table",
+        "DndProvider": "ui/dnd",
+        "SortableList": "ui/dnd",
+        "Table": "ui/table",
+        "TableBody": "ui/table",
+        "TableCaption": "ui/table",
+        "TableCell": "ui/table",
+        "TableFooter": "ui/table",
+        "TableHead": "ui/table",
+        "TableHeader": "ui/table",
+        "TableRow": "ui/table",
+        "horizontalListSortingStrategy": "ui/dnd",
+        "rectSortingStrategy": "ui/dnd",
+        "useSortableItem": "ui/dnd",
+        "verticalListSortingStrategy": "ui/dnd"
       }
     },
     {
@@ -2098,13 +2358,23 @@
         "popover"
       ],
       "compositionTags": [],
-      "tokenBudget": 1116,
+      "tokenBudget": 3048,
       "degree": 7,
       "exports": [
-        "DatePicker"
+        "Calendar",
+        "DatePicker",
+        "Popover",
+        "PopoverAnchor",
+        "PopoverContent",
+        "PopoverTrigger"
       ],
       "exportPaths": {
-        "DatePicker": "ui/date-picker"
+        "Calendar": "ui/calendar",
+        "DatePicker": "ui/date-picker",
+        "Popover": "ui/popover",
+        "PopoverAnchor": "ui/popover",
+        "PopoverContent": "ui/popover",
+        "PopoverTrigger": "ui/popover"
       }
     },
     {
@@ -2128,13 +2398,15 @@
         "srs",
         "vocabulary"
       ],
-      "tokenBudget": 1155,
+      "tokenBudget": 2619,
       "degree": 11,
       "exports": [
-        "Deck"
+        "Deck",
+        "Flashcard"
       ],
       "exportPaths": {
-        "Deck": "ui/deck"
+        "Deck": "ui/deck",
+        "Flashcard": "ui/flashcard"
       }
     },
     {
@@ -2161,7 +2433,7 @@
         "taxonomy",
         "vertical"
       ],
-      "tokenBudget": 1025,
+      "tokenBudget": 1933,
       "degree": 9,
       "exports": [
         "Dendrogram"
@@ -2192,7 +2464,7 @@
         "diagram",
         "flowchart"
       ],
-      "tokenBudget": 845,
+      "tokenBudget": 920,
       "degree": 13,
       "exports": [
         "Diagram"
@@ -2223,7 +2495,7 @@
         "form",
         "form-action"
       ],
-      "tokenBudget": 1220,
+      "tokenBudget": 1487,
       "degree": 16,
       "exports": [
         "Dialog",
@@ -2274,7 +2546,7 @@
         "list",
         "row"
       ],
-      "tokenBudget": 420,
+      "tokenBudget": 1647,
       "degree": 9,
       "exports": [
         "DndProvider",
@@ -2310,7 +2582,7 @@
         "vaul"
       ],
       "compositionTags": [],
-      "tokenBudget": 945,
+      "tokenBudget": 941,
       "degree": 5,
       "exports": [
         "Drawer",
@@ -2354,7 +2626,7 @@
         "overflow"
       ],
       "compositionTags": [],
-      "tokenBudget": 676,
+      "tokenBudget": 1845,
       "degree": 13,
       "exports": [
         "DropdownMenu",
@@ -2403,7 +2675,7 @@
         "input"
       ],
       "compositionTags": [],
-      "tokenBudget": 1466,
+      "tokenBudget": 2342,
       "degree": 5,
       "exports": [
         "Dropzone"
@@ -2436,7 +2708,7 @@
         "with-action",
         "zero-state"
       ],
-      "tokenBudget": 1501,
+      "tokenBudget": 1151,
       "degree": 19,
       "exports": [
         "Empty",
@@ -2470,7 +2742,7 @@
         "retry",
         "sync-failure"
       ],
-      "tokenBudget": 1348,
+      "tokenBudget": 839,
       "degree": 12,
       "exports": [
         "ErrorState",
@@ -2519,7 +2791,7 @@
         "tree"
       ],
       "compositionTags": [],
-      "tokenBudget": 1295,
+      "tokenBudget": 3523,
       "degree": 5,
       "exports": [
         "FileTree"
@@ -2550,7 +2822,7 @@
         "qa",
         "study"
       ],
-      "tokenBudget": 1095,
+      "tokenBudget": 1023,
       "degree": 13,
       "exports": [
         "Flashcard"
@@ -2583,7 +2855,7 @@
         "horizontal",
         "pipeline"
       ],
-      "tokenBudget": 1188,
+      "tokenBudget": 3670,
       "degree": 9,
       "exports": [
         "Flowchart"
@@ -2609,7 +2881,7 @@
         "zod"
       ],
       "compositionTags": [],
-      "tokenBudget": 676,
+      "tokenBudget": 1399,
       "degree": 25,
       "exports": [
         "Form",
@@ -2619,6 +2891,7 @@
         "FormItem",
         "FormLabel",
         "FormMessage",
+        "Label",
         "useFormField"
       ],
       "exportPaths": {
@@ -2629,6 +2902,7 @@
         "FormItem": "ui/form",
         "FormLabel": "ui/form",
         "FormMessage": "ui/form",
+        "Label": "ui/label",
         "useFormField": "ui/form"
       }
     },
@@ -2654,7 +2928,7 @@
         "interactive",
         "stages"
       ],
-      "tokenBudget": 887,
+      "tokenBudget": 1675,
       "degree": 8,
       "exports": [
         "Funnel"
@@ -2686,7 +2960,7 @@
         "schedule",
         "sprint"
       ],
-      "tokenBudget": 1056,
+      "tokenBudget": 3409,
       "degree": 6,
       "exports": [
         "Gantt"
@@ -2713,7 +2987,7 @@
         "responsive"
       ],
       "compositionTags": [],
-      "tokenBudget": 1374,
+      "tokenBudget": 1460,
       "degree": 8,
       "exports": [
         "Grid",
@@ -2748,7 +3022,7 @@
         "rich-tooltip"
       ],
       "compositionTags": [],
-      "tokenBudget": 695,
+      "tokenBudget": 395,
       "degree": 4,
       "exports": [
         "HoverCard",
@@ -2782,7 +3056,7 @@
         "code",
         "image-occlusion"
       ],
-      "tokenBudget": 1033,
+      "tokenBudget": 1264,
       "degree": 9,
       "exports": [
         "ImageOcclusion"
@@ -2817,7 +3091,7 @@
         "sources",
         "streaming"
       ],
-      "tokenBudget": 1016,
+      "tokenBudget": 1117,
       "degree": 7,
       "exports": [
         "InlineCitation"
@@ -2843,7 +3117,7 @@
         "text-field"
       ],
       "compositionTags": [],
-      "tokenBudget": 741,
+      "tokenBudget": 339,
       "degree": 38,
       "exports": [
         "Input"
@@ -2871,7 +3145,7 @@
         "verification"
       ],
       "compositionTags": [],
-      "tokenBudget": 902,
+      "tokenBudget": 886,
       "degree": 5,
       "exports": [
         "InputOTP",
@@ -2909,7 +3183,7 @@
         "dnd",
         "kanban"
       ],
-      "tokenBudget": 460,
+      "tokenBudget": 2239,
       "degree": 6,
       "exports": [
         "Kanban",
@@ -2942,7 +3216,7 @@
         "text"
       ],
       "compositionTags": [],
-      "tokenBudget": 453,
+      "tokenBudget": 174,
       "degree": 32,
       "exports": [
         "Label"
@@ -2975,14 +3249,16 @@
         "table",
         "widget"
       ],
-      "tokenBudget": 1159,
+      "tokenBudget": 1111,
       "degree": 12,
       "exports": [
         "Loading",
+        "Skeleton",
         "loadingVariants"
       ],
       "exportPaths": {
         "Loading": "ui/loading",
+        "Skeleton": "ui/skeleton",
         "loadingVariants": "ui/loading"
       }
     },
@@ -3007,7 +3283,7 @@
         "chat",
         "loading"
       ],
-      "tokenBudget": 665,
+      "tokenBudget": 721,
       "degree": 8,
       "exports": [
         "LoadingIndicator",
@@ -3045,15 +3321,31 @@
         "streaming",
         "tool-use"
       ],
-      "tokenBudget": 1064,
+      "tokenBudget": 12750,
       "degree": 22,
       "exports": [
+        "Citation",
+        "Collapsible",
+        "CollapsibleContent",
+        "CollapsibleTrigger",
+        "InlineCitation",
         "Markdown",
+        "Reasoning",
+        "Sources",
+        "ToolCall",
         "closeUnterminated",
         "remarkAdmonitions"
       ],
       "exportPaths": {
+        "Citation": "ui/citation",
+        "Collapsible": "ui/collapsible",
+        "CollapsibleContent": "ui/collapsible",
+        "CollapsibleTrigger": "ui/collapsible",
+        "InlineCitation": "ui/inline-citation",
         "Markdown": "ui/markdown",
+        "Reasoning": "ui/reasoning",
+        "Sources": "ui/sources",
+        "ToolCall": "ui/tool-call",
         "closeUnterminated": "ui/markdown",
         "remarkAdmonitions": "ui/remark-admonitions"
       }
@@ -3080,7 +3372,7 @@
         "landing",
         "marketing"
       ],
-      "tokenBudget": 873,
+      "tokenBudget": 803,
       "degree": 3,
       "exports": [
         "MarketingBento"
@@ -3111,7 +3403,7 @@
         "landing",
         "marketing"
       ],
-      "tokenBudget": 1141,
+      "tokenBudget": 641,
       "degree": 7,
       "exports": [
         "MarketingContact"
@@ -3142,7 +3434,7 @@
         "landing",
         "marketing"
       ],
-      "tokenBudget": 998,
+      "tokenBudget": 1030,
       "degree": 5,
       "exports": [
         "MarketingContent"
@@ -3173,7 +3465,7 @@
         "marketing",
         "panel"
       ],
-      "tokenBudget": 833,
+      "tokenBudget": 546,
       "degree": 16,
       "exports": [
         "MarketingCta"
@@ -3204,12 +3496,20 @@
         "landing",
         "marketing"
       ],
-      "tokenBudget": 980,
+      "tokenBudget": 1479,
       "degree": 6,
       "exports": [
+        "Accordion",
+        "AccordionContent",
+        "AccordionItem",
+        "AccordionTrigger",
         "MarketingFaq"
       ],
       "exportPaths": {
+        "Accordion": "ui/accordion",
+        "AccordionContent": "ui/accordion",
+        "AccordionItem": "ui/accordion",
+        "AccordionTrigger": "ui/accordion",
         "MarketingFaq": "ui/marketing-faq"
       }
     },
@@ -3235,7 +3535,7 @@
         "landing",
         "marketing"
       ],
-      "tokenBudget": 937,
+      "tokenBudget": 743,
       "degree": 14,
       "exports": [
         "MarketingFeatureGrid"
@@ -3266,7 +3566,7 @@
         "marketing",
         "navigation"
       ],
-      "tokenBudget": 843,
+      "tokenBudget": 685,
       "degree": 15,
       "exports": [
         "MarketingFooter"
@@ -3297,7 +3597,7 @@
         "marketing",
         "navigation"
       ],
-      "tokenBudget": 833,
+      "tokenBudget": 977,
       "degree": 13,
       "exports": [
         "MarketingHeader"
@@ -3330,7 +3630,7 @@
         "marketing",
         "split"
       ],
-      "tokenBudget": 1261,
+      "tokenBudget": 834,
       "degree": 13,
       "exports": [
         "MarketingHero"
@@ -3361,7 +3661,7 @@
         "marketing",
         "social-proof"
       ],
-      "tokenBudget": 665,
+      "tokenBudget": 409,
       "degree": 6,
       "exports": [
         "MarketingLogoCloud"
@@ -3392,7 +3692,7 @@
         "newsletter",
         "signup"
       ],
-      "tokenBudget": 949,
+      "tokenBudget": 688,
       "degree": 5,
       "exports": [
         "MarketingNewsletter"
@@ -3423,7 +3723,7 @@
         "pricing",
         "saas"
       ],
-      "tokenBudget": 971,
+      "tokenBudget": 1279,
       "degree": 7,
       "exports": [
         "MarketingPricing"
@@ -3455,7 +3755,7 @@
         "social-proof",
         "stats"
       ],
-      "tokenBudget": 912,
+      "tokenBudget": 775,
       "degree": 4,
       "exports": [
         "MarketingStats"
@@ -3486,7 +3786,7 @@
         "marketing",
         "team"
       ],
-      "tokenBudget": 1007,
+      "tokenBudget": 859,
       "degree": 4,
       "exports": [
         "MarketingTeam"
@@ -3517,7 +3817,7 @@
         "social-proof",
         "testimonial"
       ],
-      "tokenBudget": 923,
+      "tokenBudget": 944,
       "degree": 7,
       "exports": [
         "MarketingTestimonial"
@@ -3571,7 +3871,7 @@
         "ml",
         "trade-flow"
       ],
-      "tokenBudget": 1047,
+      "tokenBudget": 1932,
       "degree": 7,
       "exports": [
         "Matrix"
@@ -3597,7 +3897,7 @@
         "navigation"
       ],
       "compositionTags": [],
-      "tokenBudget": 831,
+      "tokenBudget": 1478,
       "degree": 7,
       "exports": [
         "Menubar",
@@ -3648,7 +3948,7 @@
         "tool-use",
         "turns"
       ],
-      "tokenBudget": 899,
+      "tokenBudget": 685,
       "degree": 24,
       "exports": [
         "Message",
@@ -3679,7 +3979,7 @@
         "actions",
         "chat"
       ],
-      "tokenBudget": 493,
+      "tokenBudget": 353,
       "degree": 3,
       "exports": [
         "MessageActions"
@@ -3708,7 +4008,7 @@
         "chat",
         "scroll"
       ],
-      "tokenBudget": 622,
+      "tokenBudget": 487,
       "degree": 10,
       "exports": [
         "MessageList"
@@ -3741,7 +4041,7 @@
         "mind-map",
         "radial"
       ],
-      "tokenBudget": 945,
+      "tokenBudget": 1875,
       "degree": 11,
       "exports": [
         "MindMap"
@@ -3832,13 +4132,59 @@
         "select"
       ],
       "compositionTags": [],
-      "tokenBudget": 1311,
+      "tokenBudget": 5622,
       "degree": 7,
       "exports": [
-        "MultiCombobox"
+        "Command",
+        "CommandDialog",
+        "CommandEmpty",
+        "CommandGroup",
+        "CommandInput",
+        "CommandItem",
+        "CommandList",
+        "CommandSeparator",
+        "CommandShortcut",
+        "Dialog",
+        "DialogClose",
+        "DialogContent",
+        "DialogDescription",
+        "DialogFooter",
+        "DialogHeader",
+        "DialogOverlay",
+        "DialogPortal",
+        "DialogTitle",
+        "DialogTrigger",
+        "MultiCombobox",
+        "Popover",
+        "PopoverAnchor",
+        "PopoverContent",
+        "PopoverTrigger"
       ],
       "exportPaths": {
-        "MultiCombobox": "ui/multi-combobox"
+        "Command": "ui/command",
+        "CommandDialog": "ui/command",
+        "CommandEmpty": "ui/command",
+        "CommandGroup": "ui/command",
+        "CommandInput": "ui/command",
+        "CommandItem": "ui/command",
+        "CommandList": "ui/command",
+        "CommandSeparator": "ui/command",
+        "CommandShortcut": "ui/command",
+        "Dialog": "ui/dialog",
+        "DialogClose": "ui/dialog",
+        "DialogContent": "ui/dialog",
+        "DialogDescription": "ui/dialog",
+        "DialogFooter": "ui/dialog",
+        "DialogHeader": "ui/dialog",
+        "DialogOverlay": "ui/dialog",
+        "DialogPortal": "ui/dialog",
+        "DialogTitle": "ui/dialog",
+        "DialogTrigger": "ui/dialog",
+        "MultiCombobox": "ui/multi-combobox",
+        "Popover": "ui/popover",
+        "PopoverAnchor": "ui/popover",
+        "PopoverContent": "ui/popover",
+        "PopoverTrigger": "ui/popover"
       }
     },
     {
@@ -3858,7 +4204,7 @@
         "site"
       ],
       "compositionTags": [],
-      "tokenBudget": 698,
+      "tokenBudget": 1431,
       "degree": 12,
       "exports": [
         "NavigationMenu",
@@ -3906,7 +4252,7 @@
         "org-chart",
         "people"
       ],
-      "tokenBudget": 1076,
+      "tokenBudget": 2330,
       "degree": 10,
       "exports": [
         "OrgChart"
@@ -3952,7 +4298,7 @@
         "pagination"
       ],
       "compositionTags": [],
-      "tokenBudget": 634,
+      "tokenBudget": 1946,
       "degree": 8,
       "exports": [
         "Pagination",
@@ -4020,13 +4366,17 @@
         "read-only",
         "task"
       ],
-      "tokenBudget": 1279,
+      "tokenBudget": 2379,
       "degree": 5,
       "exports": [
-        "Plan"
+        "Button",
+        "Plan",
+        "buttonVariants"
       ],
       "exportPaths": {
-        "Plan": "ui/plan"
+        "Button": "ui/button",
+        "Plan": "ui/plan",
+        "buttonVariants": "ui/button"
       }
     },
     {
@@ -4046,7 +4396,7 @@
         "popover"
       ],
       "compositionTags": [],
-      "tokenBudget": 625,
+      "tokenBudget": 411,
       "degree": 18,
       "exports": [
         "Popover",
@@ -4099,7 +4449,7 @@
         "progress"
       ],
       "compositionTags": [],
-      "tokenBudget": 443,
+      "tokenBudget": 317,
       "degree": 8,
       "exports": [
         "Progress"
@@ -4151,7 +4501,7 @@
         "pyramid",
         "rank"
       ],
-      "tokenBudget": 1076,
+      "tokenBudget": 1912,
       "degree": 6,
       "exports": [
         "Pyramid"
@@ -4182,7 +4532,7 @@
         "quiz",
         "single-answer"
       ],
-      "tokenBudget": 1201,
+      "tokenBudget": 1692,
       "degree": 13,
       "exports": [
         "Quiz"
@@ -4208,7 +4558,7 @@
         "radio-group"
       ],
       "compositionTags": [],
-      "tokenBudget": 749,
+      "tokenBudget": 483,
       "degree": 12,
       "exports": [
         "RadioGroup",
@@ -4241,12 +4591,18 @@
         "anthropic",
         "reasoning"
       ],
-      "tokenBudget": 603,
+      "tokenBudget": 1013,
       "degree": 10,
       "exports": [
+        "Collapsible",
+        "CollapsibleContent",
+        "CollapsibleTrigger",
         "Reasoning"
       ],
       "exportPaths": {
+        "Collapsible": "ui/collapsible",
+        "CollapsibleContent": "ui/collapsible",
+        "CollapsibleTrigger": "ui/collapsible",
         "Reasoning": "ui/reasoning"
       }
     },
@@ -4266,7 +4622,7 @@
         "split-pane"
       ],
       "compositionTags": [],
-      "tokenBudget": 756,
+      "tokenBudget": 759,
       "degree": 2,
       "exports": [
         "ResizableHandle",
@@ -4324,7 +4680,7 @@
         "sankey",
         "tooltip"
       ],
-      "tokenBudget": 1143,
+      "tokenBudget": 2658,
       "degree": 11,
       "exports": [
         "Sankey"
@@ -4391,7 +4747,7 @@
         "scrollbar"
       ],
       "compositionTags": [],
-      "tokenBudget": 668,
+      "tokenBudget": 637,
       "degree": 0,
       "exports": [
         "ScrollArea",
@@ -4420,7 +4776,7 @@
         "select"
       ],
       "compositionTags": [],
-      "tokenBudget": 758,
+      "tokenBudget": 1609,
       "degree": 13,
       "exports": [
         "Select",
@@ -4459,7 +4815,7 @@
         "separator"
       ],
       "compositionTags": [],
-      "tokenBudget": 443,
+      "tokenBudget": 212,
       "degree": 24,
       "exports": [
         "Separator"
@@ -4490,7 +4846,7 @@
         "self-call",
         "sequence"
       ],
-      "tokenBudget": 1111,
+      "tokenBudget": 2704,
       "degree": 7,
       "exports": [
         "Sequence"
@@ -4537,7 +4893,7 @@
         "side-panel"
       ],
       "compositionTags": [],
-      "tokenBudget": 861,
+      "tokenBudget": 1418,
       "degree": 7,
       "exports": [
         "Sheet",
@@ -4585,7 +4941,7 @@
         "loading",
         "streaming"
       ],
-      "tokenBudget": 841,
+      "tokenBudget": 536,
       "degree": 6,
       "exports": [
         "Shimmer"
@@ -4632,7 +4988,7 @@
         "sidebar"
       ],
       "compositionTags": [],
-      "tokenBudget": 960,
+      "tokenBudget": 2163,
       "degree": 6,
       "exports": [
         "Sidebar",
@@ -4671,7 +5027,7 @@
         "skeleton"
       ],
       "compositionTags": [],
-      "tokenBudget": 416,
+      "tokenBudget": 118,
       "degree": 12,
       "exports": [
         "Skeleton"
@@ -4726,7 +5082,7 @@
         "settings",
         "with-display"
       ],
-      "tokenBudget": 1500,
+      "tokenBudget": 769,
       "degree": 10,
       "exports": [
         "Slider"
@@ -4752,7 +5108,7 @@
         "transient"
       ],
       "compositionTags": [],
-      "tokenBudget": 620,
+      "tokenBudget": 268,
       "degree": 7,
       "exports": [
         "Toaster",
@@ -4786,12 +5142,20 @@
         "sources",
         "streaming"
       ],
-      "tokenBudget": 763,
+      "tokenBudget": 1997,
       "degree": 10,
       "exports": [
+        "Citation",
+        "Collapsible",
+        "CollapsibleContent",
+        "CollapsibleTrigger",
         "Sources"
       ],
       "exportPaths": {
+        "Citation": "ui/citation",
+        "Collapsible": "ui/collapsible",
+        "CollapsibleContent": "ui/collapsible",
+        "CollapsibleTrigger": "ui/collapsible",
         "Sources": "ui/sources"
       }
     },
@@ -4817,7 +5181,7 @@
         "spaced-repetition",
         "srs"
       ],
-      "tokenBudget": 956,
+      "tokenBudget": 944,
       "degree": 10,
       "exports": [
         "SpacedRepetition"
@@ -4843,7 +5207,7 @@
         "whitespace"
       ],
       "compositionTags": [],
-      "tokenBudget": 985,
+      "tokenBudget": 559,
       "degree": 4,
       "exports": [
         "Spacer",
@@ -4877,7 +5241,7 @@
         "transcription",
         "voice"
       ],
-      "tokenBudget": 1311,
+      "tokenBudget": 2439,
       "degree": 3,
       "exports": [
         "SpeechRecognition"
@@ -4904,7 +5268,7 @@
         "vertical"
       ],
       "compositionTags": [],
-      "tokenBudget": 1198,
+      "tokenBudget": 1111,
       "degree": 11,
       "exports": [
         "Stack",
@@ -4961,7 +5325,7 @@
         "wizard"
       ],
       "compositionTags": [],
-      "tokenBudget": 1370,
+      "tokenBudget": 2447,
       "degree": 7,
       "exports": [
         "Stepper"
@@ -4992,7 +5356,7 @@
         "onboarding",
         "prompts"
       ],
-      "tokenBudget": 556,
+      "tokenBudget": 673,
       "degree": 4,
       "exports": [
         "Suggestion"
@@ -5024,7 +5388,7 @@
         "sunburst",
         "value-scaled"
       ],
-      "tokenBudget": 961,
+      "tokenBudget": 2450,
       "degree": 10,
       "exports": [
         "Sunburst"
@@ -5055,7 +5419,7 @@
         "preference-row",
         "settings"
       ],
-      "tokenBudget": 823,
+      "tokenBudget": 446,
       "degree": 14,
       "exports": [
         "Switch"
@@ -5080,7 +5444,7 @@
         "tabular"
       ],
       "compositionTags": [],
-      "tokenBudget": 582,
+      "tokenBudget": 951,
       "degree": 9,
       "exports": [
         "Table",
@@ -5120,7 +5484,7 @@
         "tabs"
       ],
       "compositionTags": [],
-      "tokenBudget": 529,
+      "tokenBudget": 569,
       "degree": 7,
       "exports": [
         "Tabs",
@@ -5161,7 +5525,7 @@
         "search",
         "status"
       ],
-      "tokenBudget": 1407,
+      "tokenBudget": 1314,
       "degree": 8,
       "exports": [
         "Tag",
@@ -5196,12 +5560,18 @@
         "reasoning",
         "task"
       ],
-      "tokenBudget": 1115,
+      "tokenBudget": 2234,
       "degree": 6,
       "exports": [
+        "Collapsible",
+        "CollapsibleContent",
+        "CollapsibleTrigger",
         "Task"
       ],
       "exportPaths": {
+        "Collapsible": "ui/collapsible",
+        "CollapsibleContent": "ui/collapsible",
+        "CollapsibleTrigger": "ui/collapsible",
         "Task": "ui/task"
       }
     },
@@ -5229,7 +5599,7 @@
         "shell",
         "viewer"
       ],
-      "tokenBudget": 1021,
+      "tokenBudget": 2245,
       "degree": 2,
       "exports": [
         "Terminal"
@@ -5255,7 +5625,7 @@
         "textarea"
       ],
       "compositionTags": [],
-      "tokenBudget": 563,
+      "tokenBudget": 303,
       "degree": 7,
       "exports": [
         "Textarea"
@@ -5286,7 +5656,7 @@
         "release",
         "time-axis"
       ],
-      "tokenBudget": 1051,
+      "tokenBudget": 2951,
       "degree": 5,
       "exports": [
         "TimeAxis"
@@ -5311,7 +5681,7 @@
         "time-picker"
       ],
       "compositionTags": [],
-      "tokenBudget": 1300,
+      "tokenBudget": 714,
       "degree": 3,
       "exports": [
         "TimePicker"
@@ -5337,7 +5707,7 @@
         "timeline"
       ],
       "compositionTags": [],
-      "tokenBudget": 990,
+      "tokenBudget": 1172,
       "degree": 7,
       "exports": [
         "Timeline"
@@ -5363,7 +5733,7 @@
         "two-state"
       ],
       "compositionTags": [],
-      "tokenBudget": 804,
+      "tokenBudget": 530,
       "degree": 11,
       "exports": [
         "Toggle",
@@ -5391,15 +5761,19 @@
         "toolbar"
       ],
       "compositionTags": [],
-      "tokenBudget": 891,
+      "tokenBudget": 965,
       "degree": 9,
       "exports": [
+        "Toggle",
         "ToggleGroup",
-        "ToggleGroupItem"
+        "ToggleGroupItem",
+        "toggleVariants"
       ],
       "exportPaths": {
+        "Toggle": "ui/toggle",
         "ToggleGroup": "ui/toggle-group",
-        "ToggleGroupItem": "ui/toggle-group"
+        "ToggleGroupItem": "ui/toggle-group",
+        "toggleVariants": "ui/toggle"
       }
     },
     {
@@ -5424,12 +5798,18 @@
         "streaming",
         "tool-use"
       ],
-      "tokenBudget": 771,
+      "tokenBudget": 1642,
       "degree": 10,
       "exports": [
+        "Collapsible",
+        "CollapsibleContent",
+        "CollapsibleTrigger",
         "ToolCall"
       ],
       "exportPaths": {
+        "Collapsible": "ui/collapsible",
+        "CollapsibleContent": "ui/collapsible",
+        "CollapsibleTrigger": "ui/collapsible",
         "ToolCall": "ui/tool-call"
       }
     },
@@ -5456,7 +5836,7 @@
         "toolbar",
         "vertical"
       ],
-      "tokenBudget": 1262,
+      "tokenBudget": 1377,
       "degree": 8,
       "exports": [
         "Toolbar",
@@ -5494,7 +5874,7 @@
         "tooltip"
       ],
       "compositionTags": [],
-      "tokenBudget": 676,
+      "tokenBudget": 374,
       "degree": 5,
       "exports": [
         "Tooltip",
@@ -5573,13 +5953,25 @@
         "picker",
         "tree"
       ],
-      "tokenBudget": 1142,
+      "tokenBudget": 6195,
       "degree": 9,
       "exports": [
-        "Tree"
+        "DndProvider",
+        "SortableList",
+        "Tree",
+        "horizontalListSortingStrategy",
+        "rectSortingStrategy",
+        "useSortableItem",
+        "verticalListSortingStrategy"
       ],
       "exportPaths": {
-        "Tree": "ui/tree"
+        "DndProvider": "ui/dnd",
+        "SortableList": "ui/dnd",
+        "Tree": "ui/tree",
+        "horizontalListSortingStrategy": "ui/dnd",
+        "rectSortingStrategy": "ui/dnd",
+        "useSortableItem": "ui/dnd",
+        "verticalListSortingStrategy": "ui/dnd"
       }
     },
     {
@@ -5605,7 +5997,7 @@
         "tree-map",
         "value-scaled"
       ],
-      "tokenBudget": 1022,
+      "tokenBudget": 1970,
       "degree": 11,
       "exports": [
         "TreeMap"
@@ -5771,7 +6163,7 @@
         "venn",
         "with-values"
       ],
-      "tokenBudget": 802,
+      "tokenBudget": 2031,
       "degree": 7,
       "exports": [
         "Venn"

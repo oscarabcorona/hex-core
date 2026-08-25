@@ -1,10 +1,7 @@
-import { defineConfig } from "vitest/config";
+import { definePackageTests } from "../../vitest.base.js";
 
-export default defineConfig({
-	test: {
-		environment: "jsdom",
-		globals: true,
-		include: ["src/**/*.test.ts", "src/**/*.test.tsx", "test/**/*.test.ts", "test/**/*.test.tsx"],
-		setupFiles: ["./vitest.setup.ts"],
-	},
+export default definePackageTests({
+	environment: "jsdom",
+	tsx: true,
+	setupFiles: ["./vitest.setup.ts"],
 });

@@ -108,7 +108,7 @@
       "menubar"
     ],
     "accessibilityNotes": "Triggered via right-click or Shift+F10 on keyboard. Radix handles role='menu', aria-labelledby, focus management.",
-    "tokenBudget": 593
+    "tokenBudget": 1736
   },
   "tags": [
     "context-menu",

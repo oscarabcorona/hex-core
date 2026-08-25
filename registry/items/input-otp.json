@@ -121,7 +121,7 @@
       "form"
     ],
     "accessibilityNotes": "input-otp manages a single hidden <input> so screen readers hear one field of N characters. Each slot is a visual representation. The active slot gets a focus ring via the ring token.",
-    "tokenBudget": 902
+    "tokenBudget": 886
   },
   "tags": [
     "input-otp",

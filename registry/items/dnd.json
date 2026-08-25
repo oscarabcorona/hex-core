@@ -148,7 +148,7 @@
       "tree"
     ],
     "accessibilityNotes": "@dnd-kit ships KeyboardSensor by default — Tab to focus a draggable, Space/Enter to pick up, arrow keys to move, Space/Enter to drop, Escape to cancel. Live-region announcements are built in. The PointerSensor uses a 4px activation distance so accidental clicks don't trigger drag.",
-    "tokenBudget": 420
+    "tokenBudget": 1647
   },
   "tags": [
     "dnd",

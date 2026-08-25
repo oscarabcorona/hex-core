@@ -126,7 +126,7 @@
       "dropdown-menu"
     ],
     "accessibilityNotes": "Full WAI-ARIA menubar pattern: arrow keys navigate menus, Enter/Space opens, Escape closes. Radix handles roles and state.",
-    "tokenBudget": 831
+    "tokenBudget": 1478
   },
   "tags": [
     "menubar",

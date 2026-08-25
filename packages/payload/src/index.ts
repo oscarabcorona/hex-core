@@ -136,3 +136,4 @@ export {
 } from "./builders/poc.js";
 
 export { type AliasConfig, DEFAULT_ALIASES, rewriteRegistryImports } from "./lib/rewrite-imports.js";
+export { slugify, titleFromSlug } from "./lib/slug.js";

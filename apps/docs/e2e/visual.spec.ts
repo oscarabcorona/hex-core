@@ -28,67 +28,59 @@ const REGISTRY_PATH = path.resolve(__dirname, "../../../registry/registry.json")
 const registry = JSON.parse(fs.readFileSync(REGISTRY_PATH, "utf-8")) as RegistryIndex;
 
 /**
- * Some registry items ship intentionally without a live demo:
- *   - motion-pro   — peer-deps motion@^11; a demo would crash at import time
- *   - transition   — pure type/token bag, nothing to render visually
- *   - track        — label-only context provider, no DOM of its own
+ * Which registry items ship a live demo, derived from the demo map rather
+ * than a hand-kept list.
  *
- * The component page renders no `<ComponentPreview>` for these, so the
- * screenshot target wouldn't exist. Skipping them here is intentional —
- * the items still get an axe-scan via the a11y audit.
+ * This was a hardcoded set of 42 slugs. Forty-one of them simply had no
+ * demo file, so the list was a second, hand-maintained answer to a question
+ * the filesystem already answers — and every new block meant remembering to
+ * add another line.
+ *
+ * Items without a demo (motion-pro, transition, track, and the composed
+ * page-section blocks that need sibling context to render meaningfully)
+ * render no `<ComponentPreview>`, so there is no screenshot target. They
+ * still get an axe-scan via the a11y audit, and the blocks are visually
+ * pinned in context by the /landing, /app and /store showcase snapshots
+ * below.
  */
-const NO_VISUAL_DEMO = new Set([
-	"motion-pro",
-	"transition",
-	"track",
-	// Composed page-section blocks: they need real content + sibling context to
-	// render meaningfully, so they ship no isolated /docs/components preview.
-	// They're visually pinned in-context by the showcase snapshots below
-	// (/landing, /app, /store) and a11y-scanned there.
-	"marketing-header",
-	"marketing-hero",
-	"marketing-logo-cloud",
-	"marketing-feature-grid",
-	"marketing-pricing",
-	"marketing-testimonial",
-	"marketing-cta",
-	"marketing-footer",
-	"app-shell",
-	"app-sidebar-nav",
-	"app-stats",
-	"app-settings",
-	"app-data-table",
-	"commerce-product-grid",
-	"commerce-product-detail",
-	"commerce-reviews",
-	"commerce-cart",
-	"commerce-checkout",
-	// Marketing backfill (round 2) — same composed-page-section rationale.
-	"marketing-stats",
-	"marketing-faq",
-	"marketing-team",
-	"marketing-newsletter",
-	"marketing-contact",
-	"marketing-content",
-	// Catalog backfill (round 3) — final coverage round; same exclusion rationale.
-	"marketing-bento",
-	"app-stacked-list",
-	"app-grid-list",
-	"app-feed",
-	"commerce-category",
-	"commerce-category-filters",
-	"commerce-store-nav",
-	"commerce-product-features",
-	"commerce-quickview",
-	"commerce-incentives",
-	"commerce-promo",
-	"commerce-order-summary",
-	"commerce-order-history",
-	// Hooks document an API surface, not a rendered component — their
-	// /docs/components page has no <ComponentPreview> to screenshot.
-	"use-ai-chat",
-	"use-streaming-message",
-]);
+const DEMO_ROOTS = [
+	path.resolve(__dirname, "../../../packages/components/src"),
+	path.resolve(__dirname, "../../../packages/motion/src"),
+];
+
+/**
+ * Every slug that ships a `<slug>.demo.tsx`, found by walking the packages.
+ *
+ * Scanned rather than imported: pulling `demos.generated.tsx` in here would
+ * drag the whole component library through Playwright's Node resolver,
+ * which has no bundler to satisfy the package's `exports` map. The rule is
+ * the same one `scripts/build-barrels.ts` applies, so the two agree.
+ */
+function collectDemoSlugs(dir: string, found: Set<string>): Set<string> {
+	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+		const full = path.join(dir, entry.name);
+		if (entry.isDirectory()) collectDemoSlugs(full, found);
+		else if (entry.name.endsWith(".demo.tsx")) found.add(entry.name.replace(/\.demo\.tsx$/, ""));
+	}
+	return found;
+}
+
+const DEMO_SLUGS = DEMO_ROOTS.reduce(
+	(acc, root) => (fs.existsSync(root) ? collectDemoSlugs(root, acc) : acc),
+	new Set<string>(),
+);
+
+const HAS_DEMO = (slug: string): boolean => DEMO_SLUGS.has(slug);
+
+/**
+ * Escape hatch for a slug that ships a demo but still cannot be diffed.
+ *
+ * Empty, and it should stay that way. Non-determinism has a better answer
+ * than skipping: `calendar` renders the current month, and the suite pins
+ * the page clock for it via {@link TIME_SENSITIVE} rather than dropping
+ * the coverage. Add an entry only with the reason inline.
+ */
+const SKIP_DESPITE_DEMO = new Set<string>();
 
 // Demos that read `new Date()` at render time churn their baselines daily:
 // Calendar defaults to the current month and flags "today". For these we pin
@@ -115,7 +107,7 @@ const FREEZE_CSS = `
 `;
 
 for (const { name: slug, displayName } of registry.items) {
-	if (NO_VISUAL_DEMO.has(slug)) continue;
+	if (!HAS_DEMO(slug) || SKIP_DESPITE_DEMO.has(slug)) continue;
 	for (const theme of themes) {
 		test(`${slug} (${theme.name})`, async ({ page }) => {
 			// Set the theme class BEFORE the page renders to avoid a flash.

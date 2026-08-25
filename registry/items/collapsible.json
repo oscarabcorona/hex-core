@@ -99,7 +99,7 @@
       "dropdown-menu"
     ],
     "accessibilityNotes": "Radix sets aria-expanded on the trigger and aria-controls → content id. Trigger is keyboard-operable (Enter/Space).",
-    "tokenBudget": 580
+    "tokenBudget": 104
   },
   "tags": [
     "collapsible",

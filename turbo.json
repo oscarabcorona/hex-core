@@ -1,12 +1,69 @@
 {
 	"$schema": "https://turbo.build/schema.json",
-	"globalDependencies": [
-		"registry/**"
-	],
 	"tasks": {
 		"build": {
 			"dependsOn": [
 				"^build"
+			],
+			"inputs": [
+				"src/**",
+				"scripts/**",
+				"package.json",
+				"tsup.config.ts",
+				"tsconfig.json"
+			],
+			"outputs": [
+				"dist/**"
+			]
+		},
+		"docs#build": {
+			"dependsOn": [
+				"^build"
+			],
+			"inputs": [
+				"src/**",
+				"scripts/**",
+				"package.json",
+				"tsup.config.ts",
+				"tsconfig.json",
+				"../../registry/**",
+				"next.config.ts",
+				"postcss.config.mjs"
+			],
+			"outputs": [
+				".next/**",
+				"!.next/cache/**"
+			]
+		},
+		"@hex-core/cli#build": {
+			"dependsOn": [
+				"^build"
+			],
+			"inputs": [
+				"src/**",
+				"scripts/**",
+				"package.json",
+				"tsup.config.ts",
+				"tsconfig.json",
+				"../../registry/**",
+				"../../skills/**"
+			],
+			"outputs": [
+				"dist/**"
+			]
+		},
+		"@hex-core/payload#build": {
+			"dependsOn": [
+				"^build"
+			],
+			"inputs": [
+				"src/**",
+				"scripts/**",
+				"package.json",
+				"tsup.config.ts",
+				"tsconfig.json",
+				"../../registry/**",
+				"../../skills/**"
 			],
 			"outputs": [
 				"dist/**"

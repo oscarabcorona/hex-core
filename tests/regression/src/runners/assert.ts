@@ -68,7 +68,8 @@ export function assertProcessOk(result: ProcessResult, expectedSubstr?: string):
 /**
  * Lightweight import-resolution check. Walks `entry`, finds every
  * `from "@/<...>"` specifier, and verifies the resolved file exists on
- * disk. Mirrors the pattern from `scripts/verify-add-all.ts:30-110`.
+ * disk. The pattern originated in a standalone verify script, now folded
+ * into this suite.
  *
  * Resolution: `@/<rest>` maps to `<cwd>/src/<rest>` when `<cwd>/src`
  * exists, else `<cwd>/<rest>`. Tries `.tsx`, `.ts`, `.jsx`, `.js`,

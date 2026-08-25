@@ -1,68 +1,27 @@
+import {
+	registryIndexSchema,
+	type RegistryIndex,
+	type RegistryIndexItem,
+	type RegistryItem,
+} from "@hex-core/registry";
 import registryIndex from "../../../../registry/registry.json";
 
-export interface RegistryIndexItem {
-	name: string;
-	displayName: string;
-	description: string;
-	category: string;
-	subcategory?: string;
-	tags: string[];
-	internalDeps: string[];
-	tokenBudget?: number;
-}
+/**
+ * Typed access to the committed registry index.
+ *
+ * The types come from `@hex-core/registry`, which infers them from the Zod
+ * schemas that `scripts/build-registry.ts` validates every item against.
+ * This module used to redeclare six of them by hand — `RegistryItem`,
+ * `RegistryIndexItem`, `PropDef`, `VariantDef`, `AIHints`, `Example` — and
+ * then `as`-cast the imported JSON into them, so a schema change could
+ * drift the docs types silently and the cast would keep compiling.
+ *
+ * Parsing at the boundary is the fix: a registry that no longer matches
+ * the schema fails the build here rather than rendering wrong.
+ */
+const index: RegistryIndex = registryIndexSchema.parse(registryIndex);
 
-export interface PropDef {
-	name: string;
-	type: string;
-	required: boolean;
-	default?: unknown;
-	description: string;
-	enumValues?: string[];
-}
-
-export interface VariantDef {
-	name: string;
-	description: string;
-	values: { value: string; description: string }[];
-	default: string;
-}
-
-export interface AIHints {
-	whenToUse: string;
-	whenNotToUse: string;
-	commonMistakes: string[];
-	relatedComponents: string[];
-	accessibilityNotes: string;
-	tokenBudget: number;
-}
-
-export interface Example {
-	title: string;
-	description: string;
-	code: string;
-}
-
-export interface RegistryItem {
-	name: string;
-	displayName: string;
-	description: string;
-	category: string;
-	subcategory?: string;
-	version?: string;
-	framework?: string;
-	props: PropDef[];
-	variants: VariantDef[];
-	examples: Example[];
-	ai: AIHints;
-	dependencies: { npm: string[]; internal: string[]; peer: string[] };
-	tags: string[];
-}
-
-interface RegistryIndex {
-	items: RegistryIndexItem[];
-}
-
-const index = registryIndex as RegistryIndex;
+export type { RegistryIndexItem };
 
 /** All component summaries from the registry index. */
 export function listComponents(): RegistryIndexItem[] {

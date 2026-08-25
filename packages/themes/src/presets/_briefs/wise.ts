@@ -1,4 +1,4 @@
-// AUTO-GENERATED — do not hand-edit. Source: https://github.com/voltagent/awesome-design-md
+// Originally generated from voltagent/awesome-design-md (MIT) and hand-curated since.
 export const wiseBrief = `# Design System Inspired by Wise
 
 ## 1. Visual Theme & Atmosphere

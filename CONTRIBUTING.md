@@ -25,16 +25,140 @@ pnpm --filter docs test       # Playwright e2e (8 tests across 3 specs)
 - **Dogfood** — if the docs app needs a primitive we already ship in `@hex-core/components`, import it from the library.
 - **Canonical transitions** — `transition-all duration-200 ease-out` for interactive surfaces. Focus ring: `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`.
 
+## Type safety
+
+No `any`. No `as Type` on a value you control. **`as unknown as T` is banned outright** and enforced by ESLint — it is the one assertion form that turns any value into any other with no overlap check at all.
+
+| Instead of… | Use… |
+|---|---|
+| `as SomeType` on an object literal | `satisfies SomeType` |
+| `as ResponseType` on parsed JSON | a Zod `.parse()` at the boundary |
+| `as UnionMember` on a string | a type guard (`isCategory(x)`) |
+| `as HTMLElement` on a DOM value | `instanceof HTMLElement` |
+| `window as unknown as { … }` | `declare global { interface Window { … } }` |
+| `as unknown as T` to widen a fixture | an intersection: `T & Record<string, unknown>` |
+| `expr!` | `if (expr)` or `?? fallback` |
+
+`eslint-disable` is a last resort, not a fix. Every one needs a `-- reason` suffix.
+
+## Layer boundaries
+
+Radix is an implementation detail of the **primitive** and **component** layers. Anything in `blocks/`, `ai/` or `artifacts/` composes what those layers export instead of reaching past them — a direct `@radix-ui/*` import there is an ESLint error.
+
+```
+tokens ← components/{primitives,components} ← {blocks,ai,artifacts} ← apps/docs
+                    ↑ only these two import @radix-ui/*
+```
+
+Colour literals are restricted the same way: no hex or `hsl(…)` with literal channels outside `packages/tokens` and `packages/themes`. Read a token instead — `bg-primary`, or `hsl(var(--border))`.
+
+One documented exception exists today: `ai/inline-citation` drives `HoverCardPrimitive` directly because the shared `HoverCardContent` hardcodes `w-64` and its own padding. It moves onto the primitive when that grows a size variant.
+
+## Where new code goes
+
+One consumer → colocate it. Two or more → promote it.
+
+| Scope | Location |
+|---|---|
+| Everything about one component | `packages/components/src/{primitives\|components\|ai\|artifacts\|blocks}/<slug>/` |
+| Shared by 2+ components | `packages/components/src/lib/` (own tsup entry — stays RSC-safe) |
+| Shared by 2+ packages | its own `packages/<name>` |
+| Used by one docs route | that route's folder |
+| Used by 2+ docs routes | `apps/docs/src/components/` or `apps/docs/src/lib/` |
+
 ## Adding a component
 
-1. Create `packages/components/src/{primitive|component}/<slug>/` with:
-   - `<slug>.tsx` — React component (Radix + Tailwind + CVA where applicable)
-   - `<slug>.schema.ts` — `ComponentSchemaDefinition` with required `ai` block (`whenToUse`, `whenNotToUse`, `commonMistakes`, `relatedComponents`, `accessibilityNotes`, `tokenBudget`)
-2. Add a demo at `apps/docs/src/app/demos/<slug>-demo.tsx` and register it in `apps/docs/src/lib/demos.tsx`.
-3. Run `pnpm run build:registry` — the registry JSON regenerates from your schema.
-4. Run `pnpm build && pnpm --filter docs dev` and check `/docs/components/<slug>`.
-5. Add a changeset: `pnpm changeset`. Pick the affected packages (usually `@hex-core/components`) and bump type.
-6. Add a unit test alongside the component: `packages/components/src/**/<slug>.test.tsx`. Use [`button.test.tsx`](packages/components/src/primitives/button/button.test.tsx) as a template.
+Everything about a component lives in one folder. Create
+`packages/components/src/{primitives|components|ai|artifacts|blocks}/<slug>/`:
+
+```
+<slug>.tsx          React component (Radix + Tailwind + CVA where applicable)
+<slug>.schema.ts    ComponentSchemaInput — the machine-readable spec
+<slug>.test.tsx     unit test (see button.test.tsx as a template)
+<slug>.demo.tsx     the demo the docs site renders
+```
+
+Then run **one** command:
+
+```bash
+pnpm build          # regenerates every list that mentions your component
+```
+
+That is the whole checklist. No barrel to edit, no demo map to register in,
+no skip-list to update — the runtime barrel, the schema barrel, the docs demo
+map and the visual-test skip set are all generated from this folder by
+`scripts/build-barrels.ts`. Six hand-maintained copies of "the list of
+components" used to exist, and they had already drifted: 53 of 161 schemas
+were missing from the schema barrel, every block among them.
+
+Only declare what you actually know. `props`, `variants`, `slots`,
+`tokensUsed`, `examples` and `tags` all default to empty, `dependencies` is
+re-derived from your imports, and `ai.tokenBudget` is measured from the
+emitted registry item. A minimal schema is about fifteen lines:
+
+```ts
+import type { ComponentSchemaInput } from "@hex-core/registry";
+
+export const chipSchema: ComponentSchemaInput = {
+  name: "chip",
+  displayName: "Chip",
+  description: "A compact inline label for tags and filters.",
+  category: "primitive",
+  ai: {
+    whenToUse: "Short inline labels inside dense lists.",
+    whenNotToUse: "Use Badge for status; Tag for removable entries.",
+    commonMistakes: ["Using Chip for interactive filters — use Toggle."],
+    relatedComponents: ["badge", "tag"],
+    accessibilityNotes: "Decorative by default; add aria-label when meaningful.",
+  },
+};
+```
+
+The `ai` block stays mandatory — it is what makes the catalog usable by an
+agent, and no build step can infer it.
+
+To keep an export out of the public API, tag its declaration `@internal`;
+the barrel generator skips those.
+
+Finally:
+
+1. `pnpm run build:registry` — regenerates `registry/` from your schema.
+2. `pnpm --filter docs dev` and check `/docs/components/<slug>`.
+3. `pnpm changeset` — pick the affected packages and bump type.
+
+## Changing a colour
+
+Edit one line in [`packages/tokens/src/themes/default.ts`](packages/tokens/src/themes/default.ts), then `pnpm run build:tokens`.
+
+Colours are two-tier. The `palette` const holds every literal exactly once;
+semantic tokens draw from it via `ref("slate-900")`, which records where the
+value came from. The CSS emitter turns that into `--primary: var(--slate-900)`,
+so overriding one ramp entry re-tints everything drawn from it — including in
+a consumer's own stylesheet.
+
+`apps/docs/src/app/tokens.generated.css` is generated by the same function
+that `hex theme init` gives consumers, so the docs site can no longer drift
+from what the CLI ships. It previously did: the theming page advertised a
+`--destructive` that had been wrong for months.
+
+## Generated files
+
+`*.generated.*` files are build output that happens to be committed, so the
+tree typechecks without a build step. Never hand-edit them — CI diffs them
+after a clean build and fails on drift.
+
+| File | Generator |
+|---|---|
+| `packages/components/src/index.generated.ts` | `scripts/build-barrels.ts` |
+| `packages/components/src/schemas.generated.ts` | `scripts/build-barrels.ts` |
+| `apps/docs/src/lib/demos.generated.tsx` | `scripts/build-barrels.ts` |
+| `packages/themes/src/presets/briefs.generated.ts` | `scripts/build-barrels.ts` |
+| `apps/docs/src/app/tokens.generated.css` | `scripts/build-tokens.ts` |
+| `registry/**` | `scripts/build-registry.ts` |
+| `packages/mcp-server/README.md` | `packages/mcp-server/scripts/build-readme.mjs` |
+
+Every generator is deterministic — directories are sorted, so output is
+byte-stable across machines and drift shows up as an ordinary `git diff`.
 
 ## Tests
 

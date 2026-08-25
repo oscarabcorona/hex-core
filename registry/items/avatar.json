@@ -87,7 +87,7 @@
       "card"
     ],
     "accessibilityNotes": "AvatarImage requires alt text. AvatarFallback renders initials or an icon — ensure the visible text is meaningful.",
-    "tokenBudget": 433
+    "tokenBudget": 415
   },
   "tags": [
     "avatar",

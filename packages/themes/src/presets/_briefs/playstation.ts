@@ -1,4 +1,4 @@
-// AUTO-GENERATED — do not hand-edit. Source: https://github.com/voltagent/awesome-design-md
+// Originally generated from voltagent/awesome-design-md (MIT) and hand-curated since.
 export const playstationBrief = `# Design System Inspired by PlayStation
 
 ## 1. Visual Theme & Atmosphere

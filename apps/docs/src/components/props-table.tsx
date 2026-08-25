@@ -1,11 +1,11 @@
-import type { PropDef } from "../lib/registry";
+import type { Prop } from "@hex-core/registry";
 
 /**
  * Renders a component's prop interface as an API reference table. Required
  * props get a pill badge; optional props are unadorned.
  * @param props - Array of prop definitions from the registry
  */
-export function PropsTable({ props }: { props: PropDef[] }) {
+export function PropsTable({ props }: { props: Prop[] }) {
 	if (props.length === 0) {
 		return <p className="text-sm text-muted-foreground">No props.</p>;
 	}
@@ -56,8 +56,8 @@ export function PropsTable({ props }: { props: PropDef[] }) {
 	);
 }
 
-/** Format a PropDef's type (incl. enum values) for display. */
-function formatType(prop: PropDef): string {
+/** Format a prop's type (incl. enum values) for display. */
+function formatType(prop: Prop): string {
 	if (prop.type === "enum" && prop.enumValues) {
 		return prop.enumValues.map((v) => `"${v}"`).join(" | ");
 	}

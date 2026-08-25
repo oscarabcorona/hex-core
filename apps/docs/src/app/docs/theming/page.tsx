@@ -1,6 +1,12 @@
 import { CodeBlock } from "../../../components/code-block";
 import { DocSection, InlineCode } from "../../../components/doc-section";
 import { DocsPage } from "../../../components/docs-page";
+import {
+	COLOR_TOKENS_SNIPPET,
+	DARK_SNIPPET,
+	LAYOUT_TOKENS_SNIPPET,
+	RAMP_SNIPPET,
+} from "../../../lib/theme-snippets";
 
 export const metadata = {
 	title: "Theming",
@@ -18,72 +24,6 @@ const SECTIONS = [
 	{ id: "typography", title: "Typography scale" },
 	{ id: "llm", title: "Hand tokens to an LLM" },
 ];
-
-const COLOR_TOKENS_SNIPPET = `:root {
-  --background: 210 20% 98%;
-  --foreground: 222 30% 11%;
-  --card: 210 20% 98%;
-  --card-foreground: 222 30% 11%;
-  --primary: 222 25% 18%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 222 5% 95.9%;
-  --secondary-foreground: 240 10% 3.9%;
-  --muted: 222 5% 95.9%;
-  --muted-foreground: 222 8% 38%;
-  --accent: 222 5% 95.9%;
-  --accent-foreground: 240 10% 3.9%;
-  --destructive: 0 65% 50%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 222 8% 90%;
-  --input: 222 8% 90%;
-  --ring: 222 25% 18%;
-  --radius: 0.375rem;
-}`;
-
-const LAYOUT_TOKENS_SNIPPET = `:root {
-  /* Spacing scale — drives p-*, m-*, gap-* through CSS var refs */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-
-  /* Gap presets for layout composition */
-  --gap-sm: 0.5rem;
-  --gap-md: 1rem;
-  --gap-lg: 1.5rem;
-
-  /* Control heights — Button / Input / Select snap to these */
-  --control-height-sm: 2.25rem;
-  --control-height-md: 2.5rem;
-  --control-height-lg: 2.75rem;
-
-  /* Typography scale */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
-
-  /* Motion / transitions */
-  --duration-fast: 150ms;
-  --duration-normal: 200ms;
-  --duration-slow: 300ms;
-}`;
-
-const DARK_SNIPPET = `.dark {
-  --background: 210 15% 2%;
-  --foreground: 222 22.5% 89%;
-  --muted: 222 3.8% 4.1%;
-  --muted-foreground: 0 0% 98%;
-  --border: 222 6% 10%;
-  --ring: 222 18.8% 82%;
-}`;
 
 const CUSTOM_PALETTE_SNIPPET = `/* Violet-tinted primary */
 :root {
@@ -210,9 +150,18 @@ export default function ThemingPage() {
 			<DocSection id="color-tokens" title="Color tokens">
 				<p className="text-sm leading-6">
 					Colors are authored in HSL so that opacity modifiers and contrast tweaks stay
-					predictable. Every semantic token has a foreground pair —{" "}
+					predictable, and they come in two tiers. The <strong>ramp</strong> holds every
+					literal value exactly once:
+				</p>
+				<CodeBlock label="css" code={RAMP_SNIPPET} />
+				<p className="text-sm leading-6">
+					<strong>Semantic tokens</strong> then point at a ramp entry rather than repeating
+					its value. <InlineCode>--primary</InlineCode> and <InlineCode>--ring</InlineCode>{" "}
+					are the same graphite, so re-tinting the theme is one edit — override{" "}
+					<InlineCode>--slate-900</InlineCode> in your own stylesheet and everything drawn
+					from it follows. Every semantic token has a foreground pair —{" "}
 					<InlineCode>--primary</InlineCode> /{" "}
-					<InlineCode>--primary-foreground</InlineCode> — so components can render correct
+					<InlineCode>--primary-foreground</InlineCode> — so components render correct
 					contrast without introspecting the value.
 				</p>
 				<CodeBlock label="css" code={COLOR_TOKENS_SNIPPET} />
@@ -232,9 +181,11 @@ export default function ThemingPage() {
 				<p className="text-sm leading-6">
 					Dark mode is driven by <InlineCode>next-themes</InlineCode> toggling a{" "}
 					<InlineCode>.dark</InlineCode> class on <InlineCode>&lt;html&gt;</InlineCode>.
-					Override tokens inside a <InlineCode>.dark &#123; … &#125;</InlineCode> block —
-					only the tokens that actually differ between modes need to be re-declared (layout /
-					spacing / motion tokens are shared across modes).
+					Dark mode re-points the semantic layer at different ramp entries — it never
+					introduces new token names, so a component that writes{" "}
+					<InlineCode>bg-primary</InlineCode> cannot break it. Only tokens that actually
+					differ between modes need re-declaring; the ramp itself and the layout / spacing /
+					motion tokens are shared.
 				</p>
 				<CodeBlock label="css" code={DARK_SNIPPET} />
 			</DocSection>
