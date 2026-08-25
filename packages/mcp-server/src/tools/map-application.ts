@@ -1,8 +1,8 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { buildApplicationMap, neighbors } from "@hex-core/payload";
+import { buildApplicationMap } from "@hex-core/payload";
 import { TOOL } from "../tool-names.js";
-import { registry, toolErrorText } from "./_shared.js";
+import { toolErrorText } from "./_shared.js";
 
 /**
  * Register the `map-application` tool.
@@ -48,5 +48,4 @@ export function register(server: McpServer): void {
 	// ─── Tool 18: query_graph ───
 
 	/** Cap on neighbors returned per query_graph call — keeps responses inside token budgets. */
-	const QUERY_GRAPH_NEIGHBOR_CAP = 50;
-}
+	}

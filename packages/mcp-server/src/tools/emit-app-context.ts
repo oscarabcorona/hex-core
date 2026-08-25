@@ -8,7 +8,6 @@ import {
 	SLUG_REGEX,
 } from "@hex-core/payload";
 import { TOOL } from "../tool-names.js";
-import { registry } from "./_shared.js";
 
 /**
  * Register the `emit-app-context` tool.

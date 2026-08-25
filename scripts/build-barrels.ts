@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readModuleExports, type ModuleExports } from "./lib/module-exports.js";
+import { writeIfChanged } from "./lib/write-if-changed.js";
 
 /**
  * Emit every hand-maintained "list of components" from the filesystem.
@@ -201,23 +202,6 @@ function demoSymbol(demoPath: string, slug: string): string {
 }
 
 /**
- * Write a file only when its content actually changes.
- *
- * Keeps mtimes stable so Turbopack and `tsup --watch` don't rebuild on a
- * no-op regeneration.
- * @param filePath - Absolute destination path
- * @param content - The full file contents
- * @returns True when the file was written
- */
-function writeIfChanged(filePath: string, content: string): boolean {
-	const existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, "utf-8") : null;
-	if (existing === content) return false;
-	fs.mkdirSync(path.dirname(filePath), { recursive: true });
-	fs.writeFileSync(filePath, content);
-	return true;
-}
-
-/**
  * Build the runtime barrel — `@hex-core/components`.
  * @param components - Every discovered component
  * @returns The file contents
@@ -245,7 +229,9 @@ function renderRuntimeBarrel(components: ComponentModule[]): string {
 	lines.push("\n// ─── shared ───");
 	for (const { module, only } of AGGREGATE_MODULES) {
 		const abs = path.join(COMPONENTS_SRC, module);
-		if (!fs.existsSync(abs)) continue;
+		// No existsSync guard: readModuleExports returns an empty surface for
+		// a missing file, which renderExport turns into null and the caller
+		// skips — same outcome, without a check-then-read race.
 		const specifier = `./${module.replace(/\.tsx?$/, ".js")}`;
 		const statement = renderExport(readModuleExports(abs), specifier, only);
 		if (statement) lines.push(statement);

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 // Imported from source, not from the package name: this script runs as part
 // of `pnpm build` *before* `turbo build`, so `packages/tokens/dist` does not
 // exist yet on a clean checkout. Same convention as `scripts/build-graph.ts`.
+import { readIfExists } from "./lib/write-if-changed.js";
 import { defaultTheme, generateThemeCssV4 } from "../packages/tokens/src/index.js";
 
 /**
@@ -34,7 +35,7 @@ const BANNER = `/*
 
 const content = `${BANNER}\n${generateThemeCssV4(defaultTheme)}\n`;
 
-const existing = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf-8") : null;
+const existing = readIfExists(OUT);
 if (existing === content) {
 	console.log(`  = ${path.relative(ROOT, OUT)}`);
 } else {

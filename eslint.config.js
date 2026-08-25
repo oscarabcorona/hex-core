@@ -32,8 +32,10 @@ export default tseslint.config(
 	},
 	{
 		rules: {
+			// Error, not warn: CodeQL reports unused imports as findings, so a
+			// warning here means a red PR check later. Zero across the repo.
 			"@typescript-eslint/no-unused-vars": [
-				"warn",
+				"error",
 				{
 					argsIgnorePattern: "^_",
 					varsIgnorePattern: "^_",

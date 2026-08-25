@@ -2,7 +2,6 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { internalDepToSlug, loadRecipe, loadRegistryItem } from "@hex-core/payload";
 import { TOOL } from "../tool-names.js";
-import { registry } from "./_shared.js";
 
 /**
  * Register the `get-recipe` tool.
