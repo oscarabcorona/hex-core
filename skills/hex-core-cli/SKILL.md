@@ -43,6 +43,8 @@ Deterministically maps an application brief onto the catalog: screens typed as `
 
 Scaffolds a standalone runnable Next.js App Router demo app: theme globals.css, all mapped components copied in with rewritten imports, one generated route per page-recipe screen, index page, README, and the map itself. `cd <dir> && pnpm install && pnpm dev` — no manual wiring. Pass exactly one source. Non-page screens are installed but get no generated route (listed on the index page). `--yes` is required to write (and to write into a non-empty dir).
 
+The app also ships a demo panel over every frame: **Viewing as** (`viewer` / `member` / `admin`, with gated frames explaining themselves instead of 404ing) and **Data** (populated / empty). Both are cookie-backed, so a selection survives navigation. When the user wants a new role, capability, or gated frame, edit `lib/demo.ts` in the generated app and gate on `can.*` — never on the role name.
+
 ### `hex graph explain|affected|neighbors|path <slug…>` `[--json]`
 
 Queries the shipped catalog knowledge graph; the four subcommands mirror MCP `query_graph`'s four modes. `explain` = edges grouped by relation (`requires`/`composes`/`themes`/`related`/`instead-use`) + community peers; `affected` = reverse blast radius (dependents + recipes); `neighbors` = adjacent nodes (`--relation` to filter); `path <from> <to>` = shortest connection. Use before inventing component relationships.

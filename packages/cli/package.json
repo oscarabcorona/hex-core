@@ -52,13 +52,13 @@
 		"commander": "^15.0.0",
 		"culori": "^4.0.2",
 		"picocolors": "^1.1.1",
-		"zod": "^4.4.3"
+		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@types/culori": "^4.0.1",
-		"@types/node": "^25.9.3",
-		"tsup": "^8.3.0",
-		"tsx": "^4.19.0",
-		"typescript": "^6.0.3"
+		"@types/node": "catalog:",
+		"tsup": "catalog:",
+		"tsx": "catalog:",
+		"typescript": "catalog:"
 	}
 }

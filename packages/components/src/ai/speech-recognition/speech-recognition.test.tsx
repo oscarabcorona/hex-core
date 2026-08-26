@@ -44,14 +44,14 @@ function buildResults(parts: { transcript: string; isFinal: boolean }[]) {
 
 beforeEach(() => {
 	lastInstance = null;
-	(globalThis as unknown as { SpeechRecognition?: unknown }).SpeechRecognition = vi
+	window.SpeechRecognition = vi
 		.fn()
 		.mockImplementation(makeMock);
 });
 
 afterEach(() => {
-	delete (globalThis as unknown as { SpeechRecognition?: unknown }).SpeechRecognition;
-	delete (globalThis as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition;
+	delete window.SpeechRecognition;
+	delete window.webkitSpeechRecognition;
 });
 
 describe("SpeechRecognition", () => {
@@ -69,7 +69,7 @@ describe("SpeechRecognition", () => {
 	});
 
 	it("renders a disabled fallback when the API is missing", () => {
-		delete (globalThis as unknown as { SpeechRecognition?: unknown }).SpeechRecognition;
+		delete window.SpeechRecognition;
 		render(
 			<SpeechRecognition
 				isListening={false}

@@ -115,7 +115,7 @@
     {
       "title": "Users table view",
       "description": "Title, a search + add toolbar, the table, and pagination.",
-      "code": "import { AppDataTable, Input, Button, Pagination } from \"@hex-core/components\";\n\n<AppDataTable\n  title=\"Users\"\n  description=\"Manage workspace members.\"\n  toolbar={<><Input placeholder=\"Search…\" className=\"w-56\" /><Button size=\"sm\">Add user</Button></>}\n  footer={<Pagination page={1} pageCount={4} />}\n>\n  <DataTable columns={columns} data={rows} />\n</AppDataTable>",
+      "code": "import { AppDataTable, DataTable, Input, Button, Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from \"@hex-core/components\";\n\nconst columns = [\n  { accessorKey: \"name\", header: \"Name\" },\n  { accessorKey: \"email\", header: \"Email\" },\n  { accessorKey: \"role\", header: \"Role\" },\n];\n\nconst rows = [\n  { id: \"1\", name: \"Ada Lovelace\", email: \"ada@example.com\", role: \"Owner\" },\n  { id: \"2\", name: \"Alan Turing\", email: \"alan@example.com\", role: \"Admin\" },\n  { id: \"3\", name: \"Grace Hopper\", email: \"grace@example.com\", role: \"Member\" },\n];\n\n<AppDataTable\n  title=\"Users\"\n  description=\"Manage workspace members.\"\n  toolbar={<><Input placeholder=\"Search…\" className=\"w-56\" /><Button size=\"sm\">Add user</Button></>}\n  footer={\n    <Pagination>\n      <PaginationContent>\n        <PaginationItem><PaginationPrevious href=\"#\" /></PaginationItem>\n        <PaginationItem><PaginationLink href=\"#\" isActive>1</PaginationLink></PaginationItem>\n        <PaginationItem><PaginationLink href=\"#\">2</PaginationLink></PaginationItem>\n        <PaginationItem><PaginationNext href=\"#\" /></PaginationItem>\n      </PaginationContent>\n    </Pagination>\n  }\n>\n  <DataTable columns={columns} data={rows} aria-label=\"Workspace members\" />\n</AppDataTable>",
       "composition": [
         "app",
         "data-table",
@@ -141,7 +141,7 @@
       "app-shell"
     ],
     "accessibilityNotes": "The section title renders as an <h2>. The block doesn't add table semantics — those come from the Table/DataTable in children. Toolbar controls should carry their own labels (e.g. a search input with an accessible name).",
-    "tokenBudget": 896
+    "tokenBudget": 461
   },
   "tags": [
     "block",

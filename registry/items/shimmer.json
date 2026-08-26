@@ -121,7 +121,7 @@
       "message"
     ],
     "accessibilityNotes": "Renders with `role=\"status\"` and `aria-live=\"polite\"`, so screen readers announce the loading label without preempting other content. The pulse animation is gated on `motion-safe:` — users with `prefers-reduced-motion: reduce` see a static bar rather than the pulsing one.",
-    "tokenBudget": 841
+    "tokenBudget": 536
   },
   "tags": [
     "ai",

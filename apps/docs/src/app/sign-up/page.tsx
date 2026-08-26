@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { SignUpShowcase } from "./sign-up-showcase";
+import { AuthShowcase } from "../../components/auth-showcase";
+import { authBlock, authMetadata } from "../../lib/auth-showcases";
 
-export const metadata: Metadata = {
-	title: { absolute: "Sign up — Hex Core" },
-	description:
-		"Live showcase of the auth-sign-up-card block. Wired to the in-memory mockAuthAdapter — do not enter real credentials.",
-};
+export const metadata: Metadata = authMetadata("sign-up");
 
-/** Full-bleed showcase route for the auth-sign-up-card block. */
-export default function SignUpPage() {
-	return <SignUpShowcase />;
+/** Full-bleed showcase route for the `sign-up` auth block. */
+export default function Page() {
+	return <AuthShowcase block={authBlock("sign-up")} />;
 }

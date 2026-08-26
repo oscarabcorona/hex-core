@@ -8,9 +8,65 @@
  * properties that build depended on.
  */
 import { buildApplicationMap, mapSchema, stableStringifyMap } from "./map.js";
+import { loadRegistry, loadRegistryItem } from "../loaders/registry-loader.js";
 import { buildPocFiles, generatePageSource } from "./poc.js";
 
 const failures: string[] = [];
+
+/**
+ * Find identifiers a generated page references but never imports or
+ * declares (TS2304). Prop-shape drift is NOT covered: `app-data-table`
+ * also passed a `page`/`pageCount` API that `Pagination` never had, which
+ * is TS2322 and only a real typecheck would catch.
+ * Checks JSX component tags (`<Foo`) and bare identifiers passed as prop
+ * values (`prop={foo}`), both against the page's imports plus its hoisted
+ * fixture declarations.
+ * @param source - Generated page source
+ * @returns Human-readable descriptions of each undefined reference
+ */
+function undefinedIdentifiers(source: string): string[] {
+	const known = new Set<string>();
+	for (const m of source.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s+from/g)) {
+		for (const piece of m[1].split(",")) {
+			const name = piece.trim().replace(/^type\s+/, "").split(/\s+as\s+/).pop()?.trim();
+			if (name) known.add(name);
+		}
+	}
+	// Value bindings: plain declarations, destructured patterns, function
+	// params and arrow params. Without the last two, `.map((c) => …)` reports
+	// `c` as undefined — a false positive on legitimate code.
+	for (const m of source.matchAll(/(?:const|let|var|function)\s+([A-Za-z_$][\w$]*)/g)) known.add(m[1]);
+	for (const m of source.matchAll(/(?:const|let|var)\s*(\{[^}]*\}|\[[^\]]*\])/g)) {
+		for (const piece of m[1].replace(/[{}[\]]/g, "").split(",")) {
+			const bound = piece.split(":").pop()?.trim().replace(/=.*$/, "").trim();
+			if (bound && /^[A-Za-z_$][\w$]*$/.test(bound)) known.add(bound);
+		}
+	}
+	// Parenthesised arrow params. The list must be identifiers/commas/spaces
+	// only: a looser `[^)]*` spans newlines and swallows an entire JSX block
+	// starting from an earlier `(`, binding the wrong names.
+	for (const m of source.matchAll(/\(\s*([A-Za-z_$][\w$]*(?:\s*,\s*[A-Za-z_$][\w$]*)*)\s*\)\s*=>/g)) {
+		for (const piece of m[1].split(",")) {
+			const bound = piece.trim();
+			if (/^[A-Za-z_$][\w$]*$/.test(bound)) known.add(bound);
+		}
+	}
+	for (const m of source.matchAll(/\b([A-Za-z_$][\w$]*)\s*=>/g)) known.add(m[1]);
+
+	const problems: string[] = [];
+	for (const m of source.matchAll(/<([A-Z][\w$]*)(\.?)/g)) {
+		// `<React.Fragment>` resolves through the member expression, not the
+		// bare name — skip it rather than reporting `React` as undefined.
+		if (m[2] === ".") continue;
+		if (!known.has(m[1])) problems.push(`component <${m[1]}>`);
+	}
+	// `prop={ident}` where ident is a bare reference (not a call, member
+	// access, literal, or arrow function).
+	for (const m of source.matchAll(/=\{([a-z][A-Za-z0-9_$]*)\}/g)) {
+		if (!known.has(m[1])) problems.push(`identifier {${m[1]}}`);
+	}
+	return [...new Set(problems)];
+}
 
 /**
  * Record a failed assertion.
@@ -268,6 +324,123 @@ try {
 	tampered.screens[0].id = "../../evil";
 	if (mapSchema.safeParse(tampered).success) {
 		fail("traversal id", "mapSchema accepted a screen id containing ../");
+	}
+}
+
+
+// ── Every composable item must generate a clean page section ──
+// Originally scoped to page recipes, this guard could not see `timeline` —
+// it is not a section of any page recipe, so the defect it was meant to
+// catch stayed green. Scope by *composability* instead: every block (the
+// page-section family — all 8 page recipes compose only blocks) plus any
+// item whose example is import-led, i.e. claims to be usable as a section.
+//
+// Items whose example is a bare JSX snippet with no imports are docs
+// fragments, not page sections; composing one silently emits an unimported
+// component. That is a real latent gap (~40 recipe-referenced items) but a
+// separate cleanup — see the changeset.
+//
+// NOT_COMPOSABLE items are excluded with a recorded reason per group, not
+// as a blanket "client boundary" claim — several are simply bare-JSX docs
+// snippets. A membership assertion below stops dead entries accumulating.
+const NOT_COMPOSABLE = new Set([
+	// Examples that need React state or pass functions. Generated pages are
+	// Server Components that also export `metadata`, so they cannot be
+	// "use client" — these can never be page sections as written.
+	"calendar", "combobox", "command", "date-picker", "dropzone", "file-tree",
+	"multi-combobox", "time-picker", "form",
+	// Bare-JSX examples with no imports. Already skipped by the composable
+	// filter below; listed so the reason is recorded rather than implicit.
+	"kanban", "resizable", "sonner",
+]);
+
+{
+	const registry = loadRegistry();
+	// A misspelled or removed slug in the exclusion set silently widens it.
+	for (const name of NOT_COMPOSABLE) {
+		if (!registry.items.some((i) => i.name === name)) {
+			fail("catalog guard", `NOT_COMPOSABLE lists "${name}", which is not a registry item`);
+		}
+	}
+	// Police the exclusion set: any composable example that calls a React
+	// hook needs a client boundary and must be listed. Answers "what tells
+	// me when someone adds a stateful component?" — this does.
+	for (const item of registry.items) {
+		const full = loadRegistryItem(item.name);
+		const raw = full?.examples?.[0]?.code ?? "";
+		if (!full?.files.length) continue;
+		if (!(item.category === "block" || raw.trimStart().startsWith("import"))) continue;
+		const code = raw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+		if (/\buse[A-Z]\w*\s*[<(]/.test(code) && !NOT_COMPOSABLE.has(item.name)) {
+			fail("catalog guard", `"${item.name}" example calls a React hook but is not in NOT_COMPOSABLE`);
+		}
+	}
+	let checked = 0;
+	for (const item of registry.items) {
+		if (NOT_COMPOSABLE.has(item.name)) continue;
+		const full = loadRegistryItem(item.name);
+		const example = full?.examples?.[0]?.code ?? "";
+		// npm-backed items (motion primitives, AI-kit hooks) ship no source to
+		// copy, so they can never be a page section regardless of example shape.
+		if ((full?.files.length ?? 0) === 0) continue;
+		const composable = item.category === "block" || example.trimStart().startsWith("import");
+		if (!composable) continue;
+
+		const probe = {
+			id: "probe", name: item.name, segment: item.name,
+			source: "page-recipe" as const, recipe: "landing-page",
+			sections: [{ id: "probe", block: item.name, intent: item.name, role: "primary" }],
+			components: [item.name], score: 0, confidence: "high" as const, matchReason: [],
+		};
+		let page: { source: string };
+		try {
+			page = generatePageSource(probe);
+		} catch (err) {
+			// Items that genuinely cannot be sections are already excluded
+			// above, so within this set a throw IS the defect — degrading
+			// loudly is better than emitting broken code, but it still means
+			// the item can't be composed. Treating a "Catalog defect:" throw
+			// as acceptable is what let `timeline`'s wrong example shape sit
+			// green while the screen using it was silently skipped.
+			const detail = err instanceof Error ? err.message : String(err);
+			fail(`catalog guard (${item.name})`, `cannot generate a section: ${detail.slice(0, 140)}`);
+			continue;
+		}
+		checked += 1;
+		for (const problem of undefinedIdentifiers(page.source)) {
+			fail(`catalog guard (${item.name})`, `generated route uses undefined ${problem}`);
+		}
+	}
+	// High-water mark, not a loose floor: an example that loses its import
+	// line silently leaves the composable set — the same way `timeline` stayed
+	// green. Bump deliberately when coverage grows.
+	const EXPECTED_COVERAGE = 48;
+	if (checked < EXPECTED_COVERAGE) {
+		fail("catalog guard", `generated ${checked} routes, expected >= ${EXPECTED_COVERAGE} — coverage regressed`);
+	}
+}
+
+// ── _shared export routing (TS2305, invisible to undefinedIdentifiers) ──
+// A wrong-module import is still *an* import, so the name lands in `known`
+// and the guard above reports nothing. Before the exportPaths fix this
+// emitted `mockAuthAdapter` from the item's main module, which does not
+// export it. Pin the resolved module directly.
+{
+	const authProbe = {
+		id: "auth", name: "auth", segment: "auth",
+		source: "page-recipe" as const, recipe: "landing-page",
+		sections: [{ id: "auth", block: "auth-verify-otp", intent: "auth", role: "primary" }],
+		components: ["auth-verify-otp"], score: 0, confidence: "high" as const, matchReason: [],
+	};
+	const authPage = generatePageSource(authProbe);
+	if (!authPage.source.includes('from "@/components/_shared/auth-adapter"')) {
+		fail("shared export routing", "mockAuthAdapter must import from @/components/_shared/auth-adapter");
+	}
+	if (authPage.source.includes('mockAuthAdapter } from "@/components/ui/')) {
+		fail("shared export routing", "mockAuthAdapter is imported from the item's main module, which does not export it");
+	}
+	if (!authPage.componentSlugs.includes("auth-verify-otp")) {
+		fail("shared export routing", "owning slug dropped — the _shared file would not be copied");
 	}
 }
 

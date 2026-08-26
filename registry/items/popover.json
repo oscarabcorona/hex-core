@@ -107,7 +107,7 @@
       "dropdown-menu"
     ],
     "accessibilityNotes": "Radix manages focus, aria-expanded on the trigger, and closes on Escape. Content is portalled to body so stacking contexts don't clip it.",
-    "tokenBudget": 625
+    "tokenBudget": 399
   },
   "tags": [
     "popover",

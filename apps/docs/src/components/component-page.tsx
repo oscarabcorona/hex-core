@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import { codeToHtml } from "shiki";
-import type { RegistryItem } from "../lib/registry";
+import type { RegistryItem } from "@hex-core/registry";
 import { INSTALL_COMMAND_LABEL, installCommand, slugify, usageFallback } from "../lib/registry";
 import { DOCS_CONTENT_WRAPPER, SHIKI_THEMES } from "../lib/ui-tokens";
 import { CodeBlock } from "./code-block";

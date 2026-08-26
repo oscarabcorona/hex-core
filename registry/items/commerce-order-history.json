@@ -129,7 +129,7 @@
       "table"
     ],
     "accessibilityNotes": "Renders a semantic <table> with <thead>/<tbody>; column headers have scope='col'. The View link's accessible name includes 'order {id}' via sr-only text so screen-reader users can tell which row's link they're activating.",
-    "tokenBudget": 891
+    "tokenBudget": 903
   },
   "tags": [
     "block",

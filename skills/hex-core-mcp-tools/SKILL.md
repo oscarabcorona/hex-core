@@ -55,6 +55,7 @@ Use `query_graph` whenever you're about to assert a relationship between catalog
 - **Passing `includeExamples: false` to `get_component` by default.** Examples are the fastest way to grok API shape. Keep them on unless you're token-budgeting hard.
 - **Using `resolve_spec` for a multi-page brief.** It ranks one feature. For "a SaaS site with a landing page and a dashboard", `map_application` segments the brief and types each screen — then everything downstream (install, poc, checklist) falls out of the map.
 - **Holding a `scaffold_poc` response in context.** It embeds full file contents (tens of KB) by design. Write the files immediately, keep only `routes` / `npmDependencies` / `installOnlyScreens` for reasoning.
+- **Hand-building role or empty-state switching into a scaffolded POC.** The tree already ships a cookie-backed demo panel (`viewer` / `member` / `admin`, populated / empty) wired into every frame. To extend it, edit `lib/demo.ts` and gate frames on `can.*`, never on the role name.
 
 ## Step 4 — Input schema strictness
 

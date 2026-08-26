@@ -1,8 +1,3 @@
-import { defineConfig } from "vitest/config";
+import { definePackageTests } from "../../vitest.base.js";
 
-export default defineConfig({
-	test: {
-		environment: "node",
-		include: ["test/**/*.test.ts"],
-	},
-});
+export default definePackageTests();

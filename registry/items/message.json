@@ -79,6 +79,11 @@
       "type": "component"
     },
     {
+      "path": "components/ui/types.ts",
+      "content": "/**\n * Shared type primitives for the `ai` component category. Kept SDK-agnostic\n * so a single `MessageProps`/`ToolCallProps` shape adapts to AI SDK\n * (`UIMessage.parts`), LangChain (`BaseMessage`), Mastra agent outputs, and\n * any custom backend with a thin caller-side mapping function.\n */\n\n/** Speaker of a message. Matches AI SDK + LangChain role conventions. */\nexport type Role = \"user\" | \"assistant\" | \"system\" | \"tool\";\n\n/**\n * Lifecycle of a tool/function invocation, surfaced as the `state` prop on\n * `ToolCall`. `pending` = queued, `running` = executing, `result` = returned\n * a value, `error` = threw. Picked to align with AI SDK v5 `tool-*` parts.\n */\nexport type ToolCallState = \"pending\" | \"running\" | \"result\" | \"error\";\n",
+      "type": "component"
+    },
+    {
       "path": "lib/chart-palette.ts",
       "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
       "type": "lib"
@@ -156,7 +161,7 @@
       "message-actions"
     ],
     "accessibilityNotes": "Renders as a div with `data-role`. For screen-reader chat semantics, wrap MessageList in `role=\"log\"` and consider `aria-live=\"polite\"` on the streaming container.",
-    "tokenBudget": 899
+    "tokenBudget": 685
   },
   "tags": [
     "ai",

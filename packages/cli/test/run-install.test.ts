@@ -24,9 +24,12 @@ function fakeSpawn(exitCode = 0) {
 	const calls: Array<{ command: string; args: string[] }> = [];
 	const fn = vi.fn((command: string, args: ReadonlyArray<string>) => {
 		calls.push({ command, args: [...args] });
-		const ee = new EventEmitter() as unknown as ChildProcess;
+		// `runInstall` only ever awaits `close`, so an EventEmitter is a
+		// sufficient stand-in. Typing the local as the intersection keeps
+		// both the `emit` call and the `ChildProcess` return type honest.
+		const ee: EventEmitter & Partial<ChildProcess> = new EventEmitter();
 		// Schedule the close on the next tick so the awaiting Promise has a chance to register.
-		setImmediate(() => (ee as unknown as EventEmitter).emit("close", exitCode));
+		setImmediate(() => ee.emit("close", exitCode));
 		return ee;
 	});
 	return { fn, calls };

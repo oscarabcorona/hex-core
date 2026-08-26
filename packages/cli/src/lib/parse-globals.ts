@@ -31,11 +31,52 @@ export interface ParsedTokens {
 export function parseGlobalsCss(css: string): ParsedTokens {
 	const light = extractBlockTokens(css, ":root");
 	const darkRaw = extractBlockTokens(css, "\\.dark");
+	// The ramp is declared in `:root` for both modes, so light is the lookup
+	// table either way.
 	return {
-		light,
-		dark: darkRaw,
+		light: resolveReferences(light, light),
+		dark: resolveReferences(darkRaw, light),
 		hasDarkBlock: hasBlock(css, "\\.dark"),
 	};
+}
+
+/** Matches a declaration whose whole value is a single `var()` reference. */
+const VAR_REFERENCE = /^var\(\s*--([a-zA-Z0-9-]+)\s*\)$/;
+
+/**
+ * Follow `var()` indirection so every token resolves to a literal.
+ *
+ * A palette-backed theme writes `--primary: var(--slate-900)` and puts the
+ * triplet on the ramp entry. Callers here — the `theme edit -i` picker —
+ * do contrast math on these values, so they need the colour, not a pointer
+ * to it. Chains are followed to a fixed depth; a value that never bottoms
+ * out (a typo, or a reference to a variable the file doesn't declare) is
+ * returned as-is rather than throwing, because the picker showing a raw
+ * `var(...)` is a far better failure than the command refusing to run.
+ * @param tokens - Declarations from one block
+ * @param ramp - Where referenced entries are declared
+ * @returns The same keys, with references resolved to literals
+ */
+function resolveReferences(
+	tokens: Record<string, string>,
+	ramp: Record<string, string>,
+): Record<string, string> {
+	const MAX_DEPTH = 8;
+	const resolved: Record<string, string> = {};
+
+	for (const [key, value] of Object.entries(tokens)) {
+		let current = value;
+		for (let depth = 0; depth < MAX_DEPTH; depth++) {
+			const reference = VAR_REFERENCE.exec(current);
+			if (!reference) break;
+			const next = ramp[reference[1]];
+			if (next === undefined) break;
+			current = next;
+		}
+		resolved[key] = current;
+	}
+
+	return resolved;
 }
 
 function hasBlock(css: string, blockSelector: string): boolean {

@@ -136,7 +136,7 @@
       "popover"
     ],
     "accessibilityNotes": "Radix traps focus, handles Escape to close, and wires aria-labelledby/describedby to SheetTitle/Description. The Close button has sr-only text. Always include a SheetTitle.",
-    "tokenBudget": 861
+    "tokenBudget": 1397
   },
   "tags": [
     "sheet",

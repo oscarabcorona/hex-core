@@ -1,6 +1,14 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+// The ENCODING IS NAMED, not defaulted. `gpt-tokenizer`'s bare entry point
+// re-exports whichever encoding is current for the newest OpenAI model, so it
+// silently became o200k_base in 3.x. That made the budgets baked in here
+// disagree with `scripts/audit-tokens.ts` and with the ceilings pinned in
+// `packages/mcp-server/src/contract.test.ts` (which always named cl100k_base),
+// while every comment claimed the three agreed. Naming it is what makes the
+// claim survive the next major.
+import { encode } from "gpt-tokenizer/encoding/cl100k_base";
 import {
 	componentSchemaDefinition,
 	recipeSchemaDefinition,
@@ -73,7 +81,9 @@ function findSchemaFiles(): SchemaFile[] {
 		const categoryDir = path.join(COMPONENTS_SRC, dirName);
 		if (!fs.existsSync(categoryDir)) continue;
 
-		for (const componentDir of fs.readdirSync(categoryDir)) {
+		// Sorted: readdir order is filesystem-dependent (APFS vs ext4), and
+		// this order reaches the committed registry/. CI diffs that artifact.
+		for (const componentDir of fs.readdirSync(categoryDir).sort()) {
 			const fullDir = path.join(categoryDir, componentDir);
 			if (!fs.statSync(fullDir).isDirectory()) continue;
 
@@ -94,7 +104,7 @@ function findSchemaFiles(): SchemaFile[] {
 	// Schema-only roots — flat directories of `<name>.schema.ts` files.
 	for (const root of SCHEMA_ONLY_ROOTS) {
 		if (!fs.existsSync(root.dir)) continue;
-		for (const file of fs.readdirSync(root.dir)) {
+		for (const file of fs.readdirSync(root.dir).sort()) {
 			if (!file.endsWith(".schema.ts")) continue;
 			const name = file.replace(/\.schema\.ts$/, "");
 			results.push({
@@ -110,67 +120,64 @@ function findSchemaFiles(): SchemaFile[] {
 }
 
 /**
- * Extract the first exported object-literal const from a source file. The
- * authoring convention is `export const <x>Schema = { ... }` for
- * components and `export const <x>Recipe = { ... }` for recipes; this
- * helper finds either and balances braces (respecting strings/templates)
- * to slice out the literal. The returned object is typed as `unknown`;
- * callers must validate it through a Zod schema before use so the regex
- * can never silently accept an incidental same-suffixed sibling export.
+ * Load the exported definition object from a schema or recipe module.
+ *
+ * The authoring convention is `export const <x>Schema = { ... }` for
+ * components and `export const <x>Recipe = { ... }` for recipes. This
+ * imports the module for real (the script runs under `tsx`) rather than
+ * slicing the object literal out of the source text, so schema files are
+ * free to reference imported constants, shared fragments and computed
+ * values. The returned object is typed as `unknown`; callers must
+ * validate it through a Zod schema before use.
  * @param filePath - Absolute path to the source file
- * @returns The parsed object as `unknown`, or null if extraction fails
+ * @param suffix - Which export convention to look for
+ * @returns The exported definition as `unknown`, or null if none is found
  */
-function extractObjectLiteral(filePath: string): unknown {
-	const content = fs.readFileSync(filePath, "utf-8");
-
-	// Require the suffix to be at a word boundary so `fooSchemaHelper = ...`
-	// won't match. `(?![a-zA-Z0-9_])` rejects any trailing identifier char.
-	const start = content.search(/export\s+const\s+\w+(?:Schema|Recipe)(?![a-zA-Z0-9_])[^=]*=\s*\{/);
-	if (start === -1) return null;
-
-	const braceOpen = content.indexOf("{", start);
-	if (braceOpen === -1) return null;
-
-	let depth = 0;
-	let inString: '"' | "'" | "`" | null = null;
-	let escapeNext = false;
-	let end = -1;
-	for (let i = braceOpen; i < content.length; i++) {
-		const ch = content[i];
-		if (escapeNext) {
-			escapeNext = false;
-			continue;
-		}
-		if (inString) {
-			if (ch === "\\") {
-				escapeNext = true;
-				continue;
-			}
-			if (ch === inString) inString = null;
-			continue;
-		}
-		if (ch === '"' || ch === "'" || ch === "`") {
-			inString = ch;
-		} else if (ch === "{") {
-			depth++;
-		} else if (ch === "}") {
-			depth--;
-			if (depth === 0) {
-				end = i;
-				break;
-			}
-		}
-	}
-	if (end === -1) return null;
-
-	const objStr = content.slice(braceOpen, end + 1);
+async function loadDefinition(
+	filePath: string,
+	suffix: "Schema" | "Recipe",
+): Promise<unknown> {
+	let mod: unknown;
 	try {
-		const fn = new Function(`return (${objStr})`);
-		return fn();
+		mod = await import(pathToFileURL(filePath).href);
 	} catch (err) {
-		console.warn(`  Warning: Could not parse object from ${filePath}`, err);
+		console.error(`  ERROR: Could not import ${path.relative(ROOT, filePath)}`, err);
 		return null;
 	}
+	if (typeof mod !== "object" || mod === null) {
+		console.error(`  ERROR: ${path.relative(ROOT, filePath)} is not a module namespace`);
+		return null;
+	}
+	const exports: Record<string, unknown> = { ...mod };
+
+	// EXACTLY ONE, or refuse. The previous rule took the alphabetically-first
+	// match: deterministic, but arbitrary — and arbitrary in a direction nobody
+	// would predict, because `Object.keys().sort()` puts every capitalised name
+	// ahead of every camelCase one. A schema file that grew a Zod
+	// `PropsSchema` beside its `buttonSchema` would have silently shipped the
+	// Zod object as the component definition, to be rejected downstream by a
+	// validator pointing at the wrong thing.
+	//
+	// All 159 schemas and every recipe export exactly one, so uniqueness costs
+	// nothing today and turns that class of mistake into a build error naming
+	// both candidates. Name the second export something that does not end in
+	// `${suffix}`, or move it to a sibling module.
+	const matches = Object.keys(exports)
+		.filter((k) => k.endsWith(suffix))
+		.sort();
+	if (matches.length === 0) {
+		console.error(`  ERROR: ${path.relative(ROOT, filePath)} exports no \`*${suffix}\` binding`);
+		return null;
+	}
+	if (matches.length > 1) {
+		console.error(
+			`  ERROR: ${path.relative(ROOT, filePath)} exports ${String(matches.length)} ` +
+				`\`*${suffix}\` bindings (${matches.join(", ")}) — exactly one is required so the ` +
+				`definition picked is never a coin flip.`,
+		);
+		return null;
+	}
+	return exports[matches[0]];
 }
 
 /**
@@ -183,6 +190,32 @@ function readComponentSource(filePath: string): string {
 }
 
 /**
+ * Measure what installing a component actually costs an LLM, in tokens.
+ *
+ * Counts the component's own source plus the dependency files unique to
+ * it, and deliberately excludes `type: "lib"` — every item bundles the
+ * same shared `lib/*.ts`, so including them would add a flat ~2.4k to
+ * every component and destroy the ranking signal the budget exists for.
+ *
+ * Schema-only items (motion, hooks) ship no source to measure, so their
+ * author-declared value stands.
+ *
+ * Replaces 161 hand-typed integers that nothing recomputed and that had
+ * drifted badly — `data-table` declared 820 against a real 2,269.
+ * @param files - The item's emitted file list
+ * @param declared - The author-declared budget, used as the fallback
+ * @returns The measured token count, or `declared` when there is no source
+ */
+function deriveTokenBudget(
+	files: Array<{ content: string; type: string }>,
+	declared: number | undefined,
+): number | undefined {
+	const measurable = files.filter((f) => f.type !== "lib");
+	if (measurable.length === 0) return declared;
+	return encode(measurable.map((f) => f.content).join("\n")).length;
+}
+
+/**
  * Read all TypeScript lib files from the shared lib directory.
  * @returns An array of file descriptors with relative path, content, and type "lib"
  */
@@ -190,7 +223,7 @@ function readLibFiles(): Array<{ path: string; content: string; type: string }> 
 	const files: Array<{ path: string; content: string; type: string }> = [];
 	if (!fs.existsSync(LIB_DIR)) return files;
 
-	for (const file of fs.readdirSync(LIB_DIR)) {
+	for (const file of fs.readdirSync(LIB_DIR).sort()) {
 		if (file.endsWith(".ts") || file.endsWith(".tsx")) {
 			files.push({
 				path: `lib/${file}`,
@@ -226,25 +259,28 @@ interface RegistryFile {
  *
  * Files dedup by target path; the caller appends to `registryItem.files`.
  */
-function discoverDependencies(
+function collectDirectDependencies(
 	componentPath: string,
 	source: string,
 	mainName: string,
-): RegistryFile[] {
-	const out = new Map<string, RegistryFile>();
+): Map<string, { file: RegistryFile; origin: string }> {
+	const out = new Map<string, { file: RegistryFile; origin: string }>();
 	const componentDir = path.dirname(componentPath);
 
 	// 1. Sibling -variants files in the same directory.
-	for (const f of fs.readdirSync(componentDir)) {
+	for (const f of fs.readdirSync(componentDir).sort()) {
 		if (!/-variants\.(ts|tsx)$/.test(f)) continue;
 		if (f === `${mainName}.tsx`) continue;
 		const baseName = f.replace(/\.ts$/, "").replace(/\.tsx$/, "");
 		const targetPath = `components/ui/${baseName}.tsx`;
 		if (out.has(targetPath)) continue;
 		out.set(targetPath, {
-			path: targetPath,
-			content: fs.readFileSync(path.join(componentDir, f), "utf-8"),
-			type: "component",
+			file: {
+				path: targetPath,
+				content: fs.readFileSync(path.join(componentDir, f), "utf-8"),
+				type: "component",
+			},
+			origin: path.join(componentDir, f),
 		});
 	}
 
@@ -264,9 +300,12 @@ function discoverDependencies(
 			continue;
 		}
 		out.set(targetPath, {
-			path: targetPath,
-			content: fs.readFileSync(sourcePath, "utf-8"),
-			type: "component",
+			file: {
+				path: targetPath,
+				content: fs.readFileSync(sourcePath, "utf-8"),
+				type: "component",
+			},
+			origin: sourcePath,
 		});
 	}
 
@@ -284,13 +323,80 @@ function discoverDependencies(
 			continue;
 		}
 		out.set(targetPath, {
-			path: targetPath,
-			content: fs.readFileSync(sourcePath, "utf-8"),
-			type: "component",
+			file: {
+				path: targetPath,
+				content: fs.readFileSync(sourcePath, "utf-8"),
+				type: "component",
+			},
+			origin: sourcePath,
 		});
 	}
 
-	// 4. Direct same-directory sibling imports: `./<name>[.js]`. Skips
+	// 4. Cross-directory component imports: `../<name>/<name>[.js]` and
+	//    `../../<category>/<name>/<name>[.js]` — one component composing
+	//    another from a sibling or another category directory.
+	//
+	//    `rewriteRegistryImports` in @hex-core/payload already rewrites
+	//    these to `@/components/ui/<name>`, so the consumer's import
+	//    resolves — but only if the file is actually shipped alongside it.
+	//    Without this rule the item emits a dangling import: `hex add
+	//    sources` produced a `sources.tsx` importing a `citation` that was
+	//    never written.
+	//
+	//    `\1` ties the directory name to the file name, which is the
+	//    convention every component follows and keeps this from matching
+	//    `../_shared/x` (rule 3) or `../<dir>/<dir>-variants` (rule 2).
+	const crossDirComponents =
+		/(?:from|import|export\s+(?:\*|\{[^}]*\})\s+from)\s+["'](?:\.\.\/)+(?:[a-z][a-z0-9-]*\/)?([a-z][a-z0-9-]*)\/\1(?:\.js)?["']/g;
+	for (const m of source.matchAll(crossDirComponents)) {
+		const name = m[1];
+		if (!name || name === mainName) continue;
+		const importSpec = m[0].match(/["']([^"']+)["']/)?.[1] ?? "";
+		const sourcePath = resolveSourceFile(componentDir, importSpec);
+		if (!sourcePath) {
+			console.warn(`  Warning: could not locate ${importSpec} from ${mainName}`);
+			continue;
+		}
+		const ext = sourcePath.endsWith(".tsx") ? ".tsx" : ".ts";
+		const targetPath = `components/ui/${name}${ext}`;
+		if (out.has(targetPath)) continue;
+		out.set(targetPath, {
+			file: {
+				path: targetPath,
+				content: fs.readFileSync(sourcePath, "utf-8"),
+				type: "component",
+			},
+			origin: sourcePath,
+		});
+	}
+
+	// 4b. Category-level shared modules: `../<name>[.js]` — a single
+	//     segment with no directory after it, which is what distinguishes
+	//     `../types.js` (the `ai/` category's shared type module) from
+	//     `../<name>/<name>.js` (rule 4) and `../lib/utils.js` (shipped
+	//     separately as a lib file).
+	const categoryModules =
+		/(?:from|import|export\s+(?:\*|\{[^}]*\})\s+from)\s+["']\.\.\/([a-z][a-z0-9-]*)(?:\.js)?["']/g;
+	for (const m of source.matchAll(categoryModules)) {
+		const name = m[1];
+		if (!name || name === mainName) continue;
+		const importSpec = m[0].match(/["']([^"']+)["']/)?.[1] ?? "";
+		const sourcePath = resolveSourceFile(componentDir, importSpec);
+		if (!sourcePath) continue;
+		const ext = sourcePath.endsWith(".tsx") ? ".tsx" : ".ts";
+		const targetPath = `components/ui/${name}${ext}`;
+		if (out.has(targetPath)) continue;
+		out.set(targetPath, {
+			file: {
+				path: targetPath,
+				content: fs.readFileSync(sourcePath, "utf-8"),
+				type: "component",
+			},
+			origin: sourcePath,
+		});
+	}
+
+	// 5. Direct same-directory sibling imports: `./<name>[.js]`. Skips
 	//    `*-variants` (rule 1) and the entry's own filename. The shipped
 	//    file keeps its source extension (.ts vs .tsx) so utility modules
 	//    don't pretend to be React components.
@@ -311,14 +417,67 @@ function discoverDependencies(
 		const targetPath = `components/ui/${name}${ext}`;
 		if (out.has(targetPath)) continue;
 		out.set(targetPath, {
-			path: targetPath,
-			content: fs.readFileSync(sourcePath, "utf-8"),
-			type: "component",
+			file: {
+				path: targetPath,
+				content: fs.readFileSync(sourcePath, "utf-8"),
+				type: "component",
+			},
+			origin: sourcePath,
 		});
+	}
+
+	return out;
+}
+
+/**
+ * Every file a registry item must ship, following imports transitively.
+ *
+ * `collectDirectDependencies` only sees the entry component's own source.
+ * That is not enough: pulling in `button.tsx` also has to pull in the
+ * `button-variants.tsx` it imports, and pulling in `command.tsx` has to
+ * pull in `dialog.tsx`. Walking the closure is what makes an installed
+ * item actually compile.
+ *
+ * Before this walk, 23 items shipped dangling imports — `hex add
+ * auth-sign-in-split` wrote a file importing six components that were
+ * never written beside it.
+ *
+ * Dedups by target path, and tracks visited source paths so a cycle
+ * between two components cannot loop forever.
+ * @param componentPath - Absolute path to the item's entry source file
+ * @param source - The entry file's contents
+ * @param mainName - The item's slug, used to skip self-references
+ * @returns Every file to ship, entry excluded (the caller adds it)
+ */
+function discoverDependencies(
+	componentPath: string,
+	source: string,
+	mainName: string,
+): RegistryFile[] {
+	const out = new Map<string, RegistryFile>();
+	const queue: Array<{ filePath: string; source: string }> = [
+		{ filePath: componentPath, source },
+	];
+	const visited = new Set<string>([componentPath]);
+
+	while (queue.length > 0) {
+		const next = queue.shift();
+		if (!next) break;
+		for (const [targetPath, { file, origin }] of collectDirectDependencies(
+			next.filePath,
+			next.source,
+			mainName,
+		)) {
+			if (!out.has(targetPath)) out.set(targetPath, file);
+			if (visited.has(origin)) continue;
+			visited.add(origin);
+			queue.push({ filePath: origin, source: file.content });
+		}
 	}
 
 	return [...out.values()];
 }
+
 
 /**
  * Resolve a relative `.js`-suffixed monorepo import to an actual `.ts(x)`
@@ -373,9 +532,9 @@ const componentsBySlug = new Map<string, CompiledComponent>();
 for (const sf of schemaFiles) {
 	console.log(`Processing: ${sf.name} (${sf.category})`);
 
-	const raw = extractObjectLiteral(sf.schemaPath);
+	const raw = await loadDefinition(sf.schemaPath, "Schema");
 	if (!raw) {
-		console.error(`  ERROR: Failed to parse schema for ${sf.name}`);
+		console.error(`  ERROR: Failed to load schema for ${sf.name}`);
 		continue;
 	}
 
@@ -411,6 +570,8 @@ for (const sf of schemaFiles) {
 					];
 				})();
 
+	const ai = { ...schema.ai, tokenBudget: deriveTokenBudget(itemFiles, schema.ai.tokenBudget) };
+
 	// Build the registry item
 	const registryItem = {
 		$schema: "https://hex-core.dev/schema/registry-item.json",
@@ -428,7 +589,7 @@ for (const sf of schemaFiles) {
 		dependencies: schema.dependencies,
 		tokensUsed: schema.tokensUsed,
 		examples: schema.examples,
-		ai: schema.ai,
+		ai,
 		tags: schema.tags,
 	};
 
@@ -445,7 +606,7 @@ for (const sf of schemaFiles) {
 		subcategory: schema.subcategory,
 		tags: schema.tags,
 		internalDeps: schema.dependencies.internal,
-		tokenBudget: schema.ai.tokenBudget,
+		tokenBudget: ai.tokenBudget,
 	});
 
 	componentsBySlug.set(schema.name, {
@@ -514,9 +675,9 @@ if (fs.existsSync(RECIPES_SRC)) {
 
 	for (const file of recipeFiles) {
 		const fullPath = path.join(RECIPES_SRC, file);
-		const raw = extractObjectLiteral(fullPath);
+		const raw = await loadDefinition(fullPath, "Recipe");
 		if (!raw) {
-			console.error(`  ERROR: Failed to parse recipe ${file}`);
+			console.error(`  ERROR: Failed to load recipe ${file}`);
 			continue;
 		}
 

@@ -1,4 +1,4 @@
-import { cn } from "../lib/utils";
+import { cn } from "@hex-core/components/utils";
 import type { TocSection } from "./on-this-page";
 
 /**

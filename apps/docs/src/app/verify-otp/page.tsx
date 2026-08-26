@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { VerifyOtpShowcase } from "./verify-otp-showcase";
+import { AuthShowcase } from "../../components/auth-showcase";
+import { authBlock, authMetadata } from "../../lib/auth-showcases";
 
-export const metadata: Metadata = {
-	title: { absolute: "Verify OTP — Hex Core" },
-	description:
-		"Live showcase of the auth-verify-otp block. Wired to the in-memory mockAuthAdapter — do not enter real credentials.",
-};
+export const metadata: Metadata = authMetadata("verify-otp");
 
-/** Full-bleed showcase route for the auth-verify-otp block. */
-export default function VerifyOtpPage() {
-	return <VerifyOtpShowcase />;
+/** Full-bleed showcase route for the `verify-otp` auth block. */
+export default function Page() {
+	return <AuthShowcase block={authBlock("verify-otp")} />;
 }

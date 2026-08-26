@@ -158,7 +158,7 @@
       "marketing-cta"
     ],
     "accessibilityNotes": "Section title is <h2>. Details and form columns are siblings, so screen readers reach details first in source order — put the most important channel first. Form labels and submit handling are your responsibility.",
-    "tokenBudget": 1141
+    "tokenBudget": 625
   },
   "tags": [
     "block",

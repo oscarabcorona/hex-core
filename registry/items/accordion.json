@@ -118,7 +118,7 @@
       "card"
     ],
     "accessibilityNotes": "Full keyboard navigation (arrow keys, Home, End, Enter/Space). Radix handles aria-expanded, aria-controls, role='region'.",
-    "tokenBudget": 725
+    "tokenBudget": 652
   },
   "tags": [
     "accordion",

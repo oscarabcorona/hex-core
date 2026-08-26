@@ -1,6 +1,10 @@
 "use client";
 
-import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "../../components/collapsible/collapsible.js";
 import * as React from "react";
 import { cn } from "../../lib/utils.js";
 
@@ -44,11 +48,11 @@ function Reasoning({
 		label ?? (typeof durationMs === "number" ? formatThoughtFor(durationMs) : "Thinking");
 
 	return (
-		<CollapsiblePrimitive.Root
+		<Collapsible
 			defaultOpen={defaultOpen}
 			className={cn("overflow-hidden rounded-md border-l-2 border-foreground/15 bg-muted/20", className)}
 		>
-			<CollapsiblePrimitive.Trigger
+			<CollapsibleTrigger
 				className={cn(
 					"group flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-muted-foreground",
 					"transition-all duration-[var(--duration-normal,200ms)] ease-out",
@@ -59,11 +63,11 @@ function Reasoning({
 				<SparkleGlyph />
 				<span className="font-medium italic">{headerLabel}</span>
 				<Chevron />
-			</CollapsiblePrimitive.Trigger>
-			<CollapsiblePrimitive.Content className="overflow-hidden border-t border-foreground/[0.06] px-3 py-2 text-sm text-muted-foreground">
+			</CollapsibleTrigger>
+			<CollapsibleContent className="overflow-hidden border-t border-foreground/[0.06] px-3 py-2 text-sm text-muted-foreground">
 				{children}
-			</CollapsiblePrimitive.Content>
-		</CollapsiblePrimitive.Root>
+			</CollapsibleContent>
+		</Collapsible>
 	);
 }
 

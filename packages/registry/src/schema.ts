@@ -282,6 +282,17 @@ export const tokenValueSchema = z.object({
 	value: z.string(),
 	description: z.string().optional(),
 	type: tokenTypeEnum,
+	/**
+	 * The {@link paletteSchema} entry this token was drawn from, when the
+	 * theme has a palette.
+	 *
+	 * `value` always holds the resolved literal, so every consumer that
+	 * does contrast math or lightness inversion keeps working unchanged.
+	 * `ref` is what lets the CSS emitter write `var(--slate-900)` instead
+	 * of repeating the triplet — so a consumer can re-tint the whole theme
+	 * by overriding one ramp entry.
+	 */
+	ref: z.string().optional(),
 });
 
 export type TokenValue = z.infer<typeof tokenValueSchema>;
@@ -524,6 +535,25 @@ export const themeAttributionSchema = z.object({
 
 export type ThemeAttribution = z.infer<typeof themeAttributionSchema>;
 
+/**
+ * The raw colour ramp a theme is built from — tier 1 of the token pyramid.
+ *
+ * Semantic tokens draw from it and record which entry they used in their
+ * `ref` field. `--primary` and `--ring` are the same graphite in the
+ * default theme; without a palette that value is typed twice and can
+ * drift. With one, re-branding is a single edit and every semantic token
+ * drawn from that entry follows.
+ *
+ * Optional: a theme may declare literal values throughout, and the 143
+ * imported brand presets do.
+ */
+export const paletteSchema = z.record(
+	z.string().regex(/^[a-z][a-z0-9-]*$/),
+	z.string(),
+);
+
+export type Palette = z.infer<typeof paletteSchema>;
+
 export const themeSchema = z.object({
 	name: z.string(),
 	displayName: z.string(),
@@ -532,6 +562,7 @@ export const themeSchema = z.object({
 		light: tokenSetSchema,
 		dark: tokenSetSchema,
 	}),
+	palette: paletteSchema.optional(),
 	brand: z.string().optional(),
 	category: themeCategorySchema.optional(),
 	tags: z.array(z.string()).optional(),
@@ -554,6 +585,7 @@ export const strictThemeSchema = z.object({
 		light: strictTokenSetSchema,
 		dark: strictTokenSetSchema,
 	}),
+	palette: paletteSchema.optional(),
 	brand: z.string().optional(),
 	category: themeCategorySchema.optional(),
 	tags: z.array(z.string()).optional(),
@@ -610,20 +642,42 @@ export type SemanticTokenSet = z.infer<typeof semanticTokenSetSchema>;
 
 // ─── Component Schema Definition (used in .schema.ts files) ───
 
+/**
+ * The authoring contract for a `<name>.schema.ts` file.
+ *
+ * Every field a build step can derive carries a `.default()`, so a new
+ * component's schema declares only what a human actually knows. The
+ * registry build fills the rest:
+ *
+ * - `dependencies` — re-derived from the component's import graph by
+ *   `discoverDependencies()` in `scripts/build-registry.ts`. Declare it
+ *   only to pin something the import scan cannot see.
+ * - `ai.tokenBudget` — measured from the emitted registry item.
+ * - `props` / `variants` / `slots` / `tokensUsed` / `examples` / `tags` —
+ *   empty is a legitimate answer for a simple component.
+ *
+ * Annotate new schema files with {@link ComponentSchemaInput} (what you
+ * write); tooling consumes {@link ComponentSchemaDefinition} (what comes
+ * out after defaults are applied).
+ */
 export const componentSchemaDefinition = z.object({
 	name: z.string(),
 	displayName: z.string(),
 	description: z.string(),
 	category: categoryEnum,
 	subcategory: z.string().optional(),
-	props: z.array(propSchema),
-	variants: z.array(variantSchema),
-	slots: z.array(slotSchema),
-	dependencies: dependencySchema,
-	tokensUsed: z.array(z.string()),
-	examples: z.array(usageExampleSchema),
+	props: z.array(propSchema).default([]),
+	variants: z.array(variantSchema).default([]),
+	slots: z.array(slotSchema).default([]),
+	dependencies: dependencySchema.default({ npm: [], internal: [], peer: [] }),
+	tokensUsed: z.array(z.string()).default([]),
+	examples: z.array(usageExampleSchema).default([]),
 	ai: aiHintSchema,
-	tags: z.array(z.string()),
+	tags: z.array(z.string()).default([]),
 });
 
+/** A parsed schema definition — every derivable field populated. */
 export type ComponentSchemaDefinition = z.infer<typeof componentSchemaDefinition>;
+
+/** What an author writes in a `<name>.schema.ts` file. */
+export type ComponentSchemaInput = z.input<typeof componentSchemaDefinition>;

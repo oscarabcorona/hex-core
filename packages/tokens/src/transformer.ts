@@ -3,6 +3,39 @@ import type { Theme } from "@hex-core/registry";
 interface TokenLike {
 	value: string;
 	type?: string;
+	ref?: string;
+}
+
+/**
+ * Extract the palette key a token was drawn from.
+ * @param token - A token object potentially carrying a `ref`
+ * @returns The palette key, or undefined when the token holds a literal
+ */
+function extractRef(token: unknown): string | undefined {
+	if (typeof token === "object" && token !== null && "ref" in token) {
+		const { ref } = token;
+		return typeof ref === "string" ? ref : undefined;
+	}
+	return undefined;
+}
+
+/**
+ * Render a token for CSS, pointing at its ramp entry when it has one.
+ *
+ * A token drawn from the palette emits `var(--slate-900)` rather than the
+ * triplet it resolves to. That indirection is the point of a two-tier
+ * palette: `--primary` and `--ring` come from one graphite entry, so a
+ * consumer re-tints everything downstream by overriding `--slate-900` in
+ * their own stylesheet.
+ *
+ * Tokens without a `ref` — every one of the 143 imported brand presets —
+ * emit their literal value unchanged.
+ * @param token - The token to render
+ * @returns CSS-ready value text
+ */
+function renderTokenValue(token: unknown): string {
+	const key = extractRef(token);
+	return key === undefined ? extractValue(token) : `var(--${key})`;
 }
 
 /**
@@ -46,14 +79,17 @@ export function themeToCss(theme: Theme): string {
 
 	lines.push("@layer base {");
 	lines.push("  :root {");
+	for (const [key, value] of Object.entries(theme.palette ?? {})) {
+		lines.push(`    --${key}: ${value};`);
+	}
 	for (const [key, token] of Object.entries(theme.tokens.light)) {
-		lines.push(`    --${key}: ${extractValue(token)};`);
+		lines.push(`    --${key}: ${renderTokenValue(token)};`);
 	}
 	lines.push("  }");
 	lines.push("");
 	lines.push("  .dark {");
 	for (const [key, token] of Object.entries(theme.tokens.dark)) {
-		lines.push(`    --${key}: ${extractValue(token)};`);
+		lines.push(`    --${key}: ${renderTokenValue(token)};`);
 	}
 	lines.push("  }");
 	lines.push("}");
@@ -220,6 +256,22 @@ export interface GenerateGlobalsCssOptions {
 	 *   utilities like `bg-background` resolve directly. No `tailwind.config.ts` needed.
 	 */
 	target?: "v3" | "v4";
+	/**
+	 * Explicit content globs for Tailwind v4 to scan, relative to the CSS file.
+	 *
+	 * When set, the import becomes `@import "tailwindcss" source(none)` followed
+	 * by one `@source` rule per glob — automatic detection is turned off.
+	 *
+	 * Pass this for an app generated *inside* an existing repository. Tailwind's
+	 * automatic scan walks up past the app to the enclosing git root and reads
+	 * whatever it finds — including binary files, whose bytes become class
+	 * candidates and emit unparseable utilities. Scoping the scan to the app's
+	 * own directories is the fix. Omit it for an app at the root of its own
+	 * repository, where automatic detection is correct.
+	 *
+	 * Ignored when `target` is `"v3"`, which has no `@source` rule.
+	 */
+	sources?: readonly string[];
 }
 
 /**
@@ -230,8 +282,8 @@ export interface GenerateGlobalsCssOptions {
  * @returns A full globals.css string ready to drop into `app/globals.css`.
  */
 export function generateGlobalsCss(theme: Theme, options: GenerateGlobalsCssOptions = {}): string {
-	const { target = "v3" } = options;
-	if (target === "v4") return generateGlobalsCssV4(theme);
+	const { target = "v3", sources } = options;
+	if (target === "v4") return generateGlobalsCssV4(theme, sources);
 	return generateGlobalsCssV3(theme);
 }
 
@@ -256,19 +308,22 @@ function generateGlobalsCssV3(theme: Theme): string {
 	return lines.join("\n");
 }
 
-function generateGlobalsCssV4(theme: Theme): string {
+/**
+ * Emit only the token layer — the raw ramp, the semantic tokens, and the
+ * Tailwind `--color-*` bridge.
+ *
+ * Split out of {@link generateGlobalsCss} so a consumer that already owns
+ * its `@import`s, custom variants and non-colour `@theme` block can
+ * generate just the colours. The docs site does exactly that: its
+ * `globals.css` used to hand-copy this output four times over and carried
+ * a "KEEP IN SYNC" comment to prove it.
+ *
+ * @param theme - The theme to emit
+ * @returns The `:root` / `.dark` / `@theme inline` blocks, plus the base
+ *   `body` and border rules
+ */
+export function generateThemeCssV4(theme: Theme): string {
 	const lines: string[] = [];
-
-	lines.push(`@import "tailwindcss";`);
-	// tw-animate-css ports tailwindcss-animate's animate-in/out, fade-*, slide-*,
-	// zoom-* utilities to v4 as a pure CSS import. Every Hex component that
-	// transitions (dialog, dropdown-menu, popover, accordion, ...) depends on
-	// these classes, so it's not optional.
-	lines.push(`@import "tw-animate-css";`);
-	lines.push("");
-	lines.push("/* Class-based dark mode — set `.dark` on <html> via next-themes or your own provider. */");
-	lines.push("@custom-variant dark (&:is(.dark *));");
-	lines.push("");
 	// Bridge pattern: raw `H S% L%` triplets live in :root / .dark, and the
 	// @theme inline block aliases each `--color-<key>` to `hsl(var(--<key>))`.
 	// This shape is deliberate:
@@ -281,16 +336,25 @@ function generateGlobalsCssV4(theme: Theme): string {
 	lines.push(" * Raw token triplets (H S% L%) — the source of truth that `hex theme edit`");
 	lines.push(" * mutates, and that the @theme inline block below aliases into Tailwind's");
 	lines.push(" * --color-<key> namespace.");
+	if (theme.palette) {
+		lines.push(" *");
+		lines.push(" * Tier 1 is the raw ramp; the semantic tokens below point at it with");
+		lines.push(" * var(). Re-tint the whole theme by overriding a ramp entry — every");
+		lines.push(" * semantic token that references it follows.");
+	}
 	lines.push(" */");
 	lines.push(":root {");
+	for (const [key, value] of Object.entries(theme.palette ?? {})) {
+		lines.push(`  --${key}: ${value};`);
+	}
 	for (const [key, token] of Object.entries(theme.tokens.light)) {
-		lines.push(`  --${key}: ${extractValue(token)};`);
+		lines.push(`  --${key}: ${renderTokenValue(token)};`);
 	}
 	lines.push("}");
 	lines.push("");
 	lines.push(".dark {");
 	for (const [key, token] of Object.entries(theme.tokens.dark)) {
-		lines.push(`  --${key}: ${extractValue(token)};`);
+		lines.push(`  --${key}: ${renderTokenValue(token)};`);
 	}
 	lines.push("}");
 	lines.push("");
@@ -315,5 +379,34 @@ function generateGlobalsCssV4(theme: Theme): string {
 	lines.push("  border-color: var(--color-border);");
 	lines.push("}");
 
+	return lines.join("\n");
+}
+
+function generateGlobalsCssV4(theme: Theme, sources?: readonly string[]): string {
+	const lines: string[] = [];
+
+	const scoped = sources !== undefined && sources.length > 0;
+	if (scoped) {
+		lines.push("/*");
+		lines.push(" * `source(none)` turns off Tailwind's automatic content detection, which");
+		lines.push(" * would otherwise walk up past this app to the enclosing repository and read");
+		lines.push(" * binary files as class candidates, emitting utilities that fail to parse.");
+		lines.push(" * The @source rules below name this app's own files instead.");
+		lines.push(" */");
+		lines.push(`@import "tailwindcss" source(none);`);
+		for (const source of sources) lines.push(`@source "${source}";`);
+	} else {
+		lines.push(`@import "tailwindcss";`);
+	}
+	// tw-animate-css ports tailwindcss-animate's animate-in/out, fade-*, slide-*,
+	// zoom-* utilities to v4 as a pure CSS import. Every Hex component that
+	// transitions (dialog, dropdown-menu, popover, accordion, ...) depends on
+	// these classes, so it's not optional.
+	lines.push(`@import "tw-animate-css";`);
+	lines.push("");
+	lines.push("/* Class-based dark mode — set `.dark` on <html> via next-themes or your own provider. */");
+	lines.push("@custom-variant dark (&:is(.dark *));");
+	lines.push("");
+	lines.push(generateThemeCssV4(theme));
 	return lines.join("\n");
 }

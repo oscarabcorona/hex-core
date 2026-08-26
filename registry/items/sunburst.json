@@ -145,7 +145,7 @@
       "diagram"
     ],
     "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing segment count and focused node. Drill-down is mouse-only by default; expose a parallel <table> or breadcrumb for keyboard / screen-reader users.",
-    "tokenBudget": 961
+    "tokenBudget": 2432
   },
   "tags": [
     "artifact",

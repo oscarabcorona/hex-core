@@ -47,7 +47,7 @@ The script:
 - Creates a temporary `.npmrc` (auto-cleaned on exit; git-ignored)
 - Verifies auth via `npm whoami`
 - Builds all 8 `@hex-core/*` packages
-- Publishes in dependency order (`registry → tokens → themes → components → cli → payload → mcp-server → preview`)
+- Publishes in dependency order (`registry → tokens → themes → components → motion → payload → cli → mcp-server`)
 - **Skips versions already on npm** (idempotent — safe to re-run if one package fails mid-way)
 - Prints a summary with npm URLs
 
@@ -55,6 +55,20 @@ Flags:
 
 - `--dry-run` — simulate without publishing
 - `--yes` / `-y` — skip confirmations (non-interactive)
+
+## Retired packages
+
+`@hex-core/preview` was retired — it had no consumers and its only component
+duplicated `cn` and used `forwardRef` in React 19 code. Use `Card` from
+`@hex-core/components` instead.
+
+Published versions stay installable. Mark it deprecated once, by hand:
+
+```bash
+npm deprecate @hex-core/preview "Retired. Use @hex-core/components (Card)."
+```
+
+Do **not** unpublish — that breaks existing installs.
 
 ## Required access
 

@@ -126,7 +126,7 @@
       "radio-group"
     ],
     "accessibilityNotes": "Full keyboard nav: arrow keys, Home, End, typeahead, Escape to close. Radix handles role='combobox' on trigger, role='listbox' on content, aria-selected on items.",
-    "tokenBudget": 758
+    "tokenBudget": 1584
   },
   "tags": [
     "select",

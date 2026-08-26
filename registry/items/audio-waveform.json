@@ -133,7 +133,7 @@
       "speech-recognition"
     ],
     "accessibilityNotes": "The waveform is decorative — supply an aria-label on the wrapper that describes the audio (e.g. 'Voice message from Alice, 1:24'). The interact={false} setting prevents accidental keyboard focus on a non-interactive element.",
-    "tokenBudget": 779
+    "tokenBudget": 784
   },
   "tags": [
     "ai",

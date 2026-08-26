@@ -26,6 +26,11 @@
       "type": "component"
     },
     {
+      "path": "components/ui/label.tsx",
+      "content": "\"use client\";\n\nimport * as LabelPrimitive from \"@radix-ui/react-label\";\nimport { type VariantProps, cva } from \"class-variance-authority\";\nimport * as React from \"react\";\nimport { cn } from \"../../lib/utils.js\";\n\nconst labelVariants = cva(\n\t\"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70\",\n);\n\nexport interface LabelProps\n\textends React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>,\n\t\tVariantProps<typeof labelVariants> {}\n\nconst Label = React.forwardRef<React.ComponentRef<typeof LabelPrimitive.Root>, LabelProps>(\n\t({ className, ...props }, ref) => (\n\t\t<LabelPrimitive.Root ref={ref} className={cn(labelVariants(), className)} {...props} />\n\t),\n);\nLabel.displayName = \"Label\";\n\nexport { Label };\n",
+      "type": "component"
+    },
+    {
       "path": "lib/chart-palette.ts",
       "content": "/**\n * Categorical chart palette for diagram primitives that encode categorical\n * data (sunburst, treemap, sankey, chord, funnel, pyramid, venn, matrix).\n * Cycled by an integer key — node index, leaf index, depth-1 ancestor, etc.\n *\n * The values reach into `--chart-1` through `--chart-6`, the dedicated\n * diagram-encoding tokens added in `@hex-core/tokens` 1.4. Each token has a\n * `var(--primary)` fallback so consumers on theme presets that haven't been\n * updated to ship `--chart-N` (or who run a custom theme without the chart\n * family) still see a coherent monochrome rendering instead of black SVG\n * fills.\n *\n * Why a chart palette and not the semantic tokens: `--primary`, `--accent`,\n * `--secondary`, and `--muted` collapse to a single hue family in the\n * default monochrome theme — adjacent segments of a chart end up\n * indistinguishable. Chart tokens are tuned for perceptual differentiation.\n */\nexport const CHART_PALETTE = [\n\t\"hsl(var(--chart-1, var(--primary)))\",\n\t\"hsl(var(--chart-2, var(--primary)))\",\n\t\"hsl(var(--chart-3, var(--primary)))\",\n\t\"hsl(var(--chart-4, var(--primary)))\",\n\t\"hsl(var(--chart-5, var(--primary)))\",\n\t\"hsl(var(--chart-6, var(--primary)))\",\n] as const;\n\n/**\n * Return the chart hue at a stable index. Cycles modulo `CHART_PALETTE.length`\n * so the caller doesn't have to range-check.\n *\n * @param index - Integer key (node index, leaf index, depth-1 ancestor index, …).\n * @returns A `hsl(var(...))` string suitable for SVG `fill` / `stroke`.\n */\nexport function pickChartHue(index: number): string {\n\tconst safe = ((index % CHART_PALETTE.length) + CHART_PALETTE.length) % CHART_PALETTE.length;\n\t// `safe` is provably 0..CHART_PALETTE.length-1 — the assertion documents that.\n\treturn CHART_PALETTE[safe] as string;\n}\n",
       "type": "lib"
@@ -88,7 +93,7 @@
       "switch"
     ],
     "accessibilityNotes": "FormControl automatically wires id, aria-describedby, and aria-invalid. FormLabel uses htmlFor matching the control id. Errors are announced via FormMessage with matching aria-describedby.",
-    "tokenBudget": 676
+    "tokenBudget": 1349
   },
   "tags": [
     "form",

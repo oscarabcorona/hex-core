@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { ForgotPasswordShowcase } from "./forgot-password-showcase";
+import { AuthShowcase } from "../../components/auth-showcase";
+import { authBlock, authMetadata } from "../../lib/auth-showcases";
 
-export const metadata: Metadata = {
-	title: { absolute: "Forgot password — Hex Core" },
-	description:
-		"Live showcase of the auth-forgot-password block. Wired to the in-memory mockAuthAdapter — do not enter real credentials.",
-};
+export const metadata: Metadata = authMetadata("forgot-password");
 
-/** Full-bleed showcase route for the auth-forgot-password block. */
-export default function ForgotPasswordPage() {
-	return <ForgotPasswordShowcase />;
+/** Full-bleed showcase route for the `forgot-password` auth block. */
+export default function Page() {
+	return <AuthShowcase block={authBlock("forgot-password")} />;
 }

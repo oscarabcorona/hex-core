@@ -106,7 +106,7 @@
       "sonner"
     ],
     "accessibilityNotes": "Radix sets role='alertdialog', traps focus, focuses AlertDialogCancel by default, and closes on Escape. Clicks outside the dialog are prevented (user must choose Cancel or Action).",
-    "tokenBudget": 631
+    "tokenBudget": 1424
   },
   "tags": [
     "alert-dialog",

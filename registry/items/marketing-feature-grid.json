@@ -143,7 +143,7 @@
       "badge"
     ],
     "accessibilityNotes": "Each cell title renders as an <h3> under the section <h2>, preserving heading order. Decorative icons are presentational; if an icon conveys meaning, give it an accessible label.",
-    "tokenBudget": 937
+    "tokenBudget": 727
   },
   "tags": [
     "block",

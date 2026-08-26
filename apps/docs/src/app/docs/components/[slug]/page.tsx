@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ComponentPage } from "../../../../components/component-page";
-import { getDemo } from "../../../../lib/demos";
+import { getDemo } from "../../../../lib/demos.generated";
 import { listComponents } from "../../../../lib/registry";
 import { getRegistryItem } from "../../../../lib/registry.server";
 

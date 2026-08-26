@@ -130,7 +130,7 @@
       "separator"
     ],
     "accessibilityNotes": "Each line item name renders as an <h3>. The summary card is sticky on desktop so totals stay visible. Per-item controls you pass must carry accessible names (e.g. 'Remove Canvas Tote').",
-    "tokenBudget": 929
+    "tokenBudget": 811
   },
   "tags": [
     "block",

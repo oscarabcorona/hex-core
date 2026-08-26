@@ -80,7 +80,7 @@ export function useAIChat(options: UseAIChatHookOptions = {}): UseAIChatReturn {
 		...sdkOptions,
 		...(options.api ? { api: options.api } : {}),
 		...(options.initialMessages
-			? { messages: options.initialMessages as unknown as never }
+			? { messages: options.initialMessages }
 			: {}),
 	} as never);
 

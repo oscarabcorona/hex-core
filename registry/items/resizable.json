@@ -108,7 +108,7 @@
       "collapsible"
     ],
     "accessibilityNotes": "ResizableHandle is focusable and resizable via keyboard arrows. role='separator' is set, with aria-valuenow/min/max wired by react-resizable-panels. The grab-grip is aria-hidden (decorative).",
-    "tokenBudget": 756
+    "tokenBudget": 749
   },
   "tags": [
     "resizable",

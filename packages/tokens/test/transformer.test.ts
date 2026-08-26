@@ -19,6 +19,33 @@ import {
 	themeToTailwindConfig,
 } from "../src/index.js";
 
+/**
+ * Read one custom-property declaration out of a CSS block.
+ * @param block - A `:root { … }` or `.dark { … }` block
+ * @param key - Token name without the `--` prefix
+ * @returns The declared value, or undefined when the key is absent
+ */
+function declaration(block: string, key: string): string | undefined {
+	return new RegExp(`--${key}:\\s*([^;]+);`).exec(block)?.[1]?.trim();
+}
+
+/**
+ * Read a declaration and follow one level of `var()` indirection.
+ *
+ * A palette-backed theme writes `--primary: var(--slate-900)` and puts the
+ * triplet on the ramp entry, so asserting on the literal means resolving
+ * through the ramp — which always lives in `:root`, for both modes.
+ * @param block - The block the token is declared in
+ * @param key - Token name without the `--` prefix
+ * @param rampBlock - Where ramp entries live; defaults to `block` itself
+ * @returns The resolved literal value
+ */
+function resolveDeclaration(block: string, key: string, rampBlock = block): string | undefined {
+	const raw = declaration(block, key);
+	const via = raw === undefined ? null : /^var\(--([a-z0-9-]+)\)$/.exec(raw);
+	return via ? declaration(rampBlock, via[1]) : raw;
+}
+
 const allThemes: Array<[string, Theme]> = [
 	["default", defaultTheme],
 	["midnight", midnightTheme],
@@ -261,12 +288,74 @@ describe("generateGlobalsCss target option", () => {
 		expect(css).toContain("@custom-variant dark (&:is(.dark *));");
 	});
 
-	it("v4 emits raw triplets in :root so `hex theme edit` can mutate them", () => {
+	it("v4 resolves every :root token to a raw triplet, directly or through the ramp", () => {
 		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
 		const rootBlock = css.match(/:root \{[\s\S]+?\n\}/);
 		expect(rootBlock).not.toBeNull();
-		expect(rootBlock?.[0]).toMatch(/--background: [\d.]+ [\d.]+% [\d.]+%;/);
-		expect(rootBlock?.[0]).toMatch(/--primary: [\d.]+ [\d.]+% [\d.]+%;/);
+		// A palette-backed theme points semantic tokens at their ramp entry;
+		// the triplet `hex theme edit` mutates lives one level down. Either
+		// way every token bottoms out in an `H S% L%` value.
+		expect(resolveDeclaration(rootBlock?.[0] ?? "", "background")).toMatch(
+			/^[\d.]+ [\d.]+% [\d.]+%$/,
+		);
+		expect(resolveDeclaration(rootBlock?.[0] ?? "", "primary")).toMatch(
+			/^[\d.]+ [\d.]+% [\d.]+%$/,
+		);
+	});
+
+	it("v4 draws `primary` and `ring` from one ramp entry so re-tinting is a single edit", () => {
+		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
+		const rootBlock = css.match(/:root \{[\s\S]+?\n\}/)?.[0] ?? "";
+		expect(rootBlock).toMatch(/--primary: var\(--[a-z0-9-]+\);/);
+		expect(declaration(rootBlock, "primary")).toBe(declaration(rootBlock, "ring"));
+	});
+
+	it("v4 without `sources` keeps automatic content detection", () => {
+		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
+		expect(css).toContain(`@import "tailwindcss";`);
+		expect(css).not.toContain("source(none)");
+		expect(css).not.toContain("@source");
+	});
+
+	it("v4 with `sources` turns detection off and names each glob", () => {
+		// The scan is scoped because Tailwind's automatic detection walks up
+		// past a generated app to the enclosing repo and reads binary files as
+		// class candidates — which emitted unparseable utilities and 500'd
+		// every route of a POC scaffolded inside this monorepo.
+		const css = generateGlobalsCss(defaultTheme, {
+			target: "v4",
+			sources: ["../app/**/*.{ts,tsx}", "../components/**/*.{ts,tsx}"],
+		});
+		expect(css).toContain(`@import "tailwindcss" source(none);`);
+		expect(css).not.toMatch(/@import "tailwindcss";/);
+		expect(css).toContain(`@source "../app/**/*.{ts,tsx}";`);
+		expect(css).toContain(`@source "../components/**/*.{ts,tsx}";`);
+	});
+
+	it("v4 `sources` orders @source rules after the import so they apply", () => {
+		const css = generateGlobalsCss(defaultTheme, {
+			target: "v4",
+			sources: ["../app/**/*.tsx"],
+		});
+		expect(css.indexOf("source(none)")).toBeLessThan(css.indexOf("@source"));
+	});
+
+	it("v4 treats an empty `sources` array as unscoped rather than scanning nothing", () => {
+		// `source(none)` with no @source rule would emit zero utilities — a
+		// blank-looking app. Falling back to automatic detection is the safer
+		// reading of "no globs given".
+		const css = generateGlobalsCss(defaultTheme, { target: "v4", sources: [] });
+		expect(css).toContain(`@import "tailwindcss";`);
+		expect(css).not.toContain("source(none)");
+	});
+
+	it("v3 ignores `sources` — it has no @source rule", () => {
+		const withSources = generateGlobalsCss(defaultTheme, {
+			target: "v3",
+			sources: ["../app/**/*.tsx"],
+		});
+		expect(withSources).toBe(generateGlobalsCss(defaultTheme, { target: "v3" }));
+		expect(withSources).not.toContain("@source");
 	});
 
 	it("v4 bridges raw triplets into Tailwind's --color-* namespace via @theme inline", () => {
@@ -276,12 +365,19 @@ describe("generateGlobalsCss target option", () => {
 		expect(css).toContain("--color-primary: hsl(var(--primary));");
 	});
 
-	it("v4 dark block flips raw triplets so .dark cascades through the bridge", () => {
+	it("v4 dark block flips every token so .dark cascades through the bridge", () => {
 		const css = generateGlobalsCss(defaultTheme, { target: "v4" });
 		const darkBlockMatch = css.match(/\.dark \{[\s\S]+?\n\}/);
 		expect(darkBlockMatch).not.toBeNull();
-		expect(darkBlockMatch?.[0]).toMatch(/--background: [\d.]+ [\d.]+% [\d.]+%;/);
-		expect(darkBlockMatch?.[0]).toMatch(/--foreground: [\d.]+ [\d.]+% [\d.]+%;/);
+		const root = css.match(/:root \{[\s\S]+?\n\}/)?.[0] ?? "";
+		for (const key of ["background", "foreground"]) {
+			// The dark value must differ from light, and must still bottom out
+			// in a triplet — the ramp entries live in :root for both modes.
+			expect(declaration(darkBlockMatch?.[0] ?? "", key)).not.toBe(declaration(root, key));
+			expect(resolveDeclaration(darkBlockMatch?.[0] ?? "", key, root)).toMatch(
+				/^[\d.]+ [\d.]+% [\d.]+%$/,
+			);
+		}
 	});
 
 	it("v4 does NOT inline color values directly into @theme (would break alpha utilities + hex theme edit)", () => {
@@ -304,7 +400,8 @@ describe("generateGlobalsCss target option", () => {
 			expect(css).toContain(`@import "tailwindcss";`);
 			expect(css).toContain("@theme inline {");
 			expect(css).toContain("--color-background: hsl(var(--background));");
-			expect(css).toMatch(/:root \{[\s\S]+?--background: [\d.]+ [\d.]+% [\d.]+%;/);
+			const rootBlock = css.match(/:root \{[\s\S]+?\n\}/)?.[0] ?? "";
+			expect(resolveDeclaration(rootBlock, "background")).toMatch(/^[\d.]+ [\d.]+% [\d.]+%$/);
 		}
 	});
 });

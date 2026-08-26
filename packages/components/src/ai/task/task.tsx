@@ -1,6 +1,10 @@
 "use client";
 
-import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "../../components/collapsible/collapsible.js";
 import * as React from "react";
 import { cn } from "../../lib/utils.js";
 
@@ -73,14 +77,14 @@ function Task({ label, steps, durationMs, defaultOpen = true, className }: TaskP
 	const summary = summarize(steps, durationMs);
 
 	return (
-		<CollapsiblePrimitive.Root
+		<Collapsible
 			defaultOpen={defaultOpen}
 			className={cn(
 				"overflow-hidden rounded-md border border-border bg-card text-card-foreground",
 				className,
 			)}
 		>
-			<CollapsiblePrimitive.Trigger
+			<CollapsibleTrigger
 				className={cn(
 					"group flex w-full items-center gap-2 px-3 py-2 text-left",
 					"transition-all duration-[var(--duration-normal,200ms)] ease-out",
@@ -95,8 +99,8 @@ function Task({ label, steps, durationMs, defaultOpen = true, className }: TaskP
 					<span className="text-xs text-muted-foreground">{summary}</span>
 				</div>
 				<Chevron />
-			</CollapsiblePrimitive.Trigger>
-			<CollapsiblePrimitive.Content className="overflow-hidden border-t border-foreground/[0.06]">
+			</CollapsibleTrigger>
+			<CollapsibleContent className="overflow-hidden border-t border-foreground/[0.06]">
 				<ol className="my-0 ml-0 flex list-none flex-col pl-0">
 					{steps.map((step) => (
 						<li
@@ -123,8 +127,8 @@ function Task({ label, steps, durationMs, defaultOpen = true, className }: TaskP
 						</li>
 					))}
 				</ol>
-			</CollapsiblePrimitive.Content>
-		</CollapsiblePrimitive.Root>
+			</CollapsibleContent>
+		</Collapsible>
 	);
 }
 

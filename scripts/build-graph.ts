@@ -3,11 +3,11 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { internalDepToSlug } from "@hex-core/registry";
 import { compareStrings } from "../packages/payload/src/lib/compare.js";
+import { titleFromSlug } from "../packages/payload/src/lib/slug.js";
 import {
 	type CatalogGraph,
 	type GraphEdge,
 	type GraphNode,
-	type NodeKind,
 	parseGraphStrict,
 	type Relation,
 } from "../packages/payload/src/graph/graph-schema.js";
@@ -111,16 +111,6 @@ const HUB_MIN_DEGREE = 8;
 /** Max characters of anti-pattern prose carried on an `instead-use` edge. */
 const NOTE_MAX_LENGTH = 200;
 
-/**
- * Title-case a slug-ish string: `"marketing"` → `"Marketing"`,
- * `"data-display"` → `"Data display"`.
- * @param input - Lowercase, possibly hyphenated string
- * @returns The string with its first letter uppercased and hyphens spaced
- */
-function titleCase(input: string): string {
-	const spaced = input.replace(/-/g, " ");
-	return spaced.charAt(0).toUpperCase() + spaced.slice(1);
-}
 
 /**
  * Derive the community id + display name for an item from its curated
@@ -134,11 +124,11 @@ function titleCase(input: string): string {
 function communityFor(category: string, subcategory?: string): { community: string; communityName: string } {
 	const plural = CATEGORY_PLURAL[category] ?? category;
 	if (!subcategory) {
-		return { community: category, communityName: titleCase(plural) };
+		return { community: category, communityName: titleFromSlug(plural) };
 	}
 	return {
 		community: `${category}/${subcategory}`,
-		communityName: `${titleCase(subcategory)} ${plural}`,
+		communityName: `${titleFromSlug(subcategory)} ${plural}`,
 	};
 }
 
@@ -151,11 +141,20 @@ function communityFor(category: string, subcategory?: string): { community: stri
  * @param files - The item's registry `files` array
  * @returns Sorted unique exported identifier names
  */
-function scanExports(files: RawItemFile[]): string[] {
-	const names = new Set<string>();
+function scanExports(files: RawItemFile[]): { names: string[]; paths: Record<string, string> } {
+	// Prototype-free: `"constructor" in {}` is true, which would silently
+	// drop an export named `constructor` / `toString` / `valueOf`.
+	const paths: Record<string, string> = Object.create(null);
 	for (const file of files) {
 		if (!file.path.startsWith("components/")) continue;
 		if (!/\.(?:ts|tsx)$/.test(file.path)) continue;
+		// Module suffix relative to `components/`, extension dropped — this is
+		// what a generated page imports as `@/components/<suffix>`. Files under
+		// `_shared/` are their own module: attributing their exports to the
+		// item's main module emitted an import that does not resolve (every
+		// auth block's `mockAuthAdapter` did exactly that).
+		const suffix = file.path.replace(/^components\//, "").replace(/\.(?:ts|tsx)$/, "");
+		const names = new Set<string>();
 		for (const m of file.content.matchAll(/export\s+(?:async\s+)?(?:function|const|class)\s+([A-Za-z_$][A-Za-z0-9_$]*)/g)) {
 			names.add(m[1]);
 		}
@@ -163,13 +162,19 @@ function scanExports(files: RawItemFile[]): string[] {
 			for (const piece of m[1].split(",")) {
 				const token = piece.trim();
 				if (token.length === 0 || token.startsWith("type ")) continue;
-				// `A as B` re-exports expose B to consumers.
 				const name = token.includes(" as ") ? token.split(" as ")[1].trim() : token;
 				if (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)) names.add(name);
 			}
 		}
+		// First file wins so the item's main module keeps precedence. That
+		// ordering is produced by build-registry.ts (main component, then
+		// discovered deps, then libs) — asserted below rather than assumed.
+		for (const name of names) if (!(name in paths)) paths[name] = suffix;
 	}
-	return [...names].sort();
+	// Sort keys so the emitted artifact stays diff-stable if file order shifts.
+	const sorted: Record<string, string> = Object.create(null);
+	for (const name of Object.keys(paths).sort()) sorted[name] = paths[name];
+	return { names: Object.keys(sorted), paths: sorted };
 }
 
 /**
@@ -248,7 +253,18 @@ for (const item of registryIndex.items) {
 		for (const tag of example.composition ?? []) compositionTags.add(tag);
 	}
 
-	const exportedNames = scanExports(raw.files);
+	// scanExports resolves collisions by file order, so the item's own module
+	// must come first; build-registry.ts guarantees it and this catches a
+	// regression there instead of silently mis-routing an import.
+	const mainFile = `components/ui/${item.name}.tsx`;
+	const mainIndex = raw.files.findIndex((f) => f.path === mainFile);
+	// `findIndex` returns -1 when the main module is absent, and `-1 > 0` is
+	// false — which would silently retire this whole invariant.
+	const hasComponentFiles = raw.files.some((f) => f.path.startsWith("components/"));
+	if (hasComponentFiles && mainIndex !== 0) {
+		errors.push(`item ${item.name}: main module ${mainFile} must be first in files[] (index ${mainIndex})`);
+	}
+	const { names: exportedNames, paths: exportPaths } = scanExports(raw.files);
 	// npm-backed items (motion, hooks) copy no source; record where their
 	// runtime actually imports from so codegen can route identifiers.
 	// Strip any inline version range so `importPath` stays a resolvable
@@ -274,7 +290,10 @@ for (const item of registryIndex.items) {
 		tokenBudget: item.tokenBudget,
 		degree: 0,
 	};
-	if (exportedNames.length > 0) node.exports = exportedNames;
+	if (exportedNames.length > 0) {
+		node.exports = exportedNames;
+		node.exportPaths = exportPaths;
+	}
 	if (importPath) node.importPath = importPath;
 	nodes.set(node.id, node);
 }
@@ -313,7 +332,7 @@ for (const recipe of compiledRecipes) {
 	nodes.set(`theme:${preset}`, {
 		id: `theme:${preset}`,
 		slug: preset,
-		label: titleCase(preset),
+		label: titleFromSlug(preset),
 		kind: "theme",
 		community: "theme",
 		communityName: "Themes",

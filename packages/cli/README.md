@@ -117,6 +117,13 @@ hex poc --recipe landing-page --dry-run        # one page recipe; plan only
 
 Screens that aren't page recipes are installed as components and listed on the index page instead of getting a generated route.
 
+Every generated app also ships a **demo panel** — a POC is the frames *demoed*, and without a way to reach the states that matter a reviewer only ever sees one screenshot's worth of the product. The panel floats over every frame and holds two controls:
+
+- **Viewing as** — re-render every frame as `viewer`, `member` or `admin`. Frames gated on a capability say why they're unavailable rather than 404ing; `settings-page` recipes gate on `seeSettings`.
+- **Data** — flip every frame between its populated and empty state.
+
+Both live in cookies, not query params, so a selection survives clicking through the frames. The vocabulary in `lib/demo.ts` is deliberately small and meant to be edited — add roles, add capabilities, and scope real data through `can` rather than through the role name.
+
 ### `hex graph explain|affected|neighbors|path`
 
 Query the catalog knowledge graph (`registry/graph.json`, generated from the registry at build time: 187 items + 25 recipes + theme presets, with `requires` / `composes` / `themes` / `related` / `instead-use` edges). These four subcommands mirror the four modes of the MCP `query_graph` tool exactly.

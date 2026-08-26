@@ -143,7 +143,7 @@
       "data-table"
     ],
     "accessibilityNotes": "@dnd-kit's KeyboardSensor is wired by default — Tab to focus a card, Space/Enter to pick up, arrow keys to move (within or across columns), Space/Enter to drop, Escape to cancel. Live-region announcements describe drag state for screen readers. The drag-handle visual is the entire card; consumers can override the cursor via className.",
-    "tokenBudget": 460
+    "tokenBudget": 2231
   },
   "tags": [
     "kanban",

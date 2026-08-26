@@ -142,7 +142,7 @@
       "marketing-footer"
     ],
     "accessibilityNotes": "The block is layout; the form's labels and accessible names depend on the form you pass. Use <Label htmlFor> or aria-label on the email Input. The disclaimer is plain text positioned after the form so screen readers reach it in source order.",
-    "tokenBudget": 949
+    "tokenBudget": 671
   },
   "tags": [
     "block",

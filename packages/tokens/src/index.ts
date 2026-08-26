@@ -1,5 +1,6 @@
 export {
 	generateGlobalsCss,
+	generateThemeCssV4,
 	type ScopedRuntimeCssOptions,
 	themeToCss,
 	themeToFlatJson,

@@ -50,7 +50,7 @@ Agent-builder layer (0.7.0+):
 
 - `map_application(brief, limit?)` — map a whole-application brief onto the catalog: screens typed as page-recipe / recipe / components, a `requires`-closure install manifest, related-component suggestions, anti-pattern warnings, merged checklist, and token budgets. Deterministic; the result is a `hex.map.json` the CLI consumes via `hex add --from` / `hex poc --from`.
 - `query_graph(mode, slug, to?, relations?)` — query the catalog knowledge graph (`registry/graph.json`: items + recipes + themes; relations `requires` / `composes` / `themes` / `related` / `instead-use`). Modes: `explain` (node + grouped edges + community peers), `neighbors`, `path`, `affected` (reverse blast radius). Use instead of guessing component relationships.
-- `scaffold_poc({brief | map | recipe}, theme?, name?)` — generate the complete file tree of a standalone runnable Next.js demo app: configs, theme globals.css, copied component sources with rewritten imports, and one generated route per page-recipe screen (assembled from schema examples). Returns JSON; nothing is written to disk.
+- `scaffold_poc({brief | map | recipe}, theme?, name?)` — generate the complete file tree of a standalone runnable Next.js demo app: configs, theme globals.css, copied component sources with rewritten imports, and one generated route per page-recipe screen (assembled from schema examples). The tree also carries a demo panel that re-renders every frame as `viewer` / `member` / `admin` and flips it between populated and empty — a POC is the frames demoed, not just the frames. Returns JSON; nothing is written to disk.
 
 ## Prompts that "just work"
 

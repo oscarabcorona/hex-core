@@ -17,7 +17,7 @@ shadcn/ui is built for humans browsing docs. Hex Core is built for **AI agents**
 - **Machine-readable component specs** — Zod schemas with props, variants, slots, and constraints
 - **AI hints** — `whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes` per component
 - **Recipes** — spec-driven blueprints (auth flows, settings page, pricing table, data table, confirm-destructive, command palette, and the `app-shell` layout starter) with ordered install steps and post-install checklists
-- **MCP server** — 16 tools for component discovery, installation, theming, scaffolding, spec resolution, and emitting paste-into-LLM app context
+- **MCP server** — 19 tools for component discovery, installation, theming, scaffolding, spec resolution, and emitting paste-into-LLM app context
 - **Token budgets** — each component declares its token cost for efficient LLM context usage
 
 > [!WARNING]
@@ -86,7 +86,7 @@ npx @hex-core/cli graph affected button                      # reverse blast rad
 | `emit_app_context` | Synthesize a paste-into-LLM markdown payload of theme + installed components |
 | `map_application` | Whole-app brief → typed screens, `requires`-closure install manifest, warnings (`hex.map.json`) |
 | `query_graph` | Query the catalog knowledge graph — `explain`, `neighbors`, `path`, `affected` |
-| `scaffold_poc` | Generate a standalone runnable Next.js demo app from a brief, map, or page recipe |
+| `scaffold_poc` | Generate a standalone runnable Next.js demo app — frames plus a panel to demo them by role and data state |
 
 See **[hex-core.dev/docs/spec-driven](https://hex-core.dev/docs/spec-driven)** for the full spec-driven workflow.
 

@@ -36,9 +36,19 @@ describe("rewriteRegistryImports", () => {
 	});
 
 	it("strips .js from remaining relative imports", () => {
-		const src = `import x from "./helper.js";\nimport y from "../sibling.js";\n`;
+		const src = `import x from "./helper.js";\n`;
 		const out = rewriteRegistryImports(src);
-		expect(out).toBe(`import x from "./helper";\nimport y from "../sibling";\n`);
+		expect(out).toBe(`import x from "./helper";\n`);
+	});
+
+	it("aliases category-level modules so they resolve in the flat layout", () => {
+		// `../types.js` is the `ai/` category's shared type module. The
+		// registry ships it flat as components/ui/types, so merely stripping
+		// `.js` would leave `../types` pointing at components/types — one
+		// level above where the file actually lands.
+		const src = `import type { Role } from "../types.js";\n`;
+		const out = rewriteRegistryImports(src);
+		expect(out).toBe(`import type { Role } from "@/components/ui/types";\n`);
 	});
 
 	it("strips .js from re-export specifiers", () => {

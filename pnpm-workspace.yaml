@@ -2,3 +2,36 @@ packages:
   - "packages/*"
   - "apps/*"
   - "tests/regression"
+
+# Single source of truth for every version shared by two or more workspace
+# packages. Members write `"typescript": "catalog:"`, so a bump happens here
+# once instead of drifting across ten package.json files.
+#
+# Deliberately covers `dependencies` and `devDependencies` only.
+# `peerDependencies` stay hand-written: their wide ranges
+# (`"^8.0.0 || ^9.0.0"`) advertise what a consumer may bring, which is a
+# different question from what this repo builds against. Collapsing the two
+# would silently narrow the supported range for every consumer.
+catalog:
+  # Toolchain
+  eslint: ^10.5.0
+  tsup: ^8.5.1
+  tsx: ^4.21.0
+  typescript: ^6.0.3
+  vitest: ^4.1.5
+
+  # Test environment
+  "@testing-library/jest-dom": ^6.9.1
+  "@testing-library/react": ^16.3.2
+  jsdom: ^29.1.0
+
+  # Types
+  "@types/node": ^25.9.3
+  "@types/react": ^19.2.14
+  "@types/react-dom": ^19.2.3
+
+  # Shared runtime
+  "@hookform/resolvers": ^5.9.1
+  gpt-tokenizer: ^3.4.0
+  react-resizable-panels: ^4.11.2
+  zod: ^4.4.3

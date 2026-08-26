@@ -22,7 +22,11 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { encode } from "gpt-tokenizer";
+// Named encoding, not the bare entry point — see the note in
+// scripts/build-registry.ts. This file's own report footer claims cl100k_base;
+// the default export silently became o200k_base in gpt-tokenizer 3.x, which
+// made that claim false.
+import { encode } from "gpt-tokenizer/encoding/cl100k_base";
 
 import {
 	buildAppContext,

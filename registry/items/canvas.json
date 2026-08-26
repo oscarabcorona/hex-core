@@ -133,7 +133,7 @@
     {
       "title": "Static agent workflow",
       "description": "Render a fixed graph of agent steps.",
-      "code": "import \"reactflow/dist/style.css\";\n\nconst nodes = [\n  { id: \"1\", position: { x: 0, y: 0 }, data: { label: \"Receive query\" } },\n  { id: \"2\", position: { x: 250, y: 100 }, data: { label: \"Retrieve context\" } },\n];\nconst edges = [{ id: \"e1-2\", source: \"1\", target: \"2\" }];\n<Canvas nodes={nodes} edges={edges} />",
+      "code": "import { Canvas } from \"@hex-core/components\";\nimport \"reactflow/dist/style.css\";\n\nconst nodes = [\n  { id: \"1\", position: { x: 0, y: 0 }, data: { label: \"Receive query\" } },\n  { id: \"2\", position: { x: 250, y: 100 }, data: { label: \"Retrieve context\" } },\n];\nconst edges = [{ id: \"e1-2\", source: \"1\", target: \"2\" }];\n<Canvas nodes={nodes} edges={edges} />",
       "composition": [
         "workflow",
         "diagram"
@@ -163,7 +163,7 @@
       "tree"
     ],
     "accessibilityNotes": "Reactflow's accessibility is limited (the canvas is a div graph, not native semantics). For agent-workflow visualization, also expose a parallel screen-reader-friendly text/list representation of the nodes via aria-describedby.",
-    "tokenBudget": 1190
+    "tokenBudget": 861
   },
   "tags": [
     "ai",

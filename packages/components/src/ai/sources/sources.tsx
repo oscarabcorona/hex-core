@@ -1,6 +1,10 @@
 "use client";
 
-import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "../../components/collapsible/collapsible.js";
 import * as React from "react";
 import { cn, safeUrl } from "../../lib/utils.js";
 import { Citation } from "../citation/citation.js";
@@ -54,14 +58,14 @@ function Sources({ sources, defaultOpen = true, className }: SourcesProps) {
 	const headerLabel = count === 1 ? "1 source" : `${count} sources`;
 
 	return (
-		<CollapsiblePrimitive.Root
+		<Collapsible
 			defaultOpen={defaultOpen}
 			className={cn(
 				"overflow-hidden rounded-md border border-border bg-card text-card-foreground",
 				className,
 			)}
 		>
-			<CollapsiblePrimitive.Trigger
+			<CollapsibleTrigger
 				className={cn(
 					"group flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-muted-foreground",
 					"transition-all duration-[var(--duration-normal,200ms)] ease-out",
@@ -72,8 +76,8 @@ function Sources({ sources, defaultOpen = true, className }: SourcesProps) {
 				<DocStackGlyph />
 				<span className="font-medium">{headerLabel}</span>
 				<Chevron />
-			</CollapsiblePrimitive.Trigger>
-			<CollapsiblePrimitive.Content className="overflow-hidden border-t border-foreground/[0.06]">
+			</CollapsibleTrigger>
+			<CollapsibleContent className="overflow-hidden border-t border-foreground/[0.06]">
 				<div className="flex flex-wrap items-center gap-1.5 p-2">
 					{sources.map((s, i) => (
 						<Citation
@@ -88,8 +92,8 @@ function Sources({ sources, defaultOpen = true, className }: SourcesProps) {
 						/>
 					))}
 				</div>
-			</CollapsiblePrimitive.Content>
-		</CollapsiblePrimitive.Root>
+			</CollapsibleContent>
+		</Collapsible>
 	);
 }
 

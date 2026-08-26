@@ -145,7 +145,7 @@
       "loading-indicator"
     ],
     "accessibilityNotes": "Renders a real <form> + <textarea>, so Enter submission and screen-reader announcements work without extra ARIA. Pass `aria-label` on the wrapper if there's no visible label.",
-    "tokenBudget": 914
+    "tokenBudget": 786
   },
   "tags": [
     "ai",

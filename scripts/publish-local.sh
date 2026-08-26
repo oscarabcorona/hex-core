@@ -153,7 +153,6 @@ PACKAGES=(
 	"packages/payload"
 	"packages/cli"
 	"packages/mcp-server"
-	"packages/preview"
 )
 
 # Drift check — every publishable workspace package (i.e. not "private": true)

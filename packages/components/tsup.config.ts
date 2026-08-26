@@ -35,9 +35,25 @@ const entryFiles = fg.sync(
 		// so RSC-safe consumers can deep-import a single hook without pulling
 		// the rest of the AI Kit through the barrel.
 		"src/hooks/*/*.ts",
+		// Pure helpers — `cn`, the HSL colour utilities, the chart palette.
+		// They have no client dependency, but reaching them through the
+		// barrel does: `dist/index.js` carries a `"use client"` directive, so
+		// a Server Component calling `cn` from it fails at render. Their own
+		// entries (`@hex-core/components/utils`) stay RSC-safe.
+		"src/lib/*.ts",
 	],
 	{
-		ignore: ["**/*.test.tsx", "**/*.test.ts", "**/*.schema.ts", "**/_shared/**"],
+		// Demos are colocated with their component (one folder holds the
+		// component, its schema, its test and its demo) but exist to document
+		// the library, not to ship inside it — the docs site imports them from
+		// workspace source, so they stay out of the tarball.
+		ignore: [
+			"**/*.test.tsx",
+			"**/*.test.ts",
+			"**/*.schema.ts",
+			"**/*.demo.tsx",
+			"**/_shared/**",
+		],
 		cwd: path.resolve(__dirname),
 		absolute: false,
 	},

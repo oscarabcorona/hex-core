@@ -129,7 +129,7 @@
       "marketing-cta"
     ],
     "accessibilityNotes": "Each tier name renders as an <h3> under the section <h2>. Feature check glyphs are aria-hidden; the feature text conveys meaning. Give generic CTAs an aria-label naming the plan.",
-    "tokenBudget": 971
+    "tokenBudget": 1261
   },
   "tags": [
     "block",

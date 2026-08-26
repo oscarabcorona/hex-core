@@ -70,12 +70,21 @@ describe("generateGlobalsCss — postcss compile (no syntax errors)", () => {
 		expect(rootRule).toBeDefined();
 		expect(darkRule).toBeDefined();
 
-		const rootTriplet = (key: string) =>
+		const declared = (key: string) =>
 			rootRule?.nodes.find(
 				(n): n is import("postcss").Declaration => n.type === "decl" && n.prop === `--${key}`,
 			)?.value;
-		expect(rootTriplet("background")).toMatch(/^[\d.]+ [\d.]+% [\d.]+%$/);
-		expect(rootTriplet("primary")).toMatch(/^[\d.]+ [\d.]+% [\d.]+%$/);
+
+		// A palette-backed theme points semantic tokens at a ramp entry, so
+		// the triplet the bridge ultimately reads sits one level down. Follow
+		// the indirection; both forms must bottom out in `H S% L%`.
+		const resolved = (key: string) => {
+			const raw = declared(key);
+			const via = raw === undefined ? null : /^var\(--([a-z0-9-]+)\)$/.exec(raw);
+			return via ? declared(via[1]) : raw;
+		};
+		expect(resolved("background")).toMatch(/^[\d.]+ [\d.]+% [\d.]+%$/);
+		expect(resolved("primary")).toMatch(/^[\d.]+ [\d.]+% [\d.]+%$/);
 
 		// .dark must declare the same set of color tokens as :root (so the
 		// bridge cascade actually flips dark mode rather than half-flipping it).

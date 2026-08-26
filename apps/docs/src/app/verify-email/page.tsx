@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { VerifyEmailShowcase } from "./verify-email-showcase";
+import { AuthShowcase } from "../../components/auth-showcase";
+import { authBlock, authMetadata } from "../../lib/auth-showcases";
 
-export const metadata: Metadata = {
-	title: { absolute: "Verify your email — Hex Core" },
-	description:
-		"Live showcase of the auth-verify-email block. Wired to the in-memory mockAuthAdapter — do not enter real credentials.",
-};
+export const metadata: Metadata = authMetadata("verify-email");
 
-/** Full-bleed showcase route for the auth-verify-email block. */
-export default function VerifyEmailPage() {
-	return <VerifyEmailShowcase />;
+/** Full-bleed showcase route for the `verify-email` auth block. */
+export default function Page() {
+	return <AuthShowcase block={authBlock("verify-email")} />;
 }

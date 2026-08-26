@@ -1,12 +1,102 @@
 {
 	"$schema": "https://turbo.build/schema.json",
-	"globalDependencies": [
-		"registry/**"
-	],
 	"tasks": {
+		"//#build:barrels": {
+			"inputs": [
+				"scripts/build-barrels.ts",
+				"scripts/lib/**",
+				"packages/components/src/**",
+				"packages/motion/src/**",
+				"packages/themes/src/presets/_briefs/**"
+			],
+			"outputs": [
+				"packages/components/src/index.generated.ts",
+				"packages/components/src/schemas.generated.ts",
+				"apps/docs/src/lib/demos.generated.tsx",
+				"packages/themes/src/presets/briefs.generated.ts"
+			]
+		},
+		"//#build:tokens": {
+			"inputs": [
+				"scripts/build-tokens.ts",
+				"scripts/lib/**",
+				"packages/tokens/src/**"
+			],
+			"outputs": [
+				"apps/docs/src/app/tokens.generated.css"
+			]
+		},
 		"build": {
 			"dependsOn": [
-				"^build"
+				"^build",
+				"//#build:barrels",
+				"//#build:tokens"
+			],
+			"inputs": [
+				"src/**",
+				"scripts/**",
+				"package.json",
+				"tsup.config.ts",
+				"tsconfig.json"
+			],
+			"outputs": [
+				"dist/**"
+			]
+		},
+		"docs#build": {
+			"dependsOn": [
+				"^build",
+				"//#build:barrels",
+				"//#build:tokens"
+			],
+			"inputs": [
+				"src/**",
+				"scripts/**",
+				"package.json",
+				"tsup.config.ts",
+				"tsconfig.json",
+				"../../registry/**",
+				"next.config.ts",
+				"postcss.config.mjs"
+			],
+			"outputs": [
+				".next/**",
+				"!.next/cache/**"
+			]
+		},
+		"@hex-core/cli#build": {
+			"dependsOn": [
+				"^build",
+				"//#build:barrels",
+				"//#build:tokens"
+			],
+			"inputs": [
+				"src/**",
+				"scripts/**",
+				"package.json",
+				"tsup.config.ts",
+				"tsconfig.json",
+				"../../registry/**",
+				"../../skills/**"
+			],
+			"outputs": [
+				"dist/**"
+			]
+		},
+		"@hex-core/payload#build": {
+			"dependsOn": [
+				"^build",
+				"//#build:barrels",
+				"//#build:tokens"
+			],
+			"inputs": [
+				"src/**",
+				"scripts/**",
+				"package.json",
+				"tsup.config.ts",
+				"tsconfig.json",
+				"../../registry/**",
+				"../../skills/**"
 			],
 			"outputs": [
 				"dist/**"
