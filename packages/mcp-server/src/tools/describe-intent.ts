@@ -79,9 +79,11 @@ export function register(server: McpServer): void {
 				coverage: {
 					// Surfaces the intent-rollout state so callers know whether
 					// to trust the absence of antiPatterns ("intentionally none")
-					// vs treat it as a TODO ("schema not yet enriched"). 5/47
-					// at 0.4.0 (button, card, dialog, slider, switch); rolls
-					// up as future PRs enrich more schemas.
+					// vs treat it as a TODO ("schema not yet enriched").
+					// 12 of 187 items today; rolls up as future PRs enrich more
+					// schemas. (Was recorded as "5/47 at 0.4.0" — the ratio moved
+					// in both directions since, so the old figure implied roughly
+					// four times the coverage that actually exists.)
 					hasAntiPatterns:
 						Array.isArray((item.ai as { antiPatterns?: unknown[] }).antiPatterns) &&
 						((item.ai as { antiPatterns?: unknown[] }).antiPatterns?.length ?? 0) > 0,

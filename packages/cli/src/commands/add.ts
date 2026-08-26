@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { parseMap } from "@hex-core/payload";
+import { parseMap, type RegistryItem } from "@hex-core/payload";
 import { internalDepToSlug, SLUG_REGEX } from "@hex-core/registry";
 import pc from "picocolors";
 import { z } from "zod";
@@ -51,30 +51,67 @@ function listInstalledSlugs(ctx: Context): Set<string> {
  * Closes the AI-onboarding gap where `hex add card` never nudged the
  * agent toward separator / button / container / stack.
  */
+/**
+ * Read a registry item, memoized for the life of the process.
+ *
+ * `hex add` reaches the same item JSON from up to three places — the install
+ * walk, the related-primitives hint, and the `--from` manifest check — and
+ * each did its own `readFileSync` + `JSON.parse`. It does NOT go through
+ * `loadCatalog`, whose cache covers `hex map` and `hex poc`, so that fix left
+ * this path untouched. Items average ~17 KB and a dependency closure is
+ * commonly 10–25 slugs.
+ *
+ * Returns null for a missing or malformed item; callers already treat both as
+ * "not found", and a negative result is cached too so a miss costs one probe.
+ *
+ * Typed as `RegistryItem` without re-validating, matching what payload's own
+ * `loadRegistryItem` does: the registry ships inside the published tarball, so
+ * its shape is a build-time guarantee rather than untrusted input. This is a
+ * narrowing of what was here before — the previous `JSON.parse` handed back
+ * `any`, so every field read downstream was unchecked.
+ * @param itemsDir - Absolute path to the registry's `items/` directory
+ * @param slug - Component slug
+ * @returns The parsed item, or null when absent or unparseable
+ */
+const itemReadCache = new Map<string, RegistryItem | null>();
+function readItem(itemsDir: string, slug: string): RegistryItem | null {
+	const key = path.join(itemsDir, `${slug}.json`);
+	const hit = itemReadCache.get(key);
+	if (hit !== undefined) return hit;
+
+	if (!fs.existsSync(key)) {
+		itemReadCache.set(key, null);
+		return null;
+	}
+	try {
+		const parsed = JSON.parse(fs.readFileSync(key, "utf-8")) as RegistryItem;
+		itemReadCache.set(key, parsed);
+		return parsed;
+	} catch {
+		itemReadCache.set(key, null);
+		return null;
+	}
+}
+
 function printRelatedPrimitivesHint(ctx: Context, runSlugs: Iterable<string>): void {
 	const registryDir = ctx.registryDir;
 	const itemsDir = path.join(registryDir, "items");
 	const suggestions = new Set<string>();
 	const runSet = new Set(runSlugs);
 	for (const slug of runSet) {
-		const itemPath = path.join(itemsDir, `${slug}.json`);
-		if (!fs.existsSync(itemPath)) continue;
-		try {
-			const raw = JSON.parse(fs.readFileSync(itemPath, "utf-8")) as {
-				ai?: { relatedComponents?: unknown };
-			};
-			const related = raw.ai?.relatedComponents;
-			if (!Array.isArray(related)) continue;
-			for (const candidate of related) {
-				if (typeof candidate !== "string" || candidate.length === 0) continue;
-				// Validate the candidate is a real registry slug. A schema typo
-				// would otherwise reach the user as `hex add stacks` and error
-				// on the very next command they run.
-				if (!fs.existsSync(path.join(itemsDir, `${candidate}.json`))) continue;
-				suggestions.add(candidate);
-			}
-		} catch {
-			// Malformed registry item — skip, don't crash the post-install path.
+		// A missing or malformed item is skipped, not fatal — this is the
+		// post-install hint path and must never crash a successful add.
+		const raw = readItem(itemsDir, slug) as { ai?: { relatedComponents?: unknown } } | null;
+		if (!raw) continue;
+		const related = raw.ai?.relatedComponents;
+		if (!Array.isArray(related)) continue;
+		for (const candidate of related) {
+			if (typeof candidate !== "string" || candidate.length === 0) continue;
+			// Validate the candidate is a real registry slug. A schema typo
+			// would otherwise reach the user as `hex add stacks` and error
+			// on the very next command they run.
+			if (!readItem(itemsDir, candidate)) continue;
+			suggestions.add(candidate);
 		}
 	}
 	const onDisk = listInstalledSlugs(ctx);
@@ -257,13 +294,11 @@ function installOne(name: string, ctx: Context): string[] | null {
 	if (ctx.visited.has(name)) return [];
 	ctx.visited.add(name);
 
-	const itemPath = path.join(ctx.registryDir, "items", `${name}.json`);
-	if (!fs.existsSync(itemPath)) {
+	const item = readItem(path.join(ctx.registryDir, "items"), name);
+	if (!item) {
 		console.error(`Component "${name}" not found.`);
 		return null;
 	}
-
-	const item = JSON.parse(fs.readFileSync(itemPath, "utf-8"));
 	console.log(`\nAdding ${pc.bold(item.displayName)}...`);
 
 	const cwdPrefix = ctx.cwd.endsWith(path.sep) ? ctx.cwd : ctx.cwd + path.sep;
@@ -332,9 +367,14 @@ function installOne(name: string, ctx: Context): string[] | null {
 	}
 
 	const deps = item.dependencies ?? {};
-	if (deps.npm?.length > 0) {
-		console.log(`\n  Dependencies: ${deps.npm.join(", ")}`);
-		for (const npm of deps.npm) ctx.pendingNpmDeps.add(npm);
+	// `deps.npm?.length > 0` was comparing `undefined > 0` for any item with no
+	// npm deps. It happened to behave — that comparison is false — but it only
+	// typechecked because `item` came back from an untyped `JSON.parse`.
+	// Typing the read surfaced it.
+	const npmDeps = deps.npm ?? [];
+	if (npmDeps.length > 0) {
+		console.log(`\n  Dependencies: ${npmDeps.join(", ")}`);
+		for (const npm of npmDeps) ctx.pendingNpmDeps.add(npm);
 	}
 
 	if (Array.isArray(deps.heavyPeer) && deps.heavyPeer.length > 0) {

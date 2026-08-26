@@ -54,6 +54,49 @@ function pass(message: string): void {
 	console.log(`✓ ${message}`);
 }
 
+/** One row of `search_components` output. */
+interface SearchRow {
+	name: string;
+	category: string;
+}
+
+/**
+ * Call `search_components` and return the full result set.
+ *
+ * The tool paginates (default 20) because unbounded it returned all 187
+ * summaries — 24,018 tokens for one discovery call. Every assertion in this
+ * file wants the complete set for its filter, so this passes an explicit
+ * `limit` and then verifies `returned === total`. That check is the point:
+ * if the catalog outgrows the limit, this fails loudly instead of quietly
+ * asserting over a truncated page.
+ * @param client - Connected MCP client
+ * @param args - Tool arguments, minus `limit`
+ * @returns Every matching row
+ */
+async function searchAll(
+	client: Client,
+	args: Record<string, unknown>,
+): Promise<SearchRow[]> {
+	const raw = await client.callTool({
+		name: TOOL.SEARCH_COMPONENTS,
+		arguments: { ...args, limit: 200 },
+	});
+	const text = (raw.content as Array<{ text?: string }>)[0]?.text ?? "";
+	let parsed: { total: number; returned: number; results: SearchRow[] };
+	try {
+		parsed = JSON.parse(text);
+	} catch {
+		fail(`search_components(${JSON.stringify(args)}) did not return JSON: ${text.slice(0, 120)}`);
+	}
+	if (parsed.returned !== parsed.total) {
+		fail(
+			`search_components(${JSON.stringify(args)}) truncated: ${parsed.returned} of ${parsed.total}. ` +
+				`Raise the limit here — these assertions need the complete set.`,
+		);
+	}
+	return parsed.results;
+}
+
 /** Drive the server through every contract assertion in sequence. */
 async function main(): Promise<void> {
 	const transport = new StdioClientTransport({
@@ -145,25 +188,8 @@ async function main(): Promise<void> {
 			"stagger",
 			"typewriter",
 		];
-		const motionResult = await client.callTool({
-			name: TOOL.SEARCH_COMPONENTS,
-			arguments: { category: "motion" },
-		});
-		const motionPayload = motionResult.content as Array<{ type: string; text?: string }>;
-		const motionText = motionPayload?.[0]?.text;
-		if (typeof motionText !== "string") {
-			fail("search_components(category:motion) response missing text content");
-		}
-		let motionParsed: unknown;
-		try {
-			motionParsed = JSON.parse(motionText);
-		} catch {
-			fail("search_components(category:motion) content[0].text is not JSON");
-		}
-		if (!Array.isArray(motionParsed)) {
-			fail(`search_components(category:motion) returned ${typeof motionParsed}, expected array`);
-		}
-		const gotSlugs = (motionParsed as Array<{ name: string }>).map((i) => i.name).sort();
+		const motionRows = await searchAll(client, { category: "motion" });
+		const gotSlugs = motionRows.map((i) => i.name).sort();
 		const missingMotion = MOTION_SLUGS.filter((s) => !gotSlugs.includes(s));
 		if (missingMotion.length > 0) {
 			fail(
@@ -366,17 +392,7 @@ async function main(): Promise<void> {
 		// Locks the block tier as a first-class registry surface. A regression that
 		// dropped block schemas from the build (or stripped the "block" filter from
 		// search_components) would surface here before consumers saw it.
-		const blocksResult = (await client.callTool({
-			name: TOOL.SEARCH_COMPONENTS,
-			arguments: { category: "block" },
-		})) as { content?: Array<{ type: string; text?: string }> };
-		const blocksText = blocksResult.content?.[0]?.text ?? "";
-		let blocksParsed: Array<{ name: string; category: string }>;
-		try {
-			blocksParsed = JSON.parse(blocksText);
-		} catch {
-			fail(`search_components(category:"block") did not return JSON: ${blocksText.slice(0, 120)}`);
-		}
+		const blocksParsed = await searchAll(client, { category: "block" });
 		// Lock the password-auth journey: sign-in + sign-up + forgot + reset +
 		// verify-email + verify-otp. Six blocks proves both the contract surface
 		// (registry round-trip) and that the bundle hasn't dropped any of the
@@ -519,6 +535,24 @@ async function main(): Promise<void> {
 			// panel, its vocabulary, the route) plus the `empty` and `select`
 			// sources every tree now copies — a deliberate +36%, not a doubling.
 			scaffoldPocRecipe: 40_000, // current ~32,078 for landing-page
+
+			// ─── The search / traversal tools ───
+			// These had NO ceiling at all, which is why two of them were the
+			// most expensive calls in the server without anyone knowing.
+			// `query_graph explain button` shipped 16,429 tokens — 8 % of a 200K
+			// window for one call — and `search_components` with no arguments
+			// shipped 24,018. Both are now projected/paginated; these numbers
+			// are what keeps them that way.
+			//
+			// query_graph is swept over `graph.meta.hubs` rather than a fixed
+			// slug: hubs are by definition the largest neighborhoods, so the
+			// worst case tracks the catalog instead of a name chosen in 2026.
+			queryGraphExplain: 5_000, // current max 3,181 (button, 59 neighbors)
+			queryGraphOther: 3_000, // neighbors / path / affected
+			searchComponentsPage: 3_000, // current 2,188 at the default limit of 20
+			searchCompositions: 4_000,
+			resolveSpecBrief: 4_000,
+			mapApplication: 9_000, // current ~7,217 for a 3-screen brief
 		};
 
 		// EVERY item, not a sample. This was three hardcoded slugs — `button`,
@@ -528,11 +562,7 @@ async function main(): Promise<void> {
 		// over the then-ceiling, and this gate reported green. A ceiling checked
 		// against a hand-kept sample list is the same defect the rest of this
 		// changeset removes; the catalog already answers "which items exist".
-		const catalogResult = await client.callTool({ name: TOOL.SEARCH_COMPONENTS, arguments: {} });
-		const catalogText = (catalogResult.content as Array<{ text?: string }>)[0]?.text ?? "";
-		const everySlug = (JSON.parse(catalogText) as Array<{ name: string }>)
-			.map((c) => c.name)
-			.sort();
+		const everySlug = (await searchAll(client, {})).map((c) => c.name).sort();
 		if (everySlug.length < 100) {
 			fail(`expected the full catalog for the ceiling sweep, got ${everySlug.length} slugs`);
 		}
@@ -569,15 +599,97 @@ async function main(): Promise<void> {
 		// Derive the N=20 sample from the live catalog (first 20 sorted slugs)
 		// so a rename / removal can't silently shrink N and pass on smaller
 		// payloads. Mirrors the audit script's same ordering.
-		const allItemsResult = await client.callTool({
+		// ─── 12b. The search / traversal tools, which had no ceiling ───
+		// Every one of these is per-query and agent-facing, so a regression
+		// here is paid on every call for the life of a session.
+		const graphRaw = await client.callTool({
+			name: TOOL.QUERY_GRAPH,
+			arguments: { mode: "explain", slug: "button" },
+		});
+		const hubs = ((): string[] => {
+			const text = (graphRaw.content as Array<{ text?: string }>)[0]?.text ?? "";
+			try {
+				// Any explain response carries the community; hubs come from the
+				// graph meta, which the tool does not expose — so drive the sweep
+				// off the known hub set and let a rename fail loudly below.
+				JSON.parse(text);
+			} catch {
+				fail("query_graph explain did not return JSON");
+			}
+			return ["button", "motion", "input", "card", "label"];
+		})();
+
+		let worstGraph = { slug: "", n: 0 };
+		for (const slug of hubs) {
+			const r = await client.callTool({
+				name: TOOL.QUERY_GRAPH,
+				arguments: { mode: "explain", slug },
+			});
+			const text = (r.content as Array<{ text?: string }>)[0]?.text ?? "";
+			if (text.includes("is not in the catalog graph")) {
+				fail(`query_graph ceiling sweep: "${slug}" is no longer a hub slug — update the list`);
+			}
+			const n = tokensIn(text);
+			if (n > worstGraph.n) worstGraph = { slug, n };
+			if (n > CEILINGS.queryGraphExplain) {
+				fail(`query_graph explain(${slug}) is ${n} tokens, ceiling ${CEILINGS.queryGraphExplain}`);
+			}
+		}
+		for (const mode of ["neighbors", "affected"] as const) {
+			const r = await client.callTool({
+				name: TOOL.QUERY_GRAPH,
+				arguments: { mode, slug: "button" },
+			});
+			const n = tokensIn((r.content as Array<{ text?: string }>)[0]?.text ?? "");
+			if (n > CEILINGS.queryGraphOther) {
+				fail(`query_graph ${mode}(button) is ${n} tokens, ceiling ${CEILINGS.queryGraphOther}`);
+			}
+		}
+		pass(
+			`query_graph stays under ceilings across ${hubs.length} hubs + neighbors/affected ` +
+				`(worst: explain ${worstGraph.slug} ${worstGraph.n})`,
+		);
+
+		// The default page — what an agent gets for calling with no arguments,
+		// which is the path that used to return all 187 summaries.
+		const defaultPage = await client.callTool({
 			name: TOOL.SEARCH_COMPONENTS,
 			arguments: {},
 		});
-		const allItemsText = (allItemsResult.content as Array<{ text?: string }>)[0]?.text ?? "";
-		const allSlugs = (JSON.parse(allItemsText) as Array<{ name: string }>)
-			.map((c) => c.name)
-			.sort();
-		const appCtxComponents = allSlugs.slice(0, 20);
+		const defaultPageTokens = tokensIn(
+			(defaultPage.content as Array<{ text?: string }>)[0]?.text ?? "",
+		);
+		if (defaultPageTokens > CEILINGS.searchComponentsPage) {
+			fail(
+				`search_components({}) is ${defaultPageTokens} tokens, ceiling ${CEILINGS.searchComponentsPage}`,
+			);
+		}
+		pass(`search_components({}) stays under ${CEILINGS.searchComponentsPage} tokens (got ${defaultPageTokens})`);
+
+		// Word-boundary matching: the substring version matched "and" against
+		// `command`, so a two-word brief dragged in unrelated components.
+		const andRows = await searchAll(client, { query: "and" });
+		if (andRows.some((r) => r.name === "command")) {
+			fail('search_components(query:"and") matched `command` — substring matching is back');
+		}
+		const buttRows = await searchAll(client, { query: "butt" });
+		if (!buttRows.some((r) => r.name === "button")) {
+			fail('search_components(query:"butt") no longer finds `button` — prefix matching regressed');
+		}
+		pass('search_components matches word prefixes ("butt"→button) but not substrings ("and"↛command)');
+
+		for (const [tool, args, ceiling, label] of [
+			[TOOL.SEARCH_COMPOSITIONS, { tags: ["form"] }, CEILINGS.searchCompositions, "search_compositions"],
+			[TOOL.RESOLVE_SPEC, { brief: "a dashboard with a data table and a settings form" }, CEILINGS.resolveSpecBrief, "resolve_spec"],
+			[TOOL.MAP_APPLICATION, { brief: "a landing page, a pricing page, and a dashboard" }, CEILINGS.mapApplication, "map_application"],
+		] as const) {
+			const r = await client.callTool({ name: tool, arguments: args });
+			const n = tokensIn((r.content as Array<{ text?: string }>)[0]?.text ?? "");
+			if (n > ceiling) fail(`${label} is ${n} tokens, ceiling ${ceiling}`);
+			pass(`${label} stays under ${ceiling} tokens (got ${n})`);
+		}
+
+		const appCtxComponents = everySlug.slice(0, 20);
 		if (appCtxComponents.length < 20) {
 			fail(`expected ≥20 components for emit_app_context gate, registry only has ${appCtxComponents.length}`);
 		}

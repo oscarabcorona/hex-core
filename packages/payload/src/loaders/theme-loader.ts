@@ -65,21 +65,38 @@ export function getTheme(name: string): Theme | undefined {
 	return themes[name];
 }
 
-/**
- * List metadata for every theme in the merged catalog. Mirrors the
- * shape consumed by Studio's preset switcher; the optional
- * `category` / `tags` / `brand` fields land for voltagent presets
- * and stay `undefined` for the first-party OSS themes.
- */
-export function listThemes(): Array<{
+/** Metadata row returned by {@link listThemes}. */
+export interface ThemeSummary {
 	name: string;
 	displayName: string;
 	description: string;
 	category?: string;
 	tags?: string[];
 	brand?: string;
-}> {
-	return Object.values(themes).map((t) => ({
+}
+
+/**
+ * Memoized theme summaries.
+ *
+ * `themes` is a module-level constant, so this projection produced an
+ * identical array of ~74 fresh objects on every call — and both `list_themes`
+ * and `search_themes` call it per query. Building it once is the whole fix.
+ */
+let cachedThemeSummaries: ThemeSummary[] | null = null;
+
+/**
+ * List metadata for every theme in the merged catalog. Mirrors the
+ * shape consumed by Studio's preset switcher; the optional
+ * `category` / `tags` / `brand` fields land for voltagent presets
+ * and stay `undefined` for the first-party OSS themes.
+ *
+ * The returned array is shared across calls — treat it as read-only.
+ * @returns One summary row per theme
+ */
+export function listThemes(): ThemeSummary[] {
+	if (cachedThemeSummaries) return cachedThemeSummaries;
+
+	const summaries: ThemeSummary[] = Object.values(themes).map((t) => ({
 		name: t.name,
 		displayName: t.displayName,
 		description: t.description,
@@ -87,4 +104,6 @@ export function listThemes(): Array<{
 		tags: t.tags,
 		brand: t.brand,
 	}));
+	cachedThemeSummaries = summaries;
+	return summaries;
 }

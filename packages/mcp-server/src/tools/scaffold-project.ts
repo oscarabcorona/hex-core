@@ -62,7 +62,12 @@ export function register(server: McpServer): void {
 				content: `import { type ClassValue, clsx } from "clsx";\nimport { twMerge } from "tailwind-merge";\n\nexport function cn(...inputs: ClassValue[]) {\n\treturn twMerge(clsx(inputs));\n}\n`,
 			});
 
-			// 4. Each requested component
+			// 4 + 5. Each requested component: its files and its npm deps, in one
+			// pass. These were two loops over the same slug list, each calling
+			// `loadRegistryItem` — the memo made it cheap but it read as two
+			// independent walks, and a reader adding a third would have followed
+			// the pattern.
+			const allNpmDeps = new Set<string>(["clsx", "tailwind-merge"]);
 			for (const compName of components) {
 				const item = loadRegistryItem(compName);
 				if (!item) continue;
@@ -75,13 +80,7 @@ export function register(server: McpServer): void {
 						});
 					}
 				}
-			}
 
-			// 5. npm dependencies
-			const allNpmDeps = new Set<string>(["clsx", "tailwind-merge"]);
-			for (const compName of components) {
-				const item = loadRegistryItem(compName);
-				if (!item) continue;
 				const deps = item.dependencies as { npm?: string[] };
 				if (deps.npm) {
 					for (const dep of deps.npm) {

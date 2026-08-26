@@ -37,14 +37,39 @@ export function firstExistingPath(candidates: string[]): string | null {
 }
 
 /**
+ * Memoized result of the candidate probe.
+ *
+ * `undefined` means "not yet probed"; `null` is a real, cached "not found" —
+ * the distinction matters or a missing registry re-runs five `existsSync`
+ * calls at every call site. Keyed on nothing because both inputs are fixed
+ * for the life of a CLI process: the module's own directory, and a `cwd` no
+ * command changes.
+ */
+let cachedRegistryDir: string | null | undefined;
+
+/**
  * Locate the registry directory by searching known candidate paths.
  * Shared by every CLI command so they can't drift on where the registry
- * lives relative to the published CLI bundle.
+ * lives relative to the published CLI bundle. Memoized — five call sites
+ * (`add` twice, `list` twice, `load-catalog`) each re-ran the probe.
  * @returns The absolute path to the registry directory, or null if not found
  */
 export function findRegistryDir(): string | null {
+	if (cachedRegistryDir !== undefined) return cachedRegistryDir;
+
 	const here = path.dirname(fileURLToPath(import.meta.url));
-	return firstExistingPath(buildRegistryCandidates(here, process.cwd()));
+	cachedRegistryDir = firstExistingPath(buildRegistryCandidates(here, process.cwd()));
+	return cachedRegistryDir;
+}
+
+/**
+ * Drop the memoized directory. Tests only — they mutate the filesystem
+ * between cases, which is the one situation where the assumption above
+ * (a registry that does not move under a running process) is false.
+ * @internal
+ */
+export function resetRegistryDirCache(): void {
+	cachedRegistryDir = undefined;
 }
 
 /**
