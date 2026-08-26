@@ -1,5 +1,20 @@
 # @hex-core/themes
 
+## 0.2.5
+
+### Patch Changes
+
+- c2ce968: Generate the brief-loader map instead of hand-writing 71 `switch` arms.
+
+  `loadThemeBrief` is unchanged for callers. Imports stay static so esbuild
+  keeps code-splitting each brief out of the main chunk.
+
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+  - @hex-core/registry@0.8.0
+  - @hex-core/tokens@1.4.0
+
 ## 0.2.4
 
 ### Patch Changes

@@ -1,5 +1,37 @@
 # @hex-core/components
 
+## 1.16.0
+
+### Minor Changes
+
+- c2ce968: Generate the barrels; ship `cn` and the colour helpers as RSC-safe entries.
+
+  `@hex-core/components/schemas` now exports all 159 component schemas. The
+  hand-written barrel it replaces shipped 109 — every block and both hooks were
+  missing, and nothing caught it because the registry build reads schema files
+  from disk rather than through the barrel.
+
+  The runtime barrel gains six exports that were reachable via deep imports but
+  absent from it: `DialogContentProps`, `ScrollAreaProps`, `SliderProps`,
+  `closeUnterminated`, `findColumnIdForCard` and `moveCard`.
+
+  `src/lib/*` now gets its own tsup entries, so `cn` and the HSL helpers are
+  importable from a Server Component via `@hex-core/components/utils` — the
+  root barrel carries a `"use client"` directive, which made calling `cn` from
+  server code fail at render.
+
+  Both barrels are generated from the filesystem by `scripts/build-barrels.ts`.
+  Tag a declaration `@internal` to keep it out of the public API.
+
+### Patch Changes
+
+- c2ce968: Fix six block/component examples that made `hex poc` emit code that doesn't compile, or that couldn't be composed as a page section at all.
+  - `app-data-table` referenced an undefined `DataTable` with free `columns`/`rows` fixtures, and passed a `page`/`pageCount` props API that `Pagination` has never had (it is a compound component). This broke `app-page` — the only app-shaped page recipe — so `hex poc --recipe app-page` failed `next build` with `TS2304`.
+  - `canvas` rendered `<Canvas>` without importing it (only a side-effect CSS import).
+  - `timeline`, `data-table`, `input-otp` and `stepper` used the `export function Example()` shape the POC generator rejects, so any screen composing them was silently skipped.
+
+  Examples now import from the `@hex-core/components` barrel consistently.
+
 ## 1.15.0
 
 ### Minor Changes

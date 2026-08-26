@@ -1,5 +1,35 @@
 # @hex-core/tokens
 
+## 1.4.0
+
+### Minor Changes
+
+- c2ce968: `generateGlobalsCss` gains a `sources` option for Tailwind v4. When set, the import becomes `@import "tailwindcss" source(none)` followed by one `@source` rule per glob, turning off automatic content detection.
+
+  This fixes a real failure for any app generated _inside_ an existing repository — the normal case for a POC. Tailwind's automatic scan walks up past the app to the enclosing git root and reads whatever it finds, binary files included; their bytes become class candidates and emit utilities that cannot be parsed. In a dogfood run against this monorepo that meant 424 PNG baselines were read as classes, producing rules like `.w-[var(--O\e…)]` and 500ing every route.
+
+  Default behaviour is unchanged: omit `sources` for an app at the root of its own repository, where automatic detection is correct.
+
+- c2ce968: Two-tier colour tokens: one ramp, semantic tokens that point at it.
+
+  `defaultTheme` now declares every literal colour exactly once in a `palette`
+  const and draws semantic tokens from it via a type-checked `ref()` helper.
+  Generated CSS emits `--primary: var(--slate-900)` above
+  `--slate-900: 222 25% 18%`, so overriding a single ramp entry re-tints
+  everything drawn from it — including from a consumer's own stylesheet.
+
+  Every resolved value is byte-identical to the previous theme; this changes
+  the shape of the emitted CSS, not any colour.
+
+  Adds `generateThemeCssV4`, which emits just the token layer (ramp, semantic
+  tokens, and the Tailwind `--color-*` bridge) for consumers that already own
+  their `@import`s and non-colour `@theme` block.
+
+### Patch Changes
+
+- Updated dependencies [c2ce968]
+  - @hex-core/registry@0.8.0
+
 ## 1.3.8
 
 ### Patch Changes

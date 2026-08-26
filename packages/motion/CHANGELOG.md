@@ -1,5 +1,15 @@
 # @hex-core/motion
 
+## 0.3.2
+
+### Patch Changes
+
+- c2ce968: Colocate each motion component's demo with the component.
+
+  Demos are excluded from the published bundle; they exist so the docs site can
+  render one folder per component rather than a separate demos directory plus a
+  hand-maintained map.
+
 ## 0.3.1
 
 ### Patch Changes
