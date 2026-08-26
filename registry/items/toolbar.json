@@ -154,7 +154,7 @@
       "separator"
     ],
     "accessibilityNotes": "Radix wires role='toolbar', roving tabindex (Tab enters at the first focusable item, arrows move within), Home/End jump to first/last. Always pass aria-label when there's no visible heading next to the toolbar.",
-    "tokenBudget": 1377
+    "tokenBudget": 1355
   },
   "tags": [
     "toolbar",

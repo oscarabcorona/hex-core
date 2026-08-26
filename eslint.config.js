@@ -4,6 +4,71 @@ import prettier from "eslint-config-prettier";
 import jsdoc from "eslint-plugin-jsdoc";
 import reactHooks from "eslint-plugin-react-hooks";
 
+// FLAT CONFIG REPLACES, IT DOES NOT MERGE. Two blocks that both set
+// `no-restricted-syntax` for the same file keep only the LAST block's
+// selectors — the earlier ones are silently disarmed, with no warning and no
+// failing test. This is not hypothetical: the colour fence below shipped
+// scoped to the component layers while a later unscoped block re-declared the
+// rule, so a `#ff00aa` in `primitives/button/button.tsx` linted clean for the
+// whole life of the rule.
+//
+// So the selectors live in named constants and every block that narrows a
+// file set REPEATS what it inherits. If you add a block that sets
+// `no-restricted-syntax`, spread `BASE_SYNTAX` into it.
+
+/**
+ * `as unknown as T` defeats the type system outright — it is the one
+ * assertion form that can turn any value into any other with no overlap
+ * check. Zero sites remain; this keeps it that way.
+ *
+ * The alternatives, in order of preference: `satisfies` for object literals,
+ * a Zod `.parse()` at a trust boundary, a type guard for unions, `declare
+ * global` for untyped browser APIs, and an intersection
+ * (`T & Record<string, unknown>`) to widen a fixture.
+ */
+const NO_UNKNOWN_CAST = {
+	selector: "TSAsExpression > TSAsExpression > TSUnknownKeyword",
+	message:
+		"`as unknown as T` is banned. Use `satisfies`, a Zod `.parse()` at the boundary, a type guard, `declare global` for browser APIs, or an intersection type to widen. See CONTRIBUTING.md § Type safety.",
+};
+
+/** Everything `no-restricted-syntax` bans repo-wide. Narrowing blocks repeat it. */
+const BASE_SYNTAX = [NO_UNKNOWN_CAST];
+
+const COLOUR_MESSAGE =
+	"Hardcoded colour. Use a semantic token — a Tailwind utility (`bg-primary`) or `hsl(var(--border))`. See the token pyramid in packages/tokens/src/themes/default.ts.";
+
+/**
+ * Colour literals belong in the token system, not in a component.
+ *
+ * The whole point of the two-tier palette in `packages/tokens/src/themes/` is
+ * that changing a colour is one edit; a hardcoded `#171717` in a component is
+ * a value the theme cannot reach, and it will not flip in dark mode.
+ */
+const NO_COLOUR_LITERALS = [
+	{
+		// 3, 6 or 8 digits. The 4-digit form is omitted deliberately: it
+		// collides with ordinary strings like an order id of `#1042`.
+		selector: "Literal[value=/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]",
+		message: COLOUR_MESSAGE,
+	},
+	{
+		// Matches a colour function given literal channels — `hsl(222 25% 18%)`,
+		// `rgba(0, 0, 0, .1)`. Deliberately does NOT match `hsl(var(--primary))`,
+		// which is the prescribed way to read a token.
+		selector: "Literal[value=/(?:rgba?|hsla?)\\(\\s*[\\d.]/]",
+		message: COLOUR_MESSAGE,
+	},
+	{
+		// The same, inside a template literal — how conditional classNames are
+		// built. Without this arm, `` `border-[${"#171717"}]` `` and any
+		// interpolated style string sail past the two selectors above.
+		selector:
+			"TemplateElement[value.raw=/#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\\b|(?:rgba?|hsla?)\\(\\s*[\\d.]/]",
+		message: COLOUR_MESSAGE,
+	},
+];
+
 export default tseslint.config(
 	js.configs.recommended,
 	...tseslint.configs.recommended,
@@ -95,20 +160,25 @@ export default tseslint.config(
 		},
 	},
 	{
+		// The repo-wide syntax bans. Must come BEFORE any block that narrows
+		// `no-restricted-syntax` to a file subset — see the header note.
+		rules: {
+			"no-restricted-syntax": ["error", ...BASE_SYNTAX],
+		},
+	},
+	{
 		/*
-		 * Colour literals belong in the token system, not in a component.
+		 * The colour fence, scoped to the layers where the token system fully
+		 * applies. `src/ai/**` is deliberately outside it: Terminal,
+		 * AudioPlayer and AudioWaveform hand concrete colours to third-party
+		 * canvas APIs (xterm.js, WaveSurfer) that cannot read CSS custom
+		 * properties. `src/lib/color.ts` is the hex↔HSL converter, whose JSDoc
+		 * examples are necessarily hex.
 		 *
-		 * The whole point of the two-tier palette in
-		 * `packages/tokens/src/themes/` is that changing a colour is one
-		 * edit; a hardcoded `#171717` in a component is a value the theme
-		 * cannot reach, and it will not flip in dark mode.
-		 *
-		 * Scoped to the layers where the token system fully applies.
-		 * `src/ai/**` is deliberately outside it: Terminal, AudioPlayer and
-		 * AudioWaveform hand concrete colours to third-party canvas APIs
-		 * (xterm.js, WaveSurfer) that cannot read CSS custom properties.
-		 * `src/lib/color.ts` is the hex↔HSL converter, whose JSDoc examples
-		 * are necessarily hex.
+		 * `...BASE_SYNTAX` is repeated deliberately: this block replaces the
+		 * repo-wide one for these files, so omitting it would release the
+		 * component layers from the `as unknown as` ban. That is the exact
+		 * defect this restructure fixes, in the other direction.
 		 */
 		files: [
 			"packages/components/src/primitives/**/*.tsx",
@@ -118,50 +188,12 @@ export default tseslint.config(
 		],
 		// Tests and demos use literal colours as fixtures on purpose — a
 		// `colorBy` stub returning `rgb(255, 0, 0)`, an order id of `#1042`.
-		// The rule is about what ships.
+		// The rule is about what ships. They keep BASE_SYNTAX via the
+		// repo-wide block, because `ignores` here only exempts them from this
+		// block, not from the one above.
 		ignores: ["**/*.test.tsx", "**/*.demo.tsx"],
 		rules: {
-			"no-restricted-syntax": [
-				"error",
-				{
-					// 3, 6 or 8 digits. The 4-digit form is omitted deliberately: it
-					// collides with ordinary strings like an order id of `#1042`.
-					selector: "Literal[value=/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]",
-					message:
-						"Hardcoded colour. Use a semantic token — a Tailwind utility (`bg-primary`) or `hsl(var(--border))`. See the token pyramid in packages/tokens/src/themes/default.ts.",
-				},
-				{
-					// Matches a colour function given literal channels —
-					// `hsl(222 25% 18%)`, `rgba(0, 0, 0, .1)`. Deliberately does
-					// NOT match `hsl(var(--primary))`, which is the prescribed
-					// way to read a token.
-					selector: "Literal[value=/(?:rgba?|hsla?)\\(\\s*[\\d.]/]",
-					message:
-						"Hardcoded colour. Use a semantic token — a Tailwind utility (`bg-primary`) or `hsl(var(--border))`. See the token pyramid in packages/tokens/src/themes/default.ts.",
-				},
-			],
-		},
-	},
-	{
-		/*
-		 * `as unknown as T` defeats the type system outright — it is the one
-		 * assertion form that can turn any value into any other with no
-		 * overlap check. Zero sites remain; this keeps it that way.
-		 *
-		 * The alternatives, in order of preference: `satisfies` for object
-		 * literals, a Zod `.parse()` at a trust boundary, a type guard for
-		 * unions, `declare global` for untyped browser APIs, and an
-		 * intersection (`T & Record<string, unknown>`) to widen a fixture.
-		 */
-		rules: {
-			"no-restricted-syntax": [
-				"error",
-				{
-					selector: "TSAsExpression > TSAsExpression > TSUnknownKeyword",
-					message:
-						"`as unknown as T` is banned. Use `satisfies`, a Zod `.parse()` at the boundary, a type guard, `declare global` for browser APIs, or an intersection type to widen. See CONTRIBUTING.md § Type safety.",
-				},
-			],
+			"no-restricted-syntax": ["error", ...BASE_SYNTAX, ...NO_COLOUR_LITERALS],
 		},
 	},
 	{

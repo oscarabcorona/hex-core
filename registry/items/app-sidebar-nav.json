@@ -119,7 +119,7 @@
       "avatar"
     ],
     "accessibilityNotes": "Links are real anchors; the active link carries aria-current='page'. Icons are aria-hidden since the adjacent label conveys meaning. The nav region scrolls independently so the brand and footer stay visible.",
-    "tokenBudget": 767
+    "tokenBudget": 751
   },
   "tags": [
     "block",

@@ -85,7 +85,7 @@
       "navigation-menu"
     ],
     "accessibilityNotes": "Root <nav aria-label='breadcrumb'> creates a landmark. BreadcrumbPage has aria-current='page'. Separators are aria-hidden (decorative). BreadcrumbEllipsis is decorative (SVG aria-hidden) with a sr-only 'More pages' label.",
-    "tokenBudget": 1101
+    "tokenBudget": 1079
   },
   "tags": [
     "breadcrumb",

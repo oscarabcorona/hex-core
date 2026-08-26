@@ -122,7 +122,7 @@
       "label"
     ],
     "accessibilityNotes": "Radix implements the WAI-ARIA radio group pattern. Arrow keys move focus+selection. Radix handles aria-checked, role='radiogroup', role='radio'.",
-    "tokenBudget": 483
+    "tokenBudget": 474
   },
   "tags": [
     "radio",

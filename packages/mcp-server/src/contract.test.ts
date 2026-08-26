@@ -502,7 +502,15 @@ async function main(): Promise<void> {
 		//   in TOKEN_AUDIT.md → set each ceiling to max × 1.25, rounded.
 		const tokensIn = (text: string): number => encode(text).length;
 		const CEILINGS = {
-			getComponent: 15_000, // current max 12,655 (block component, wire-pretty)
+			// Raised from 15,000. The old value was calibrated against a max of
+			// 12,655, measured when 30 registry items were still shipping imports
+			// for files that were never written beside them. Collecting those
+			// dependencies transitively — the fix that makes `hex add markdown`
+			// produce something that compiles — moved the real max to 19,805
+			// (`markdown`, 13 files). That is the price of a correct install, not
+			// bloat, so the ceiling follows the max rather than the max being
+			// trimmed to the ceiling.
+			getComponent: 25_000, // current max 19,805 (markdown, wire-pretty)
 			getComponentSchema: 2_500, // current max 2,265 (wire-pretty)
 			emitAppContextN20: 5_000, // current 3,775 at N=20
 			// scaffold_poc embeds full file contents by design; the ceiling
@@ -512,14 +520,33 @@ async function main(): Promise<void> {
 			// sources every tree now copies — a deliberate +36%, not a doubling.
 			scaffoldPocRecipe: 40_000, // current ~32,078 for landing-page
 		};
-		const budgetSamples = ["button", "auth-sign-in-split", "input"];
-		for (const slug of budgetSamples) {
+
+		// EVERY item, not a sample. This was three hardcoded slugs — `button`,
+		// `auth-sign-in-split`, `input` — and none of them was the largest, so
+		// the ceiling only ever guarded items nobody was worried about. The
+		// transitive-dependency fix pushed `markdown` to 19,805 tokens, 32 %
+		// over the then-ceiling, and this gate reported green. A ceiling checked
+		// against a hand-kept sample list is the same defect the rest of this
+		// changeset removes; the catalog already answers "which items exist".
+		const catalogResult = await client.callTool({ name: TOOL.SEARCH_COMPONENTS, arguments: {} });
+		const catalogText = (catalogResult.content as Array<{ text?: string }>)[0]?.text ?? "";
+		const everySlug = (JSON.parse(catalogText) as Array<{ name: string }>)
+			.map((c) => c.name)
+			.sort();
+		if (everySlug.length < 100) {
+			fail(`expected the full catalog for the ceiling sweep, got ${everySlug.length} slugs`);
+		}
+
+		let worstComponent = { slug: "", n: 0 };
+		let worstSchema = { slug: "", n: 0 };
+		for (const slug of everySlug) {
 			const r = await client.callTool({
 				name: TOOL.GET_COMPONENT,
 				arguments: { name: slug },
 			});
 			const text = (r.content as Array<{ text?: string }>)[0]?.text ?? "";
 			const n = tokensIn(text);
+			if (n > worstComponent.n) worstComponent = { slug, n };
 			if (n > CEILINGS.getComponent) {
 				fail(`get_component(${slug}) is ${n} tokens, ceiling ${CEILINGS.getComponent}`);
 			}
@@ -529,11 +556,15 @@ async function main(): Promise<void> {
 			});
 			const sText = (s.content as Array<{ text?: string }>)[0]?.text ?? "";
 			const sn = tokensIn(sText);
+			if (sn > worstSchema.n) worstSchema = { slug, n: sn };
 			if (sn > CEILINGS.getComponentSchema) {
 				fail(`get_component_schema(${slug}) is ${sn} tokens, ceiling ${CEILINGS.getComponentSchema}`);
 			}
 		}
-		pass(`get_component / get_component_schema stay under ceilings for ${budgetSamples.length} samples`);
+		pass(
+			`get_component / get_component_schema stay under ceilings across all ${everySlug.length} items ` +
+				`(worst: ${worstComponent.slug} ${worstComponent.n}, ${worstSchema.slug} ${worstSchema.n})`,
+		);
 
 		// Derive the N=20 sample from the live catalog (first 20 sorted slugs)
 		// so a rename / removal can't silently shrink N and pass on smaller

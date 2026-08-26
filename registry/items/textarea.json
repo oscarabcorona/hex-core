@@ -119,7 +119,7 @@
       "form"
     ],
     "accessibilityNotes": "Always pair with a Label using htmlFor/id. Consider aria-describedby for character limits.",
-    "tokenBudget": 303
+    "tokenBudget": 301
   },
   "tags": [
     "textarea",

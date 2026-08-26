@@ -4,7 +4,7 @@
 	"type": "module",
 	"description": "AI-native component library for LLMs and humans",
 	"scripts": {
-		"build": "pnpm run build:barrels && pnpm run build:tokens && turbo build",
+		"build": "turbo build",
 		"build:barrels": "tsx scripts/build-barrels.ts",
 		"build:tokens": "tsx scripts/build-tokens.ts",
 		"build:registry": "tsx scripts/build-registry.ts && tsx scripts/build-graph.ts",

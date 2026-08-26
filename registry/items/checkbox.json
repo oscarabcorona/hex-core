@@ -120,7 +120,7 @@
       "form"
     ],
     "accessibilityNotes": "Always pair with Label via htmlFor/id. Radix handles aria-checked automatically.",
-    "tokenBudget": 643
+    "tokenBudget": 640
   },
   "tags": [
     "checkbox",

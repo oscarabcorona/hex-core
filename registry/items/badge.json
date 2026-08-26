@@ -126,7 +126,7 @@
       "card"
     ],
     "accessibilityNotes": "Purely decorative by default. Add role='status' for dynamic status badges.",
-    "tokenBudget": 373
+    "tokenBudget": 374
   },
   "tags": [
     "badge",

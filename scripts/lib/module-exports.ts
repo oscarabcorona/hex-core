@@ -66,6 +66,14 @@ function hasExportModifier(node: ts.Node): boolean {
 	);
 }
 
+/** True for `export default class/function …` (as opposed to `export = x`). */
+function isDefaultExport(node: ts.Node): boolean {
+	return (
+		ts.canHaveModifiers(node) &&
+		(ts.getModifiers(node)?.some((m) => m.kind === ts.SyntaxKind.DefaultKeyword) ?? false)
+	);
+}
+
 /**
  * Names tagged `@internal` in a leading JSDoc block.
  *
@@ -150,10 +158,39 @@ export function readModuleExports(filePath: string): ModuleExports {
 	};
 
 	for (const statement of source.statements) {
+		// `export default …` — a barrel re-exports by NAME, and this reader
+		// used to record `export default function Thing()` as a named export
+		// `Thing`, which generated `export { Thing } from "./x.js"` against a
+		// module that has no such binding. A silently-wrong barrel is worse
+		// than a missing one, so this is fatal rather than skipped.
+		if (ts.isExportAssignment(statement) || isDefaultExport(statement)) {
+			throw new Error(
+				`${filePath}: \`export default\` is not supported in a generated barrel — ` +
+					`a barrel re-exports by name. Use a named export.`,
+			);
+		}
+
 		// `export { A, B, type C }` / `export { A } from "./x.js"`
 		if (ts.isExportDeclaration(statement)) {
 			const bindings = statement.exportClause;
-			if (!bindings || !ts.isNamedExports(bindings)) continue;
+			// `export * from "./x.js"` (no clause) and `export * as ns from
+			// "./x.js"` (a namespace clause) both used to fall through this
+			// `continue` and vanish from the barrel with no diagnostic — the
+			// exact invisible-drift failure the generator exists to prevent.
+			// Resolving them means reading the target module too; until
+			// something needs that, refuse loudly.
+			if (!bindings) {
+				throw new Error(
+					`${filePath}: \`export * from …\` is not supported — the barrel ` +
+						`generator cannot see through it. List the names explicitly.`,
+				);
+			}
+			if (!ts.isNamedExports(bindings)) {
+				throw new Error(
+					`${filePath}: \`export * as ns from …\` is not supported — ` +
+						`the barrel generator re-exports names, not namespaces.`,
+				);
+			}
 			for (const spec of bindings.elements) {
 				const name = spec.name.text;
 				const local = (spec.propertyName ?? spec.name).text;

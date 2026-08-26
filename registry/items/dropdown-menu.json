@@ -111,7 +111,7 @@
       "popover"
     ],
     "accessibilityNotes": "Full keyboard navigation: arrow keys, Home, End, typeahead, Escape. Radix handles role='menu', role='menuitem', and aria-labelledby.",
-    "tokenBudget": 1845
+    "tokenBudget": 1808
   },
   "tags": [
     "dropdown",

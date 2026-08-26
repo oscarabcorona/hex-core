@@ -136,7 +136,7 @@
       "flowchart"
     ],
     "accessibilityNotes": "The SVG carries role=\"img\" with a <title> and <desc> summarizing task count and date range. Interactive task bars declare role=\"button\", tabIndex, and Enter/Space activation. The aria-label includes label, date range, and progress percent. For agent outputs, also expose a parallel ordered list of tasks with their dates.",
-    "tokenBudget": 3409
+    "tokenBudget": 3358
   },
   "tags": [
     "artifact",

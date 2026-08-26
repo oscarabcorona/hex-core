@@ -218,7 +218,7 @@
       "separator"
     ],
     "accessibilityNotes": "Form inputs have explicit Label htmlFor pairing, autoComplete='email' / 'current-password', and required attributes. Submit button uses the canonical loading prop (sets aria-busy + disabled). Errors render in an Alert with role='alert' so they're announced. Marketing aside is aria-hidden so screen-reader users don't traverse decorative copy before reaching the form.",
-    "tokenBudget": 6000
+    "tokenBudget": 5944
   },
   "tags": [
     "block",

@@ -128,7 +128,7 @@
       "stack"
     ],
     "accessibilityNotes": "Card is a div by default. Add role='region' and aria-labelledby (pointing to CardTitle's id) for landmark cards. CardTitle renders h3 — ensure heading hierarchy is correct on the page.",
-    "tokenBudget": 659
+    "tokenBudget": 623
   },
   "tags": [
     "card",

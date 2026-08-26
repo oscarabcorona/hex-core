@@ -129,7 +129,7 @@
       "commerce-store-nav"
     ],
     "accessibilityNotes": "When href is set the card is a single anchor with an accessible name from the category name. Images need alt text describing the category.",
-    "tokenBudget": 797
+    "tokenBudget": 786
   },
   "tags": [
     "block",

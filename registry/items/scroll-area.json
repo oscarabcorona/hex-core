@@ -103,7 +103,7 @@
     ],
     "relatedComponents": [],
     "accessibilityNotes": "The viewport is keyboard-focusable by default (viewportTabIndex=0) so users can scroll long content via arrow keys / PgUp / PgDn / Home / End without a pointer. Pass viewportTabIndex={-1} when the contents are already in the tab order or purely decorative. For very long lists, consider pagination or virtualization.",
-    "tokenBudget": 637
+    "tokenBudget": 622
   },
   "tags": [
     "scroll-area",

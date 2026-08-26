@@ -80,13 +80,27 @@ jobs:
       # "generated" from quietly meaning "hand-edited once and forgotten" —
       # the failure mode that left 53 schemas out of the old hand-written
       # barrel.
+      #
+      # A GLOB, not a list. The list form shipped with four of the five files
+      # on it: `packages/themes/src/presets/briefs.generated.ts` was missing,
+      # so adding a preset brief without re-running `pnpm build` passed this
+      # gate AND the themes suite (which only asserts two hardcoded slugs),
+      # and `loadThemeBrief` returns undefined for the missing one. A gate
+      # that has to be extended by hand for each new generated file is the
+      # same hand-maintained list this PR exists to delete.
+      #
+      # `git diff` covers tracked drift; the porcelain check covers a
+      # generator emitting a NEW file nobody committed, which `git diff`
+      # cannot see.
       - name: Verify the generated barrels and tokens are in sync
         run: |
-          git diff --exit-code \
-            packages/components/src/index.generated.ts \
-            packages/components/src/schemas.generated.ts \
-            apps/docs/src/lib/demos.generated.tsx \
-            apps/docs/src/app/tokens.generated.css
+          git diff --exit-code -- '*.generated.*'
+          untracked="$(git ls-files --others --exclude-standard -- '*.generated.*')"
+          if [ -n "$untracked" ]; then
+            echo "::error::Generated files exist that were never committed:"
+            echo "$untracked"
+            exit 1
+          fi
 
   test:
     name: Test

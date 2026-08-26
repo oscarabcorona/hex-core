@@ -169,7 +169,7 @@
       "button"
     ],
     "accessibilityNotes": "Radix sets aria-pressed correctly. Icon-only toggles MUST have aria-label. Space/Enter toggles state.",
-    "tokenBudget": 530
+    "tokenBudget": 534
   },
   "tags": [
     "toggle",

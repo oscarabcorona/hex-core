@@ -130,7 +130,7 @@
       "toggle"
     ],
     "accessibilityNotes": "Always pair with Label (htmlFor / id). Radix handles role='switch' + aria-checked + keyboard activation (Space).",
-    "tokenBudget": 446
+    "tokenBudget": 443
   },
   "tags": [
     "switch",

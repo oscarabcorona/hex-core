@@ -175,7 +175,7 @@
       "marketing-feature-grid"
     ],
     "accessibilityNotes": "Renders a single <h1> for the page — don't place another <h1> elsewhere. Decorative media should carry an empty alt or aria-hidden. CTA focus rings come from the Button primitive.",
-    "tokenBudget": 834
+    "tokenBudget": 817
   },
   "tags": [
     "block",

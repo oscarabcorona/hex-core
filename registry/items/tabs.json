@@ -105,7 +105,7 @@
       "separator"
     ],
     "accessibilityNotes": "Full keyboard navigation built-in (arrow keys, Home, End). Radix handles aria-selected, role='tabpanel', etc.",
-    "tokenBudget": 569
+    "tokenBudget": 568
   },
   "tags": [
     "tabs",

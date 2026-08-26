@@ -91,7 +91,7 @@
       "button"
     ],
     "accessibilityNotes": "Pure layout container. Each child button must carry its own `aria-label` since icon-only buttons have no accessible text.",
-    "tokenBudget": 353
+    "tokenBudget": 344
   },
   "tags": [
     "ai",

@@ -130,7 +130,7 @@
       "breadcrumb"
     ],
     "accessibilityNotes": "The mobile menu button is a <button> with aria-expanded and an aria-label. The drawer backdrop is a labelled button so it's keyboard-dismissable. The sticky top bar stays above content via z-index without trapping focus.",
-    "tokenBudget": 803
+    "tokenBudget": 778
   },
   "tags": [
     "block",

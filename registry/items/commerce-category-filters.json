@@ -121,7 +121,7 @@
       "commerce-product-grid"
     ],
     "accessibilityNotes": "Root is an <aside> labelled 'Filters'. Each group uses native <details>/<summary> — keyboard-toggleable (Enter/Space) with built-in aria-expanded. The chevron rotates via CSS on [open]; it's aria-hidden so it doesn't pollute the summary's accessible name.",
-    "tokenBudget": 742
+    "tokenBudget": 723
   },
   "tags": [
     "block",

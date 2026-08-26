@@ -123,7 +123,7 @@
       "markdown"
     ],
     "accessibilityNotes": "Radix Collapsible — keyboard expand/collapse via Enter/Space. The italic header is decorative; use the visible label for screen readers.",
-    "tokenBudget": 1013
+    "tokenBudget": 1007
   },
   "tags": [
     "ai",

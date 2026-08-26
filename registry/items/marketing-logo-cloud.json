@@ -101,7 +101,7 @@
       "marketing-feature-grid"
     ],
     "accessibilityNotes": "Logos are images — each <img> needs an alt of the brand name. The caption is a plain <p>, not a heading, so it doesn't disrupt heading order.",
-    "tokenBudget": 409
+    "tokenBudget": 402
   },
   "tags": [
     "block",

@@ -163,7 +163,7 @@
       "tree"
     ],
     "accessibilityNotes": "Reactflow's accessibility is limited (the canvas is a div graph, not native semantics). For agent-workflow visualization, also expose a parallel screen-reader-friendly text/list representation of the nodes via aria-describedby.",
-    "tokenBudget": 866
+    "tokenBudget": 861
   },
   "tags": [
     "ai",

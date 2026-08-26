@@ -47,10 +47,22 @@ export const DEFAULT_ALIASES: AliasConfig = {
 export function rewriteRegistryImports(content: string, aliases: AliasConfig = DEFAULT_ALIASES): string {
 	let out = content;
 
-	// 1. Anything-depth-of-"../" then "lib/utils[.js]" → aliases.lib + "/utils".
+	// 1. Anything-depth-of-"../" then "lib/<name>[.js]" → aliases.lib + "/<name>".
+	//
+	//    The name is a CAPTURE, not the literal `utils`. It was hardcoded, and
+	//    the registry ships three lib modules: `utils`, `color` and
+	//    `chart-palette`. The latter two therefore reached consumers still
+	//    spelled `../../lib/chart-palette`, which resolves only because the
+	//    default aliases happen to put `components/` and `lib/` under one
+	//    parent. Any consumer whose `hex.config.json` points `lib` somewhere
+	//    else — the whole reason that key exists — got a broken import in eight
+	//    items, while `utils` in the same file resolved fine.
+	//
+	//    One segment after `lib/`, matching what the registry emits; a nested
+	//    `lib/a/b` would need a second arm and does not exist today.
 	out = out.replace(
-		/(["'])(?:\.\.\/)+lib\/utils(?:\.js)?\1/g,
-		(_, q) => `${q}${aliases.lib}/utils${q}`,
+		/(["'])(?:\.\.\/)+lib\/([a-z][a-z0-9-]*)(?:\.js)?\1/g,
+		(_, q, name) => `${q}${aliases.lib}/${name}${q}`,
 	);
 
 	// 2. Sibling-component-directory imports: "../<name>/<name>[.js]",

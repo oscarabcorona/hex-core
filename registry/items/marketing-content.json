@@ -142,7 +142,7 @@
       "commerce-product-grid"
     ],
     "accessibilityNotes": "When href is set, the whole card is a single anchor with an accessible name from the title (and excerpt becomes adjacent text). When unset, the card renders as <article>. Images need alt text describing the preview.",
-    "tokenBudget": 1030
+    "tokenBudget": 1011
   },
   "tags": [
     "block",

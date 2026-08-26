@@ -124,7 +124,7 @@
       "speech-recognition"
     ],
     "accessibilityNotes": "The play button has aria-label that flips between Play/Pause. The waveform is decorative; screen readers get current/total duration via the visible time text. For agent voice messages, also set an aria-label on the wrapper describing the message context.",
-    "tokenBudget": 1428
+    "tokenBudget": 1410
   },
   "tags": [
     "ai",

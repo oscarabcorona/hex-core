@@ -1,7 +1,14 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { encode } from "gpt-tokenizer";
+// The ENCODING IS NAMED, not defaulted. `gpt-tokenizer`'s bare entry point
+// re-exports whichever encoding is current for the newest OpenAI model, so it
+// silently became o200k_base in 3.x. That made the budgets baked in here
+// disagree with `scripts/audit-tokens.ts` and with the ceilings pinned in
+// `packages/mcp-server/src/contract.test.ts` (which always named cl100k_base),
+// while every comment claimed the three agreed. Naming it is what makes the
+// claim survive the next major.
+import { encode } from "gpt-tokenizer/encoding/cl100k_base";
 import {
 	componentSchemaDefinition,
 	recipeSchemaDefinition,
@@ -143,20 +150,34 @@ async function loadDefinition(
 	}
 	const exports: Record<string, unknown> = { ...mod };
 
-	// Deterministic: pick the alphabetically-first matching export so a module
-	// with an incidental second `*Schema` export can't shift the output between
-	// runs. CI diffs the committed registry, so stability matters more here
-	// than convenience.
-	const key = Object.keys(exports)
+	// EXACTLY ONE, or refuse. The previous rule took the alphabetically-first
+	// match: deterministic, but arbitrary — and arbitrary in a direction nobody
+	// would predict, because `Object.keys().sort()` puts every capitalised name
+	// ahead of every camelCase one. A schema file that grew a Zod
+	// `PropsSchema` beside its `buttonSchema` would have silently shipped the
+	// Zod object as the component definition, to be rejected downstream by a
+	// validator pointing at the wrong thing.
+	//
+	// All 159 schemas and every recipe export exactly one, so uniqueness costs
+	// nothing today and turns that class of mistake into a build error naming
+	// both candidates. Name the second export something that does not end in
+	// `${suffix}`, or move it to a sibling module.
+	const matches = Object.keys(exports)
 		.filter((k) => k.endsWith(suffix))
-		.sort()[0];
-	if (key === undefined) {
+		.sort();
+	if (matches.length === 0) {
+		console.error(`  ERROR: ${path.relative(ROOT, filePath)} exports no \`*${suffix}\` binding`);
+		return null;
+	}
+	if (matches.length > 1) {
 		console.error(
-			`  ERROR: ${path.relative(ROOT, filePath)} exports no \`*${suffix}\` binding`,
+			`  ERROR: ${path.relative(ROOT, filePath)} exports ${String(matches.length)} ` +
+				`\`*${suffix}\` bindings (${matches.join(", ")}) — exactly one is required so the ` +
+				`definition picked is never a coin flip.`,
 		);
 		return null;
 	}
-	return exports[key];
+	return exports[matches[0]];
 }
 
 /**

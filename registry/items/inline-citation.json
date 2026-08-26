@@ -141,7 +141,7 @@
       "message"
     ],
     "accessibilityNotes": "Wraps Radix HoverCard. The trigger is a real anchor (with `url`) or button; both carry an `aria-label` exposing the index + title to screen readers and are in the keyboard tab order. HoverCard content opens on focus AND hover so keyboard users get the same preview.",
-    "tokenBudget": 1117
+    "tokenBudget": 1110
   },
   "tags": [
     "ai",
