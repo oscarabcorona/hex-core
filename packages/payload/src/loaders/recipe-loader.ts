@@ -68,19 +68,37 @@ export interface RecipeIndex {
 }
 
 /**
+ * Memoized recipe index.
+ *
+ * `loadRecipes` re-read and re-parsed `recipes.json` on every call, and it is
+ * on a per-query path: `list_recipes` calls it, and so does every
+ * `resolveSpec`, which `map_application` runs once per brief segment — up to
+ * twelve times for one map. Same reasoning as `cachedGraph` in
+ * `graph-loader.ts`: the registry directory is bundled into the published
+ * tarball and does not change under a running process.
+ */
+let cachedRecipes: RecipeIndex | null = null;
+
+/**
  * Load and parse the recipe index from disk. Returns an empty index when
  * the file is absent so older registry snapshots without recipes remain
- * usable (a missing recipes file is not an error).
+ * usable (a missing recipes file is not an error). Memoized after first read.
  * @returns The parsed recipe index
  */
 export function loadRecipes(): RecipeIndex {
+	if (cachedRecipes) return cachedRecipes;
+
 	const dir = getRegistryDir();
 	const indexPath = path.join(dir, "recipes.json");
 	if (!fs.existsSync(indexPath)) {
-		return { name: "hex-core", version: "0.0.0", items: [] };
+		const empty: RecipeIndex = { name: "hex-core", version: "0.0.0", items: [] };
+		cachedRecipes = empty;
+		return empty;
 	}
 	const content = fs.readFileSync(indexPath, "utf-8");
-	return JSON.parse(content);
+	const parsed: RecipeIndex = JSON.parse(content);
+	cachedRecipes = parsed;
+	return parsed;
 }
 
 /**

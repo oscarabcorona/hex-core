@@ -6,6 +6,7 @@ import {
 	internalDepToSlug,
 	loadRecipe,
 	loadRegistryItem,
+	type RegistryItem,
 	SLUG_REGEX,
 } from "@hex-core/payload";
 import { TOOL } from "../tool-names.js";
@@ -42,6 +43,12 @@ export function register(server: McpServer): void {
 			const unknownComponents: string[] = [];
 			const missingInternalDeps: Array<{ component: string; missing: string[] }> = [];
 
+			// One pass, keeping the item. The second loop below used to re-load
+			// every slug it had just loaded here — harmless while the loader
+			// memoizes, but it reads as if the two loops were independent, and
+			// the same shape in scaffold-project sat next to a real double read.
+			const resolved = new Map<string, RegistryItem>();
+
 			for (const slug of components) {
 				if (!SLUG_REGEX.test(slug)) {
 					unknownComponents.push(slug);
@@ -53,11 +60,10 @@ export function register(server: McpServer): void {
 					continue;
 				}
 				installed.add(slug);
+				resolved.set(slug, item);
 			}
 
-			for (const slug of installed) {
-				const item = loadRegistryItem(slug);
-				if (!item) continue;
+			for (const [slug, item] of resolved) {
 				const deps = item.dependencies?.internal ?? [];
 				const missingSlugs: string[] = [];
 				for (const dep of deps) {

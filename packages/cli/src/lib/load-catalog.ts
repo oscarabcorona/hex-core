@@ -127,6 +127,11 @@ export function loadCatalog(): Catalog {
 		})
 		.loose();
 
+	// Negative results are cached too (`null`), so a miss costs one probe
+	// rather than one per call site — `hex add` warns about unknown slugs by
+	// looking them up repeatedly.
+	const itemCache = new Map<string, RegistryItem | null>();
+
 	return {
 		registryDir,
 		registry,
@@ -134,16 +139,32 @@ export function loadCatalog(): Catalog {
 		graph,
 		loadRecipe: (slug) => loadFrom<Recipe>("recipes", slug),
 		loadItem: (slug) => {
+			// Per-catalog cache, mirroring `registryItemCache` in payload's
+			// registry-loader. `hex poc` walks a ~26-slug dependency closure and
+			// `hex add` reaches the same item from up to three call sites, each
+			// of which previously paid a fresh read plus a fresh Zod parse.
+			// Scoped to this catalog object rather than module-level so a test
+			// that builds two catalogs over different fixtures can't see one
+			// through the other.
+			const hit = itemCache.get(slug);
+			if (hit !== undefined) return hit;
+
 			const raw = loadFrom<unknown>("items", slug);
-			if (raw === null) return null;
+			if (raw === null) {
+				itemCache.set(slug, null);
+				return null;
+			}
 			const parsed = itemShape.safeParse(raw);
 			if (!parsed.success) {
 				console.error(
 					`Registry item "${slug}" is malformed (${parsed.error.issues[0]?.path.join(".")}: ${parsed.error.issues[0]?.message}). Reinstall @hex-core/cli or re-run \`pnpm run build:registry\`.`,
 				);
+				itemCache.set(slug, null);
 				return null;
 			}
-			return raw as RegistryItem;
+			const item = raw as RegistryItem;
+			itemCache.set(slug, item);
+			return item;
 		},
 	};
 }

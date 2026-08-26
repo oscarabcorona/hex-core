@@ -134,8 +134,13 @@ export function loadRegistry(): RegistryIndex {
 // the catalog (search_compositions, verify_checklist, emit_app_context)
 // don't re-read + re-parse the same JSON files on every call. Cache is
 // keyed by item name; entries are immutable from the consumer's POV
-// (registry tarball is bundled at publish time). A long-running MCP
-// process holds at most ~47 entries (~1MB total) — bounded.
+// (registry tarball is bundled at publish time).
+//
+// SIZE: 187 entries, ~3.11 MB, for a process that touches the whole catalog.
+// The previous note said "~47 entries (~1MB total) — bounded", which was true
+// at 0.4.0 and quietly stopped being true; it is recorded here because a
+// caller reading the old number would have concluded that fanning out across
+// every item was cheap. It is bounded, but by the catalog size, which grows.
 const registryItemCache = new Map<string, RegistryItem>();
 
 /**

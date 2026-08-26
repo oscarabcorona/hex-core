@@ -246,13 +246,33 @@ interface ExportOwner {
 	stale: boolean;
 }
 
+// Derived data keyed off the graph object, mirroring `indexCache` in
+// graph-query.ts. `generatePageSource` is called once per page-recipe screen,
+// so a five-screen map rebuilt this index — a walk over all 213 nodes and
+// every identifier each one exports — five times over an object that cannot
+// have changed between calls. WeakMap rather than a module-level Map so a
+// caller that builds a second graph (tests do) can't read the first one's
+// index, and neither is retained after its graph is dropped.
+const exportIndexCache = new WeakMap<CatalogGraph, Map<string, ExportOwner[]>>();
+
 /**
  * Index every graph item's exported identifiers so example imports can be
- * routed to the copied component modules.
+ * routed to the copied component modules. Memoized per graph object.
  * @param graph - The catalog graph
  * @returns identifier → owning items and the module each exports it from
  */
 function buildExportIndex(graph: CatalogGraph): Map<string, ExportOwner[]> {
+	const cached = exportIndexCache.get(graph);
+	if (cached) return cached;
+	return buildExportIndexUncached(graph);
+}
+
+/**
+ * Compute the export index and memoize it.
+ * @param graph - The catalog graph
+ * @returns identifier → owning items and the module each exports it from
+ */
+function buildExportIndexUncached(graph: CatalogGraph): Map<string, ExportOwner[]> {
 	const index = new Map<string, ExportOwner[]>();
 	for (const node of graph.nodes) {
 		if (node.kind !== "item" || !node.exports) continue;
@@ -275,6 +295,7 @@ function buildExportIndex(graph: CatalogGraph): Map<string, ExportOwner[]> {
 		}
 	}
 	for (const owners of index.values()) owners.sort((a, b) => compareStrings(a.slug, b.slug));
+	exportIndexCache.set(graph, index);
 	return index;
 }
 

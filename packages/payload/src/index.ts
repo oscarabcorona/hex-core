@@ -37,6 +37,10 @@ export {
 	resolveSpec,
 	type ResolverOptions,
 	type ResolveResult,
+	// Exported so `search_components` matches on word boundaries with the same
+	// rules the resolver already uses, rather than growing a second, subtly
+	// different matcher. See its docstring for why substring matching is wrong.
+	wordSet,
 } from "./builders/resolver.js";
 
 // ─── Loaders (filesystem-coupled) ───

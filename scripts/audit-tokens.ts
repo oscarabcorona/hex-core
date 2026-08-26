@@ -40,6 +40,10 @@ import { buildApplicationMap, mapFromRecipe } from "../packages/payload/src/buil
 import { buildPocFiles } from "../packages/payload/src/builders/poc.js";
 import { loadGraph } from "../packages/payload/src/graph/graph-loader.js";
 import { explainNode } from "../packages/payload/src/graph/graph-query.js";
+// The SAME projection the MCP tool applies, imported rather than re-derived:
+// this row is meant to report what an agent actually receives, and a second
+// copy of the shaping logic would drift from the tool it claims to measure.
+import { wireNeighbor } from "../packages/mcp-server/src/tools/query-graph.js";
 
 const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 // The MCP server serves whatever `@hex-core/payload` bundles (its `prebuild`
@@ -532,19 +536,51 @@ if (designRefs.length > 0) {
 
 push("## Surface H — catalog graph + agent-builder tools");
 push("");
-push("The graph ships in the registry bundle; the tool rows measure representative wire-shape responses of the three agent-builder tools (`map_application`, `query_graph`, `scaffold_poc`). `scaffold_poc` embeds full file contents by design — agents should write the tree, not hold it in context.");
+push("The graph ships in the registry bundle; the tool rows measure wire-shape responses of the three agent-builder tools (`map_application`, `query_graph`, `scaffold_poc`). `query_graph` is the WORST case (the largest hub), not a representative one — a sample that is not the maximum cannot calibrate the ceilings in `contract.test.ts`, which is what this table is read for. `scaffold_poc` embeds full file contents by design — agents should write the tree, not hold it in context.");
 push("");
 const graph = loadGraph();
 const graphPretty = JSON.stringify(graph, null, 2);
 const sampleMap = buildApplicationMap("a SaaS site with a landing page and pricing page, plus an admin dashboard with a data table");
 const sampleMapPretty = JSON.stringify(sampleMap, null, 2);
-const sampleExplain = JSON.stringify(explainNode(graph, "marketing-hero"), null, 2);
+// WORST CASE, not a representative one. This row used to measure
+// `explain marketing-hero` — 13 neighbors — while `explain button` carried 59
+// and cost 5x as much. A sample that is not the maximum cannot calibrate a
+// ceiling, which is the one job this table has. Hubs come from the graph's own
+// metadata, so the worst case tracks the catalog rather than a slug someone
+// picked once.
+const explainWorst = graph.meta.hubs
+	.map((slug) => {
+		const explained = explainNode(graph, slug);
+		if (!explained) return { slug, json: "" };
+		return {
+			slug,
+			json: JSON.stringify(
+				{
+					...explained,
+					relations: explained.relations.map((group) => ({
+						relation: group.relation,
+						total: group.neighbors.length,
+						neighbors: group.neighbors.map(wireNeighbor),
+					})),
+				},
+				null,
+				2,
+			),
+		};
+	})
+	.reduce((worst, row) => (row.json.length > worst.json.length ? row : worst), {
+		slug: "",
+		json: "",
+	});
+const sampleExplain = explainWorst.json;
 const samplePoc = JSON.stringify(buildPocFiles(mapFromRecipe("landing-page"), { appName: "audit-poc" }), null, 2);
 push("| Shape | Tokens | Bytes |");
 push("|---|---|---|");
 push(`| \`registry/graph.json\` (${graph.nodes.length} nodes, ${graph.edges.length} edges) | ${fmt(tok(graphPretty))} | ${fmt(Buffer.byteLength(graphPretty))} |`);
 push(`| \`map_application\` (3-screen SaaS brief) | ${fmt(tok(sampleMapPretty))} | ${fmt(Buffer.byteLength(sampleMapPretty))} |`);
-push(`| \`query_graph\` (explain marketing-hero) | ${fmt(tok(sampleExplain))} | ${fmt(Buffer.byteLength(sampleExplain))} |`);
+push(
+	`| \`query_graph\` (explain ${explainWorst.slug} — worst hub, wire shape) | ${fmt(tok(sampleExplain))} | ${fmt(Buffer.byteLength(sampleExplain))} |`,
+);
 push(`| \`scaffold_poc\` (landing-page recipe, full file tree) | ${fmt(tok(samplePoc))} | ${fmt(Buffer.byteLength(samplePoc))} |`);
 push("");
 

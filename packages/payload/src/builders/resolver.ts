@@ -62,9 +62,16 @@ interface ComponentAiMeta {
 }
 
 /**
- * Build a component's AI meta by reading the full registry item. The full
- * item already lives on disk and is small (tens of KB) so reading once per
- * resolve call is cheap and keeps the resolver independent of any cache.
+ * Build a component's AI meta by reading the full registry item.
+ *
+ * CALL THIS ONLY FOR RESULTS YOU ARE ABOUT TO RETURN. The previous comment
+ * here claimed the full item is "small (tens of KB) so reading once per
+ * resolve call is cheap" — that stopped being true at 187 items, and the
+ * claim outliving the fact is what hid the cost. The items average ~17 KB;
+ * calling this per scoring candidate read ~2.3 MB per brief to fill in three
+ * strings on eight rows. `loadRegistryItem` memoizes, so the price is paid
+ * once per process, but "once" was still 133 files on the first query of
+ * every MCP session.
  * @param name - Component slug to look up
  * @returns AI meta, or empty strings / empty arrays when the item is missing
  */
@@ -95,7 +102,7 @@ function getComponentAi(name: string): ComponentAiMeta {
  * @param text - Arbitrary text to split
  * @returns Set of lowercase words (each length >= 1)
  */
-function wordSet(text: string): Set<string> {
+export function wordSet(text: string): Set<string> {
 	return new Set(
 		text
 			.toLowerCase()
@@ -238,24 +245,43 @@ export function resolveSpec(brief: string, options: ResolverOptions = {}): Resol
 	const recipes = options.recipes ?? loadRecipes();
 	const limit = options.limit ?? 8;
 
-	const componentScored: ComponentMatch[] = [];
+	// Score first, WITHOUT touching the AI meta. Reading it here meant loading
+	// the full item JSON for every candidate that scored above zero — on a
+	// ten-token brief that is 133 of 187 items, ~2.3 MB read and parsed, to
+	// produce three strings each for the 8 that survive the slice below.
+	// Measured: 44.5 ms cold, against 1.4 ms warm. The AI fields are output
+	// only — `scoreComponent` never reads them and neither does the sort — so
+	// deferring them past the slice is free.
+	interface ScoredComponent {
+		item: (typeof registry.items)[number];
+		score: number;
+		reasons: string[];
+	}
+	const componentScored: ScoredComponent[] = [];
 	for (const item of registry.items) {
 		const { score, reasons } = scoreComponent(item, tokens);
 		if (score <= 0) continue;
-
-		const ai = getComponentAi(item.name);
-		componentScored.push({
-			component: item.name,
-			displayName: item.displayName,
-			score,
-			matchReason: reasons,
-			whenToUse: ai.whenToUse,
-			whenNotToUse: ai.whenNotToUse,
-			relatedComponents: ai.relatedComponents,
-			tokenBudget: item.tokenBudget,
-		});
+		componentScored.push({ item, score, reasons });
 	}
-	componentScored.sort((a, b) => b.score - a.score || a.component.localeCompare(b.component));
+	componentScored.sort(
+		(a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name),
+	);
+
+	const componentMatches: ComponentMatch[] = componentScored
+		.slice(0, limit)
+		.map(({ item, score, reasons }) => {
+			const ai = getComponentAi(item.name);
+			return {
+				component: item.name,
+				displayName: item.displayName,
+				score,
+				matchReason: reasons,
+				whenToUse: ai.whenToUse,
+				whenNotToUse: ai.whenNotToUse,
+				relatedComponents: ai.relatedComponents,
+				tokenBudget: item.tokenBudget,
+			};
+		});
 
 	const recipeScored: RecipeMatch[] = [];
 	for (const recipe of recipes.items) {
@@ -273,7 +299,7 @@ export function resolveSpec(brief: string, options: ResolverOptions = {}): Resol
 
 	return {
 		brief,
-		components: componentScored.slice(0, limit),
+		components: componentMatches,
 		recipes: recipeScored.slice(0, Math.min(limit, MAX_RECIPE_MATCHES)),
 	};
 }
