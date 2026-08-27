@@ -1,5 +1,87 @@
 # @hex-core/cli
 
+## 0.11.0
+
+### Minor Changes
+
+- c2ce968: `hex poc` and MCP `scaffold_poc` now produce an app that demos itself: one floating panel switching role (`viewer` / `member` / `admin`) and data state (with data / empty), both held in cookies so a selection survives clicking through the frames.
+
+  The generated `app/globals.css` also scopes Tailwind's content scan to the app's own directories. A POC is normally scaffolded inside an existing repository, where Tailwind's automatic detection walked up to the enclosing git root and read binary files as class candidates — every route 500'd with unparseable CSS until the scan was scoped.
+
+  Both changes arrive through the vendored payload builder, so no CLI or MCP code changed — but the generated output did. `scaffold_poc` responses grow roughly 36% (the harness plus the `empty` and `select` sources every tree now copies).
+
+- c2ce968: Ship every file a component actually imports.
+
+  Thirty registry items were emitted with imports pointing at files that were
+  never written beside them: `hex add auth-sign-in-split` produced a component
+  importing six others that did not exist, and `markdown` was missing five.
+  The file collector only followed same-directory siblings, `*-variants` and
+  `_shared`, so a cross-directory import fell straight through.
+
+  The collector now walks the import graph transitively — pulling in
+  `button.tsx` also pulls in the `button-variants.tsx` it imports — and
+  recognises two more shapes: cross-directory component imports
+  (`../<name>/<name>`) and category-level shared modules (`../types`).
+  `rewriteRegistryImports` gains the matching rule for the latter, so
+  `../types.js` resolves to `@/components/ui/types` rather than pointing one
+  directory above where the file lands.
+
+  Across all 187 items, every relative import in an emitted file now resolves
+  to a file that item ships. Thirty items gained 84 previously-missing files.
+
+### Patch Changes
+
+- c2ce968: Resolve `var()` indirection when parsing a `globals.css`.
+
+  `hex theme edit -i` annotates each token with its AA contrast, which needs
+  the colour rather than a pointer to it. A palette-backed theme writes
+  `--primary: var(--slate-900)` and puts the triplet on the ramp entry, so the
+  parser now follows the reference. Files that declare literals throughout are
+  unaffected.
+
+- c2ce968: `hex poc` now scaffolds app-shaped page recipes that compile. `hex poc --recipe app-page` previously emitted a route with an undefined `DataTable`, failing `next build`; screens composing `timeline`, `data-table`, `input-otp`, `stepper` or `canvas` were skipped or broken. The CLI picks this up through its vendored registry, so no CLI code changed — but the user-visible behaviour did.
+- 0284051: Stop shipping whole graph nodes over the MCP wire.
+
+  `query_graph explain button` cost 16,429 tokens — 8 % of a 200K context for
+  one call — because each neighbour embedded the entire far-end graph node,
+  `exports` and `exportPaths` included, plus an edge whose `source`/`target`
+  merely restated the two slugs already present. Neighbours are now projected
+  to the six fields a caller acts on: 3,181 tokens, and every hub drops 73–81 %.
+  `neighbors` mode returns `{total, neighbors}` so a capped result says it was
+  capped.
+
+  `search_components` was unbounded. Called with no arguments — how an agent
+  enumerates the catalog — it returned all 187 summaries at 24,018 tokens. It
+  now pages at 20 and returns `{total, returned, results}`; pass `limit` (max 200) for more. Its matcher also treated the query as a substring, so `"and"`
+  matched `command`; it now matches word prefixes, so `"butt"` still finds
+  `button` and `"and"` does not.
+
+  Both surfaces, plus `search_compositions`, `resolve_spec` and
+  `map_application`, now have token ceilings in the contract test. None of them
+  had one before, which is why neither cost was noticed.
+
+  `resolveSpec` read the full item JSON for every candidate scoring above zero —
+  133 of 187 items for a ten-token brief — before slicing to eight. The read
+  moved past the slice; output is unchanged. `loadRecipes`, `listThemes` and the
+  POC export index are memoised, and `hex add` no longer re-reads the same item
+  from three call sites.
+
+  `@hex-core/payload` gains a `wordSet` export (the matcher `search_components`
+  now shares) and a named `ThemeSummary` type for `listThemes`.
+
+- Updated dependencies [c2ce968]
+- Updated dependencies [0284051]
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+  - @hex-core/payload@0.6.0
+  - @hex-core/registry@0.8.0
+  - @hex-core/themes@0.2.5
+  - @hex-core/tokens@1.4.0
+
 ## 0.10.0
 
 ### Minor Changes

@@ -1,5 +1,69 @@
 # @hex-core/mcp
 
+## 0.8.0
+
+### Minor Changes
+
+- c2ce968: `hex poc` and MCP `scaffold_poc` now produce an app that demos itself: one floating panel switching role (`viewer` / `member` / `admin`) and data state (with data / empty), both held in cookies so a selection survives clicking through the frames.
+
+  The generated `app/globals.css` also scopes Tailwind's content scan to the app's own directories. A POC is normally scaffolded inside an existing repository, where Tailwind's automatic detection walked up to the enclosing git root and read binary files as class candidates — every route 500'd with unparseable CSS until the scan was scoped.
+
+  Both changes arrive through the vendored payload builder, so no CLI or MCP code changed — but the generated output did. `scaffold_poc` responses grow roughly 36% (the harness plus the `empty` and `select` sources every tree now copies).
+
+- 0284051: Stop shipping whole graph nodes over the MCP wire.
+
+  `query_graph explain button` cost 16,429 tokens — 8 % of a 200K context for
+  one call — because each neighbour embedded the entire far-end graph node,
+  `exports` and `exportPaths` included, plus an edge whose `source`/`target`
+  merely restated the two slugs already present. Neighbours are now projected
+  to the six fields a caller acts on: 3,181 tokens, and every hub drops 73–81 %.
+  `neighbors` mode returns `{total, neighbors}` so a capped result says it was
+  capped.
+
+  `search_components` was unbounded. Called with no arguments — how an agent
+  enumerates the catalog — it returned all 187 summaries at 24,018 tokens. It
+  now pages at 20 and returns `{total, returned, results}`; pass `limit` (max 200) for more. Its matcher also treated the query as a substring, so `"and"`
+  matched `command`; it now matches word prefixes, so `"butt"` still finds
+  `button` and `"and"` does not.
+
+  Both surfaces, plus `search_compositions`, `resolve_spec` and
+  `map_application`, now have token ceilings in the contract test. None of them
+  had one before, which is why neither cost was noticed.
+
+  `resolveSpec` read the full item JSON for every candidate scoring above zero —
+  133 of 187 items for a ten-token brief — before slicing to eight. The read
+  moved past the slice; output is unchanged. `loadRecipes`, `listThemes` and the
+  POC export index are memoised, and `hex add` no longer re-reads the same item
+  from three call sites.
+
+  `@hex-core/payload` gains a `wordSet` export (the matcher `search_components`
+  now shares) and a named `ThemeSummary` type for `listThemes`.
+
+### Patch Changes
+
+- c2ce968: Report token budgets the tokenizer actually agrees with.
+
+  The registry build measured `ai.tokenBudget` with gpt-tokenizer 2.9.0 while
+  this server ran 3.4.0, so the budgets it reported to a model were counted by
+  a different tokenizer than the one doing the counting. Both are now pinned
+  to one version through the workspace catalog; 159 of 187 budgets moved by
+  roughly a percent, to the numbers this server measures.
+
+- c2ce968: Split the server entry point into one file per tool.
+
+  `src/index.ts` was 1,312 lines with all nineteen `registerTool` calls inline;
+  it is now 27 lines that wire a manifest to a transport, and each tool owns a
+  file under `src/tools/` declaring its own dependencies. No tool schema,
+  description or behaviour changed — the contract suite passes unchanged.
+
+- Updated dependencies [c2ce968]
+- Updated dependencies [0284051]
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+  - @hex-core/payload@0.6.0
+  - @hex-core/registry@0.8.0
+
 ## 0.7.0
 
 ### Minor Changes

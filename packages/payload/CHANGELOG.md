@@ -1,5 +1,83 @@
 # @hex-core/payload
 
+## 0.6.0
+
+### Minor Changes
+
+- c2ce968: Resolve example imports to the module that actually exports them. The catalog graph attributed every export of an item to its main module, so identifiers living in `components/_shared/*` — notably `mockAuthAdapter`, used by all six auth blocks — were imported from a path that doesn't export them. Graph nodes now carry an `exportPaths` map (identifier → module suffix) and codegen imports from it. `graphNodeSchema` gains the field, so this is additive public surface rather than a pure patch.
+
+  Adds a POC regression guard over the composable surface: every block, plus every item whose example is import-led, is generated as a one-section route and checked for components or identifiers that are used but never imported or declared (TS2304). Items that genuinely need a client boundary are excluded explicitly, not silently — their examples require React state or pass functions, and generated pages are Server Components that also export `metadata`.
+
+  Two known gaps this does **not** close: prop-shape drift (TS2322, e.g. the `Pagination` API above) needs a real typecheck over the generated tree; and 31 recipe-referenced items whose examples are bare JSX with no imports would still emit an unimported component if composed as a section.
+
+- 0284051: Stop shipping whole graph nodes over the MCP wire.
+
+  `query_graph explain button` cost 16,429 tokens — 8 % of a 200K context for
+  one call — because each neighbour embedded the entire far-end graph node,
+  `exports` and `exportPaths` included, plus an edge whose `source`/`target`
+  merely restated the two slugs already present. Neighbours are now projected
+  to the six fields a caller acts on: 3,181 tokens, and every hub drops 73–81 %.
+  `neighbors` mode returns `{total, neighbors}` so a capped result says it was
+  capped.
+
+  `search_components` was unbounded. Called with no arguments — how an agent
+  enumerates the catalog — it returned all 187 summaries at 24,018 tokens. It
+  now pages at 20 and returns `{total, returned, results}`; pass `limit` (max 200) for more. Its matcher also treated the query as a substring, so `"and"`
+  matched `command`; it now matches word prefixes, so `"butt"` still finds
+  `button` and `"and"` does not.
+
+  Both surfaces, plus `search_compositions`, `resolve_spec` and
+  `map_application`, now have token ceilings in the contract test. None of them
+  had one before, which is why neither cost was noticed.
+
+  `resolveSpec` read the full item JSON for every candidate scoring above zero —
+  133 of 187 items for a ten-token brief — before slicing to eight. The read
+  moved past the slice; output is unchanged. `loadRecipes`, `listThemes` and the
+  POC export index are memoised, and `hex add` no longer re-reads the same item
+  from three call sites.
+
+  `@hex-core/payload` gains a `wordSet` export (the matcher `search_components`
+  now shares) and a named `ThemeSummary` type for `listThemes`.
+
+- c2ce968: `hex poc` now scaffolds a demo, not just frames. A POC is the frames _demoed_ — without a way to reach the states that matter, a reviewer only ever sees one screenshot's worth of the product, and the states where a design actually fails stay invisible.
+
+  Every generated app ships a floating demo panel (`components/demo-controls.tsx`) holding both controls in one surface:
+  - **Viewing as** — re-renders every frame as `viewer`, `member` or `admin`. Frames gated on a capability say why they are unavailable instead of 404ing; `settings-page` recipes gate on `seeSettings`.
+  - **Data** — flips every frame between its populated and empty state.
+
+  Both live in cookies rather than query params, so a selection survives navigation instead of being a deep link. Generated pages became `async`, read `getDemoContext()`, and render the `empty` primitive when the panel asks for it. The vocabulary in `lib/demo.ts` is deliberately generic and meant to be extended — add roles, add capabilities, and scope real data through `can` rather than through the role name.
+
+  `empty` and `select` join every install closure so the panel and the frames' empty states resolve even when the brief mapped neither. The scaffold also sets `devIndicators: false`, since Next's dev bubble sits on top of app chrome in exactly the screenshots a POC exists to produce.
+
+- c2ce968: Ship every file a component actually imports.
+
+  Thirty registry items were emitted with imports pointing at files that were
+  never written beside them: `hex add auth-sign-in-split` produced a component
+  importing six others that did not exist, and `markdown` was missing five.
+  The file collector only followed same-directory siblings, `*-variants` and
+  `_shared`, so a cross-directory import fell straight through.
+
+  The collector now walks the import graph transitively — pulling in
+  `button.tsx` also pulls in the `button-variants.tsx` it imports — and
+  recognises two more shapes: cross-directory component imports
+  (`../<name>/<name>`) and category-level shared modules (`../types`).
+  `rewriteRegistryImports` gains the matching rule for the latter, so
+  `../types.js` resolves to `@/components/ui/types` rather than pointing one
+  directory above where the file lands.
+
+  Across all 187 items, every relative import in an emitted file now resolves
+  to a file that item ships. Thirty items gained 84 previously-missing files.
+
+### Patch Changes
+
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+- Updated dependencies [c2ce968]
+  - @hex-core/registry@0.8.0
+  - @hex-core/themes@0.2.5
+  - @hex-core/tokens@1.4.0
+
 ## 0.5.0
 
 ### Minor Changes
