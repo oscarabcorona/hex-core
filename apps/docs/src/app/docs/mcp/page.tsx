@@ -95,7 +95,10 @@ export default function McpPage() {
 						reasoning about an already-installed component
 					</li>
 					<li>
-						<strong>list_themes</strong> — available theme presets
+						<strong>list_themes</strong> — available theme presets. In hosts that support
+						MCP Apps (Claude, ChatGPT, VS Code), this also renders an interactive theme
+						browser with palette previews — pick a theme visually and hand the choice
+						back to the conversation
 					</li>
 					<li>
 						<strong>get_theme</strong> — full token set for a theme (css / json /

@@ -29,8 +29,10 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/server";
 import { encode } from "gpt-tokenizer/encoding/cl100k_base";
 import { TOOL, TOOL_NAMES } from "./tool-names.js";
+import { THEME_BROWSER_URI } from "./tools/list-themes.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 // `dist/contract-test.js` and `dist/index.js` live side-by-side after build.
@@ -213,6 +215,63 @@ async function main(): Promise<void> {
 			);
 		}
 		pass("resources/list contains hex://catalog");
+
+		// ─── 4a. MCP Apps (SEP-1865): theme-browser ui:// resource ───
+		// The interactive theme browser rides on list_themes via _meta and is
+		// fetched by hosts through resources/read — never through a tool
+		// result — so it has NO token ceiling. The guard below is a byte
+		// budget for the bundled app (template + ext-apps SDK + zod ≈ 390 KB
+		// today) to catch runaway growth, not a context-window concern.
+		const themeBrowser = resourcesResult.resources.find(
+			(r) => r.uri === THEME_BROWSER_URI,
+		);
+		if (!themeBrowser) {
+			fail(
+				`resources/list missing ${THEME_BROWSER_URI} (got: ${resourcesResult.resources
+					.map((r) => r.uri)
+					.join(", ")})`,
+			);
+		}
+		if (themeBrowser.mimeType !== RESOURCE_MIME_TYPE) {
+			fail(
+				`theme-browser resource mimeType is ${String(themeBrowser.mimeType)}, expected ${RESOURCE_MIME_TYPE}`,
+			);
+		}
+		pass(`resources/list contains ${THEME_BROWSER_URI} with the MCP Apps mime type`);
+
+		const themeBrowserRead = await client.readResource({ uri: THEME_BROWSER_URI });
+		const appContent = themeBrowserRead.contents[0];
+		if (!appContent || typeof appContent.text !== "string") {
+			fail("resources/read theme-browser returned no text content");
+		}
+		const appHtml = appContent.text;
+		if (!appHtml.includes('id="cards"') || !appHtml.includes("<script>")) {
+			fail("theme-browser HTML is missing the app shell or the bundled script");
+		}
+		const APP_BYTE_BUDGET = 512 * 1024;
+		const appBytes = Buffer.byteLength(appHtml);
+		if (appBytes >= APP_BYTE_BUDGET) {
+			fail(`theme-browser HTML is ${appBytes} bytes, budget ${APP_BYTE_BUDGET}`);
+		}
+		if (appBytes < 10_000) {
+			fail(`theme-browser HTML is ${appBytes} bytes — bundle step likely skipped`);
+		}
+		pass(`resources/read theme-browser serves the bundled app (${appBytes} bytes < ${APP_BYTE_BUDGET})`);
+
+		const listThemesTool = toolsResult.tools.find((t) => t.name === TOOL.LIST_THEMES);
+		const listThemesUiMeta = listThemesTool?._meta ? listThemesTool._meta["ui"] : undefined;
+		const listThemesResourceUri =
+			listThemesUiMeta !== null &&
+			typeof listThemesUiMeta === "object" &&
+			"resourceUri" in listThemesUiMeta
+				? listThemesUiMeta.resourceUri
+				: undefined;
+		if (listThemesResourceUri !== THEME_BROWSER_URI) {
+			fail(
+				`tools/list list_themes _meta.ui.resourceUri is ${String(listThemesResourceUri)}, expected ${THEME_BROWSER_URI}`,
+			);
+		}
+		pass("tools/list list_themes declares _meta.ui.resourceUri");
 
 		// ─── 5. emit_app_context rejects unknown input fields ───
 		// Zod .strict() on the input schema surfaces InvalidParams via the SDK's
