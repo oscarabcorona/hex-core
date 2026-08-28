@@ -14,8 +14,9 @@
  */
 @import "./tokens.generated.css";
 
-/* Scan workspace component source so Tailwind picks up classes used in @hex-core/components */
+/* Scan workspace source so Tailwind picks up classes used in @hex-core/components and the colocated @hex-core/motion demos */
 @source "../../../../packages/components/src/**/*.{ts,tsx}";
+@source "../../../../packages/motion/src/**/*.{ts,tsx}";
 
 /* Dark-mode variant — class-based, set on <html> by next-themes. */
 @custom-variant dark (&:is(.dark *));
