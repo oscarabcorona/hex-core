@@ -146,7 +146,7 @@ Components & themes:
 - `search_components(query)` — fuzzy search across name, description, tags, AI hints
 - `get_component(slug)` — full RegistryItem (props, variants, examples, AI metadata)
 - `get_component_schema(slug)` — props, variants, slots, AI hints without source
-- `list_themes()` — available theme presets
+- `list_themes()` — available theme presets; in MCP Apps hosts also renders an interactive theme browser (see below)
 - `get_theme(name, format)` — full token set for a theme (css / json / tailwind)
 - `scaffold_project(components, theme)` — init + starter components in one call
 - `customize_component(slug, overrides)` — generate a themed variant
@@ -170,6 +170,10 @@ Agent-builder layer (0.7.0+):
 - `map_application(brief, limit?)` — map a whole-application brief onto the catalog: screens typed as page-recipe / recipe / components, a `requires`-closure install manifest, related-component suggestions, anti-pattern warnings, merged checklist, and token budgets. Deterministic; the result is a `hex.map.json` the CLI consumes via `hex add --from` / `hex poc --from`.
 - `query_graph(mode, slug, to?, relations?)` — query the catalog knowledge graph (`registry/graph.json`: items + recipes + themes; relations `requires` / `composes` / `themes` / `related` / `instead-use`). Modes: `explain` (node + grouped edges + community peers), `neighbors`, `path`, `affected` (reverse blast radius). Use instead of guessing component relationships.
 - `scaffold_poc({brief | map | recipe}, theme?, name?)` — generate the complete file tree of a standalone runnable Next.js demo app: configs, theme globals.css, copied component sources with rewritten imports, and one generated route per page-recipe screen (assembled from schema examples). The tree also carries a demo panel that re-renders every frame as `viewer` / `member` / `admin` and flips it between populated and empty — a POC is the frames demoed, not just the frames. Returns JSON; nothing is written to disk.
+
+MCP Apps (0.9.0+):
+
+`list_themes` declares an interactive theme browser through the [MCP Apps extension (SEP-1865)](https://github.com/modelcontextprotocol/ext-apps): the tool's `_meta.ui.resourceUri` points at the self-contained `ui://hex-core/theme-browser.html` resource, and hosts that support MCP Apps — Claude, ChatGPT, VS Code — render it as a palette-previewing theme picker whose selection is handed back to the conversation. The HTML travels over `resources/read`, never through tool results, so the tool's text output and every token ceiling are unchanged. Hosts without MCP Apps support ignore the `_meta` and see the same `list_themes` they always did. The contract test below asserts both the `_meta` declaration and the `ui://` resource.
 
 ## Prompts that "just work"
 
