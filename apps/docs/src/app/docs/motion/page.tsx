@@ -6,7 +6,7 @@ import { DocsPage } from "../../../components/docs-page";
 export const metadata = {
 	title: "Motion",
 	description:
-		"UI animation primitives + a deterministic timeline composer. Zero-dep WAAPI core, optional motion@^11 adapter, and 11 registry items the MCP server can hand to agents.",
+		"UI animation primitives + a deterministic timeline composer. Zero-dep WAAPI core, optional motion@^11 adapter, and 26 registry items the MCP server can hand to agents.",
 };
 
 const SECTIONS = [

@@ -1,6 +1,6 @@
 {
 	"name": "@hex-core/motion",
-	"version": "0.3.2",
+	"version": "0.3.3",
 	"description": "UI animation primitives + lightweight scene/timeline composer for Hex Core. Zero-dep WAAPI core, optional motion@^11 adapter.",
 	"keywords": [
 		"hex-core",

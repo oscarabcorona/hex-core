@@ -31,7 +31,7 @@ const SKILLS = [
 	{
 		slug: "hex-core-mcp-tools",
 		title: "MCP tools decision tree",
-		summary: "Which of the 11 tools to call for any given intent.",
+		summary: "Which of the 19 tools to call for any given intent.",
 	},
 	{
 		slug: "hex-core-recipes-workflow",
@@ -77,7 +77,7 @@ export default function SkillsPage() {
 		<DocsPage
 			pathname="/docs/skills"
 			title="Skills"
-			description="Prose context packs for Claude Code. Nine SKILL.md files that complement the 11 structured MCP tools."
+			description="Prose context packs for Claude Code. Nine SKILL.md files that complement the 19 structured MCP tools."
 			sections={SECTIONS}
 			editPath="apps/docs/src/app/docs/skills/page.tsx"
 		>

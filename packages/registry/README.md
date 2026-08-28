@@ -68,9 +68,29 @@ The `insteadUse` field MUST be a registry slug, so `@hex-core/mcp`'s `describe_i
 
 LLMs asked "what's the right token for a delete button background" reach for `button.destructive.bg` instead of guessing `bg-red-500`.
 
+## shadcn projection (0.9.0+)
+
+`toShadcnRegistryItem` projects any Hex registry item into the [shadcn registry-item](https://ui.shadcn.com/docs/registry/registry-item-json) wire format, and `shadcnRegistryItemSchema` validates the result. Category maps to `type` (`registry:ui` / `registry:block` / `registry:hook` / …), `heavyPeer` folds into `dependencies`, `cssVariables` pivots to `cssVars.light` / `cssVars.dark`, and the `ai` block rides along verbatim so agents reading the installed project keep the intent metadata.
+
+```ts
+import { toShadcnRegistryItem, shadcnRegistryItemSchema } from "@hex-core/registry";
+import { rewriteRegistryImports } from "@hex-core/payload";
+
+const wire = toShadcnRegistryItem(item, {
+  // Required when serving shadcn consumers: rewrites the monorepo-relative
+  // import specifiers the shadcn CLI never touches (it only rewrites `@/`).
+  transformFileContent: (content) => rewriteRegistryImports(content),
+  // Optional: resolve `dependencies.internal` so their npm deps are unioned in.
+  resolveInternalItem: (slug) => registry.get(slug) ?? null,
+});
+shadcnRegistryItemSchema.parse(wire); // throws if the projection drifted
+```
+
+This is what the docs site serves at `/r/{name}.json`. Declare it once in `components.json` — `{ "registries": { "@hex": "https://hex-core.dev/r/{name}.json" } }` — and `npx shadcn@latest add @hex/button` installs from the `@hex` namespace.
+
 ## Notes
 
-Most users of Hex Core never touch this package directly. If you're building a custom tool that reads the registry JSON (`registry/registry.json` in the repo, or `/registry.json` on the docs site), this is your source of truth for the schema.
+Most users of Hex Core never touch this package directly. If you're building a custom tool that reads the registry JSON (`registry/registry.json` in the repo, or `/registry.json` on the docs site — alongside `/recipes.json`, `/graph.json`, and `llms.txt`), this is your source of truth for the schema.
 
 ## Docs
 

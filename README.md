@@ -16,8 +16,9 @@ shadcn/ui is built for humans browsing docs. Hex Core is built for **AI agents**
 
 - **Machine-readable component specs** — Zod schemas with props, variants, slots, and constraints
 - **AI hints** — `whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes` per component
-- **Recipes** — spec-driven blueprints (auth flows, settings page, pricing table, data table, confirm-destructive, command palette, and the `app-shell` layout starter) with ordered install steps and post-install checklists
-- **MCP server** — 19 tools for component discovery, installation, theming, scaffolding, spec resolution, and emitting paste-into-LLM app context
+- **Recipes** — spec-driven blueprints (auth flows, settings page, pricing table, data table, confirm-destructive, command palette, and the `layout-starter` layout-primitives bundle) with ordered install steps and post-install checklists
+- **MCP server** — 19 tools for component discovery, installation, theming, scaffolding, spec resolution, and emitting paste-into-LLM app context. `list_themes` renders an interactive theme browser in MCP Apps hosts (Claude, ChatGPT, VS Code)
+- **Agent surface over HTTP** — [`llms.txt`](https://hex-core.dev/llms.txt) (+ `llms-full.txt` with per-item `whenToUse`), `/registry.json`, `/recipes.json`, `/graph.json`, and `/r/{name}.json` in shadcn registry-item format, so `npx shadcn@latest add @hex/<slug>` works from the `@hex` namespace
 - **Token budgets** — each component declares its token cost for efficient LLM context usage
 
 > [!WARNING]
@@ -42,6 +43,20 @@ Add to your Claude Code settings (`.claude/settings.json`):
 
 Then ask Claude: *"Search hex-core for a button component and add it to my project"*
 
+### For shadcn CLI users
+
+Declare the `@hex` namespace once in `components.json`, then install any catalog slug with the tool you already run:
+
+```json
+{ "registries": { "@hex": "https://hex-core.dev/r/{name}.json" } }
+```
+
+```bash
+npx shadcn@latest add @hex/button
+```
+
+Items arrive in shadcn registry-item format with the machine-readable `ai` block included — agents reading your project keep the intent metadata.
+
 ### For Humans (CLI)
 
 ```bash
@@ -61,6 +76,8 @@ npx @hex-core/cli graph affected button                      # reverse blast rad
 | `@hex-core/tokens` | Design token engine with 3 themes |
 | `@hex-core/components` | Component source code (React + Tailwind) |
 | `@hex-core/motion` | UI animation primitives + deterministic timeline composer (zero-dep WAAPI core, optional `motion@^11` adapter) |
+| `@hex-core/themes` | Theme catalog — premium presets and generated design briefs built on `@hex-core/tokens` |
+| `@hex-core/payload` | Pure-function builders for paste-into-LLM payloads (App Context markdown, Figma Variables JSON) shared by the MCP server and CLI |
 | `@hex-core/mcp` | MCP server for AI-native distribution |
 | `@hex-core/cli` | CLI for human developers |
 
@@ -74,7 +91,7 @@ npx @hex-core/cli graph affected button                      # reverse blast rad
 | `get_component_schema` | Get props/variants/AI hints (token-efficient) |
 | `describe_intent` | Intent-first payload: per-variant `useWhen`, structured anti-patterns, token intents — call before generating JSX |
 | `get_theme` | Get theme in CSS, JSON, or Tailwind format |
-| `list_themes` | List available themes |
+| `list_themes` | List available themes — in MCP Apps hosts, also renders an interactive palette-previewing theme browser |
 | `search_themes` | Search the theme catalog by category, tags, or free-text |
 | `emit_figma_tokens` | Render a theme as a Figma Variables REST POST payload |
 | `scaffold_project` | Generate complete project setup |
@@ -120,7 +137,7 @@ This copies the skills into `.claude/skills/` so any agent working in your repo 
 
 ## Components
 
-**117 registry items** across primitives (Button, Input, Checkbox, Switch, Slider, …), compounds (Combobox, DataTable, Command, Calendar, Date Picker, Kanban, DnD primitives, …), AI-native (Composer, Message, Reasoning, ToolCall, Terminal, Canvas, Diagram, AudioPlayer, AudioWaveform, SpeechRecognition, …), 23 artifact diagrams (sankey, mindmap, gantt, …), and 11 motion primitives (Motion factory, Presence, Timeline composer, useAnimate, useScroll, …). DataTable rows and Tree top-level nodes also opt into drag-to-reorder via the shared DnD primitive set. Every item ships with a machine-readable `.schema.ts` containing props, variants, AI hints (`whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes`), and a token budget.
+**187 registry items**: 27 primitives (Button, Input, Checkbox, Switch, Slider, …), 40 compounds (Combobox, DataTable, Command, Calendar, Date Picker, Kanban, DnD primitives, …), 43 section blocks (auth, pricing, settings, dashboard, …), 26 AI-native (Composer, Message, Reasoning, ToolCall, Terminal, Canvas, Diagram, AudioPlayer, AudioWaveform, SpeechRecognition, …), 23 artifact diagrams (sankey, mindmap, gantt, …), 26 motion primitives (Motion factory, Presence, Timeline composer, useAnimate, useScroll, …), and 2 hooks. DataTable rows and Tree top-level nodes also opt into drag-to-reorder via the shared DnD primitive set. Every item ships with a machine-readable `.schema.ts` containing props, variants, AI hints (`whenToUse`, `whenNotToUse`, `commonMistakes`, `accessibilityNotes`), and a token budget. `pnpm verify:schema-quality` gates the `ai` block on every push — placeholder prose, unresolvable slugs, and missing examples fail CI.
 
 Full catalog + live demos: **[hex-core.dev/docs](https://hex-core.dev/docs)**
 
@@ -130,6 +147,7 @@ Full catalog + live demos: **[hex-core.dev/docs](https://hex-core.dev/docs)**
 pnpm install
 pnpm build
 pnpm run build:registry
+pnpm verify:schema-quality   # ai-block quality gate (also runs in CI)
 ```
 
 ## Architecture
@@ -139,7 +157,10 @@ hex-core/
 ├── packages/
 │   ├── registry/       # Zod schemas + types
 │   ├── tokens/         # Design token engine
+│   ├── themes/         # Theme presets
 │   ├── components/     # React component source
+│   ├── motion/         # Animation primitives
+│   ├── payload/        # Paste-into-LLM payload builders
 │   ├── mcp-server/     # MCP server
 │   └── cli/            # CLI tool
 ├── registry/           # Built registry JSON

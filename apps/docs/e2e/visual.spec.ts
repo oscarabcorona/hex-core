@@ -129,10 +129,14 @@ for (const { name: slug, displayName } of registry.items) {
 		test(`${slug} (${theme.name})`, async ({ page }) => {
 			// Set the theme class BEFORE the page renders to avoid a flash.
 			// next-themes reads localStorage on hydrate, so seeding it there
-			// is the most reliable way to lock the rendered theme.
+			// is the most reliable way to lock the rendered theme. The key
+			// must match the ThemeProvider's `storageKey` in app/layout.tsx —
+			// seeding the default "theme" key is a silent no-op, which left the
+			// classList fallback below racing hydration on slow machines and
+			// wrote light-mode PNGs into dark baselines.
 			await page.addInitScript((themeClass) => {
 				try {
-					localStorage.setItem("theme", themeClass || "light");
+					localStorage.setItem("hex-core-theme", themeClass || "light");
 				} catch {
 					// localStorage may be unavailable in some test contexts; the
 					// classList fallback below covers it.
@@ -156,6 +160,13 @@ for (const { name: slug, displayName } of registry.items) {
 				if (cls) html.classList.add(cls);
 				else html.classList.remove("dark");
 			}, theme.html);
+			// Hydration may re-resolve the theme after the evaluate above; hold
+			// the screenshot until <html> settles on the requested class.
+			await page.waitForFunction(
+				(cls) => document.documentElement.classList.contains("dark") === (cls === "dark"),
+				theme.html,
+				{ timeout: 10_000 },
+			);
 
 			// Most pages render multiple <ComponentPreview /> instances — one
 			// inline preview at the top of the page, plus one per additional
@@ -216,7 +227,7 @@ for (const { slug, route } of SHOWCASES) {
 		test(`${slug} (${theme.name})`, async ({ page }) => {
 			await page.addInitScript((themeClass) => {
 				try {
-					localStorage.setItem("theme", themeClass || "light");
+					localStorage.setItem("hex-core-theme", themeClass || "light");
 				} catch {
 					/* classList fallback below */
 				}
@@ -229,6 +240,11 @@ for (const { slug, route } of SHOWCASES) {
 				if (cls) html.classList.add(cls);
 				else html.classList.remove("dark");
 			}, theme.html);
+			await page.waitForFunction(
+				(cls) => document.documentElement.classList.contains("dark") === (cls === "dark"),
+				theme.html,
+				{ timeout: 10_000 },
+			);
 
 			// Same hydration anchor as the per-component loop, same 2s budget.
 			await page

@@ -1,5 +1,11 @@
 # @hex-core/motion
 
+## 0.3.3
+
+### Patch Changes
+
+- 993571d: Replace `track`'s one-line `accessibilityNotes` stub with a real note (structural label, reduced-motion behavior inherited from child Clips) — the single hard failure under the new `verify:schema-quality` gate.
+
 ## 0.3.2
 
 ### Patch Changes
