@@ -1,5 +1,15 @@
 # @hex-core/cli
 
+## 0.11.1
+
+### Patch Changes
+
+- Updated dependencies [993571d]
+  - @hex-core/registry@0.9.0
+  - @hex-core/payload@0.6.1
+  - @hex-core/themes@0.2.6
+  - @hex-core/tokens@1.4.1
+
 ## 0.11.0
 
 ### Minor Changes

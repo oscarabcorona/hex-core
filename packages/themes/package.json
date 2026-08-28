@@ -1,6 +1,6 @@
 {
 	"name": "@hex-core/themes",
-	"version": "0.2.5",
+	"version": "0.2.6",
 	"description": "Theme catalog for Hex Core — premium presets and convenience re-exports built on @hex-core/tokens.",
 	"keywords": [
 		"hex-core",
