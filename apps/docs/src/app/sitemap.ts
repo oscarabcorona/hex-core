@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next";
 import { GETTING_STARTED_NAV } from "../lib/docs-nav";
 import { listComponents } from "../lib/registry";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hex-core.dev";
+import { SITE_URL } from "../lib/site";
 
 /** Pinned once per build so crawlers see a stable `lastModified` per deploy. */
 const BUILD_TIME = new Date();

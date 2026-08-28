@@ -8,7 +8,7 @@
     "start": "next start",
     "analyze": "next build --experimental-analyze",
     "lint": "eslint",
-    "test": "playwright test e2e/component-page.spec.ts e2e/docs-chrome.spec.ts e2e/search.spec.ts e2e/skills.spec.ts e2e/spec-driven.spec.ts",
+    "test": "playwright test e2e/agent-surface.spec.ts e2e/component-page.spec.ts e2e/docs-chrome.spec.ts e2e/search.spec.ts e2e/skills.spec.ts e2e/spec-driven.spec.ts",
     "test:ui": "playwright test --ui",
     "test:visual": "playwright test e2e/visual.spec.ts",
     "test:visual:update": "playwright test e2e/visual.spec.ts --update-snapshots"
@@ -21,6 +21,7 @@
     "@hex-core/components": "workspace:^",
     "@hex-core/mcp": "workspace:^",
     "@hex-core/motion": "workspace:^",
+    "@hex-core/payload": "workspace:^",
     "@hex-core/registry": "workspace:^",
     "@hookform/resolvers": "catalog:",
     "@radix-ui/react-accordion": "^1.2.14",
