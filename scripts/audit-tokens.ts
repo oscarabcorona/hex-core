@@ -44,6 +44,9 @@ import { explainNode } from "../packages/payload/src/graph/graph-query.js";
 // this row is meant to report what an agent actually receives, and a second
 // copy of the shaping logic would drift from the tool it claims to measure.
 import { wireNeighbor } from "../packages/mcp-server/src/tools/query-graph.js";
+import { schemaWireShape } from "../packages/mcp-server/src/tools/get-component-schema.js";
+import { registryItemSchema } from "../packages/registry/src/schema.js";
+import type { RegistryItem } from "../packages/payload/src/loaders/registry-loader.js";
 
 const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 // The MCP server serves whatever `@hex-core/payload` bundles (its `prebuild`
@@ -121,28 +124,22 @@ function loadDefaultTheme(): AppContextTheme {
 	};
 }
 
-function measureItem(item: Record<string, unknown>, file: string): ItemRow {
+function measureItem(item: RegistryItem, file: string): ItemRow {
 	const bytes = statSync(file).size;
-	const ai = item.ai as { tokenBudget?: number } | undefined;
-	const declared = ai?.tokenBudget;
+	const budget = item.ai.tokenBudget;
+	const declared = typeof budget === "number" ? budget : undefined;
 
-	// get_component — mirrors packages/mcp-server/src/index.ts:155 (pretty wire shape).
+	// get_component — the full item, pretty-printed, as served by
+	// packages/mcp-server/src/tools/get-component.ts.
 	const getComponentPretty = tok(JSON.stringify(item, null, 2));
 
-	// get_component_schema — mirrors packages/mcp-server/src/index.ts:188–203.
-	const schema = {
-		name: item.name,
-		displayName: item.displayName,
-		description: item.description,
-		props: item.props,
-		variants: item.variants,
-		slots: item.slots,
-		ai: item.ai,
-		examples: item.examples,
-	};
+	// get_component_schema — the SAME projection the tool serves, imported
+	// rather than re-derived (see the wireNeighbor import note above).
+	const schema = schemaWireShape(item);
 	const schemaPretty = tok(JSON.stringify(schema, null, 2));
 
-	// search_components row — mirrors packages/mcp-server/src/index.ts:97–105.
+	// search_components row — mirrors the summary shape in
+	// packages/mcp-server/src/tools/search-components.ts.
 	const searchRow = tok(
 		JSON.stringify({
 			name: item.name,
@@ -257,8 +254,21 @@ const itemFiles = listJsonFiles(REGISTRY_ITEMS_DIR);
 console.log(`  registry items: ${itemFiles.length}`);
 const itemRows: ItemRow[] = [];
 for (const file of itemFiles) {
-	const item = loadJson<Record<string, unknown>>(file);
-	itemRows.push(measureItem(item, file));
+	const raw = loadJson<RegistryItem>(file);
+	// Validate before measuring so a schema-drifted item fails with a named
+	// field instead of a bare TypeError mid-measurement. The RAW object is
+	// still what gets measured — Zod's parse reorders keys, which would
+	// perturb the wire-shape token counts this audit calibrates against.
+	const checked = registryItemSchema.safeParse(raw);
+	if (!checked.success) {
+		console.error(
+			`${file} fails registryItemSchema:\n${checked.error.issues
+				.map((i) => `  ${i.path.join(".")}: ${i.message}`)
+				.join("\n")}`,
+		);
+		process.exit(1);
+	}
+	itemRows.push(measureItem(raw, file));
 }
 
 // --update-budgets rewrites tokenBudget in each schema source to match the

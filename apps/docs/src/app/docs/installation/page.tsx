@@ -3,6 +3,7 @@ import { CodeBlock } from "../../../components/code-block";
 import { DocSection, InlineCode } from "../../../components/doc-section";
 import { DocsPage } from "../../../components/docs-page";
 import { INSTALL_COMMAND_LABEL, installCommand } from "../../../lib/registry";
+import { HEX_REGISTRY_NAMESPACE, HEX_REGISTRY_TEMPLATE } from "../../../lib/site";
 
 export const metadata = {
 	title: "Installation",
@@ -12,10 +13,17 @@ export const metadata = {
 const SECTIONS = [
 	{ id: "requirements", title: "Requirements" },
 	{ id: "cli", title: "CLI install" },
+	{ id: "shadcn", title: "shadcn CLI" },
 	{ id: "manual", title: "Manual copy" },
 	{ id: "tailwind", title: "Tailwind setup" },
 	{ id: "whats-next", title: "What’s next" },
 ];
+
+const SHADCN_REGISTRIES_SNIPPET = `{
+  "registries": {
+    "${HEX_REGISTRY_NAMESPACE}": "${HEX_REGISTRY_TEMPLATE}"
+  }
+}`;
 
 const TAILWIND_SNIPPET = `@theme {
   --color-background: hsl(210 20% 98%);
@@ -59,6 +67,23 @@ export default function InstallationPage() {
 					. The CLI resolves inter-component dependencies automatically (e.g. adding{" "}
 					<InlineCode>combobox</InlineCode> also pulls in <InlineCode>popover</InlineCode>{" "}
 					and <InlineCode>command</InlineCode>).
+				</p>
+			</DocSection>
+
+			<DocSection id="shadcn" title="shadcn CLI">
+				<p className="text-sm leading-6">
+					Already using the shadcn CLI? Hex is a namespaced registry — declare it once in
+					your <InlineCode>components.json</InlineCode>:
+				</p>
+				<CodeBlock label="components.json" code={SHADCN_REGISTRIES_SNIPPET} />
+				<p className="text-sm leading-6">
+					then install any catalog slug through the tool you already run:
+				</p>
+				<CodeBlock label="shadcn" code={`npx shadcn@latest add ${HEX_REGISTRY_NAMESPACE}/button`} />
+				<p className="text-sm leading-6">
+					Items are served in shadcn registry-item format with the machine-readable{" "}
+					<InlineCode>ai</InlineCode> block included, so agents reading your project keep the
+					intent metadata. The catalog index is at <InlineCode>/registry.json</InlineCode>.
 				</p>
 			</DocSection>
 

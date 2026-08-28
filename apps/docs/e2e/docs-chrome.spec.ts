@@ -4,14 +4,16 @@ test.describe("docs chrome", () => {
 	test("/docs index renders the populated category sections", async ({ page }) => {
 		await page.goto("/docs");
 		await expect(page.getByRole("heading", { name: "Components", level: 1 })).toBeVisible();
-		// Registry ships 6 populated categories (Primitives + AI + Motion +
-		// Components + Blocks + Hooks). Assert exact names + order so a silent
-		// drop or reorder is caught.
+		// Registry ships 7 populated categories (Primitives + AI + Motion +
+		// Artifacts + Components + Blocks + Hooks). Assert exact names + order
+		// so a silent drop or reorder is caught — the Artifacts group was
+		// missing from CATEGORY_ORDER for months and 23 items were invisible.
 		const categories = page.locator("main h2");
 		await expect(categories).toHaveText([
 			"Primitives",
 			"AI",
 			"Motion",
+			"Artifacts",
 			"Components",
 			"Blocks",
 			"Hooks",

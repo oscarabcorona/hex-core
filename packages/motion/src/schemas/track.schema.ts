@@ -46,7 +46,8 @@ export const trackSchema: ComponentSchemaDefinition = {
 			"Treating tracks like timeline lanes — overlapping clips on the same track will still both play.",
 		],
 		relatedComponents: ["motion-timeline", "scene", "clip"],
-		accessibilityNotes: "No direct accessibility implications.",
+		accessibilityNotes:
+			"Renders no interactive element of its own — it is a structural label. Reduced-motion behavior comes from the child Clips, which respect prefers-reduced-motion; grouping them under a Track changes nothing for assistive tech.",
 		tokenBudget: 379,
 	},
 	tags: ["motion", "timeline", "track", "composer"],

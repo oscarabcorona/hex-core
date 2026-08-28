@@ -85,6 +85,19 @@ export type {
 } from "./schema.js";
 
 export {
+	shadcnRegistryFileSchema,
+	shadcnRegistryItemSchema,
+	toShadcnRegistryItem,
+} from "./shadcn.js";
+
+export type {
+	InternalDependencySource,
+	ShadcnProjectionOptions,
+	ShadcnRegistryFile,
+	ShadcnRegistryItem,
+} from "./shadcn.js";
+
+export {
 	internalDepToSlug,
 	recipeChecklistItemSchema,
 	recipeIndexItemSchema,
