@@ -456,8 +456,8 @@ importers:
         version: 5.1.0
     devDependencies:
       '@ai-sdk/react':
-        specifier: ^3.0.193
-        version: 3.0.193(react@19.2.5)(zod@4.4.3)
+        specifier: ^4.0.89
+        version: 4.0.90(react@19.2.5)(zod@4.4.3)
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -753,25 +753,31 @@ packages:
   '@adobe/css-tools@4.4.4':
     resolution: {integrity: sha512-Elp+iwUx5rN5+Y8xLt5/GRoG20WGoDCQ/1Fb+1LiGtvwbDavuSk0jhD/eZdckHAuzcDzccnkv+rEjyWfRx18gg==}
 
-  '@ai-sdk/gateway@3.0.120':
-    resolution: {integrity: sha512-MYKAeD2q7/sa1ZdqtL2tw0Me0B8Tok6Q/fhkJDhJl39dG8u+VBlWO9yk9lcdm784bM418o1EKObo4aOxs6+18Q==}
-    engines: {node: '>=18'}
+  '@ai-sdk/gateway@4.0.70':
+    resolution: {integrity: sha512-0tzAH2vwXOs/kVktAZRS04dATEQJk1hf1QR+VuVfvo9QmW3UPgcjhhJD9QFgP8HZLxkrEGDImwLIQ7sUfQTIsA==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@4.0.27':
-    resolution: {integrity: sha512-ubkAJ+xODouwtmN1tYlvTPphH1hPOBfZaEQe8U7skGvFAnIRs9PPpsq57bC2+Ky/MB4yzhd6YOsxTAx9sGpazw==}
-    engines: {node: '>=18'}
+  '@ai-sdk/mcp@2.0.41':
+    resolution: {integrity: sha512-1u3HJYmgehXl1cz7ipi3NO8HrT6SdozZ7DNEh9MXdQE7knAnq70yhD8DIqfRdk/iZ3Net7QRmECUC+R5ISG0SQ==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider@3.0.10':
-    resolution: {integrity: sha512-Q3BZ27qfpYqnCYGvE3vt+Qi6LGOF9R5Nmzn+9JoM1lCRsD9mYaIhfJLkSunN48nfGXJ6n+XNV0J/XVpqGQl7Dw==}
-    engines: {node: '>=18'}
+  '@ai-sdk/provider-utils@5.0.34':
+    resolution: {integrity: sha512-tRBdgRcys/4d8wyQdOdyYScq1AxfMdMd0hIlwolxJKVIbBwXUgClZuQT0VIsz4e7pylY8FE6utYCCZ494UAMJQ==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/react@3.0.193':
-    resolution: {integrity: sha512-El0jUZ/B7mvBHAD5rfSDqOAhWxutVTq7BCNhfGuwfDPT9SO0TMHybh2bMkieJQI7YOfl+qNBoWrRAOHHaFb99Q==}
-    engines: {node: '>=18'}
+  '@ai-sdk/provider@4.0.9':
+    resolution: {integrity: sha512-XnGXPWiBIfqjsVEud5pOaVneRByJQOu2sYNwlSVJTPCvakdCDkVuYKKfNuStkIpMUYl7JIkBZGBx+B5YfNeVjA==}
+    engines: {node: '>=22'}
+
+  '@ai-sdk/react@4.0.90':
+    resolution: {integrity: sha512-BQQeUaCcPOFk+YVbJ/ghhz9N+TEL6088xkzphxyehTQpWRQr4KH6EqK3FDNlfoKXhtXxpSGLnueR271dv9qreQ==}
+    engines: {node: '>=22'}
     peerDependencies:
       react: 19.2.5
 
@@ -3559,6 +3565,9 @@ packages:
   '@vitest/utils@4.1.5':
     resolution: {integrity: sha512-76wdkrmfXfqGjueGgnb45ITPyUi1ycZ4IHgC2bhPDUfWHklY/q3MdLOAB+TF1e6xfl8NxNY0ZYaPCFNWSsw3Ug==}
 
+  '@workflow/serde@4.1.0':
+    resolution: {integrity: sha512-pav4F2BoirECWR7Nf1TKt+2eETcBj7jj4cBefQ8VXQCA6NPkaKeLfj/zMgi+3zYV5ZIBT4GuUiphsj0/b9hPQQ==}
+
   '@xterm/xterm@6.0.0':
     resolution: {integrity: sha512-TQwDdQGtwwDt+2cgKDLn0IRaSxYu1tSUjgKarSDkUM0ZNiSRXFpjxEsvc/Zgc5kq5omJ+V0a8/kIM2WD3sMOYg==}
 
@@ -3576,9 +3585,9 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  ai@6.0.191:
-    resolution: {integrity: sha512-zAxvjKebQE7YkSyyNIl0OM7i6/zygnKeF+yNUjD4nWOelYrG+LpDd6RnH6mjySI4zUpZ7o4wbnmAy8jc6u98vQ==}
-    engines: {node: '>=18'}
+  ai@7.0.87:
+    resolution: {integrity: sha512-/hrT7toRx8vLIyr/lTKOOPDxCGdxk2tVs5viHDwIPlUsge5FBaLe9h3BhPAr7cOmEAXkN/Cf2+2N8HYGCjJbHg==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
@@ -6399,6 +6408,10 @@ packages:
     resolution: {integrity: sha512-xXnp4kTyor2Zq+J1FfPI6Eq3ew5h6Vl0F/8d9XU5zZQf1tX9s2Su1/3PiMmUANFULpmksxkClamIZcaUqryHsQ==}
     engines: {node: '>=20.18.1'}
 
+  undici@7.29.0:
+    resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
+    engines: {node: '>=20.18.1'}
+
   unicorn-magic@0.3.0:
     resolution: {integrity: sha512-+QBBXBCvifc56fsbuxZQ6Sic3wqqc3WWaqxs58gvJrcOuN83HGTCwz3oS5phzU9LthRNE9VrJCFCLUgHeeFnfA==}
     engines: {node: '>=18'}
@@ -6691,28 +6704,40 @@ snapshots:
 
   '@adobe/css-tools@4.4.4': {}
 
-  '@ai-sdk/gateway@3.0.120(zod@4.4.3)':
+  '@ai-sdk/gateway@4.0.70(zod@4.4.3)':
     dependencies:
-      '@ai-sdk/provider': 3.0.10
-      '@ai-sdk/provider-utils': 4.0.27(zod@4.4.3)
+      '@ai-sdk/provider': 4.0.9
+      '@ai-sdk/provider-utils': 5.0.34(zod@4.4.3)
       '@vercel/oidc': 3.2.0
       zod: 4.4.3
 
-  '@ai-sdk/provider-utils@4.0.27(zod@4.4.3)':
+  '@ai-sdk/mcp@2.0.41(zod@4.4.3)':
     dependencies:
-      '@ai-sdk/provider': 3.0.10
-      '@standard-schema/spec': 1.1.0
-      eventsource-parser: 3.0.8
+      '@ai-sdk/provider': 4.0.9
+      '@ai-sdk/provider-utils': 5.0.34(zod@4.4.3)
+      cross-spawn: 7.0.6
+      pkce-challenge: 5.0.1
       zod: 4.4.3
 
-  '@ai-sdk/provider@3.0.10':
+  '@ai-sdk/provider-utils@5.0.34(zod@4.4.3)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.9
+      '@standard-schema/spec': 1.1.0
+      '@workflow/serde': 4.1.0
+      eventsource-parser: 3.0.8
+      undici: 7.29.0
+      zod: 4.4.3
+
+  '@ai-sdk/provider@4.0.9':
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/react@3.0.193(react@19.2.5)(zod@4.4.3)':
+  '@ai-sdk/react@4.0.90(react@19.2.5)(zod@4.4.3)':
     dependencies:
-      '@ai-sdk/provider-utils': 4.0.27(zod@4.4.3)
-      ai: 6.0.191(zod@4.4.3)
+      '@ai-sdk/mcp': 2.0.41(zod@4.4.3)
+      '@ai-sdk/provider': 4.0.9
+      '@ai-sdk/provider-utils': 5.0.34(zod@4.4.3)
+      ai: 7.0.87(zod@4.4.3)
       react: 19.2.5
       swr: 2.4.1(react@19.2.5)
       throttleit: 2.1.0
@@ -7764,7 +7789,8 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@opentelemetry/api@1.9.1': {}
+  '@opentelemetry/api@1.9.1':
+    optional: true
 
   '@oxc-project/types@0.127.0': {}
 
@@ -9347,6 +9373,8 @@ snapshots:
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
 
+  '@workflow/serde@4.1.0': {}
+
   '@xterm/xterm@6.0.0': {}
 
   accepts@2.0.0:
@@ -9360,12 +9388,11 @@ snapshots:
 
   acorn@8.16.0: {}
 
-  ai@6.0.191(zod@4.4.3):
+  ai@7.0.87(zod@4.4.3):
     dependencies:
-      '@ai-sdk/gateway': 3.0.120(zod@4.4.3)
-      '@ai-sdk/provider': 3.0.10
-      '@ai-sdk/provider-utils': 4.0.27(zod@4.4.3)
-      '@opentelemetry/api': 1.9.1
+      '@ai-sdk/gateway': 4.0.70(zod@4.4.3)
+      '@ai-sdk/provider': 4.0.9
+      '@ai-sdk/provider-utils': 5.0.34(zod@4.4.3)
       zod: 4.4.3
 
   ajv-draft-04@1.0.0(ajv@8.18.0):
@@ -12871,6 +12898,8 @@ snapshots:
   undici-types@8.3.0: {}
 
   undici@7.25.0: {}
+
+  undici@7.29.0: {}
 
   unicorn-magic@0.3.0: {}
 
