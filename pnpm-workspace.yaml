@@ -26,12 +26,12 @@ catalog:
   jsdom: ^29.1.0
 
   # Types
-  "@types/node": ^25.9.3
+  "@types/node": ^26.4.0
   "@types/react": ^19.2.14
   "@types/react-dom": ^19.2.3
 
   # Shared runtime
   "@hookform/resolvers": ^5.9.1
-  gpt-tokenizer: ^3.4.0
+  gpt-tokenizer: ^4.0.0
   react-resizable-panels: ^4.11.2
   zod: ^4.4.3

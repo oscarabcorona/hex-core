@@ -2304,7 +2304,7 @@
         "tanstack"
       ],
       "compositionTags": [],
-      "tokenBudget": 4810,
+      "tokenBudget": 5075,
       "degree": 11,
       "exports": [
         "DataTable",
@@ -2318,6 +2318,7 @@
         "TableHead",
         "TableHeader",
         "TableRow",
+        "dataTableFeatures",
         "horizontalListSortingStrategy",
         "rectSortingStrategy",
         "useSortableItem",
@@ -2335,6 +2336,7 @@
         "TableHead": "ui/table",
         "TableHeader": "ui/table",
         "TableRow": "ui/table",
+        "dataTableFeatures": "ui/data-table",
         "horizontalListSortingStrategy": "ui/dnd",
         "rectSortingStrategy": "ui/dnd",
         "useSortableItem": "ui/dnd",

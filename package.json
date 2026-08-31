@@ -36,28 +36,28 @@
 		"@types/node": "catalog:",
 		"eslint": "catalog:",
 		"eslint-config-prettier": "^10.1.8",
-		"eslint-plugin-jsdoc": "^63.0.2",
+		"eslint-plugin-jsdoc": "^64.3.2",
 		"eslint-plugin-react-hooks": "^7.1.1",
 		"gpt-tokenizer": "catalog:",
 		"jsdom": "catalog:",
-		"playwright": "^1.59.1",
+		"playwright": "^1.62.1",
 		"prettier": "^3.8.3",
 		"tsx": "catalog:",
 		"turbo": "^2.3.0",
 		"typescript": "catalog:",
-		"typescript-eslint": "^8.61.1",
+		"typescript-eslint": "^8.69.0",
 		"vitest": "catalog:"
 	},
 	"packageManager": "pnpm@9.15.0",
 	"engines": {
-		"node": ">=20"
+		"node": ">=22"
 	},
 	"pnpm": {
 		"overrides": {
 			"react": "19.2.5",
 			"react-dom": "19.2.5",
 			"react-hook-form": "^7.78.0",
-			"@radix-ui/react-dialog": "^1.1.17"
+			"@radix-ui/react-dialog": "^1.1.23"
 		}
 	}
 }

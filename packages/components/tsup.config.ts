@@ -104,6 +104,7 @@ export default defineConfig({
 		"@hookform/resolvers",
 		"zod",
 		"@tanstack/react-table",
+		"@tanstack/table-core",
 		"sonner",
 		"react-day-picker",
 		"date-fns",

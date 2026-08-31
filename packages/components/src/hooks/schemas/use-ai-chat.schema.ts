@@ -39,7 +39,7 @@ export const useAIChatSchema: ComponentSchemaDefinition = {
 		heavyPeer: [
 			{
 				name: "@ai-sdk/react",
-				version: "^3.0.0",
+				version: "^3.0.0 || ^4.0.0",
 				bundleKbGzip: 18,
 				reason:
 					"AI SDK v5 React adapter — provides the underlying useChat hook and SSE streaming transport.",

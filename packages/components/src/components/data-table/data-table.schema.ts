@@ -7,7 +7,7 @@ export const dataTableSchema: ComponentSchemaDefinition = {
 	category: "component",
 	subcategory: "data",
 	props: [
-		{ name: "columns", type: "object", required: true, description: "ColumnDef<TData, TValue>[] from @tanstack/react-table" },
+		{ name: "columns", type: "object", required: true, description: "ColumnDef<DataTableFeatures, TData, TValue>[] from @tanstack/react-table (v9 takes a leading features generic)" },
 		{ name: "data", type: "object", required: true, description: "Array of row data" },
 		{
 			name: "caption",
@@ -47,7 +47,7 @@ export const dataTableSchema: ComponentSchemaDefinition = {
 	variants: [],
 	slots: [],
 	dependencies: {
-		npm: ["@tanstack/react-table", "clsx", "tailwind-merge"],
+		npm: ["@tanstack/react-table", "@tanstack/table-core", "clsx", "tailwind-merge"],
 		internal: ["lib/utils", "components/table/table", "dnd"],
 		peer: ["react", "react-dom"],
 		heavyPeer: [
