@@ -110,10 +110,10 @@ for (const required of [
 const packageJson = JSON.parse(byPath.get("package.json") ?? "{}") as {
 	dependencies?: Record<string, string>;
 };
-if (packageJson.dependencies?.["@tanstack/react-table"] !== "^8.21.3") {
+if (packageJson.dependencies?.["@tanstack/react-table"] !== "^9.2.4") {
 	fail(
 		"versions",
-		`@tanstack/react-table should pin ^8.21.3, got ${packageJson.dependencies?.["@tanstack/react-table"]}`,
+		`@tanstack/react-table should pin ^9.2.4, got ${packageJson.dependencies?.["@tanstack/react-table"]}`,
 	);
 }
 if (packageJson.dependencies?.["@dnd-kit/core"]?.startsWith("^") !== true) {

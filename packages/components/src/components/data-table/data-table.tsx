@@ -1,12 +1,14 @@
 "use client";
 
 import * as React from "react";
+import { type ColumnDef, flexRender, useTable } from "@tanstack/react-table";
 import {
-	type ColumnDef,
-	flexRender,
-	getCoreRowModel,
-	useReactTable,
-} from "@tanstack/react-table";
+	columnVisibilityFeature,
+	coreFeatures,
+	createCoreRowModel,
+	type RowData,
+	rowSelectionFeature,
+} from "@tanstack/table-core";
 import {
 	DndProvider,
 	useSortableItem,
@@ -26,6 +28,30 @@ import {
 	TableRow,
 } from "../table/table.js";
 
+/**
+ * Feature set registered on the table instance.
+ *
+ * TanStack v9 is opt-in: an API is only present when its feature module is
+ * registered, so each entry here is load-bearing for a call site below.
+ * `coreRowModel` replaces v8's `getCoreRowModel()` option and now lives in
+ * the feature slot. `rowSelectionFeature` backs `row.getIsSelected()`;
+ * `columnVisibilityFeature` backs `row.getVisibleCells()`. Dropping either
+ * one turns its call site into a type error rather than a silent no-op.
+ *
+ * Consumers that need sorting/filtering/pagination compose their own
+ * feature set with `createSortedRowModel()` et al. and drive the table
+ * themselves — this component intentionally stays core-only.
+ */
+export const dataTableFeatures = {
+	...coreFeatures,
+	rowSelectionFeature,
+	columnVisibilityFeature,
+	coreRowModel: createCoreRowModel(),
+};
+
+/** Feature set backing {@link DataTableProps.columns}. */
+export type DataTableFeatures = typeof dataTableFeatures;
+
 // Local declaration to avoid pulling @types/node into the package's
 // type graph just for one NODE_ENV check.
 declare const process: { env?: { NODE_ENV?: string } } | undefined;
@@ -43,9 +69,10 @@ function isProd(): boolean {
  * drag rows to reorder, and `onRowReorder` fires with the new ID order.
  *
  * @template TData - Row data type. Cell value types are inferred per column by TanStack.
+ *   Constrained to TanStack's `RowData` (an object or array shape) since v9.
  */
-export interface DataTableProps<TData> {
-	columns: ColumnDef<TData, unknown>[];
+export interface DataTableProps<TData extends RowData> {
+	columns: ColumnDef<DataTableFeatures, TData, unknown>[];
 	data: TData[];
 	/**
 	 * Visible caption rendered below the table. Announced by screen readers
@@ -85,7 +112,7 @@ export interface DataTableProps<TData> {
  * @param props - Columns, data, optional labelling, and optional reorder support
  * @returns A styled Table rendered from the TanStack row model
  */
-export function DataTable<TData>({
+export function DataTable<TData extends RowData>({
 	columns,
 	data,
 	caption,
@@ -106,10 +133,10 @@ export function DataTable<TData>({
 		);
 	}
 
-	const table = useReactTable({
+	const table = useTable({
+		features: dataTableFeatures,
 		data,
 		columns,
-		getCoreRowModel: getCoreRowModel(),
 		getRowId,
 	});
 

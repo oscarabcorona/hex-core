@@ -43,7 +43,7 @@ export { ColorPicker, type ColorPickerProps } from "./components/color-picker/co
 export { Combobox, type ComboboxOption, type ComboboxProps } from "./components/combobox/combobox.js";
 export { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "./components/command/command.js";
 export { ContextMenu, ContextMenuCheckboxItem, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuLabel, ContextMenuPortal, ContextMenuRadioGroup, ContextMenuRadioItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuTrigger } from "./components/context-menu/context-menu.js";
-export { DataTable, type DataTableProps } from "./components/data-table/data-table.js";
+export { DataTable, dataTableFeatures, type DataTableFeatures, type DataTableProps } from "./components/data-table/data-table.js";
 export { DatePicker, type DatePickerProps } from "./components/date-picker/date-picker.js";
 export { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger, type DialogContentProps } from "./components/dialog/dialog.js";
 export { DndProvider, SortableList, arrayMove, horizontalListSortingStrategy, rectSortingStrategy, useSortableItem, verticalListSortingStrategy, type DndProviderProps, type SortStrategy, type SortableListProps, type UseSortableItemReturn } from "./components/dnd/dnd.js";

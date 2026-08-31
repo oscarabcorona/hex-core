@@ -677,7 +677,7 @@
         "components/table/table",
         "dnd"
       ],
-      "tokenBudget": 4810
+      "tokenBudget": 5075
     },
     {
       "name": "date-picker",

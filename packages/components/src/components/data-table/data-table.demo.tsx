@@ -1,6 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import type { DataTableFeatures } from "./data-table.js";
 import { useMemo, useState } from "react";
 import { Badge, Button, DataTable } from "@hex-core/components";
 
@@ -37,7 +38,7 @@ export function DataTableDemo() {
 	const [data, setData] = useState(initial);
 	const [reorder, setReorder] = useState(false);
 
-	const columns = useMemo<ColumnDef<Payment>[]>(
+	const columns = useMemo<ColumnDef<DataTableFeatures, Payment>[]>(
 		() => [
 			{
 				accessorKey: "status",

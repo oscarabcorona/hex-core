@@ -1,4 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import type { DataTableFeatures } from "./data-table.js";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { DataTable } from "./data-table.js";
@@ -8,7 +9,7 @@ interface Row {
 	name: string;
 }
 
-const columns: ColumnDef<Row>[] = [
+const columns: ColumnDef<DataTableFeatures, Row>[] = [
 	{ accessorKey: "id", header: "Id" },
 	{ accessorKey: "name", header: "Name" },
 ];
