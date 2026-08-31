@@ -57,7 +57,7 @@
 			"react": "19.2.5",
 			"react-dom": "19.2.5",
 			"react-hook-form": "^7.78.0",
-			"@radix-ui/react-dialog": "^1.1.17"
+			"@radix-ui/react-dialog": "^1.1.23"
 		}
 	}
 }
