@@ -1,0 +1,19 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "docs": "0.1.7",
+    "@hex-core/cli": "0.11.1",
+    "@hex-core/components": "1.16.0",
+    "@hex-core/mcp": "0.9.0",
+    "@hex-core/motion": "0.3.3",
+    "@hex-core/payload": "0.6.1",
+    "@hex-core/registry": "0.9.0",
+    "@hex-core/themes": "0.2.6",
+    "@hex-core/tokens": "1.4.1",
+    "@hex-core/regression": "0.0.0"
+  },
+  "changesets": [
+    "dependency-upgrades-2026-08"
+  ]
+}
