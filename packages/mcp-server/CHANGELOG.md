@@ -1,5 +1,12 @@
 # @hex-core/mcp
 
+## 0.9.1-next.0
+
+### Patch Changes
+
+- Updated dependencies [b1720f9]
+  - @hex-core/payload@0.6.2-next.0
+
 ## 0.9.0
 
 ### Minor Changes
