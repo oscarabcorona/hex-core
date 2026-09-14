@@ -38,7 +38,7 @@
 		"@types/node": "catalog:",
 		"eslint": "catalog:",
 		"eslint-config-prettier": "^10.1.8",
-		"eslint-plugin-jsdoc": "^64.3.2",
+		"eslint-plugin-jsdoc": "^64.3.9",
 		"eslint-plugin-react-hooks": "^7.1.1",
 		"gpt-tokenizer": "catalog:",
 		"jsdom": "catalog:",
@@ -49,7 +49,7 @@
 		"tsx": "catalog:",
 		"turbo": "^2.3.0",
 		"typescript": "catalog:",
-		"typescript-eslint": "^8.69.0",
+		"typescript-eslint": "^8.70.0",
 		"vitest": "catalog:"
 	},
 	"packageManager": "pnpm@9.15.0",
