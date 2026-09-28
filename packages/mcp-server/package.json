@@ -56,7 +56,7 @@
 	"dependencies": {
 		"@hex-core/payload": "workspace:^",
 		"@hex-core/registry": "workspace:^",
-		"@modelcontextprotocol/ext-apps": "^1.7.5",
+		"@modelcontextprotocol/ext-apps": "^2.0.3",
 		"@modelcontextprotocol/sdk": "^1.29.0",
 		"zod": "catalog:"
 	},
