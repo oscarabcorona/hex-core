@@ -1,4 +1,23 @@
+# Dependabot config.
+#
+# `pnpm-workspace.yaml` `catalog:` is this repo's single source of truth for
+# every version shared by two or more packages. Dependabot has no `catalog:`
+# awareness: it reads each `directory:` independently, sees the resolved
+# version behind `catalog:`, and opens one PR per directory for the same
+# dependency. That is how a single `typescript` bump produced five identical
+# PRs (#204, #205, #208, #209, #210) — each of which would have hardcoded a
+# literal range back into a package manifest, undoing the catalog.
+#
+# Fix: the per-package entries below `ignore` every catalogged dependency, so
+# a shared dep is proposed once, against the root, where the catalog lives.
+# Their remaining job is real: each still watches deps genuinely local to that
+# package (radix + @tanstack in components, @inquirer/commander in cli,
+# @modelcontextprotocol in mcp-server, culori/postcss in tokens).
+#
+# Keep the `ignore` list below in sync with the `catalog:` block in
+# pnpm-workspace.yaml when adding a shared dependency.
 version: 2
+
 updates:
   - package-ecosystem: npm
     directory: /
@@ -9,6 +28,19 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+    ignore:
+      # TypeScript 7 is blocked on typescript-eslint, which peers
+      # `typescript: ">=4.8.4 <6.1.0"` — TS 7 is out of range and `pnpm lint`
+      # runs the whole repo through it. Two further blockers sit behind that:
+      # `ignoreDeprecations: "6.0"` in tsconfig.base.json, and
+      # `experimentalDts` in packages/components/tsup.config.ts, which drives
+      # type-decl emit through the TS compiler API.
+      #
+      # Upstream is in progress but unlanded (typescript-eslint#12803 native
+      # parser backend, #10940 tsgo type information). Drop this entry once
+      # typescript-eslint ships a release whose peer range admits TS 7.
+      - dependency-name: "typescript"
+        versions: [">=7.0.0"]
     groups:
       types:
         patterns:
@@ -31,6 +63,23 @@ updates:
     commit-message:
       prefix: chore(docs)
       include: scope
+    ignore:
+      # Shared via `catalog:` — bumped at the root, not per package.
+      - dependency-name: "@hookform/resolvers"
+      - dependency-name: "@testing-library/jest-dom"
+      - dependency-name: "@testing-library/react"
+      - dependency-name: "@types/node"
+      - dependency-name: "@types/react"
+      - dependency-name: "@types/react-dom"
+      - dependency-name: "eslint"
+      - dependency-name: "gpt-tokenizer"
+      - dependency-name: "jsdom"
+      - dependency-name: "react-resizable-panels"
+      - dependency-name: "tsup"
+      - dependency-name: "tsx"
+      - dependency-name: "typescript"
+      - dependency-name: "vitest"
+      - dependency-name: "zod"
 
   - package-ecosystem: npm
     directory: /packages/components
@@ -40,6 +89,23 @@ updates:
     commit-message:
       prefix: chore(components)
       include: scope
+    ignore:
+      # Shared via `catalog:` — bumped at the root, not per package.
+      - dependency-name: "@hookform/resolvers"
+      - dependency-name: "@testing-library/jest-dom"
+      - dependency-name: "@testing-library/react"
+      - dependency-name: "@types/node"
+      - dependency-name: "@types/react"
+      - dependency-name: "@types/react-dom"
+      - dependency-name: "eslint"
+      - dependency-name: "gpt-tokenizer"
+      - dependency-name: "jsdom"
+      - dependency-name: "react-resizable-panels"
+      - dependency-name: "tsup"
+      - dependency-name: "tsx"
+      - dependency-name: "typescript"
+      - dependency-name: "vitest"
+      - dependency-name: "zod"
 
   - package-ecosystem: npm
     directory: /packages/cli
@@ -49,6 +115,23 @@ updates:
     commit-message:
       prefix: chore(cli)
       include: scope
+    ignore:
+      # Shared via `catalog:` — bumped at the root, not per package.
+      - dependency-name: "@hookform/resolvers"
+      - dependency-name: "@testing-library/jest-dom"
+      - dependency-name: "@testing-library/react"
+      - dependency-name: "@types/node"
+      - dependency-name: "@types/react"
+      - dependency-name: "@types/react-dom"
+      - dependency-name: "eslint"
+      - dependency-name: "gpt-tokenizer"
+      - dependency-name: "jsdom"
+      - dependency-name: "react-resizable-panels"
+      - dependency-name: "tsup"
+      - dependency-name: "tsx"
+      - dependency-name: "typescript"
+      - dependency-name: "vitest"
+      - dependency-name: "zod"
 
   - package-ecosystem: npm
     directory: /packages/mcp-server
@@ -58,15 +141,27 @@ updates:
     commit-message:
       prefix: chore(mcp)
       include: scope
+    ignore:
+      # Shared via `catalog:` — bumped at the root, not per package.
+      - dependency-name: "@hookform/resolvers"
+      - dependency-name: "@testing-library/jest-dom"
+      - dependency-name: "@testing-library/react"
+      - dependency-name: "@types/node"
+      - dependency-name: "@types/react"
+      - dependency-name: "@types/react-dom"
+      - dependency-name: "eslint"
+      - dependency-name: "gpt-tokenizer"
+      - dependency-name: "jsdom"
+      - dependency-name: "react-resizable-panels"
+      - dependency-name: "tsup"
+      - dependency-name: "tsx"
+      - dependency-name: "typescript"
+      - dependency-name: "vitest"
+      - dependency-name: "zod"
 
-  - package-ecosystem: npm
-    directory: /packages/registry
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: chore(registry)
-      include: scope
+  # packages/registry declares only `catalog:` and `workspace:` deps, so this
+  # entry can produce nothing but catalog-duplicating noise. Restore it if the
+  # package ever takes on a dependency of its own.
 
   - package-ecosystem: npm
     directory: /packages/tokens
@@ -76,6 +171,23 @@ updates:
     commit-message:
       prefix: chore(tokens)
       include: scope
+    ignore:
+      # Shared via `catalog:` — bumped at the root, not per package.
+      - dependency-name: "@hookform/resolvers"
+      - dependency-name: "@testing-library/jest-dom"
+      - dependency-name: "@testing-library/react"
+      - dependency-name: "@types/node"
+      - dependency-name: "@types/react"
+      - dependency-name: "@types/react-dom"
+      - dependency-name: "eslint"
+      - dependency-name: "gpt-tokenizer"
+      - dependency-name: "jsdom"
+      - dependency-name: "react-resizable-panels"
+      - dependency-name: "tsup"
+      - dependency-name: "tsx"
+      - dependency-name: "typescript"
+      - dependency-name: "vitest"
+      - dependency-name: "zod"
 
   - package-ecosystem: github-actions
     directory: /
